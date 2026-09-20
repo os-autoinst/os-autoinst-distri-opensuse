@@ -19,6 +19,7 @@ our @EXPORT_OK = qw(
   record_storage_info
   create_loop_backing_file
   attach_loop_device
+  create_zoned_nullblk
   start_block_trace
   stop_block_trace
   count_block_writes
@@ -125,6 +126,68 @@ sub attach_loop_device {
         die "Failed to parse loop device from: $output" unless $loop_dev;
         return $loop_dev;
     }
+}
+
+=head2 create_zoned_nullblk
+
+ create_zoned_nullblk(%opts);
+
+Creates a zoned null_blk device via configfs.
+
+Arguments:
+  %opts - Optional parameters:
+    blocksize     => block size in bytes (default: 4096)
+    zone_size     => zone size in MB (default: 256)
+    zone_nr_conv  => number of conventional zones (default: 4)
+    zone_nr_seq   => number of sequential zones (default: 16)
+    timeout       => timeout in seconds (default: 300)
+
+This function loads the null_blk module with nr_devices=0, finds the first
+available null_blk device index, creates and configures the zoned device
+through configfs, enables it, and sets the mq-deadline scheduler.
+
+Returns: the device path (e.g., '/dev/nullb0')
+
+=cut
+
+sub create_zoned_nullblk {
+    my (%opts) = @_;
+    my $bs = $opts{blocksize} // 4096;
+    my $zs = $opts{zone_size} // 256;
+    my $nr_conv = $opts{zone_nr_conv} // 4;
+    my $nr_seq = $opts{zone_nr_seq} // 16;
+    my $timeout = $opts{timeout} // 300;
+
+    assert_script_run('modprobe null_blk nr_devices=0', $timeout);
+
+    my $nid = script_output('for i in {0..256}; do test -b /dev/nullb$i || { echo $i; break; }; done');
+    die "Unable to find a free null_blk device index" if (!defined $nid || $nid !~ /^\d+$/);
+
+    my $dev = "/sys/kernel/config/nullb/nullb$nid";
+    assert_script_run("mkdir $dev", $timeout);
+
+    my $cap = $zs * ($nr_conv + $nr_seq);
+
+    assert_script_run("echo $bs > $dev/blocksize", $timeout);
+    assert_script_run("echo 0 > $dev/completion_nsec", $timeout);
+    assert_script_run("echo 0 > $dev/irqmode", $timeout);
+    assert_script_run("echo 2 > $dev/queue_mode", $timeout);
+    assert_script_run("echo 1024 > $dev/hw_queue_depth", $timeout);
+    assert_script_run("echo 1 > $dev/memory_backed", $timeout);
+    assert_script_run("echo 1 > $dev/zoned", $timeout);
+
+    assert_script_run("echo $cap > $dev/size", $timeout);
+    assert_script_run("echo $zs > $dev/zone_size", $timeout);
+    assert_script_run("echo $nr_conv > $dev/zone_nr_conv", $timeout);
+
+    assert_script_run("echo 1 > $dev/power", $timeout);
+
+    assert_script_run("udevadm settle || sleep 2", $timeout);
+    assert_script_run("test -b /dev/nullb$nid", $timeout);
+
+    script_run("echo mq-deadline > /sys/block/nullb$nid/queue/scheduler");
+
+    return "/dev/nullb$nid";
 }
 
 =head2 start_block_trace

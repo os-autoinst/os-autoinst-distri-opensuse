@@ -28,7 +28,7 @@ use registration;
 use version_utils qw(is_transactional is_sle_micro is_sle);
 use Utils::Architectures 'is_ppc64le';
 use transactional;
-use Kernel::block_dev qw(create_loop_backing_file attach_loop_device);
+use Kernel::block_dev qw(create_loop_backing_file attach_loop_device create_zoned_nullblk);
 use Kernel::nfs qw(setup_pnfs_client verify_pnfs_block_layout);
 use List::Util 'sum';
 use rdma;
@@ -58,10 +58,7 @@ sub setup_xfstests_devices {
 
     # ==================== Stage 1: Device Creation ====================
     if ($mode eq 'zoned') {
-        my $ZONE_CREATER = '/opt/nullblk-zoned.sh';
-        assert_script_run("curl -o $ZONE_CREATER " . data_url('xfstests/nullblk-zoned.sh'));
-        assert_script_run("chmod a+x $ZONE_CREATER");
-        script_run("for i in {1..6}; do $ZONE_CREATER 4096 256 4 16; done");
+        create_zoned_nullblk() for (1 .. 6);
 
         $test_dev = '/dev/nullb0';
         @scratch_devs = map { "/dev/nullb$_" } (1 .. 5);
@@ -481,10 +478,8 @@ sub setup_nfs_server {
         setup_ktls;
     }
     if ($nfsversion =~ 'pnfs') {
-        my %para;
-        $para{fstype} = 'nfs';
-        $para{size} = str_to_mb(script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'"));
-        create_loop_device_by_rootsize(\%para);
+        my $rootsize = script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'");
+        setup_xfstests_devices({mode => 'loop', fstype => 'nfs', size => $rootsize});
         assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && mount /dev/loop0 /opt/export/test && mount /dev/loop1 /opt/export/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,pnfs,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,pnfs,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
         record_info('pNFS export dev', script_output('df -Th /opt/export/test /opt/export/scratch', proceed_on_failure => 1));
     }
