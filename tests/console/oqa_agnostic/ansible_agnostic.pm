@@ -10,9 +10,10 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call systemctl);
-use version_utils qw(is_sle is_transactional);
+use version_utils qw(is_sle is_transactional is_jeos);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
+use Utils::Architectures qw(is_s390x);
 use agnosticTestRunner;
 
 my @pkgs = qw(sudo git-core ansible);
@@ -42,6 +43,9 @@ sub run {
     }
 
     systemctl 'start sshd';
+
+    # s390x MinimalVM with wicked takes its transient hostname from the VLAN
+    assert_script_run('hostnamectl --transient hostname susetest') if is_s390x && is_jeos && is_sle('<16');
 
     # Provide the ansible collection used by the test and set the login user
     assert_script_run 'mkdir -p ~/ansible_collections/openqa';
