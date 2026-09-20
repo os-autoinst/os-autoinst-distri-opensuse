@@ -114,6 +114,8 @@ Example:
 
 =item B<timeout> - override default bmwqemu timeout for `az cli` command
 
+=item B<failok> - Ignore error messages and return result. Default: False
+
 =back
 =cut
 
@@ -157,8 +159,8 @@ sub az(%args) {
         quiet => $args{quiet});
 
     die "Error messages present during az cli execution:\n$result{error}\n"
-      if $result{error};
-    die "AZ CLI returned non zero value:$result{rc}\n" if $result{error};
+      if ($result{error} && !$args{failok});
+    die "AZ CLI returned non zero value:$result{rc}\n" if ($result{rc} && !$args{failok});
 
     # Delete unique temporary files
     assert_script_run("rm $err_file $out_file", quiet => '1');
@@ -2053,6 +2055,8 @@ B<Return value:>
                         lease can be between 15 and 60 seconds. A value of -1 indicates an infinite
                         lease. Default: -1 (infinite).
 
+=item B<failok> - Ignore error messages and return result. Default: False
+
 =back
 =cut
 
@@ -2073,7 +2077,7 @@ sub az_storage_blob_lease_acquire(%args) {
         # decode_json() would cause function to fail instead of just returning
     );
 
-    my $az_out = az(az_args => $az_args, timeout => 180);
+    my $az_out = az(az_args => $az_args, timeout => 180, failok => $args{failok});
     my $lease_id = $az_out->{output};
     record_info('AZ CLI out', "AZ CLI returned output:\n $lease_id");
 
