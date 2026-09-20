@@ -48,9 +48,7 @@ sub run {
 
     record_info 'receive mail', 'Run mutt as a user to read the mail';
     enter_cmd "mutt";
-    if (check_screen 'mutt-verify-certificate', 0) {
-        send_key 'q';
-    }
+    assert_screen 'mutt-verify-certificate';
     send_key 'a';
     assert_screen 'mutt-message-list';
     send_key 'ret';
