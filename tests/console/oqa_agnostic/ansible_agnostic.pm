@@ -16,12 +16,8 @@ use transactional qw(trup_call check_reboot_changes);
 use Utils::Architectures qw(is_s390x);
 use agnosticTestRunner;
 
-my @pkgs = qw(sudo git-core ansible);
-
-sub run {
-    select_serial_terminal;
-
-    # ansible and ansible-test come from different modules depending on the product
+# ansible comes from different modules per product (poo#181136, poo#177528)
+sub enable_ansible_modules {
     if (is_sle('<15-SP6') && !main_common::is_updates_tests()) {
         add_suseconnect_product(get_addon_fullname('desktop'));
         add_suseconnect_product(get_addon_fullname('sdk'));
@@ -32,13 +28,19 @@ sub run {
         add_suseconnect_product(get_addon_fullname('phub'));
         zypper_call '--gpg-auto-import-keys ref';
     }
+}
 
+sub run {
+    select_serial_terminal;
+    enable_ansible_modules();
+
+    # ansible-test and python3-yamllint are not shipped on SLE (bsc#1210875)
+    my @pkgs = qw(sudo git-core ansible);
     push @pkgs, qw(ansible-test python3-yamllint) unless is_sle;
     if (is_transactional) {
         trup_call("pkg install @pkgs");
         check_reboot_changes;
-    }
-    else {
+    } else {
         zypper_call "in @pkgs";
     }
 
