@@ -91,3 +91,4 @@ schedule:
     - console/journalctl
     - console/tar
     - console/sevenzip
+    - console/opencode
