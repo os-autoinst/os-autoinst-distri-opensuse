@@ -190,13 +190,14 @@ NO_ADD_MAINT_TEST_REPOS | boolean | true |  Do not add again (and duplicate) rep
 NOAUTOLOGIN | boolean | false | Indicates disabled auto login.
 NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
-NVIDIA_REPO | string | '' | Define the external repo for NVIDIA driver.
+NVIDIA_CUDA_GCC_VERSION | string | '' | Define which gcc version to use for building cuda samples.
 NVIDIA_CUDA_REPO | string | '' | Define the external repo for NVIDIA cuda.
 NVIDIA_CUDA_SAMPLES_BRANCH | string | 'v13.3' | Define which branch or tag should be cloned from cuda-samples repo.
-NVIDIA_CUDA_GCC_VERSION | string | '' | Define which gcc version to use for building cuda samples.
+NVIDIA_CUDA_VERSION | string | '' | Define the CUDA toolkit package version to use
 NVIDIA_DRIVER_BRANCH | string | 'G06' | Define NVIDIA driver branch (G06, G07).
 NVIDIA_EXPECTED_GPU_REGEX | string | '' | Define which GPU should the test expect.
 NVIDIA_FIRST_RELEASE | boolean | false | Install NVIDIA driver directly from maintenance update repository for kernel tests.
+NVIDIA_REPO | string | '' | Define the external repo for NVIDIA driver.
 OCI_RUNTIME | string | '' | Define the OCI runtime to use in container tests, if set.
 OPENSHIFT_CONFIG_REPO | string | '' | Git repo of the OpenShift configuration and packages needed by tests/containers/openshift_setup.pm. 
 OPT_KERNEL_PARAMS | string | Specify optional kernel command line parameters on bootloader settings page of the installer.
