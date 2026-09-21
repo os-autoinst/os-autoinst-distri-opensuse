@@ -216,8 +216,7 @@ sub tb_delete_email {
 
 sub server_hostname_workaround {
     if (check_screen 'thunderbird_in-hostname-start-with-dot', 3) {
-        record_info 'bsc#1191866';
-        # have to edit both hostnames
+        # have to edit both hostnames, refer to bsc#1191866
         assert_and_click 'thunderbird_in-hostname-start-with-dot';
         send_key 'delete';
     }
