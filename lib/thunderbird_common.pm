@@ -15,12 +15,12 @@ use warnings;
 use base "x11test";
 use testapi;
 use utils;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle);
 
 use base "Exporter";
 use Exporter;
 
-our @EXPORT = qw(tb_setup_account tb_send_message tb_check_email server_hostname_workaround);
+our @EXPORT = qw(tb_setup_account tb_send_message tb_check_email tb_delete_email server_hostname_workaround);
 
 =head2 tb_setup_account
  tb_setup_account($proto, $account);
@@ -51,16 +51,14 @@ sub tb_setup_account {
     if (check_screen 'thunderbird-new-gui') {
         $new_gui = 1;
         wait_still_screen(2, 4);
+        send_key 'ctrl-a';
         type_string "SUSE Test";
         send_key 'tab';
         wait_screen_change { type_string "$mail_box" };
         send_key 'tab';
-        wait_screen_change { type_string "$mail_passwd" };
-        wait_still_screen(2, 4);
-        send_key_until_needlematch('thunderbird_configure_manually', 'tab', 4, 1);
+        assert_and_click('thunderbird_configure_manually');
         send_key 'spc';    # configure manually
         wait_still_screen(2, 4);
-        assert_and_click 'thunderbird_know-your-rights';
     }
     else {
         send_key "alt-n";
@@ -80,84 +78,40 @@ sub tb_setup_account {
         }
         assert_and_click 'thunderbird_wizard-imap-selected';
         assert_and_click 'thunderbird_wizard-imap-pop-open';
-        if (is_tumbleweed) {
-            assert_and_click 'thunderbird_SSL_pop3-selection-click-TW';
-            assert_and_click 'thunderbird_SSL_auth_click';
-            assert_and_click 'thunderbird_wizard-pop-done';
-        }
-        else {
-            # If use multimachine, select correct needles to configure thunderbird.
-            if ($hostname eq 'client') {
-                $self->server_hostname_workaround;
-                assert_and_click 'thunderbird_SSL_auth_click';
-                wait_still_screen(2);
-                send_key 'down';
-                send_key 'ret';
-            }
-            assert_screen "thunderbird_wizard-$proto-selected";
-        }
     }
 
     if ($new_gui) {
-        # If use multimachine, select correct needles to configure thunderbird.
-        if ($hostname eq 'client') {
-            $self->server_hostname_workaround;
-            if (check_screen 'thunderbird_username', 2) {
-                record_info 'bsc#1191853';
-                assert_and_click 'thunderbird_username';
-                send_key 'ctrl-a';
-                type_string 'admin';
-            }
-            send_key_until_needlematch 'thunderbird_wizard-retest', 'tab';
-            assert_and_click 'thunderbird_wizard-retest';
-            send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 16, 1;
-            assert_and_click 'thunderbird_wizard-done';
-            wait_still_screen(2, 4);
-            assert_and_click 'thunderbird_I-understand-the-risks';
-            assert_and_click 'thunderbird_I-understand-the-risks-confirm';
-            my $count = 1;
-            while (1) {
-                die 'Repeating on security_exception too much' if $count++ == 5;
-                click_lastmatch if check_screen('thunderbird_confirm_security_exception', 2);
-                wait_still_screen(2, 4);
-                last if check_screen('thunderbird_finish');
-            }
-            assert_and_click 'thunderbird_finish';
-            assert_and_click "thunderbird_skip-system-integration";
-            assert_and_click "thunderbird_get-messages";
-        }
-        else {
-            # get to the end of configutration options
-            for (1 .. 17) { send_key 'tab' }
-            assert_and_click 'thunderbird_startssl-selected-for-imap';
-            wait_still_screen(1);
-            assert_and_click 'thunderbird_security-select-none';
-            wait_still_screen(1);
-            assert_and_click 'thunderbird_startssl-selected-for-smtp';
-            wait_still_screen(1);
-            assert_and_click 'thunderbird_security-select-none';
-            if (check_screen 'thunderbird_username', 2) {
-                record_info 'bsc#1191853';
-                assert_and_click 'thunderbird_username';
-                send_key 'ctrl-a';
-                type_string 'admin';
-            }
-            send_key_until_needlematch 'thunderbird_wizard-retest', 'tab';
-            assert_and_click 'thunderbird_wizard-retest';
-            send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 16, 1;
-            assert_and_click 'thunderbird_wizard-done';
-            wait_still_screen(2);
-            send_key 'end';    # go to the bottom to see whole button and checkbox
-            wait_still_screen(2);
-            assert_and_click 'thunderbird_I-understand-the-risks';
-            assert_and_click 'thunderbird_I-understand-the-risks-confirm';
-            wait_still_screen(2);
-            assert_and_click 'thunderbird_finish';
-            # skip additional integrations
-            assert_and_click "thunderbird_skip-system-integration" if check_screen 'thunderbird_skip-system-integration', 10;
-            assert_and_click "thunderbird_select-inbox";
-            assert_and_click "thunderbird_get-messages";
-        }
+        # get to the end of configutration options
+        $self->server_hostname_workaround;
+        assert_and_click 'thunderbird_username';
+        send_key 'ctrl-a';
+        type_string 'admin';
+        assert_and_click 'thunderbird_startssl-selected-for-imap';
+        wait_still_screen(1);
+        assert_and_click 'thunderbird_security-select-none';
+        wait_still_screen(1);
+        assert_and_click('thunderbird_continue');
+        wait_still_screen(2, 4);
+        $self->server_hostname_workaround;
+        assert_and_click 'thunderbird_username';
+        send_key 'ctrl-a';
+        type_string 'admin';
+        assert_and_click 'thunderbird_startssl-selected-for-smtp';
+        wait_still_screen(1);
+        assert_and_click 'thunderbird_security-select-none';
+        wait_still_screen(1);
+        assert_and_click 'thunderbird_wizard-retest';
+        assert_and_click('thunderbird_continue');
+        wait_still_screen(1);
+        assert_screen('thunderbird_password');
+        wait_screen_change { type_string "$mail_passwd" };
+        assert_and_click('thunderbird_continue');
+        wait_still_screen(1);
+        assert_and_click 'thunderbird_finish';
+        # skip additional integrations
+        assert_and_click "thunderbird_skip-system-integration" if check_screen 'thunderbird_skip-system-integration', 10;
+        assert_and_click "thunderbird_select-inbox";
+        assert_and_click "thunderbird_get-messages";
     }
     else {
         # If use multimachine, select correct needles to configure thunderbird.
@@ -239,6 +193,16 @@ sub tb_check_email {
     type_string "$mail_search";
     wait_still_screen 2, 3;
     send_key_until_needlematch "thunderbird_sent-message-received", 'shift-f5', 5, 30;
+}
+
+=head2 tb_delete_email
+ tb_delete_email($mail_search);
+Delete for the selected emails.
+C<$mail_search> may be an email subject to search for.
+=cut
+
+sub tb_delete_email {
+    my ($self) = @_;
 
     # delete the message
     assert_and_click "thunderbird_select-message";
@@ -255,9 +219,6 @@ sub server_hostname_workaround {
         record_info 'bsc#1191866';
         # have to edit both hostnames
         assert_and_click 'thunderbird_in-hostname-start-with-dot';
-        send_key 'delete';
-        for (1 .. 6) { send_key 'tab' }
-        assert_and_click 'thunderbird_out-hostname-start-with-dot';
         send_key 'delete';
     }
 }
