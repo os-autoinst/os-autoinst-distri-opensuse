@@ -63,6 +63,7 @@
       <li><a href="#schedule_tasks_on_boot_systemd">schedule_tasks_on_boot_systemd</a></li>
       <li><a href="#config_guest_installation_method">config_guest_installation_method</a></li>
       <li><a href="#config_guest_installation_media">config_guest_installation_media</a></li>
+      <li><a href="#convert_raw_backing_image">convert_raw_backing_image</a></li>
       <li><a href="#config_guest_installation_extra_args">config_guest_installation_extra_args</a></li>
       <li><a href="#config_guest_installation_automation_registration">config_guest_installation_automation_registration</a></li>
       <li><a href="#config_guest_firstboot_provision">config_guest_firstboot_provision</a></li>
@@ -414,6 +415,12 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 <pre><code>config_guest_installation_media($self)</code></pre>
 
 <p>Set [guest_installation_media] to the current major and minor version if it does not match with [guest_version]. This subroutine also help mount nfs share if guest chooses to or has to use iso installation media, for example oracle linux guest uses iso installation media from https://yum.oracle.com/oracle-linux-isos.html. For guest using pre-built virtual disk image which will be downloaded and saved to [guest_storage_backing_path]. Although this subroutine can help correct installation media major and minor version if necessary, it is just auxiliary functionality and end user should always pay attendtion and use the meaningful and correct guest parameters and profile. If guest chooses to use iso installation media, then this iso media should be available on INSTALLATION_MEDIA_NFS_SHARE and mounted locally at INSTALLATION_MEDIA_LOCAL_SHARE. If guest_installation_media contains URL address to ISO media, it is supposed to be used directly instead of being mounted from INSTALLATION_MEDIA_NFS_SHARE.</p>
+
+<h2 id="convert_raw_backing_image">convert_raw_backing_image</h2>
+
+<pre><code>convert_raw_backing_image($self, _cluster_size =&gt; $cluster_size)</code></pre>
+
+<p>Convert a raw guest backing image to qcow2 with the requested cluster size in bytes. The cluster size is required when the backing image format is raw and must be a positive integer. The converted image is checked and the guest storage options are updated to use it. This subroutine returns without changes when the backing image format is not raw.</p>
 
 <h2 id="config_guest_installation_extra_args">config_guest_installation_extra_args</h2>
 
