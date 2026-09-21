@@ -57,8 +57,8 @@ sub run {
         die('Some services failed to start.') if ($failed);
     }
 
-    # waagent, cloud-init, google agents not available in Micro
-    unless (is_sle_micro) {
+    # waagent, cloud-init, google agents not available in sle micro <= 5.4, according to bsc#1280068
+    unless (is_sle_micro('<=5.4')) {
         if (is_azure) {
             # waagent (Azure Linux VM Agent)
             record_info('waagent', $instance->ssh_script_output('systemctl --no-pager --full status waagent*', proceed_on_failure => 1));
