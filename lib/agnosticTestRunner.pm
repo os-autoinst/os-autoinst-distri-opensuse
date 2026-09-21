@@ -36,6 +36,7 @@ sub new {
     $args->{data_url_path} //= $args->{domain} . '/openqa_agnostic/' . $args->{language} . '/' . $args->{name};
     $args->{helper_path} //= 'openqa_agnostic/lib/helper.sh';
     $args->{run_command} //= 'runtest';
+    $args->{run_timeout} //= 90;
     $args->{skip_phub} //= 0;
     return bless $args, $class;
 }
@@ -127,7 +128,7 @@ sub run_test {
     my $command = 'cd ' . $self->{test_dir} . ' && chmod +x ' . $run_script
       . ' && ( set -o pipefail; ' . $run_script . " 2>&1 | tee $output_log )"
       . ' && mv ' . $result_src . ' ' . $self->{result_file};
-    assert_script_run($command, quiet => 1);
+    assert_script_run($command, timeout => $self->{run_timeout}, quiet => 1);
     upload_logs($output_log, failok => 1);
     enter_cmd('reset');
     return $self;
