@@ -436,10 +436,10 @@ sub check_host_os {
         unless (($_peerosver > $_localosver) or ($_peerosver == $_localosver and $_peerossp >= $_localossp)) {
             $_ret = 1;
             if ($args{_role} eq 'src') {
-                croak("Destination os $_peerosver-sp$_peerossp falls behind source os $_localosver-sp$_localossp");
+                croak("Destination os $_peerosver-sp$_peerossp falls behind source os $_localosver-sp$_localossp(Backward migration not supported).");
             }
             elsif ($args{_role} eq 'dst') {
-                record_info("Source os $_peerosver-sp$_peerossp  falls behind destination os $_localosver-sp$_localossp");
+                record_info("Source os $_peerosver-sp$_peerossp  falls behind destination os $_localosver-sp$_localossp(Backward migration not supported).");
             }
         }
     }
