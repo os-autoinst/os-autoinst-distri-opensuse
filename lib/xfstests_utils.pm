@@ -596,7 +596,7 @@ sub recover_after_crash {
     my ($self, $test, $fstype, $enable_kdump, $cloud_instance) = @_;
     my ($category, $num) = split(/\//, $test);
     if (is_public_cloud) {
-        $cloud_instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+        $cloud_instance->softreboot();
     }
     else {
         prepare_system_shutdown;

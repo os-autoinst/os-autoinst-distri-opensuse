@@ -271,7 +271,7 @@ sub pc_transactional_call {
     my $ret = _run($instance, _sudo_env("transactional-update -n $cmd"), %opts, _kind => 'transactional');
 
     if (!$no_reboot && grep { $_ == $ret } @{$opts{exitcode}}) {
-        $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+        $instance->softreboot();
     }
     return $ret;
 }
