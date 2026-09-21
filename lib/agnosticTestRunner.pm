@@ -49,26 +49,50 @@ sub latest_java_devel {
     return "java-$majors[-1]-openjdk-devel";
 }
 
+sub _python_version {
+    my $out = script_output('python3 -c "import sys; print(sys.version_info[1])"',
+        proceed_on_failure => 1, quiet => 1, timeout => 10);
+    return ($out =~ /^(\d+)/) ? $1 + 0 : 0;
+}
+
+sub _install_python_deps {
+    my ($self) = @_;
+    return if script_run('python3 -m pytest --version', timeout => 10, quiet => 1) == 0;
+    eval { install_package('python3-pytest', trup_reboot => 1) };
+    if ($@) {
+        record_info('pkg fallback', "zypper cannot install python3-pytest, using pip3");
+        install_package('python3-pip');
+        my $pip_cmd = 'pip3 install pytest';
+        $pip_cmd .= ' --break-system-packages' if _python_version() >= 12;
+        assert_script_run($pip_cmd, timeout => 120);
+    }
+}
+
 sub setup {
     my ($self) = @_;
     my $url = data_url($self->{data_url_path});
+
+    if ($self->{language} eq 'python') {
+        # Version check before PackageHub to avoid wasting 30-60s
+        my $minor = _python_version();
+        if ($minor < 6) {
+            record_info('skip', "Python 3.$minor < 3.6, skipping agnostic test");
+            $self->{skipped} = 1;
+            return $self;
+        }
+    }
 
     if (!$self->{skip_phub} && is_sle('<16.0')) {
         add_suseconnect_product(get_addon_fullname('phub'));
         zypper_call('--gpg-auto-import-keys ref');
     }
 
-    my %lang_deps = (go => 'go gotestsum', python => 'python3-pytest');
-    my $packages = $self->{language} eq 'java' ? latest_java_devel() : $lang_deps{$self->{language}};
-    eval { install_package($packages, trup_reboot => 1) };
-    if ($@) {
-        die $@ unless $self->{language} eq 'python';
-        record_info('pkg fallback', "zypper cannot install $packages, using pip3");
-        install_package('python3-pip');
-        my $pip_cmd = 'pip3 install pytest';
-        my $pyver = script_run('python3 -c "import sys; sys.exit(0 if sys.version_info >= (3,12) else 1)"', timeout => 10);
-        $pip_cmd .= ' --break-system-packages' if defined($pyver) && $pyver == 0;
-        assert_script_run($pip_cmd, timeout => 120);
+    if ($self->{language} eq 'python') {
+        $self->_install_python_deps();
+    } elsif ($self->{language} eq 'go') {
+        install_package('go gotestsum', trup_reboot => 1);
+    } elsif ($self->{language} eq 'java') {
+        install_package(latest_java_devel(), trup_reboot => 1);
     }
 
     # Create test_dir and sibling lib/ for shared helpers in one shot
@@ -94,6 +118,7 @@ sub setup {
 
 sub run_test {
     my ($self) = @_;
+    return $self if $self->{skipped};
     my $run_script = $self->{run_command};
     $run_script = "./$run_script" unless $run_script =~ m{^/|^\./};
     my $result_src = $self->{result_format} eq 'TAP' ? 'results.tap' : 'results.xml';
@@ -110,6 +135,7 @@ sub run_test {
 
 sub parse_results {
     my ($self) = @_;
+    return $self if $self->{skipped};
     parse_extra_log($self->{result_format}, $self->{result_file});
 
     my $content = script_output('cat ' . $self->{result_file}, quiet => 1);
@@ -129,10 +155,16 @@ sub parse_results {
         for my $tc ($dom->find('testcase')->each) {
             my $name = $tc->{name};
             my $failure = $tc->at('failure');
-            if ($failure) {
+            my $error = $tc->at('error');
+            my $skipped = $tc->at('skipped');
+            if ($failure || $error) {
                 $has_failures = 1;
-                my $msg = $failure->{message} || $failure->text || '';
+                my $node = $failure || $error;
+                my $msg = $node->{message} || $node->text || '';
                 record_info("FAILED: $name", $msg, result => 'fail');
+            } elsif ($skipped) {
+                my $msg = $skipped->{message} || '';
+                record_info("SKIPPED: $name", $msg, result => 'ok');
             } else {
                 record_info("PASSED: $name", '', result => 'ok');
             }
@@ -147,7 +179,7 @@ sub parse_results {
 
 sub cleanup {
     my ($self) = @_;
-    assert_script_run('cd ~ && rm -rf ' . $self->{test_dir}, quiet => 1);
+    assert_script_run('cd ~ && rm -rf ' . $self->{test_dir}, quiet => 1) unless $self->{skipped};
     return $self;
 }
 
