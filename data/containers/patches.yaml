@@ -45,9 +45,12 @@ buildx:
 compose:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
   # https://github.com/docker/compose/pull/13564 - test: fix pull failure assertion for Docker v29
+  # https://github.com/docker/compose/pull/14245 - test(e2e): fix TestPullFailure's daemon-specific error assertion
   13214:
     max: "2.39.4"
   13564:
+  14245:
+    min: "5.5.1"
 
 conmon:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
