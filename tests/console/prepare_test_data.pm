@@ -4,10 +4,8 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: prepare test data
-# - As user, get "test.data" from local autoinst service
-# - Run "cpio -id < test.data"
-# - Delete the downloaded CPIO archive again
-# - Run "ls -al data"
+# - As user, get test data from local autoinst service as cpio archive
+# - Extract the cpio archive in place
 # Maintainer: QE Core <qe-core@suse.de>
 
 use Mojo::Base 'consoletest';
@@ -23,8 +21,7 @@ sub run {
     my $timeout = get_var('PREPARE_TEST_DATA_TIMEOUT', 300);
 
     select_console 'user-console';
-    assert_script_run "curl -L -v -f " . autoinst_url('/data') . " | cpio -id", timeout => $timeout;
-    script_run "ls -al data";
+    assert_script_run "curl -L -sS -f " . autoinst_url('/data') . " | cpio -id", timeout => $timeout;
 }
 
 sub test_flags {
