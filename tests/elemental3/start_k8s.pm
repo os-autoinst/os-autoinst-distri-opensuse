@@ -9,6 +9,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use elemental3;
+use serial_terminal qw(select_serial_terminal);
 use utils qw(file_content_replace);
 use Mojo::File qw(path);
 use Carp qw(croak);
