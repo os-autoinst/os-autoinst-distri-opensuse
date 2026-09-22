@@ -146,14 +146,6 @@ sub customize_cmd {
                     "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $cluster_yaml"
                 );
             }
-
-            # Set CertManager version and LCM registry/version
-            file_content_replace(
-                $cluster_yaml,
-                '%CERTMANAGER_VERSION%' => get_required_var('CERTMANAGER_VERSION'),
-                '%LCM_REGISTRY%' => get_required_var('LCM_REGISTRY'),
-                '%LCM_VERSION%' => get_required_var('LCM_VERSION')
-            );
         } else {
             # Remove k8s-preinstall service, as this is only useful
             # for the single-node and multi-node tests

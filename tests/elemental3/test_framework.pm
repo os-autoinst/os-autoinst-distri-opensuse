@@ -75,7 +75,6 @@ sub run {
     # Maybe like this: TESTS_TO_RUN=validatecluster|-selinux true,deployrancher
     my $rancher_url = 'https://releases.rancher.com/server-charts/stable';
     my $rancher_args = 'bootstrapPassword=rancherpassword,replicas=1';
-    my $certmanager_version = get_required_var('CERTMANAGER_VERSION');
     my $rancher_version = get_required_var('RANCHER_VERSION');
     assert_script_run("cd $distro_dir");
     foreach my $test (split(/,/, get_required_var('TESTS_TO_RUN'))) {
@@ -84,7 +83,7 @@ sub run {
         my $opts;
 
         # Rancher Manager options
-        $opts = "-tags=$test -certManagerVersion $certmanager_version -chartsVersion $rancher_version -chartsRepoName rancher -chartsRepoUrl $rancher_url -chartsArgs $rancher_args" if ($test eq 'deployrancher');
+        $opts = "-tags=$test -chartsVersion $rancher_version -chartsRepoName rancher -chartsRepoUrl $rancher_url -chartsArgs $rancher_args" if ($test eq 'deployrancher');
 
         # Add SELinux test in cluster validation
         # NOTE: disable for now, as ECM test framework needs to be adapted
