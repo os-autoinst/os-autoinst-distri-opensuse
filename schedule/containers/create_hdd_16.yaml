@@ -1,8 +1,8 @@
 ---
-name: create_hdd_16.0
+name: create_hdd_16
 description:    >
     Maintainer: qa-c@suse.de.
-    SLES 16.0 HDD creation for container tests in product QA
+    SLES 16.* HDD creation for container tests
 vars:
     INST_AUTO: containers/agama/sle-container-host.jsonnet
 conditional_schedule:
