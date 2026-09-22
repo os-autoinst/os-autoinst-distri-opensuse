@@ -12,7 +12,7 @@ schedule:
     - console/zypper_log
     - console/systemd_wo_udev
     - console/curl_https
-    - console/salt
+    - console/oqa_agnostic/salt_agnostic
     - console/glibc_sanity
     - console/glibc_tunables
     - console/vim
