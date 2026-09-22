@@ -16,6 +16,7 @@ use utils qw(systemctl exec_and_insert_password);
 use hacluster;
 use version_utils qw(is_transactional package_version_cmp);
 use package_utils qw(install_package);
+use transactional qw(trup_call trup_apply);
 
 sub run {
     my $cts_bin = '/usr/share/pacemaker/tests/cts/CTSlab.py';
@@ -59,15 +60,16 @@ sub run {
 
         # Don't do stonith test since this one reboots a node randomly
         # and it's very difficult to handle in MM scenario.
+        my $comment_stonith_test = q{sed -i '/AllTestClasses.append(StonithdTest)/ s/^/#/' $(rpm -ql pacemaker-cts|grep CTStests.py)};
+        $comment_stonith_test = q{sed -i '/StonithdTest,/ s/^/#/' $(rpm -ql pacemaker-cts|grep tests/__init__.py)}
+          if (package_version_cmp($pacemaker_cts_package_version, '2.1.6') >= 0);
+
         if (is_transactional) {
-            push @cmd_seq, '--disable-fencing';
+            # On Immutable systems we need to do more than commenting the test in the python script
+            trup_call "run $comment_stonith_test";
+            trup_apply;
         } else {
-            if (package_version_cmp($pacemaker_cts_package_version, '2.1.6') >= 0) {
-                assert_script_run "sed -i '/StonithdTest,/ s/^/#/' \$(rpm -ql pacemaker-cts|grep tests/__init__.py)";
-            }
-            else {
-                assert_script_run "sed -i '/AllTestClasses.append(StonithdTest)/ s/^/#/' \$(rpm -ql pacemaker-cts|grep CTStests.py)";
-            }
+            assert_script_run $comment_stonith_test;
         }
 
         if (package_version_cmp($pacemaker_cts_package_version, '3.0.1') >= 0) {
