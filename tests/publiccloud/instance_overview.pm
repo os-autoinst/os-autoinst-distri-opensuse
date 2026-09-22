@@ -23,11 +23,10 @@ sub run {
 
     my $instance = $args->{my_instance};
 
+    # Basic system overview. Related commands share one SSH round trip; the
+    # output still reaches the serial log unchanged.
     $instance->ssh_script_run("hostname -f");
-    $instance->ssh_assert_script_run("uname -a");
-
-    $instance->ssh_assert_script_run("cat /etc/os-release");
-
+    $instance->ssh_assert_script_run("uname -a && cat /etc/os-release");
     $instance->ssh_assert_script_run("ps aux | nl");
 
     # Workaround for missing iproute2 package in 15-SP4 CHOST images (bsc#1264714)
@@ -37,12 +36,9 @@ sub run {
     }
 
     my $ip_color = (is_sle('>=15-SP3')) ? '-c=never' : '';
-    $instance->ssh_assert_script_run("ip $ip_color a s");
-    $instance->ssh_assert_script_run("ip $ip_color r s");
-    $instance->ssh_assert_script_run("ip $ip_color -6 r s");
+    $instance->ssh_assert_script_run("ip $ip_color a s && ip $ip_color r s && ip $ip_color -6 r s");
 
-    $instance->ssh_assert_script_run("cat /etc/hosts");
-    $instance->ssh_assert_script_run("cat /etc/resolv.conf");
+    $instance->ssh_assert_script_run("cat /etc/hosts /etc/resolv.conf");
 
     $instance->ssh_assert_script_run("lsblk");
 
