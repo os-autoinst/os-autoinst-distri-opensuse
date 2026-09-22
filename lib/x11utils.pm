@@ -154,8 +154,13 @@ sub ensure_unlocked_desktop {
                     send_key 'ret';
                     wait_still_screen;
                 }
-                assert_screen([qw(locked_screen-typed_password login_screen-typed_password generic-desktop)], timeout => 150);
-                next if match_has_tag 'generic-desktop';
+                # poo#199100
+                if (check_screen([qw(locked_screen-typed_password login_screen-typed_password generic-desktop)], timeout => 150)) {
+                    next if match_has_tag 'generic-desktop';
+                } else {
+                    # First try to unlock did not succeed, so let's retry
+                    next;
+                }
             }
             send_key 'ret';
             if (is_s390x && is_sle('<15-sp3')) {
