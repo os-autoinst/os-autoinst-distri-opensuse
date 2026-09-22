@@ -5,7 +5,7 @@ description: Review OSADO patches, commit ranges, working tree changes, or GitHu
 
 <!-- SPDX-License-Identifier: FSFAP -->
 
-# OSADO patch review
+# OSADO review
 
 Review the requested change. Return findings in the conversation unless the
 user requests another output. A review does not authorize edits or publication
