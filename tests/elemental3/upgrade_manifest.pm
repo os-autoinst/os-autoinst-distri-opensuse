@@ -47,7 +47,7 @@ sub run {
         assert_script_run("kubectl ${ns} rollout status deployment -l k8s-app=kube-dns", timeout => $timeout);
     }
 
-    my $uri = get_container_uri(
+    my $uri = get_artifact_uri(
         url => $totest_path,
         arch => $arch,
         regex =>

@@ -40,7 +40,7 @@ sub run {
 
     if ($tested_container =~ /elemental/) {
         # Basic tests of Elemental container image
-        my $uri = get_container_uri(
+        my $uri = get_artifact_uri(
             url => $totest_path,
             arch => $arch,
             regex => ".*elemental-\([0-9]\\..*\)-\(.*\)"
@@ -55,7 +55,7 @@ sub run {
     } elsif ($tested_container =~ /$k8s/) {
         # Basic tests of K8s container image
         my $k8s_version_prefix = get_required_var('K8S_VERSION_PREFIX');
-        my $uri = get_container_uri(
+        my $uri = get_artifact_uri(
             url => $totest_path,
             arch => $arch,
             regex => ".*${k8s}-tar-\(${k8s_version_prefix}.*\)-\(.*\)"
@@ -67,7 +67,7 @@ sub run {
         die("Missing installer!") unless (join(' ', @files) =~ m/install\.sh/);
     } elsif ($tested_container =~ /lcm/) {
         # Basic tests of Lifecycle Manager container image
-        my $uri = get_container_uri(
+        my $uri = get_artifact_uri(
             url => $totest_path,
             arch => $arch,
             regex => ".*elemental-lifecycle-manager-\(.*\)-\(.*\)"
@@ -79,7 +79,7 @@ sub run {
         die("Missing raw image!") unless (join(' ', @files) =~ m/elemental-lifecycle-manager/);
     } elsif ($tested_container =~ /longhorn/) {
         # Basic tests of Longhorn container image
-        my $uri = get_container_uri(
+        my $uri = get_artifact_uri(
             url => $totest_path,
             arch => $arch,
             regex => ".*longhorn-\(.*\)-\(.*\)"

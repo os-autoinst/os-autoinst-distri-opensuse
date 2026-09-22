@@ -7,7 +7,7 @@ This test suite validates the functionality of `elemental3`, a tool for managing
 The tests rely on a set of shared helper functions defined in `lib/elemental3.pm`. These functions provide a common interface for interacting with the system under test and its components.
 
 *   `elemental3_cmd`: Executes an `elemental3` command from within a specified container image. It handles mounting necessary volumes like configuration directories and CA certificates.
-*   `get_container_uri`: Fetches a specific container image URI from a web-based registry by parsing the page content.
+*   `get_artifact_uri`: Fetches a specific container image URI from a web-based registry by parsing the page content.
 *   `get_sysext`: Downloads and prepares systemd system extensions (`sysext`) from a list of images, making them available for `elemental3`.
 *   `get_values`: A generic function to scrape information (like file names and version numbers) from a web page based on a regex.
 *   `kubectl_cmd`: A wrapper to execute a `kubectl` command, retrying until it succeeds or a timeout is reached.

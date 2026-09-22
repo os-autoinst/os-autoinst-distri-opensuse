@@ -18,7 +18,7 @@ use utils qw(script_retry script_output_retry validate_script_output_retry);
 
 our @EXPORT = qw(
   elemental3_cmd
-  get_container_uri
+  get_artifact_uri
   get_sysext
   get_values
   kubectl_cmd
@@ -58,15 +58,15 @@ sub elemental3_cmd {
     );
 }
 
-=head2 get_container_uri
+=head2 get_artifact_uri
 
- get_container_uri( url => <value>, arch => <value>, regex => <value> );
+ get_artifact_uri( url => <value>, arch => <value>, regex => <value> );
 
 Get URI from registry file.
 
 =cut
 
-sub get_container_uri {
+sub get_artifact_uri {
     my (%args) = @_;
 
     croak('Missing required argument!') unless (%args);
