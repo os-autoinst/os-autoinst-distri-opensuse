@@ -49,7 +49,8 @@ subtest '[get_artifact_uri]' => sub {
     my %params = (
         url => 'https://dist.suse.de/ibs/Devel:/UnifiedCore:/Main:/ToTest',
         arch => 'aarch64',
-        regex => '.my-manifest-\([0-9]*\)-\(.*\)'
+        regex => '.my-manifest-\([0-9]*\)-\(.*\)',
+        prefix => '\.aarch64-.*\.tar\.registry\.txt$'
     );
 
     # Check with no arguments
@@ -117,8 +118,7 @@ subtest '[get_values]' => sub {
 
     my %params = (
         url => 'https://dist.suse.de/ibs/Devel:/UnifiedCore:/Main:/ToTest',
-        arch => 'aarch64',
-        regex => '.*my-manifest-([0-9]*)-(.*)'
+        regex => '.*my-manifest-([0-9]*)-(.*)\.aarch64-.*\.tar\.registry\.txt$'
     );
 
     # Check with no arguments

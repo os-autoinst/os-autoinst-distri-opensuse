@@ -60,7 +60,7 @@ sub elemental3_cmd {
 
 =head2 get_artifact_uri
 
- get_artifact_uri( url => <value>, arch => <value>, regex => <value> );
+ get_artifact_uri( url => <value>, regex => <value>, [arch => <value>,] [dir => <value>,] [prefix => <value>]);
 
 Get URI from registry file.
 
@@ -71,14 +71,23 @@ sub get_artifact_uri {
 
     croak('Missing required argument!') unless (%args);
 
-    # Force containers directory
-    $args{url} .= "/containers";
+    # Define directory to use
+    $args{dir} //= '/containers';
+    $args{url} .= $args{dir};
+
+    # Define prefix regex to use
+    $args{prefix} //= "\\.$args{arch}-.*\\.tar\\.registry\\.txt\$";
+    $args{regex} .= $args{prefix};
 
     my ($fn, $version, $build) = get_values(
         url => $args{url},
-        arch => $args{arch},
         regex => $args{regex}
     );
+
+    # For chart file we don't need to do more
+    return ("$args{url}/$fn") if ($args{dir} =~ m/charts/);
+
+    # Update the regex for container image
     my $regex = "pull\\s+\(.*:${version}-${build}\)";
 
     # Open webpage
@@ -132,7 +141,7 @@ sub get_sysext {
 
 =head2 get_values
 
- get_values( url => <value>, arch => <value>, regex => <value> );
+ get_values( url => <value>, regex => <value> );
 
 Get values from filelist webpage based on provided regex.
 
@@ -142,9 +151,6 @@ sub get_values {
     my (%args) = @_;
 
     croak('Missing required argument!') unless (%args);
-
-    # Set file prefix to search
-    my $prefix_regex = "\\.$args{arch}-.*\\.tar\\.registry\\.txt\$";
 
     # If needed add '/' at the end of the URL as without it connection will fail
     $args{url} .= '/' unless $args{url} =~ m{/\z};
@@ -157,7 +163,7 @@ sub get_values {
 
         # Get the first more recent occurence found
         foreach (${dom}->find('a[href]')->reverse->each) {
-            my @matches = ($_->{href} =~ /$args{regex}${prefix_regex}/);
+            my @matches = ($_->{href} =~ /$args{regex}/);
             return ($_->text, @matches) if (@matches);
         }
     }
