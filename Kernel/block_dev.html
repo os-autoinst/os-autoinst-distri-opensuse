@@ -18,6 +18,7 @@
       <li><a href="#record_storage_info">record_storage_info</a></li>
       <li><a href="#create_loop_backing_file">create_loop_backing_file</a></li>
       <li><a href="#attach_loop_device">attach_loop_device</a></li>
+      <li><a href="#create_zoned_nullblk">create_zoned_nullblk</a></li>
       <li><a href="#start_block_trace">start_block_trace</a></li>
       <li><a href="#stop_block_trace">stop_block_trace</a></li>
       <li><a href="#count_block_writes">count_block_writes</a></li>
@@ -60,6 +61,18 @@
 <p>Arguments: $backing_file - Path to the backing file %opts - Optional parameters: loop_dev =&gt; specific loop device path (e.g., &#39;/dev/loop100&#39;) If not provided, uses &#39;losetup -f&#39; to find next free device timeout =&gt; timeout in seconds (default: 300)</p>
 
 <p>Returns: the loop device path (e.g., &#39;/dev/loop0&#39;)</p>
+
+<h2 id="create_zoned_nullblk">create_zoned_nullblk</h2>
+
+<pre><code>create_zoned_nullblk(%opts);</code></pre>
+
+<p>Creates a zoned null_blk device via configfs.</p>
+
+<p>Arguments: %opts - Optional parameters: blocksize =&gt; block size in bytes (default: 4096) zone_size =&gt; zone size in MB (default: 256) zone_nr_conv =&gt; number of conventional zones (default: 4) zone_nr_seq =&gt; number of sequential zones (default: 16) timeout =&gt; timeout in seconds (default: 300)</p>
+
+<p>This function loads the null_blk module with nr_devices=0, finds the first available null_blk device index, creates and configures the zoned device through configfs, enables it, and sets the mq-deadline scheduler.</p>
+
+<p>Returns: the device path (e.g., &#39;/dev/nullb0&#39;)</p>
 
 <h2 id="start_block_trace">start_block_trace</h2>
 
