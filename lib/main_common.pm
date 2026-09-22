@@ -1747,7 +1747,7 @@ sub load_extra_tests_console {
     loadtest "console/gdb";
     loadtest "console/perf" unless is_sle;
     loadtest "console/sysctl";
-    loadtest "console/sysstat";
+    loadtest "console/oqa_agnostic/sysstat_agnostic";
     loadtest "console/curl_ipv6" unless is_public_cloud();
     loadtest "console/wget_ipv6";
     loadtest "console/ca_certificates_mozilla";

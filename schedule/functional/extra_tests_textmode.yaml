@@ -164,7 +164,7 @@ schedule:
     - console/golang
     - console/sqlite3
     - console/sysctl
-    - console/sysstat
+    - console/oqa_agnostic/sysstat_agnostic
     - console/tuned
     - '{{fwupd}}'
     - '{{snmp}}'

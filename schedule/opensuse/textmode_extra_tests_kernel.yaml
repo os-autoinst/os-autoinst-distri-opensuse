@@ -6,7 +6,7 @@ schedule:
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/sysctl
-    - console/sysstat
+    - console/oqa_agnostic/sysstat_agnostic
     - console/kmod
     - console/perf
     - kernel/kdump

@@ -49,7 +49,7 @@ schedule:
     - console/check_default_network_manager
     - console/cups
     - console/sysctl
-    - console/sysstat
+    - console/oqa_agnostic/sysstat_agnostic
     - console/curl_ipv6
     - console/wget_ipv6
     - console/ca_certificates_mozilla

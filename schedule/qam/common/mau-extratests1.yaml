@@ -39,7 +39,7 @@ schedule:
   - console/gdb
   - console/perf
   - console/sysctl
-  - console/sysstat
+  - console/oqa_agnostic/sysstat_agnostic
   - console/cpio
   - console/tar
   - console/ruby
