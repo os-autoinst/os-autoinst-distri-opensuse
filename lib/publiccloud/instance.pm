@@ -446,7 +446,7 @@ sub wait_for_ssh {
 sub wait_for_ssh_reachable {
     my ($self, %args) = @_;
 
-    my $delay = $args{delay} // 30;
+    my $delay = $args{delay} // 10;
     my $timeout = $args{timeout} // 300;
     my $retry = $timeout / $delay;
     my $port = $args{port} // 22;
@@ -533,7 +533,7 @@ sub wait_for_ssh_unreachable {
 sub wait_for_ssh_login {
     my ($self, %args) = @_;
     my $timeout = $args{timeout} // 300;
-    my $delay = $args{delay} // 30;
+    my $delay = $args{delay} // 10;
     my $retry = $timeout / $delay;
 
     ## ssh options to avoid issues with pipelining and host key validation

@@ -261,6 +261,26 @@ subtest '[wait_for_ssh_unreachable]' => sub {
     like($calls[0], qr/nc.*10\.0\.0\.1.*22/, 'nc command composed with the instance public ip');
 };
 
+subtest '[wait_for_ssh_reachable] default delay and probe count' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my @call_args;
+    $instmod->redefine(script_retry => sub {
+            my $cmd = shift;
+            my (%args) = @_;
+            push @call_args, \%args;
+            return 0; });
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', provider => Test::MockObject->new);
+
+    $inst->wait_for_ssh_reachable();
+    is($call_args[-1]->{delay}, 10, 'probe delay defaults to 10 s');
+    is($call_args[-1]->{retry}, 300 / 10, 'retry scales with the default timeout (30)');
+
+    # An explicit delay propagates and drives retry = timeout / delay
+    $inst->wait_for_ssh_reachable(delay => 5);
+    is($call_args[-1]->{delay}, 5, 'custom delay forwarded');
+    is($call_args[-1]->{retry}, 300 / 5, 'retry scales with a custom delay (60)');
+};
+
 subtest '[wait_for_ssh_login]' => sub {
     my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
     my @calls;
@@ -298,13 +318,13 @@ subtest '[wait_for_ssh_login] timeout/delay/retry argument propagation' => sub {
 
     # Explicit timeout propagates and drives retry = timeout/delay
     $inst->wait_for_ssh_login(timeout => 600);
-    is($call_args[-1]->{delay}, 30, 'delay still defaults to 30');
-    is($call_args[-1]->{retry}, 600 / 30, 'retry scales with custom timeout (20)');
-    like($call_args[-1]->{fail_message}, qr/20 attempts in 600 seconds/, 'fail_message reflects custom timeout');
+    is($call_args[-1]->{delay}, 10, 'delay defaults to 10');
+    is($call_args[-1]->{retry}, 600 / 10, 'retry scales with custom timeout (60)');
+    like($call_args[-1]->{fail_message}, qr/60 attempts in 600 seconds/, 'fail_message reflects custom timeout');
 
     # Explicit delay propagates and drives retry = timeout/delay
-    $inst->wait_for_ssh_login(delay => 10);
-    is($call_args[-1]->{delay}, 10, 'custom delay forwarded');
+    $inst->wait_for_ssh_login(delay => 5);
+    is($call_args[-1]->{delay}, 5, 'custom delay forwarded');
 };
 
 subtest '[wait_for_sudo] probes sudo over a non-multiplexed connection' => sub {
