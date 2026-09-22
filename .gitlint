@@ -6,8 +6,11 @@ regex-style-search=True
 line-length=72
 
 [ignore-by-title]
-regex=^Revert
-ignore=title-max-length
+# "git subrepo" and dependency updates create automatic, non-conventional commits we need to ignore.
+# We also ignore Revert commits.
+# https://progress.opensuse.org/issues/198254
+regex=^(Revert|(git subrepo pull|(chore|build)\(deps(-dev)?\): bump))
+ignore=all
 
 [title-match-regex]
 # 1. Subject beginning: ^([A-Z]|\S+:|git subrepo (clone|pull))
