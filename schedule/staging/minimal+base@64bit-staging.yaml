@@ -51,7 +51,7 @@ schedule:
   - console/ncurses
   - console/yast2_lan
   - console/curl_https
-  - console/salt
+  - console/oqa_agnostic/salt_agnostic
   - console/glibc_sanity
   - console/zypper_in
   - console/yast2_i

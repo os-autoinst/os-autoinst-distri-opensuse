@@ -62,7 +62,7 @@ conditional_schedule:
                 - console/libvorbis
                 - console/gdb
                 - console/perf
-                - console/salt
+                - console/oqa_agnostic/salt_agnostic
                 - console/libgpiod
                 - console/libgcrypt
                 - console/gd

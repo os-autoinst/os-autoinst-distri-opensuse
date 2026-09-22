@@ -39,7 +39,7 @@ schedule:
     - console/zypper_ref
     - console/ncurses
     - console/curl_https
-    - console/salt
+    - console/oqa_agnostic/salt_agnostic
     - update/zypper_up
     - console/zypper_in
     - console/zypper_log
