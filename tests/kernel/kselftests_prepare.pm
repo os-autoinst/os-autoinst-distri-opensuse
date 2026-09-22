@@ -24,6 +24,15 @@ sub run {
     record_info('KERNEL VERSION', script_output('uname -a'));
 
     my $collection = get_required_var('KSELFTEST_COLLECTION');
+
+    if (livepatch_conflicts_with_kgraft($collection)) {
+        record_info('SKIP', 'Skipping livepatch kselftests: KGRAFT=1 means a production '
+              . 'live patch is expected to already be loaded on the SUT, which violates '
+              . 'the livepatch selftest assumption of a pristine /sys/kernel/livepatch/');
+        $self->result('skip');
+        return;
+    }
+
     install_kselftests($collection);
 }
 

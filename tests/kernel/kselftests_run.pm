@@ -24,10 +24,18 @@ sub pre_run_hook {
 sub run {
     my ($self) = @_;
 
-    select_serial_terminal;
-
     my $collection = get_required_var('KSELFTEST_COLLECTION');
     $self->{collection} = $collection;
+
+    if (livepatch_conflicts_with_kgraft($collection)) {
+        record_info('SKIP', 'Skipping livepatch kselftests: KGRAFT=1 means a production '
+              . 'live patch is expected to already be loaded on the SUT, which violates '
+              . 'the livepatch selftest assumption of a pristine /sys/kernel/livepatch/');
+        $self->result('skip');
+        return;
+    }
+
+    select_serial_terminal;
 
     # At this point kselftests_prepare.pm has already run: CWD has the file
     # 'kselftest-list.txt' listing all the available tests
@@ -92,6 +100,8 @@ sub run {
 sub post_run_hook {
     my ($self) = @_;
     $self->SUPER::post_run_hook;
+
+    return unless $self->{tests};
 
     my @tests = @{$self->{tests}};
     my ($ktap, $softfails, $hardfails) = post_process(collection => $self->{collection}, tests => \@tests);
