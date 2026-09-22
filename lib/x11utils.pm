@@ -150,7 +150,7 @@ sub ensure_unlocked_desktop {
             if ($password ne '') {
                 type_password;
                 # poo#97556
-                if (check_var('DESKTOP', 'minimalx')) {
+                if (check_var('DESKTOP', 'minimalx') || check_var('DESKTOP', 'lxde')) {
                     send_key 'ret';
                     wait_still_screen;
                 }
