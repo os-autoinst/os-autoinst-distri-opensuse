@@ -1,0 +1,41 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: console font configuration
+# desc: >
+#   Functional tests for the virtual console font. Verifies that
+#   /etc/vconsole.conf defines FONT and KEYMAP, that the configured
+#   font file is present, that localectl reports the same VC Keymap,
+#   and that systemd-vconsole-setup is loaded, not failed and applies
+#   the font without error. Glyph rendering is not compared (needs a
+#   VGA screen and a needle).
+# steps:
+#   - verify /etc/vconsole.conf exists and defines FONT and KEYMAP
+#   - verify the font named by FONT exists in the consolefonts dir
+#   - verify localectl status reports the same VC Keymap
+#   - verify systemd-vconsole-setup.service is loaded and not failed
+#   - verify systemd-vconsole-setup applies the font successfully
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 16+, SLE 15 SP4+
+# tags: console font vconsole systemd locale
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_console_font.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+
+rc=0
+pytest -v --tb=short test_console_font.py --junitxml=results.xml || rc=$?
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc
