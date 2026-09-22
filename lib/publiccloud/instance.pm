@@ -435,6 +435,7 @@ sub scan_ssh_host_key {
 
 sub wait_for_ssh {
     my ($self, %args) = @_;
+    $args{timeout} //= get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
     $self->wait_for_ssh_reachable(%args);
     # wait_for_ssh_login relaxes host key checking, so it can loop until sshd is really serving.
     # Scanning only after it returns means ssh-keyscan talks to a ready sshd instead of racing it.
@@ -446,7 +447,7 @@ sub wait_for_ssh_reachable {
     my ($self, %args) = @_;
 
     my $delay = $args{delay} // 30;
-    my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
+    my $timeout = $args{timeout} // 300;
     my $retry = $timeout / $delay;
     my $port = $args{port} // 22;
 
@@ -514,7 +515,7 @@ sub wait_for_ssh_unreachable {
 
     # delay must be low otherwise we miss the reboot window where ssh is unreachable
     my $delay = $args{delay} // 2;
-    my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
+    my $timeout = $args{timeout} // 300;
     my $retry = $timeout / $delay;
     my $port = $args{port} // 22;
     my $die = ${args}{die} // 1;
@@ -531,7 +532,7 @@ sub wait_for_ssh_unreachable {
 
 sub wait_for_ssh_login {
     my ($self, %args) = @_;
-    my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
+    my $timeout = $args{timeout} // 300;
     my $delay = $args{delay} // 30;
     my $retry = $timeout / $delay;
 
