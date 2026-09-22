@@ -69,4 +69,4 @@ conditional_schedule:
     tests_for_x64:
         ARCH:
             x86_64:
-                - console/ansible
+                - console/oqa_agnostic/ansible_agnostic

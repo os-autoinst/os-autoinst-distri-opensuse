@@ -79,7 +79,7 @@ conditional_schedule:
                 - console/libqca2
                 - console/vmstat
                 - kernel/kdump
-                - console/ansible
+                - console/oqa_agnostic/ansible_agnostic
                 - console/libgit2
     validate_packages_and_patterns:
         DISTRI:

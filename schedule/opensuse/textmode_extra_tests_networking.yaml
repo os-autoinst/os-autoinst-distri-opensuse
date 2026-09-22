@@ -66,4 +66,4 @@ schedule:
     - '{{velociraptor_tests}}'
     - console/sssd_389ds_functional
     - console/salt
-    - console/ansible
+    - console/oqa_agnostic/ansible_agnostic

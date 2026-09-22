@@ -8,7 +8,7 @@ schedule:
   - console/add_phub_extension
   - '{{sle15_x86_64}}'
   - console/vmstat
-  - console/ansible
+  - console/oqa_agnostic/ansible_agnostic
   - console/systemd_rpm_macros
   - console/coredump_collect
 conditional_schedule:

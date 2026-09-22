@@ -43,5 +43,5 @@ conditional_schedule:
   arch_specific:
     ARCH:
       x86_64:
-        - console/ansible
+        - console/oqa_agnostic/ansible_agnostic
 ...
