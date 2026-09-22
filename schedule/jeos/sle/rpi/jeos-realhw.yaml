@@ -13,7 +13,7 @@ schedule:
   - jeos/rpi_bluetooth
   - console/journal_check
   - console/consoletest_setup
-  - console/salt
+  - console/oqa_agnostic/salt_agnostic
   - console/nginx
   - console/dns_srv
   - console/postgresql_server
