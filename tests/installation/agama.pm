@@ -218,6 +218,7 @@ sub agama_dual_boot_setup {
 }
 
 sub select_mode {
+    assert_screen('agama-install_modes_available');
     # Warning for multiple products
     # We have to be super careful as all products with modes will display
     # radioboxes for mode selection on same screen
@@ -251,20 +252,19 @@ sub select_product {
     } else {    # Default to TW
         send_key_until_needlematch($product_to_install, 'down');
         assert_and_click($product_to_install);
+
+        if (has_modes()) {
+            select_mode();
+        }
+
+        if (has_eula()) {
+            select_eula();
+        }
+
         # New agama version has the Select button inside the same container
         scroll_down();
-
         send_key_until_needlematch('agama-product-select', 'ctrl-down');
     }
-
-    if (has_modes()) {
-        select_mode();
-    }
-
-    if (has_eula()) {
-        select_eula();
-    }
-
     assert_and_click('agama-product-select');
 }
 
