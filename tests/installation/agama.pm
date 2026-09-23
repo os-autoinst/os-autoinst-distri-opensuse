@@ -50,10 +50,18 @@ sub back_to_overview {
 }
 
 sub has_product_selection {
-    return 0 if is_s390x;
+    return 0 if is_s390x && is_leap('=16.0');
     return 0 if is_ppc64le && is_leap('=16.0');
-    return 0 if is_leap('>16.0');
+    return 1 if is_leap('>16.0');
     return 1;
+}
+
+sub has_modes {
+    return 1 if is_leap('>=16.1');
+}
+
+sub has_eula {
+    return 1 if is_leap('>=16.1');
 }
 
 # A More complex screen for root auth
@@ -209,6 +217,25 @@ sub agama_dual_boot_setup {
     send_key_until_needlematch('agama-storage-vda-shrink-ntfs', 'ctrl-down');
 }
 
+sub select_mode {
+    assert_screen('agama-install_modes_available');
+    # Warning for multiple products
+    # We have to be super careful as all products with modes will display
+    # radioboxes for mode selection on same screen
+    # so we always have to match not just for mode radiobox, but rather radiobox inside the selected product (checked) rectangle
+    if (check_var('AGAMA_PRODUCT_INSTALL_MODE', 'standard')) {
+        assert_and_click('agama-install-mode-standard');
+    } elsif (check_var('AGAMA_PRODUCT_INSTALL_MODE', 'immutable')) {
+        assert_and_click('agama-install-mode-immutable');
+    } else {
+        die "Unknown AGAMA_PRODUCT_INSTALL_MODE: " . get_var('AGAMA_PRODUCT_INSTALL_MODE');
+    }
+}
+
+sub select_eula {
+    assert_and_click('agama-product-eula-accept');
+}
+
 sub select_product {
     # Product selection dialog scrolls with 4+ products at 1024x768.
     # As of now TW is the last item in the list, so we need to scroll a bit.
@@ -225,9 +252,17 @@ sub select_product {
     } else {    # Default to TW
         send_key_until_needlematch($product_to_install, 'down');
         assert_and_click($product_to_install);
+
+        if (has_modes()) {
+            select_mode();
+        }
+
+        if (has_eula()) {
+            select_eula();
+        }
+
         # New agama version has the Select button inside the same container
         scroll_down();
-
         send_key_until_needlematch('agama-product-select', 'ctrl-down');
     }
     assert_and_click('agama-product-select');
@@ -283,6 +318,7 @@ sub run {
     my ($self) = @_;
     my $agama_screen_timeout = 300;
     if (has_product_selection) {
+        set_var('AGAMA_PRODUCT_INSTALL_MODE', 'standard') unless get_var('AGAMA_PRODUCT_INSTALL_MODE');
         assert_screen('agama-inst-welcome-product-list', timeout => $agama_screen_timeout);
         select_product();
     }
