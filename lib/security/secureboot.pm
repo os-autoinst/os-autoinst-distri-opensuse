@@ -23,7 +23,7 @@ our @EXPORT = qw(handle_secureboot);
 # _set_secure_boot_aarch64(enable => $bool)
 #
 # Private helper function to handle Secure Boot toggling in Tianocore firmware
-# for SLE >= 16 on aarch64. This replaces the original 'tianocore_disable_secureboot'.
+# on aarch64 for SLE >= 15-SP4. This replaces the original 'tianocore_disable_secureboot'.
 #
 # Arguments:
 #   'enable': A boolean value. If true, it enables Secure Boot. If false, it disables it.
@@ -71,7 +71,7 @@ sub handle_secureboot {
 
     my $enable_flag = ($action eq 'enable');
 
-    if (is_sle('>=16') && is_aarch64) {
+    if (is_aarch64 && is_sle('>=15-SP4')) {
         record_info('SecureBoot', "Calling aarch64-specific handler to $action Secure Boot (bsc#1189988)");
         _set_secure_boot_aarch64($self, enable => $enable_flag);
     } else {
