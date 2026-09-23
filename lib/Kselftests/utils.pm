@@ -29,10 +29,16 @@ use Utils::Systemd qw(disable_and_stop_service);
 our @EXPORT = qw(
   export_kselftest_env
   install_kselftests
+  livepatch_conflicts_with_kgraft
   post_process_single
   post_process
   validate_kconfig
 );
+
+sub livepatch_conflicts_with_kgraft {
+    my ($collection) = @_;
+    return $collection eq 'livepatch' && get_var('KGRAFT');
+}
 
 sub export_kselftest_env {
     my $kselftest_env = get_var('KSELFTEST_ENV');
