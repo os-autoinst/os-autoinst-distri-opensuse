@@ -25,7 +25,7 @@ sub run {
     # the tty. tty5 (log-console) is rarely used during a passing run, so it's
     # especially prone to this - see poo#204498.
     select_serial_terminal();
-    systemctl("restart getty\@tty$_.service", timeout => 60) for (2 .. 5);
+    systemctl('restart ' . join(' ', map { "getty\@tty$_.service" } 2 .. 5), timeout => 120);
 
     # Initialize ssh tunnel for the serial device, if not yet happened
     ssh_interactive_tunnel($args->{my_instance}) if (get_var('_SSH_TUNNELS_INITIALIZED', 0) == 0);
