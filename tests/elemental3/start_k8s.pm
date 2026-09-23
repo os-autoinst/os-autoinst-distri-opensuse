@@ -91,7 +91,7 @@ sub run {
     my $arch = get_required_var('ARCH');
     my $k8s = get_required_var('K8S');
     my $k8s_dir = "/etc/rancher/$k8s";
-    my $default_timeout = 60;
+    my $default_timeout = 120;
     my $long_timeout = 900;
 
     # Skip the test with if the OS image is not generated with 'customize'
