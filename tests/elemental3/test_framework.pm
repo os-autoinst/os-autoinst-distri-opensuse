@@ -52,7 +52,8 @@ sub run {
         single_branch => 1
     );
 
-    # Wait for configuration files to be generated on 1st node
+    # Wait for nodes to be ready and configuration files to be generated on 1st node
+    barrier_wait('WAIT_SYSTEMD_RUNNING');
     barrier_wait('FILES_READY');
 
     # Variables framework configuration
