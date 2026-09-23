@@ -122,15 +122,23 @@ sub start_swtpm_vm {
     # becomes transparent. swtpm/TPM PCR measurements still happen, so
     # the test's assertions are unaffected. Production-kernel runs keep
     # the original strict loader, so the SB path stays exercised there.
+    # The same problem hits staging builds of other Secure Boot chain
+    # components (grub2, shim): the nested disk carries an
+    # engineering-signed binary that the MS-keyed OVMF rejects.
+    # BUILD values like ":git:7974:grub2" identify these.
     if ($swtpm_vm_type eq 'uefi' && !is_aarch64) {
         my $kver = script_output('uname -r');
         my $plain = '/usr/share/qemu/ovmf-x86_64-4m-code.bin';
-        if ($kver =~ /(_stage\.\d+|999999)/ && script_run("test -f $plain") == 0) {
+        my $build = get_var('BUILD', '');
+        my $is_eng_kernel = $kver =~ /(_stage\.\d+|999999)/;
+        my $is_eng_bootloader = $build =~ /:git:\d+:(grub2|shim)\b/;
+        if (($is_eng_kernel || $is_eng_bootloader) && script_run("test -f $plain") == 0) {
             assert_script_run(
                 "sed -i 's|ovmf-x86_64-ms-4m-code\\.bin|ovmf-x86_64-4m-code.bin|' "
                   . $guest_xml->{$swtpm_vm_type}
             );
-            record_info('OVMF', "engineering kernel ($kver) -> swapped nested loader to $plain (SB off)");
+            my $reason = $is_eng_kernel ? "engineering kernel ($kver)" : "staging bootloader (BUILD=$build)";
+            record_info('OVMF', "$reason -> swapped nested loader to $plain (SB off)");
         }
     }
 
