@@ -56,6 +56,14 @@ sub has_product_selection {
     return 1;
 }
 
+sub has_modes {
+    return 1 if is_leap('>=16.1');
+}
+
+sub has_eula {
+    return 1 if is_leap('>=16.1');
+}
+
 # A More complex screen for root auth
 sub agama_set_root_password_screen {
     if (is_leap('<16.1')) {
@@ -209,10 +217,6 @@ sub agama_dual_boot_setup {
     send_key_until_needlematch('agama-storage-vda-shrink-ntfs', 'ctrl-down');
 }
 
-sub has_modes {
-    return check_screen('agama-install_modes_available', 0) ? 1 : 0;
-}
-
 sub select_mode {
     # Warning for multiple products
     # We have to be super careful as all products with modes will display
@@ -225,10 +229,6 @@ sub select_mode {
     } else {
         die "Unknown AGAMA_PRODUCT_INSTALL_MODE: " . get_var('AGAMA_PRODUCT_INSTALL_MODE');
     }
-}
-
-sub has_eula {
-    return 1 if is_leap('>=16.1');
 }
 
 sub select_eula {
