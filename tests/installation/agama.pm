@@ -218,12 +218,12 @@ sub select_mode {
     # We have to be super careful as all products with modes will display
     # radioboxes for mode selection on same screen
     # so we always have to match not just for mode radiobox, but rather radiobox inside the selected product (checked) rectangle
-    if (check_var('INSTALL_MODE', 'standard')) {
+    if (check_var('AGAMA_PRODUCT_INSTALL_MODE', 'standard')) {
         assert_and_click('agama-install-mode-standard');
-    } elsif (check_var('INSTALL_MODE', 'immutable')) {
+    } elsif (check_var('AGAMA_PRODUCT_INSTALL_MODE', 'immutable')) {
         assert_and_click('agama-install-mode-immutable');
     } else {
-        die "Unknown INSTALL_MODE: " . get_var('INSTALL_MODE');
+        die "Unknown AGAMA_PRODUCT_INSTALL_MODE: " . get_var('AGAMA_PRODUCT_INSTALL_MODE');
     }
 }
 
@@ -318,6 +318,7 @@ sub run {
     my ($self) = @_;
     my $agama_screen_timeout = 300;
     if (has_product_selection) {
+        set_var('AGAMA_PRODUCT_INSTALL_MODE', 'standard') unless get_var('AGAMA_PRODUCT_INSTALL_MODE');
         assert_screen('agama-inst-welcome-product-list', timeout => $agama_screen_timeout);
         select_product();
     }
