@@ -10,8 +10,9 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Data::Dumper;
 use Mojo::Util 'trim';
-use publiccloud::utils qw(is_azure);
+use publiccloud::utils qw(is_azure is_gce);
 use publiccloud::ssh_interactive qw(select_host_console);
+use version_utils qw(package_version_cmp);
 
 sub systemd_time_to_second
 {
@@ -151,14 +152,23 @@ sub check_system_boottime {
     # first deployment analysis
     my ($systemd_analyze, $systemd_blame) = do_systemd_analyze_time($instance, %args);
     unless ($systemd_analyze && $systemd_blame) {
-        # Softfailure for bsc#1264275 which causes guestregister.service to fail
-        # Do not confuse with bsc#1246104, where the title matches the failure but doesn't cover the root cause here.
-        if ($instance->ssh_script_output("sudo systemctl list-jobs") =~ "guestregister.service.*running") {
-            record_soft_failure("bsc#1264275 - systemd bootup never finished, cannot measure boot time");
+        # Boot never finished. A known reason is that guestregister.service is still running,
+        # but that is only a symptom and has more than one root cause:
+        #  * bsc#1264275 is registration issue.
+        #  * bsc#1277388 on GCE is the dual-stack gcemetadata stall
+        my $cloudregister = $instance->ssh_script_output(cmd => 'sudo cat /var/log/cloudregister', proceed_on_failure => 1);
+        if ($cloudregister =~ /(?:Could not announce system|already taken|Unprocessable Entity).*\(422\)/) {
+            record_soft_failure("bsc#1264275 - SCC returned 422");
             return;
-        } else {
-            die("failed to obtain boottime from systemd");
         }
+        if (is_gce() && $instance->ssh_script_output(cmd => 'sudo systemctl list-jobs', proceed_on_failure => 1) =~ /guestregister\.service\s+start\s+running/) {
+            my $gcever = trim($instance->ssh_script_output(cmd => q(rpm -q --qf '%{VERSION}' python-gcemetadata), proceed_on_failure => 1));
+            if ($gcever =~ /^\d+(?:\.\d+)*$/ && package_version_cmp($gcever, '1.1.2') < 0) {
+                record_soft_failure("bsc#1277388 - dual-stack gcemetadata stall");
+                return;
+            }
+        }
+        die("failed to obtain boottime from systemd");
     }
 
     $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
