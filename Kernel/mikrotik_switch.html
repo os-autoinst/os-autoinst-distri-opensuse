@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kernel/mikrotik_switch.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#VLAN-AND-NETWORK-CONVENTIONS">VLAN AND NETWORK CONVENTIONS</a>
+    <ul>
+      <li><a href="#get_all_vlans">get_all_vlans</a></li>
+      <li><a href="#get_vlan">get_vlan</a></li>
+      <li><a href="#add_vlan">add_vlan</a></li>
+      <li><a href="#remove_vlan">remove_vlan</a></li>
+      <li><a href="#get_port_pvid">get_port_pvid</a></li>
+      <li><a href="#set_port_pvid">set_port_pvid</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kernel/mikrotik_switch.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>REST API client for the lab&#39;s Mikrotik RouterOS switch.</p>
+
+<h1 id="VLAN-AND-NETWORK-CONVENTIONS">VLAN AND NETWORK CONVENTIONS</h1>
+
+<p>Per progress#188433: pick a VLAN id below 10, and any subnet within 192.168.0.0/16 - both are only locally significant to this switch, not coordinated with any wider address plan, since the switch&#39;s uplink to the managed network stays untagged/access-only (see that ticket for why).</p>
+
+<h2 id="get_all_vlans">get_all_vlans</h2>
+
+<pre><code>get_all_vlans();</code></pre>
+
+<p>Fetches every entry of the bridge VLAN table (/interface/bridge/vlan), each containing &#39;bridge&#39;, &#39;vlan-ids&#39;, &#39;tagged&#39; and &#39;untagged&#39; member lists.</p>
+
+<p>Dies on any non-2xx response.</p>
+
+<h2 id="get_vlan">get_vlan</h2>
+
+<pre><code>get_vlan($vlan_id);</code></pre>
+
+<p>Fetches the bridge VLAN table entry for a given VLAN id, e.g. get_vlan(42). Dies if no entry with that VLAN id exists.</p>
+
+<p>Dies on any non-2xx response.</p>
+
+<h2 id="add_vlan">add_vlan</h2>
+
+<pre><code>add_vlan(bridge =&gt; &#39;bridge1&#39;, vlan_id =&gt; 42, untagged =&gt; &#39;ether5&#39;, tagged =&gt; &#39;ether1&#39;);</code></pre>
+
+<p>Adds a new entry to the bridge VLAN table. &#39;bridge&#39; and &#39;vlan_id&#39; are required. &#39;tagged&#39; and &#39;untagged&#39; are optional comma-separated interface lists (as accepted by RouterOS) naming the bridge member ports to attach to the VLAN. Returns the created entry.</p>
+
+<p>Dies if an entry already exists for that bridge/vlan_id - use update_vlan() (not yet implemented) to change an existing VLAN&#39;s port membership.</p>
+
+<p>Dies on any non-2xx response.</p>
+
+<h2 id="remove_vlan">remove_vlan</h2>
+
+<pre><code>remove_vlan($vlan_id);</code></pre>
+
+<p>Removes the bridge VLAN table entry for a given VLAN id, e.g. remove_vlan(42). Dies if no entry with that VLAN id exists.</p>
+
+<p>Dies on any non-2xx response.</p>
+
+<h2 id="get_port_pvid">get_port_pvid</h2>
+
+<pre><code>get_port_pvid($port_name);</code></pre>
+
+<p>Fetches the PVID (untagged/native VLAN id) currently configured for a bridge port, e.g. get_port_pvid(&#39;ether5&#39;). Dies if the port is not a member of any bridge.</p>
+
+<p>Dies on any non-2xx response.</p>
+
+<h2 id="set_port_pvid">set_port_pvid</h2>
+
+<pre><code>set_port_pvid($port_name, $vlan_id);</code></pre>
+
+<p>Sets the PVID (untagged/native VLAN id) of a bridge port, e.g. set_port_pvid(&#39;ether5&#39;, 42). This is what makes a port an untagged member of a VLAN. Dies if the port is not a member of any bridge.</p>
+
+<p>Dies on any non-2xx response.</p>
+
+
+</body>
+
+</html>
+
+
