@@ -433,25 +433,72 @@ sub scan_ssh_host_key {
         retry => 6, delay => 10, fail_message => "ssh-keyscan did not return a host key for $self->{public_ip} after retries");
 }
 
+=head2 wait_for_ssh
+
+    $instance->wait_for_ssh([timeout => 300] [, delay => 30] [, port => 22] [, scan_ssh_host_key => 0]);
+
+Wait until this instance is reachable and accepts ssh logins. It runs in
+three steps:
+
+=over
+
+=item 1. Probe the ssh port with C<nc> until it accepts TCP connections.
+
+=item 2. Run C<true> over ssh until the login succeeds. This step turns off
+         host key checking, so it keeps trying until sshd is really serving.
+
+=item 3. Only if C<scan_ssh_host_key> is set, add the instance host key to
+         C<known_hosts> with C<scan_ssh_host_key>. This runs after the login
+         check, so ssh-keyscan talks to a ready sshd.
+
+=back
+
+Both loops use the same C<timeout> and C<delay>, and each tries at most
+C<timeout / delay> times, so the total wait can be up to twice C<timeout>.
+The function dies if either loop runs out of attempts.
+
+Arguments:
+
+=over
+
+=item B<timeout> - time budget in seconds for each loop. Defaults to the test
+                   setting C<PUBLIC_CLOUD_SSH_TIMEOUT> or C<300> if unset.
+
+=item B<delay> - seconds to wait between two attempts. Defaults to C<30>.
+
+=item B<port> - TCP port probed by C<nc>. Defaults to C<22>. The ssh login
+                check does not use it.
+
+=item B<scan_ssh_host_key> - when true, call C<scan_ssh_host_key> at the end.
+                             Defaults to false.
+
+=back
+
+=cut
+
 sub wait_for_ssh {
     my ($self, %args) = @_;
     $args{timeout} //= get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
-    $self->wait_for_ssh_reachable(%args);
-    # wait_for_ssh_login relaxes host key checking, so it can loop until sshd is really serving.
-    # Scanning only after it returns means ssh-keyscan talks to a ready sshd instead of racing it.
-    $self->wait_for_ssh_login(%args);
-    $self->scan_ssh_host_key(%args) if $args{scan_ssh_host_key};
-}
 
-sub wait_for_ssh_reachable {
-    my ($self, %args) = @_;
-
+    # wait for ssh reachable
     my $delay = $args{delay} // 30;
-    my $timeout = $args{timeout} // 300;
-    my $retry = $timeout / $delay;
-    my $port = $args{port} // 22;
+    my $retry = $args{timeout} / $delay;
+    script_retry(join(' ', 'nc -vz -w 1', $self->public_ip, $args{port} // 22),
+        delay => $delay,
+        retry => $retry,
+        fail_message => "ssh port unreachable after $args{timeout} seconds (port probed via nc)");
 
-    script_retry('nc -vz -w 1 ' . $self->public_ip . ' ' . $port, delay => $delay, retry => $retry, fail_message => "ssh port unreachable after $timeout seconds (port probed via nc)");
+    # Relaxes host key checking, so it can loop until sshd is really serving.
+    # Scanning only after it returns means ssh-keyscan talks to a ready sshd instead of racing it.
+    # ssh options to avoid issues with pipelining and host key validation
+    my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10 -o strictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+    $self->ssh_script_retry("true",
+        ssh_opts => $ssh_opts,
+        retry => $retry,
+        delay => $delay,
+        fail_message => "ssh connection failed ($retry attempts in $args{timeout} seconds)");
+
+    $self->scan_ssh_host_key(%args) if $args{scan_ssh_host_key};
 }
 
 =head2 wait_for_ssh_unreachable
@@ -528,17 +575,6 @@ sub wait_for_ssh_unreachable {
     # Print a warning message, if we don't want to `die` here in the previous check
     record_info("ssh still reachable", "WARNING: ssh port is still reachable", result => 'fail') if ($rc != 0);
     return $rc;
-}
-
-sub wait_for_ssh_login {
-    my ($self, %args) = @_;
-    my $timeout = $args{timeout} // 300;
-    my $delay = $args{delay} // 30;
-    my $retry = $timeout / $delay;
-
-    ## ssh options to avoid issues with pipelining and host key validation
-    my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10 -o strictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
-    $self->ssh_script_retry("true", ssh_opts => $ssh_opts, retry => $retry, delay => $delay, fail_message => "ssh connection failed ($retry attempts in $timeout seconds)");
 }
 
 =head2 wait_for_sudo
