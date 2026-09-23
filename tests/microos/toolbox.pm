@@ -102,9 +102,8 @@ sub run {
 
     record_info 'Test', "Rootless toolbox as $user";
     my $console = select_console 'user-console';
-    if (is_sle_micro("<6.0")) {
-        record_soft_failure("bsc#1252754 - toolbox failure for SLEM containter 5.2 - 5.5. unable to open container due to ptmx");
-    } else {
+    # bsc#1252754 - toolbox failure for SLEM container 5.2 - 5.5. unable to open container due to ptmx
+    unless (is_sle_micro("<6.0")) {
         my $uid = script_output 'id -u';
         validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 300;
         die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
