@@ -228,7 +228,7 @@ sub select_mode {
 }
 
 sub has_eula {
-    return check_screen('agama-product-eula-box', 0) ? 1 : 0;
+    return 1 if is_leap('>=16.1');
 }
 
 sub select_eula {
