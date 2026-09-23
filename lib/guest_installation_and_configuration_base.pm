@@ -596,27 +596,35 @@ sub config_guest_platform {
     return $self;
 }
 
-=head2 config_guest_os_variant
+=head2 config_guest_osinfo
 
-  config_guest_os_variant($self[, guest_os_variant => 'os'])
+  config_guest_osinfo($self[, guest_osinfo => 'os'])
 
-Configure [guest_os_variant_options]. User can still change [guest_os_variant]
+Configure [guest_osinfo_options]. User can still change [guest_osinfo]
 by passing non-empty arguments using hash. If installations already passes,
-modify_guest_params will be called to modify [guest_os_variant] using already
-modified [guest_os_variant_options].
+modify_guest_params will be called to modify [guest_osinfo] using already
+modified [guest_osinfo_options].
 
 =cut
 
-sub config_guest_os_variant {
+sub config_guest_osinfo {
     my $self = shift;
 
     $self->reveal_myself;
-    my $_current_os_variant_options = $self->{guest_os_variant_options};
-    $self->config_guest_params(@_) if (scalar(@_) gt 0);
-    if ($self->{guest_os_variant} ne '') {
-        $self->{guest_os_variant_options} = "--os-variant $self->{guest_os_variant}";
-        if (($self->{guest_installation_result} eq 'PASSED') and ($_current_os_variant_options ne $self->{guest_os_variant_options})) {
-            $self->modify_guest_params($self->{guest_name}, 'guest_os_variant_options');
+    my $_current_osinfo_options = $self->{guest_osinfo_options};
+    $self->config_guest_params(@_) if (scalar(@_) > 0);
+    my $_guest_osinfo = $self->{guest_osinfo} // $self->{guest_os_variant};
+    if (($_guest_osinfo // '') ne '') {
+        # Get list of supported OS names on the current host
+        my $_supported = script_output('virt-install --osinfo list || virt-install --os-variant list');
+        unless ($_supported =~ /(?:^|\s)\Q$_guest_osinfo\E(?:\s|$)/) {
+            # Strip the minor version (e.g., sles16.1 -> sles16)
+            $_guest_osinfo =~ s/\.\d+$//;
+            $_guest_osinfo = '' unless ($_supported =~ /(?:^|\s)\Q$_guest_osinfo\E(?:\s|$)/);
+        }
+        $self->{guest_osinfo_options} = ($_guest_osinfo ne '') ? "--osinfo $_guest_osinfo" : "";
+        if (($self->{guest_installation_result} eq 'PASSED') and ($_current_osinfo_options ne $self->{guest_osinfo_options})) {
+            $self->modify_guest_params($self->{guest_name}, 'guest_osinfo_options');
         }
     }
     inspect_existing_issue(issue => 'bsc#1255476 No SLES16.1 in os database');
@@ -2279,7 +2287,7 @@ sub config_guest_installation_command {
     $self->reveal_myself;
     $self->{virt_install_command_line} = "virt-install $self->{guest_virt_options} $self->{guest_platform_options} $self->{guest_name_options} "
       . "$self->{guest_vcpus_options} $self->{guest_memory_options} $self->{guest_numa_options} $self->{guest_cpumodel_options} $self->{guest_metadata_options} "
-      . "$self->{guest_os_variant_options} $self->{guest_boot_options} $self->{guest_storage_options} $self->{guest_network_selection_options} "
+      . "$self->{guest_osinfo_options} $self->{guest_boot_options} $self->{guest_storage_options} $self->{guest_network_selection_options} "
       . "$self->{guest_installation_method_options} $self->{guest_installation_automation_options} $self->{guest_installation_extra_args_options} "
       . "$self->{guest_graphics_and_video_options} $self->{guest_sysinfo_options} $self->{guest_serial_options} $self->{guest_channel_options} "
       . "$self->{guest_console_options} $self->{guest_features_options} $self->{guest_events_options} $self->{guest_power_management_options} "
@@ -2361,7 +2369,7 @@ sub prepare_guest_installation {
     $self->config_guest_vcpus;
     $self->config_guest_memory;
     $self->config_guest_numa;
-    $self->config_guest_os_variant;
+    $self->config_guest_osinfo;
     $self->config_guest_virtualization;
     $self->config_guest_platform;
     $self->config_guest_boot_settings;

@@ -84,7 +84,8 @@ our %_guest_params = (
     'guest_boot_settings' => '',    # virt-install --boot [guest_boot_settings]
     'guest_secure_boot' => '',    # This indicates whether uefi secure boot is enabled(true, false or empty) during
                                   # installation in unattended installation file, not virt-install argument
-    'guest_os_variant' => '',    # virt-install --os-variant [guest_os_variant]
+    'guest_osinfo' => '',    # virt-install --osinfo [guest_osinfo]
+    'guest_os_variant' => '', # Legacy parameter for backward compatibility with parameter profiles still in use. Actually --osinfo and --os-variant are exact aliases of each other.
     'guest_storage_path' => '',    # virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],
                                    # [guest_storage_others] or --disk type=file,device=disk,source.file=[guest_storage_path],
                                    # size=[guest_storage_size],format=[guest_storage_format],driver.type=[guest_storage_format]
@@ -218,7 +219,7 @@ our %_guest_params = (
                                                       # [guest_installation_automation_options]"
     'guest_installation_automation_options' => '', # [guest_installation_automation_options] = "--extra-args [autoyast|inst.ks][ks]=[guest_installation_automation_file]"
     'guest_boot_options' => '',    # [guest_boot_options} = "--boot [guest_boot_settings]"
-    'guest_os_variant_options' => '',    # [guest_os_variant_options] = "--os-variant [guest_os_variant]"
+    'guest_osinfo_options' => '',    # [guest_osinfo_options] = "--osinfo [guest_osinfo]"
     'guest_storage_options' => '',    # [guest_storage_options] = "--disk path=[guest_storage_path],size=[guest_storage_size],
                                       # format=[guest_storage_format],[guest_storage_others]"
     'guest_network_selection_options' => '',    # [guest_network_selection_options] = "--network=bridge=[guest_network_device],
