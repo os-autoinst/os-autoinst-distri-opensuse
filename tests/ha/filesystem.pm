@@ -20,13 +20,7 @@ sub run {
     my $tag = read_tag;
     return 1 if (($tag eq 'drbd_passive' and is_not_maintenance_update('drbd')) or $tag eq 'skip_fs_test');
 
-    # On older SPs (<=15-SP3), this module has issues when setting up a filesystem HA resource
-    # for drbd_passive using the serial terminal: it times out after the `crm resource move`
-    # operation after 90 seconds; however, when running on the `root-console` it works. To avoid
-    # adding an unnecessary sleep in all scenarios, the lines below move the module to run on the serial
-    # terminal only when setting up a FS for drbd_passive. In other cases we select the root-console by
-    # calling prepare_console_for_fencing
-    ($tag eq 'drbd_passive') ? prepare_console_for_fencing : select_serial_terminal;
+    select_serial_terminal;
 
     my $cluster_name = get_cluster_name;
     my $node = get_hostname;
@@ -141,7 +135,7 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
         assert_script_run 'bash -ex /root/crm_edit_config.sh', $default_timeout;
 
         # Sometimes we need to cleanup the resource
-        rsc_cleanup $fs_rsc if defined($clean_flag) && $clean_flag == 'cleanup';
+        rsc_cleanup $fs_rsc if defined($clean_flag) && $clean_flag eq 'cleanup';
 
         # Wait to get Filesystem running on all nodes (if applicable)
         wait_until_resources_started;
@@ -176,7 +170,7 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
 
         # Add files/data in the Filesystem
         assert_script_run "cp -r /usr/bin/ /srv/$fs_rsc ; sync", $default_timeout;
-        assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out", $default_timeout;
+        assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out ; cd", $default_timeout;
     }
     else {
         diag 'Wait until Filesystem is filled with data...';
@@ -204,6 +198,10 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
                     wait_for_idle_cluster;
                 }
 
+                # Clean up any previous failure on the filesystem resource before moving
+                rsc_cleanup $fs_rsc;
+                wait_for_idle_cluster;
+
                 # Migrate resource on the node
                 assert_script_run "crm resource move ms_$resource $node", $default_timeout;
                 wait_for_idle_cluster;
@@ -225,8 +223,8 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
         assert_script_run 'sync';
 
         # Check if files/data are different in the Filesystem
-        assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out_$node", $default_timeout;
-        assert_script_run "cd /srv/$fs_rsc ; diff -urN out out_$node", $default_timeout;
+        assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out_$node ; cd", $default_timeout;
+        assert_script_run "diff -urN /srv/$fs_rsc/out /srv/$fs_rsc/out_$node", $default_timeout;
     }
 
     # Return to default directory
