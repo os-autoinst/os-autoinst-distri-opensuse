@@ -23,7 +23,7 @@ for FILE in $FILES; do
     # Using the -e script option will cause the following command to exit the script with failure in case the file_to_verify
     # is not referenced anywhere. Using "|| :" to avoid this.
     MATCHED_REFERENCE_FILES=$(grep --recursive --ignore-case --files-with-matches \
-    "${file_to_verify}\b" $target_paths | grep '\(\.ya\?ml$\|\.pm\)' || :)
+    "${file_to_verify}\s*\$" $target_paths | grep '\(\.ya\?ml$\|\.pm\)' || :)
     if [[ -n $file_to_verify ]] && [[ -n $MATCHED_REFERENCE_FILES ]]
     then
         echo -e "\"$file_to_verify\" was removed or renamed, but it is still used in:\n$MATCHED_REFERENCE_FILES" 
