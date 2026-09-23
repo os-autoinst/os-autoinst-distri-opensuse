@@ -18,6 +18,7 @@ use testapi;
 use x11utils qw(turn_off_plasma_tooltips update_x11_vt);
 
 sub run {
+    my $self = shift;
     # Workaround: on vmware or hyperv the 'ret' from grub_test is occasionally
     # lost across a VNC reconnect, leaving the SUT at the GRUB menu. Only these
     # backends reconnect the console, so the check is limited to them.
@@ -29,7 +30,8 @@ sub run {
             send_key 'ret';
         }
     }
-    shift->wait_boot_past_bootloader;
+    $self->handle_grub(bootloader_time => 300, in_grub => 0) if (check_var('KEEP_GRUB_TIMEOUT', '0'));
+    $self->wait_boot_past_bootloader;
     # This only works with generic-desktop. In the opensuse-welcome case,
     # the opensuse-welcome module will handle it instead.
     if (check_var('DESKTOP', 'kde') && match_has_tag('generic-desktop')) {

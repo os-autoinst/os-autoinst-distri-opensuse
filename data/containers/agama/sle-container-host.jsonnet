@@ -4,7 +4,7 @@
     registrationCode: '{{SCC_REGCODE}}'
   },
   bootloader: {
-    stopOnBootMenu: false,
+    stopOnBootMenu: true,
   },
   user: {
     fullName: 'Bernhard M. Wiedemann',

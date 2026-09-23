@@ -144,6 +144,7 @@ KUBECTL_CLUSTER | string | | Defines the cluster used to test `kubectl`. Current
 KUBECTL_VERSION | string | v1.22.12 | Defines the kubectl version.
 KUBERNETES_VERSIONS | string | | List of Kubernetes versions to install.
 KEEP_DISKS | boolean | false | Prevents disks wiping for remote backends without snapshots support, e.g. ipmi, powerVM, zVM
+KEEP_GRUB_TIMEOUT | boolean | false | Prevents disabling the bootloader timeout during installation and system configuration. When set to 1, tests skip the bootloader menu check. When set to 0, tests force matching of the bootloader menu.
 KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace original repos in the installed system with snapshot mirrors which are not yet published.
 KEEP_PERSISTENT_NET_RULES | boolean | false | Keep udev rules 70-persistent-net.rules, which are deleted on backends with image support (qemu, svirt) by default.
 LAPTOP |||
