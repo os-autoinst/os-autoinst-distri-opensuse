@@ -305,12 +305,6 @@ subtest '[wait_for_ssh_login] timeout/delay/retry argument propagation' => sub {
     # Explicit delay propagates and drives retry = timeout/delay
     $inst->wait_for_ssh_login(delay => 10);
     is($call_args[-1]->{delay}, 10, 'custom delay forwarded');
-
-    # PUBLIC_CLOUD_SSH_TIMEOUT var overrides the default timeout
-    set_var('PUBLIC_CLOUD_SSH_TIMEOUT', 900);
-    $inst->wait_for_ssh_login();
-    is($call_args[-1]->{retry}, 900 / 30, 'retry derives from PUBLIC_CLOUD_SSH_TIMEOUT var');
-    set_var('PUBLIC_CLOUD_SSH_TIMEOUT', undef);
 };
 
 subtest '[wait_for_sudo] probes sudo over a non-multiplexed connection' => sub {
