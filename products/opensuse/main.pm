@@ -319,6 +319,16 @@ elsif (get_var('SECURITY_TEST')) {
     load_security_tests();
 }
 elsif (get_var('XFSTESTS')) {
+    # Bisecting a kernel regression means running one and the same xfstests
+    # image against many kernel builds, so the kernel has to be replaced
+    # before the tests start. Same order as products/sle/main.pm:
+    # update_kernel boots the image on its own and reboots at the end without
+    # waiting for that boot, so the regular boot has to follow it.
+    if (get_var('XFSTESTS_AUTO_BISECT')) {
+        get_required_var('KOTD_REPO');
+        get_required_var('BOOT_HDD_IMAGE');
+        loadtest 'kernel/update_kernel';
+    }
     prepare_target();
     if (check_var('XFSTESTS', 'installation')) {
         loadtest 'xfstests/install';
