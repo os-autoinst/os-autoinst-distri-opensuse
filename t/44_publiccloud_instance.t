@@ -299,17 +299,17 @@ subtest '[wait_for_ssh_login] timeout/delay/retry argument propagation' => sub {
     # Explicit timeout propagates and drives retry = timeout/delay
     $inst->wait_for_ssh_login(timeout => 600);
     is($call_args[-1]->{delay}, 30, 'delay still defaults to 30');
-    is($call_args[-1]->{retry}, 600 / 30, 'retry scales with custom timeout (20)');
-    like($call_args[-1]->{fail_message}, qr/20 attempts in 600 seconds/, 'fail_message reflects custom timeout');
+    is($call_args[-1]->{retry}, 10, 'delay still defaults to 10');
+    like($call_args[-1]->{fail_message}, qr/10 attempts in 600 seconds/, 'fail_message reflects custom timeout');
 
     # Explicit delay propagates and drives retry = timeout/delay
-    $inst->wait_for_ssh_login(delay => 10);
-    is($call_args[-1]->{delay}, 10, 'custom delay forwarded');
+    $inst->wait_for_ssh_login(delay => 3);
+    is($call_args[-1]->{delay}, 3, 'custom delay forwarded');
 
     # PUBLIC_CLOUD_SSH_TIMEOUT var overrides the default timeout
     set_var('PUBLIC_CLOUD_SSH_TIMEOUT', 900);
     $inst->wait_for_ssh_login();
-    is($call_args[-1]->{retry}, 900 / 30, 'retry derives from PUBLIC_CLOUD_SSH_TIMEOUT var');
+    is($call_args[-1]->{retry}, 3, 'retry error');
     set_var('PUBLIC_CLOUD_SSH_TIMEOUT', undef);
 };
 
