@@ -1,0 +1,23 @@
+name: fetch_kernel
+description: >
+  Boot an existing image, fetch a verified kernel.org shallow tree and shut down so the disk can be published.
+schedule:
+  - "{{boot}}"
+  - boot/boot_to_desktop
+  - kernel/get_verified_shallow_tar
+  - shutdown/shutdown
+
+conditional_schedule:
+  boot:
+    BACKEND:
+      spvm:
+        - installation/bootloader
+      pvm_hmc:
+        - installation/bootloader
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+  update_kernel:
+    INSTALL_KOTD:
+      "1":
+        - kernel/update_kernel
