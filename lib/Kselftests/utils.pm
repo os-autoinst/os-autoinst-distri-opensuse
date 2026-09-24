@@ -24,10 +24,12 @@ use package_utils qw(install_package install_available_packages);
 use transactional qw(trup_apply);
 
 our @EXPORT = qw(
+  build
   export_kselftest_env
   get_whitelist
-  install_kselftests
   install_dependencies
+  install_from_git
+  install_upstream_harness
   livepatch_conflicts_with_kgraft
   post_process
   post_process_single
@@ -142,8 +144,6 @@ sub install_from_git
         assert_script_run("curl -O " . autoinst_url("/data/kernel/$patch"));
         assert_script_run("git apply $patch");
     }
-
-    build($collection, '.');
 }
 
 sub install_upstream_harness
@@ -231,18 +231,6 @@ sub install_dependencies
 
     install_package(join(' ', @deps), (@maybe_deps ? (trup_continue => 1) : ()));
     install_available_packages(join(' ', @maybe_deps)) if @maybe_deps;
-}
-
-sub install_kselftests
-{
-    my ($collection) = @_;
-
-    if (get_var('KSELFTEST_FROM_GIT', 0)) {
-        install_from_git($collection);
-    } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
-        build($collection);
-        install_upstream_harness();
-    }
 }
 
 sub get_sanitized_test_name
