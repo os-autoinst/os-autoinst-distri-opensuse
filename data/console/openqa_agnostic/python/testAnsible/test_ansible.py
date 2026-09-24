@@ -20,6 +20,18 @@ COLLECTION = os.path.expanduser('~/ansible_collections/openqa/ansible')
 ARCH = os.uname().machine
 
 
+def is_transactional():
+    """True on transactional images (MicroOS, SLE Micro, Leap Micro)."""
+    if shutil.which('transactional-update'):
+        return True
+    try:
+        with open('/etc/os-release') as release:
+            data = release.read()
+    except OSError:
+        return False
+    return bool(re.search(r'^ID(_LIKE)?=.*(microos|sle-micro|leap-micro)', data, re.M | re.I))
+
+
 def sh(cmd, timeout=900, cwd=COLLECTION):
     return subprocess.run(['bash', '-c', cmd], cwd=cwd, stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT, universal_newlines=True, timeout=timeout)
@@ -77,7 +89,9 @@ def test_ansible_version():
 
 
 def test_setup_hostname(facts):
-    hostname = out('hostnamectl --static').strip()
+    # hostnamectl --static is empty on MicroOS; ansible_hostname is the short
+    # effective hostname, the same value as the kernel nodename.
+    hostname = os.uname().nodename.split('.')[0]
     assert re.search(r'"ansible_hostname"\s*:\s*"' + re.escape(hostname) + r'"', facts)
 
 
@@ -128,6 +142,15 @@ def test_playbook_run():
     assert 'stay the same' in out('cat /tmp/ansible/static.txt')
     assert out('readlink /tmp/ansible/os-release').strip() == '/etc/os-release'
     assert re.search(r'my ' + re.escape(ARCH) + r' dynamic kingdom', out('sudo -u johnd cat /home/johnd/README.txt'))
+
+
+def test_playbook_installed_ed():
+    # The playbook installs ed through the ansible zypper module. On a
+    # transactional image that lands in a new snapshot and only becomes
+    # visible after a reboot; this single-session runner does not reboot,
+    # so the check cannot be made here.
+    if is_transactional():
+        pytest.skip('ed is installed into a new transactional snapshot, needs a reboot')
     assert shutil.which('ed')
 
 
