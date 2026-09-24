@@ -15,16 +15,13 @@ use warnings;
 use utils;
 use Kselftests::parser;
 use LTP::WhiteList;
-use version_utils qw(is_sle has_selinux is_tumbleweed is_transactional);
-use Kernel::utils qw(is_debugfs_mounted enable_debugfs);
+use version_utils qw(is_sle is_tumbleweed is_transactional);
 use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use package_utils qw(install_package install_available_packages);
 use transactional qw(trup_apply);
-use utils qw(write_sut_file systemctl);
-use Utils::Systemd qw(disable_and_stop_service);
 
 our @EXPORT = qw(
   export_kselftest_env
@@ -193,16 +190,6 @@ sub install_dependencies
 {
     my ($collection) = @_;
 
-    enable_debugfs() unless is_debugfs_mounted();
-
-    # selftests may manipulate namespaces and devices in ways that
-    # trigger AVC denials on SELinux-enabled systems
-    script_run('setenforce 0') if has_selinux;
-
-    # the default firewall might interfere with many tests,
-    # stop it to avoid false negative test results
-    disable_and_stop_service('firewalld');
-
     # cgroup tests do not require phub nor qa repo
     if (is_sle() && $collection ne 'cgroup') {
         add_qa_head_repo;
@@ -243,24 +230,6 @@ sub install_dependencies
 
         # install test deps
         install_available_packages('packetdrill libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
-
-        if (is_sle('>=16.0')) {
-            # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
-            my $netdevsim_mask = <<"EOF";
-[main]
-plugins=keyfile
-[keyfile]
-unmanaged-devices=driver:netdevsim
-EOF
-            write_sut_file('/etc/NetworkManager/conf.d/99-disable-netdevsim.conf', $netdevsim_mask);
-            systemctl('reload NetworkManager');
-        }
-
-        # The sit module auto-claims 2002::/16 (6to4) addresses, which are used by
-        # net:tun tests as outer IPv6 tunnel addresses. This creates competing local
-        # routes that prevent GENEVE-decapsulated packets from reaching the test socket
-        # (observed as failures in *_gtgso send_gso_packet variants).
-        script_run('rmmod sit');
     }
 }
 

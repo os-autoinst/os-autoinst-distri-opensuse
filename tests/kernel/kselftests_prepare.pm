@@ -11,6 +11,10 @@ use Mojo::Base 'opensusebasetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use utils qw(write_sut_file systemctl);
+use version_utils qw(is_sle has_selinux);
+use Kernel::utils qw(is_debugfs_mounted enable_debugfs);
+use Utils::Systemd qw(disable_and_stop_service);
 use Kselftests::utils;
 
 sub test_flags {
@@ -38,6 +42,36 @@ sub run {
     if ($@) {
         $self->{fail_reason} = $@;
         die $@;
+    }
+
+    enable_debugfs() unless is_debugfs_mounted();
+
+    # selftests may manipulate namespaces and devices in ways that
+    # trigger AVC denials on SELinux-enabled systems
+    script_run('setenforce 0') if has_selinux;
+
+    # the default firewall might interfere with many tests,
+    # stop it to avoid false negative test results
+    disable_and_stop_service('firewalld');
+
+    if ($collection =~ m{^net(/|$)}) {
+        if (is_sle('>=16.0')) {
+            # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
+            my $netdevsim_mask = <<'EOF';
+[main]
+plugins=keyfile
+[keyfile]
+unmanaged-devices=driver:netdevsim
+EOF
+            write_sut_file('/etc/NetworkManager/conf.d/99-disable-netdevsim.conf', $netdevsim_mask);
+            systemctl('reload NetworkManager');
+        }
+
+        # The sit module auto-claims 2002::/16 (6to4) addresses, which are used by
+        # net:tun tests as outer IPv6 tunnel addresses. This creates competing local
+        # routes that prevent GENEVE-decapsulated packets from reaching the test socket
+        # (observed as failures in *_gtgso send_gso_packet variants).
+        script_run('rmmod sit');
     }
 }
 
