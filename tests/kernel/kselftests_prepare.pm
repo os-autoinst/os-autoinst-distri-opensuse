@@ -13,7 +13,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(write_sut_file systemctl);
 use version_utils qw(is_sle has_selinux);
-use Kernel::utils qw(is_debugfs_mounted enable_debugfs);
+use Kernel::utils qw(is_debugfs_mounted enable_debugfs get_verified_shallow_tar);
 use Utils::Systemd qw(disable_and_stop_service);
 use Kselftests::utils;
 
@@ -43,7 +43,20 @@ sub run {
 
     eval {
         if (get_var('KSELFTEST_FROM_GIT', 0)) {
-            install_from_git($collection);
+            if (script_run('test -d ./linux')) {
+                get_verified_shallow_tar(
+                    tree => get_var('KERNEL_GIT_TREE'),
+                    branch => get_var('KERNEL_GIT_BRANCH'),
+                    commit => get_var('KERNEL_GIT_COMMIT'),
+                );
+            }
+            assert_script_run('cd ./linux');
+            record_info('GIT Commit', script_output('git log -1 --oneline'));
+            if (is_sle && $collection eq 'livepatch') {
+                my $patch = 'selftests-livepatch-Ignore-NO_SUPPORT-line-in-dmesg.patch';
+                assert_script_run("curl -O " . autoinst_url("/data/kernel/$patch"));
+                assert_script_run("git apply $patch");
+            }
             build($collection, '.');
         } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
             build($collection);
@@ -121,28 +134,9 @@ Specifies the name of the kselftest collection to install, as reported by:
 
 =head2 KSELFTEST_FROM_GIT
 
-If set, kselftests are cloned and built directly from a kernel git tree
-instead of using packaged RPMs. The repository and ref are controlled by
-C<KSELFTEST_GIT_TREE> and C<KSELFTEST_GIT_REF>.
-
-=head2 KSELFTEST_GIT_TREE
-
-URL of the kernel git repository to clone when C<KSELFTEST_FROM_GIT> is set.
-Defaults to the upstream Linus tree:
-
-  https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-
-=head2 KSELFTEST_GIT_REF
-
-Git ref (branch, tag, or commit SHA) to check out from C<KSELFTEST_GIT_TREE>
-when C<KSELFTEST_FROM_GIT> is set. When unset the repository's default branch
-is used.
-
-Examples:
-
-  KSELFTEST_GIT_REF=stable
-  KSELFTEST_GIT_REF=v6.10
-  KSELFTEST_GIT_REF=a3b1c2d
+If set, kselftests are cloned and built directly from a kernel git tree. The
+repository and refs are controlled by C<KERNEL_GIT_TREE>, C<KERNEL_GIT_BRANCH>
+and C<KERNEL_GIT_COMMIT>.
 
 =head2 KSELFTEST_FROM_SRC
 
