@@ -1266,6 +1266,10 @@
     "detected-falseticket": {
         "description": "Detected falseticker .*",
         "products": {
+            "opensuse": [
+                "16.0",
+                "16.1"
+            ],
             "microos": [
                 "Tumbleweed"
             ],
@@ -1308,6 +1312,10 @@
     "ntp-no-majority": {
         "description": "Can't synchronise: no majority",
         "products": {
+            "opensuse": [
+                "16.0",
+                "16.1"
+            ],
             "microos": [
                 "Tumbleweed"
             ],
@@ -2117,6 +2125,10 @@
     "tdx-not-supported": {
         "description": "virt/tdx: TDX not supported by the host platform",
         "products": {
+            "opensuse": [
+                "16.0",
+                "16.1"
+            ],
             "sle": [
                 "16.0",
                 "16.1"
