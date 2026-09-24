@@ -1,0 +1,492 @@
+#!/bin/bash
+# From: https://git.kernel.org/pub/scm/linux/kernel/git/mricon/korg-helpers.git/tree/get-verified-shallow-tar
+# Ref: 19b2ad24fc056e1bf4fee1898d36381dd13c663d
+# Link: https://people.kernel.org/monsieuricon/using-shallow-git-tarballs-for-ci
+#
+# Unset variables and failing pipelines are bugs here, not something to
+# muddle through: this script builds paths and URLs out of its variables
+# and hands the result to rm -rf, curl and tar.
+set -u
+set -o pipefail
+# Whatever the caller's umask happens to be, the tree we leave behind should
+# not be group- or world-writable.
+umask 022
+
+# get-verified-shallow-tar
+# ------------------------
+# Set up a kernel build tree from one of the shallow-clone tarballs
+# published on kernel.org, verify it cryptographically, and check out the
+# exact commit that was asked for.
+#
+# The tarballs hold a depth-1, single-branch, tagless clone, so a CI system
+# can fetch one over HTTP instead of making the server build a pack for
+# every job in the swarm. See:
+#   https://www.kernel.org/pub/linux/kernel/shallow-tar/
+#
+# Usage: ./get-verified-shallow-tar <tree> <branch> [commit]
+#
+#   tree    Which tree to build from: stable or torvalds
+#   branch  Branch the tarball was built from, e.g. "linux-6.12.y"
+#   commit  Full object ID to check out (40 or 64 hex digits). Can be
+#           omitted to fetch the latest tip, but you should always pass the
+#           exact SHA of the commit you want when running in production.
+#
+# Examples:
+#   ./get-verified-shallow-tar torvalds master \
+#       fe2ec83746e501645709761605c2464a44fd2929
+#   ./get-verified-shallow-tar stable linux-6.12.y
+#
+# On success you get ./linux, checked out at that commit, with an origin
+# pointing at the public repository and a --no-tags, single-branch remote
+# so that later "git fetch --depth=1" stays cheap.
+#
+# A NOTE ON WHAT IS AND IS NOT VERIFIED
+# -------------------------------------
+# Shallow tarballs are built nightly by an automated process and aren't
+# individually signed. There is a checksums file that is signed by the
+# kernel.org autosigner, which attests that these are the bytes kernel.org
+# published. No special trust should be given to this signature, as kernel.org
+# has been breached in the past and you should always assume this can happen
+# again.
+#
+# A CI system should always specify the exact commit it wants as the final
+# parameter. This provides extra assurance that you get exactly what you
+# expect.
+#
+# Configurable parameters
+# -----------------------
+# Where to put the build tree.
+#
+# The tree is created as a subdirectory of this, named after the repository.
+TARGETDIR="."
+
+# If you set this to an empty value, we'll make a temporary directory and
+# fetch the verification key from the Web Key Directory each time. Also see
+# USEKEYRING= below for an alternative that doesn't rely on WKD.
+GNUPGHOME="$HOME/.gnupg"
+
+# For CI and other automated infrastructure, you may want to create a
+# keyring containing the key belonging to autosigner@kernel.org.
+#
+# To generate the keyring with that key, do:
+#   gpg --export autosigner@kernel.org > keyring.gpg
+#   (or use the full keyid for maximum certainty)
+#
+# Once you have keyring.gpg, install it on your CI system and set
+# USEKEYRING to the full path to it. If unset, we generate our own from
+# GNUPGHOME.
+USEKEYRING=
+
+# The binaries we need. By default we take whatever PATH hands us, which is
+# what a CI container with tools in /bin, /usr/local/bin or a toolchain prefix
+# will want; set any of these to a full path to pin it instead.
+# GnuPG needs to be version 2.1.11 or above.
+GPGBIN=$(command -v gpg)
+GPGVBIN=$(command -v gpgv)
+# We need a compatible version of sha256sum, too
+SHA256SUMBIN=$(command -v sha256sum)
+# And curl. The options matter as much as the binary: a CI job must not
+# hang forever on a stalled connection, and there is no reason to follow a
+# redirect off https onto some other protocol -- everything here is verified
+# afterwards, but a downgrade is still not something to accept quietly.
+# Override CURLOPTS if you are fetching from somewhere other than https.
+CURLBIN=$(command -v curl)
+# An array, so that each option stays one argument no matter what is in it.
+CURLOPTS=(--proto '=https' --proto-redir '=https' --max-redirs 5
+          --connect-timeout 30 --retry 3 --retry-delay 5)
+# Caps on what we are willing to write to disk, so that a misbehaving
+# endpoint fills a temporary directory rather than the filesystem. The
+# tarballs run to a few hundred megabytes today.
+MAXSUMSIZE=10485760
+MAXTARSIZE=4294967296
+# And tar and git
+TARBIN=$(command -v tar)
+GITBIN=$(command -v git)
+
+# Where the tarballs are published.
+SHALLOWBASE="https://www.kernel.org/pub/linux/kernel/shallow-tar"
+
+# The origin we give the unpacked tree. The tarball carries an origin URL of
+# its own, but that arrived inside the archive along with everything else,
+# so we use a URL from here instead. Point these at your own mirror if you
+# have one.
+GITURLBASE="https://git.kernel.org"
+GITPATHBASE="/pub/scm/linux/kernel/git"
+
+# Known trees published under SHALLOWBASE. REPONAME is currently always "linux".
+KNOWNTREES="stable torvalds"
+REPONAME="linux"
+
+# This is the key that signs the checksums. It is NOT a key that should be
+# used to verify anybody's code; it only attests to what kernel.org
+# published.
+SHAKEYS="autosigner@kernel.org"
+
+usage() {
+    echo "Usage: ${0##*/} <tree> <branch> [commit]"
+    echo
+    echo "  tree    Which tree to build from: ${KNOWNTREES// / or }"
+    echo "  branch  Branch the tarball was built from, e.g. linux-6.12.y"
+    echo "  commit  Full object ID to check out (40 or 64 hex digits)."
+    echo "          Optional, for trying this out: without it we check out the"
+    echo "          current tip of the branch. CI should always pass one."
+    echo
+    echo "Examples: ${0##*/} torvalds master fe2ec83746e501645709761605c2464a44fd2929"
+    echo "          ${0##*/} stable linux-6.12.y"
+}
+
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+    usage
+    exit 1
+fi
+TREE="${1}"
+BRANCH="${2}"
+COMMIT="${3:-}"
+
+if [[ -z ${TREE} || -z ${BRANCH} ]]; then
+    usage
+    exit 1
+fi
+
+# Match the tree against the list rather than validating its shape. TREE
+# goes into both a URL and a filesystem path, and accepting only these exact
+# words means nothing a caller types can reach either one: there is no
+# traversal, quoting or injection left to get wrong further down.
+KNOWN=
+for CANDIDATE in ${KNOWNTREES}; do
+    if [[ ${TREE} == "${CANDIDATE}" ]]; then
+        KNOWN=yes
+        break
+    fi
+done
+if [[ -z ${KNOWN} ]]; then
+    echo "Don't know a tree called \"${TREE}\"."
+    echo "Known trees are: ${KNOWNTREES// / }"
+    exit 1
+fi
+
+# If a commit was named, it has to be the full object ID rather than an
+# abbreviation. Asking a server for a raw object ID needs the whole thing,
+# and the full ID is the only part of this that verifies itself -- an
+# abbreviation would quietly give up the very property we asked for it.
+if [[ -n ${COMMIT} && ! ${COMMIT} =~ ^([0-9a-f]{40}|[0-9a-f]{64})$ ]]; then
+    echo "Not a full object ID: ${COMMIT}"
+    echo "Pass the complete 40- or 64-character hex commit ID, not an abbreviation."
+    echo "Leave it off entirely to check out the current tip of ${BRANCH}."
+    exit 1
+fi
+
+# Start by making sure our environment is sane, before anything slow happens.
+# Each entry carries the tool's name next to its path, so that we can say
+# which tool is missing even when command -v came up empty for it.
+for BINARY in "gpg ${GPGBIN}" "gpgv ${GPGVBIN}" "sha256sum ${SHA256SUMBIN}" \
+              "curl ${CURLBIN}" "tar ${TARBIN}" "git ${GITBIN}"; do
+    BINNAME="${BINARY%% *}"
+    BINPATH="${BINARY#* }"
+    if [[ -z ${BINPATH} ]]; then
+        echo "Could not find ${BINNAME} anywhere on your PATH."
+        exit 1
+    fi
+    if [[ ! -x ${BINPATH} ]]; then
+        echo "Could not find an executable ${BINNAME} at ${BINPATH}"
+        exit 1
+    fi
+done
+
+# Let git rule on the branch name rather than guessing at the rules
+# ourselves; it is the thing that has to agree with us.
+if ! "${GITBIN}" check-ref-format "refs/heads/${BRANCH}"; then
+    echo "Not a valid branch name: ${BRANCH}"
+    exit 1
+fi
+
+if [[ ! -d ${TARGETDIR} ]]; then
+    echo "${TARGETDIR} does not exist"
+    exit 1
+fi
+# Everything below is derived from TARGETDIR, and we chdir into the work
+# directory to check the tarball, so a relative TARGETDIR (the default is
+# ".") would leave those paths pointing somewhere else entirely.
+if ! TARGETDIR=$(cd "${TARGETDIR}" && pwd); then
+    echo "Could not enter ${TARGETDIR}"
+    exit 1
+fi
+
+# A branch name may contain a slash, which a filename may not, so the
+# publisher turns "/" into "-". Do the same to find the file.
+SLUG="${BRANCH//\//-}"
+NAME="${REPONAME}"
+SHALLOWURL="${SHALLOWBASE}/${TREE}"
+CLONEURL="${GITURLBASE}${GITPATHBASE}/${TREE}/${NAME}.git"
+STEM="${NAME}.${SLUG}.shallow"
+
+TARGET="${TARGETDIR}/${NAME}"
+# Refuse rather than clobber. We can't tell a stale tree from one another
+# job is using, and "it was already there" is not the same as "it is at the
+# commit you asked for".
+if [[ -e ${TARGET} ]]; then
+    echo "${TARGET} already exists, refusing to overwrite it."
+    exit 1
+fi
+
+# Everything intermediate goes in here, including the tarball itself, so a
+# single trap cleans up after any exit. Not named TMPDIR on purpose: that
+# variable redirects the temporary files of every child process we run.
+WORKDIR=$(mktemp -d "${TARGETDIR}/shallow-tar-verify.XXXXXXXXX.untrusted")
+if [[ ! -d ${WORKDIR} ]]; then
+    echo "Could not create a working directory under ${TARGETDIR}"
+    exit 1
+fi
+cleanup() {
+    rm -rf "${WORKDIR}"
+}
+trap cleanup EXIT
+# A bare signal kills the shell without running the EXIT trap, which would
+# strand most of a clone here. Turning each one into an ordinary exit means
+# cleanup still happens.
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
+echo "Using WORKDIR=${WORKDIR}"
+
+# Are we using a keyring?
+if [[ -z ${USEKEYRING} ]]; then
+    if [[ -z ${GNUPGHOME} ]]; then
+        GNUPGHOME="${WORKDIR}/gnupg"
+    elif [[ ! -d ${GNUPGHOME} ]]; then
+        echo "GNUPGHOME directory ${GNUPGHOME} does not exist"
+        echo -n "Create it? [Y/n] "
+        read -r YN
+        if [[ ${YN} == 'n' || ${YN} == 'N' ]]; then
+            echo "Exiting"
+            exit 1
+        fi
+    fi
+    # Two steps rather than "mkdir -p -m 0700": with -p the mode applies
+    # only to the deepest directory, and a keyring's directory is not the
+    # place to leave that to chance.
+    mkdir -p "${GNUPGHOME}" && chmod 0700 "${GNUPGHOME}"
+    echo "Making sure we have the checksum signing key"
+    if ! "${GPGBIN}" --batch --quiet \
+            --homedir "${GNUPGHOME}" \
+            --auto-key-locate wkd \
+            --locate-keys ${SHAKEYS}; then
+        echo "Something went wrong fetching keys"
+        exit 1
+    fi
+    USEKEYRING="${WORKDIR}/keyring.gpg"
+    if ! "${GPGBIN}" --batch --homedir "${GNUPGHOME}" \
+            --export ${SHAKEYS} > "${USEKEYRING}"; then
+        echo "Could not export the signing key"
+        exit 1
+    fi
+fi
+
+# Re-export into a keyring holding the autosigner key and nothing else, so
+# that no other key in the caller's keyring can vouch for these checksums.
+GPGTMP="${WORKDIR}/gnupg-export"
+mkdir -p "${GPGTMP}" && chmod 0700 "${GPGTMP}"
+SHAKEYRING="${WORKDIR}/shakeyring.gpg"
+if ! "${GPGBIN}" --batch --homedir "${GPGTMP}" \
+        --no-default-keyring --keyring "${USEKEYRING}" \
+        --export ${SHAKEYS} > "${SHAKEYRING}"; then
+    echo "Could not build the checksum keyring"
+    exit 1
+fi
+if [[ ! -s ${SHAKEYRING} ]]; then
+    echo "No key for ${SHAKEYS} in ${USEKEYRING}"
+    exit 1
+fi
+
+SHAFILE="${WORKDIR}/sha256sums.asc"
+echo "Downloading the checksums file for the ${TREE} tree"
+if ! "${CURLBIN}" -sSfL "${CURLOPTS[@]}" --max-filesize "${MAXSUMSIZE}" \
+        -o "${SHAFILE}" "${SHALLOWURL}/sha256sums.asc"; then
+    echo "Failed to download ${SHALLOWURL}/sha256sums.asc"
+    exit 1
+fi
+echo "Verifying the checksums file"
+COUNT=$("${GPGVBIN}" --keyring="${SHAKEYRING}" --status-fd=1 "${SHAFILE}" \
+        | grep -c -E '^\[GNUPG:\] (GOODSIG|VALIDSIG)')
+if [[ ${COUNT} -lt 2 ]]; then
+    echo "FAILED to verify the sha256sums.asc file."
+    exit 1
+fi
+
+# Take the signed payload out of the clearsigned file, so that what we go on
+# to search is the part the signature actually covered and not the whole
+# file. A clearsigned body starts after the first blank line and ends at the
+# signature, and any line beginning with a dash arrives escaped as "- ".
+SHASUMS="${WORKDIR}/sha256sums.txt"
+awk 'body && /^-----BEGIN PGP SIGNATURE-----/ { exit }
+     body { sub(/^- /, ""); print }
+     !body && /^$/ { body = 1 }' "${SHAFILE}" > "${SHASUMS}"
+if [[ ! -s ${SHASUMS} ]]; then
+    echo "The signed checksums file had no body we could read."
+    exit 1
+fi
+
+# Pick the newest tarball for this branch. We read the names out of the
+# signed file rather than following the "latest" symlink: symlinks are never
+# checksummed, so "latest" may well point at a tarball published since the
+# checksums were signed, and we would have nothing to check it against.
+# Names are <stem>.<YYYYMMDD>.<abbreviated tip>.tar, so a reverse sort puts
+# the newest first.
+STEMRE="${STEM//./\\.}"
+TARNAME=$(grep -oE "^[0-9a-f]{64}  ${STEMRE}\.[0-9]{8}\.[0-9a-f]+\.tar$" "${SHASUMS}" \
+          | awk '{print $NF}' | sort -r | head -1)
+if [[ -z ${TARNAME} ]]; then
+    echo "No signed tarball for branch ${BRANCH} of the ${TREE} tree."
+    echo "Looked for ${STEM}.*.tar in ${SHALLOWURL}/sha256sums.asc"
+    exit 1
+fi
+
+SHACHECK="${WORKDIR}/sha256sums.check"
+grep -E "  ${TARNAME//./\\.}$" "${SHASUMS}" > "${SHACHECK}"
+
+echo
+echo "Downloading ${TARNAME}"
+if ! "${CURLBIN}" -SfL "${CURLOPTS[@]}" --max-filesize "${MAXTARSIZE}" \
+        -o "${WORKDIR}/${TARNAME}" "${SHALLOWURL}/${TARNAME}"; then
+    echo "Failed to download ${SHALLOWURL}/${TARNAME}"
+    exit 1
+fi
+
+echo "Verifying checksum on ${TARNAME}"
+if ! (cd "${WORKDIR}" && "${SHA256SUMBIN}" -c "${SHACHECK}"); then
+    echo "FAILED to verify the downloaded tarball checksum"
+    exit 1
+fi
+
+# Unpack into the working directory and do all the remaining work there, so
+# that the tree only appears at its final name once it is checked out. A
+# half-built tree under the name a CI job is about to use is worse than no
+# tree at all.
+UNPACKDIR="${WORKDIR}/unpack"
+mkdir -p "${UNPACKDIR}"
+echo "Unpacking ${TARNAME}"
+# --no-same-owner and --no-same-permissions together mean the archive gets
+# no say in ownership or mode. That matters most when a job runs this as
+# root, where tar would otherwise happily restore a setuid bit out of a
+# tarball -- and the note at the top of this file is explicit that the
+# signature is not a reason to trust the contents that far.
+if ! "${TARBIN}" -xf "${WORKDIR}/${TARNAME}" \
+        --no-same-owner --no-same-permissions -C "${UNPACKDIR}"; then
+    echo "Failed to unpack the tarball"
+    exit 1
+fi
+# We have what we came for, and these run to hundreds of megabytes.
+rm -f "${WORKDIR}/${TARNAME}"
+
+# Named CLONEDIR rather than TREE: TREE is the tree we were asked for, and
+# is still wanted below.
+CLONEDIR="${UNPACKDIR}/${NAME}"
+# A symlink here would aim every rm -rf and git command below at whatever it
+# points to, so this is checked before the directory test rather than left
+# to -d, which a symlink to a directory would satisfy.
+if [[ -L ${CLONEDIR} ]]; then
+    echo "The tarball unpacked ${NAME} as a symlink, refusing to go further."
+    exit 1
+fi
+if [[ ! -d ${CLONEDIR}/.git ]]; then
+    echo "The tarball did not contain a ${NAME}/.git directory"
+    exit 1
+fi
+
+# This tree arrived over the network as an archive, with none of the usual
+# git checks applied to it, and .git/config is a file git reads as
+# instructions rather than as data: core.hooksPath relocates the hooks we
+# just deleted, core.fsmonitor names a program run during ordinary commands --
+# including during the fsck below -- and core.sshCommand and
+# remote.*.uploadpack run one on a fetch. We assume all of it can be set to
+# malicious values, so we delete and recreate with values we trust.
+echo
+echo "Resetting the unpacked tree to a trusted configuration"
+rm -rf "${CLONEDIR}/.git/hooks" "${CLONEDIR}/.git/config" \
+       "${CLONEDIR}/.git/config.worktree" "${CLONEDIR}/.git/worktrees" \
+       "${CLONEDIR}/.git/objects/info/alternates"
+if ! "${GITBIN}" -C "${CLONEDIR}" init -q; then
+    echo "Failed to reinitialize the unpacked tree"
+    exit 1
+fi
+# Single-branch and --no-tags, which is what keeps later fetches small: one
+# tag pointing outside the shallow boundary drags its history across.
+if ! "${GITBIN}" -C "${CLONEDIR}" remote add -t "${BRANCH}" --no-tags origin "${CLONEURL}"; then
+    echo "Failed to set the origin to ${CLONEURL}"
+    exit 1
+fi
+
+# The fsck below covers the objects that arrived in the tarball. These make
+# git apply the same check to every object that arrives in a fetch: the one
+# we are about to do, and any the CI job does afterwards.
+for SETTING in fetch.fsckObjects transfer.fsckObjects; do
+    if ! "${GITBIN}" -C "${CLONEDIR}" config "${SETTING}" true; then
+        echo "Failed to set ${SETTING}"
+        exit 1
+    fi
+done
+
+# Checks that every object is intact and is what its name says it is. This
+# takes around ten seconds on a kernel-sized tree, and is the whole reason
+# the reset above happens first.
+echo "Checking the integrity of the unpacked objects"
+if ! "${GITBIN}" -C "${CLONEDIR}" fsck --no-dangling --no-progress; then
+    echo "FAILED the integrity check on the unpacked tree"
+    exit 1
+fi
+
+# --depth=1 is not optional. The .git/shallow file records where the history
+# was cut, not how deep it is, so a fetch without it walks every merged side
+# branch that forks below the boundary all the way to the bottom, resulting
+# in huge packs and a high load on the server.
+if [[ -n ${COMMIT} ]]; then
+    WANTED="${COMMIT}"
+    echo "Fetching ${COMMIT:0:12} from ${CLONEURL}"
+else
+    WANTED="${BRANCH}"
+    echo "Fetching the current tip of ${BRANCH} from ${CLONEURL}"
+fi
+if ! "${GITBIN}" -C "${CLONEDIR}" fetch --depth=1 --no-tags origin "${WANTED}"; then
+    echo "Failed to fetch ${WANTED} from ${CLONEURL}"
+    if [[ -n ${COMMIT} ]]; then
+        echo "Is that commit really in ${BRANCH} of the ${TREE} tree?"
+    fi
+    exit 1
+fi
+
+# FETCH_HEAD names what we just fetched, which is how the no-commit case
+# reaches the tip without having to ask what it turned out to be.
+if [[ -n ${COMMIT} ]]; then
+    CHECKOUT="${COMMIT}"
+else
+    CHECKOUT="FETCH_HEAD"
+fi
+if ! "${GITBIN}" -C "${CLONEDIR}" checkout -q --detach "${CHECKOUT}"; then
+    echo "Failed to check out ${CHECKOUT}"
+    exit 1
+fi
+
+ACTUAL=$("${GITBIN}" -C "${CLONEDIR}" rev-parse HEAD)
+# Confirm we are standing on the commit that was asked for, and not on
+# something a tampered tarball offered in its place. There is nothing to
+# compare against when no commit was named -- the tip is whatever the fetch
+# said it was -- so we report it below instead.
+if [[ -n ${COMMIT} && ${ACTUAL} != "${COMMIT}" ]]; then
+    echo "FAILED: asked for ${COMMIT} but HEAD is ${ACTUAL}"
+    exit 1
+fi
+echo "Checked out ${ACTUAL}"
+
+# Same filesystem, so this is a rename: the tree either appears complete or
+# does not appear. -T, and no -f: if another job created ${TARGET} while we
+# were working, a plain mv would put our tree *inside* theirs and report
+# success. -T makes that an error instead.
+if ! mv -T "${CLONEDIR}" "${TARGET}"; then
+    echo "Failed to move the tree into ${TARGET}"
+    exit 1
+fi
+
+echo
+echo "Successfully set up ${TARGET} at ${ACTUAL}"
+echo "To bring it up to date, use: git fetch --depth=1 origin ${BRANCH}"
+
