@@ -38,6 +38,8 @@ sub run {
         return;
     }
 
+    setup_repos;
+
     eval { install_kselftests($collection) };
     if ($@) {
         $self->{fail_reason} = $@;

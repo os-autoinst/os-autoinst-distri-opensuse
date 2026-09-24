@@ -28,8 +28,9 @@ our @EXPORT = qw(
   get_whitelist
   install_kselftests
   livepatch_conflicts_with_kgraft
-  post_process_single
   post_process
+  post_process_single
+  setup_repos
   validate_kconfig
 );
 
@@ -186,16 +187,36 @@ sub install_from_repo
     assert_script_run("cd /usr/share/kselftests");
 }
 
-sub install_dependencies
+sub setup_repos
 {
     my ($collection) = @_;
 
     # cgroup tests do not require phub nor qa repo
-    if (is_sle() && $collection ne 'cgroup') {
+    return if $collection eq 'cgroup';
+
+    if (is_sle()) {
         add_qa_head_repo;
         add_suseconnect_product(get_addon_fullname('phub'));
         trup_apply() if is_transactional;
     }
+
+    if ($collection =~ m{^net(/|$)}) {
+        my $version;
+        if (is_tumbleweed()) {
+            $version = 'openSUSE_Factory';
+        } elsif (is_sle('>=16.0')) {
+            $version = '16.0';
+        }
+        if ($version) {
+            # ipv6toolkit netsniff-ng ndisc6 dropwatch
+            zypper_ar("https://download.opensuse.org/repositories/network:/utilities/$version/network:utilities.repo", priority => 100);
+        }
+    }
+}
+
+sub install_dependencies
+{
+    my ($collection) = @_;
 
     if ($collection eq 'mm') {
         install_package('libcap-devel liburing-devel libnuma-devel', trup_continue => 1);
@@ -214,17 +235,6 @@ sub install_dependencies
     }
 
     if ($collection =~ m{^net(/|$)}) {
-        my $version;
-        if (is_tumbleweed()) {
-            $version = 'openSUSE_Factory';
-        } elsif (is_sle('>=16.0')) {
-            $version = '16.0';
-        }
-        if ($version) {
-            # ipv6toolkit netsniff-ng ndisc6 dropwatch
-            zypper_ar("https://download.opensuse.org/repositories/network:/utilities/$version/network:utilities.repo", priority => 100);
-        }
-
         # install build deps
         install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_apply => 1);
 
