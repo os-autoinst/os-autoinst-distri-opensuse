@@ -28,7 +28,6 @@ our @EXPORT = qw(
   export_kselftest_env
   get_whitelist
   install_dependencies
-  install_from_git
   install_upstream_harness
   livepatch_conflicts_with_kgraft
   post_process
@@ -120,30 +119,6 @@ sub build
 
     assert_script_run($make_cmd, 7200);
     assert_script_run("cd $build_dir/kselftest/kselftest_install");
-}
-
-sub install_from_git
-{
-    my ($collection) = @_;
-
-    my $git_tree = get_var('KSELFTEST_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
-    my $git_ref = get_var('KSELFTEST_GIT_REF', '');
-
-    install_package('git', trup_apply => 1);
-    my $clone_cmd = "git clone --depth 1 --filter=blob:none --single-branch";
-    $clone_cmd .= " --branch $git_ref" if $git_ref ne '';
-    $clone_cmd .= " $git_tree linux";
-    assert_script_run($clone_cmd, 240);
-
-    assert_script_run("cd ./linux");
-
-    record_info("GIT Commit", script_output("git --no-pager log -1 --oneline"));
-
-    if (is_sle && $collection eq 'livepatch') {
-        my $patch = 'selftests-livepatch-Ignore-NO_SUPPORT-line-in-dmesg.patch';
-        assert_script_run("curl -O " . autoinst_url("/data/kernel/$patch"));
-        assert_script_run("git apply $patch");
-    }
 }
 
 sub install_upstream_harness
