@@ -544,7 +544,7 @@ sub stop_hana {
         my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
         $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $timeout);
         $self->{my_instance}->update_instance_ip();
-        $self->{my_instance}->wait_for_ssh(username => 'cloudadmin', scan_ssh_host_key => 1);
+        $self->{my_instance}->wait_for_ssh(timeout => $timeout, username => 'cloudadmin', scan_ssh_host_key => 1);
     }
 }
 
