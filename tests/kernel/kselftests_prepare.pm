@@ -41,7 +41,15 @@ sub run {
     setup_repos;
     install_dependencies($collection);
 
-    eval { install_kselftests($collection) };
+    eval {
+        if (get_var('KSELFTEST_FROM_GIT', 0)) {
+            install_from_git($collection);
+            build($collection, '.');
+        } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
+            build($collection);
+            install_upstream_harness();
+        }
+    };
     if ($@) {
         $self->{fail_reason} = $@;
         die $@;
