@@ -16,6 +16,9 @@ use utils;
 use Utils::Architectures;
 use Utils::Logging qw(tar_and_upload_log);
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
+use package_utils 'install_package';
 
 my $server_name = 'example-ssl.com';
 my $repo_root = '/srv/www/svn/repos';
@@ -27,7 +30,9 @@ my $svn_pass = 'testpass';
 my $svn_url = "https://$server_name/repos/$test_project";
 
 sub setup_apache {
-    zypper_call('in apache2 subversion-server openssl');
+    add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready() && is_sle('>=16.0'));
+    assert_script_run('zypper --gpg-auto-import-keys refresh');
+    install_package('apache2 subversion-server openssl');
 
     # Host entries for local testing
     assert_script_run("echo '127.0.0.1 $server_name localhost' > /etc/hosts");
