@@ -171,23 +171,6 @@ sub install_upstream_harness
     assert_script_run("rm -rf $tmpdir");
 }
 
-sub install_from_repo
-{
-    zypper_ar(get_required_var('KSELFTEST_REPO'), name => 'kselftests', priority => 1, no_gpg_check => 1);
-    install_package('kselftests', trup_apply => 1);
-
-    # When using the `kselftests` package from a repository, make sure the KMP subpackage containing the test kernel modules
-    # were built against the same kernel version the SUT is currently running.
-    my ($kver) = script_output('uname -r') =~ /(.*)-\w*/;
-    my ($kmpver) = script_output("rpm -q --qf '%{VERSION}\n' kselftests-kmp-default") =~ /\d*_k(.*)/;
-    die 'Could not extract kernel or KMP suffix' unless defined $kver && defined $kmpver;
-    $kver =~ s/_/-/g;
-    $kmpver =~ s/_/-/g;
-    die "Kernel and KMP versions mismatch: $kver != $kmpver" if $kver ne $kmpver;
-
-    assert_script_run("cd /usr/share/kselftests");
-}
-
 sub setup_repos
 {
     my ($collection) = @_;
@@ -259,8 +242,6 @@ sub install_kselftests
     } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
         build($collection);
         install_upstream_harness();
-    } else {
-        install_from_repo();
     }
 }
 
