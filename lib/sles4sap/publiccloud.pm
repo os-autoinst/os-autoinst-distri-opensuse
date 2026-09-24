@@ -1433,7 +1433,7 @@ sub list_cluster_nodes {
 sub get_hana_database_status {
     my ($self, %args) = @_;
     foreach (qw(password_db instance_id)) { croak("Argument < $_ > missing") unless $args{$_}; }
-    my $hdb_cmd = "hdbsql -u SYSTEM -p $args{password_db} -i $args{instance_id} 'SELECT * FROM SYS.M_DATABASES;'";
+    my $hdb_cmd = qq|hdbsql -u SYSTEM -p $args{password_db} -i $args{instance_id} "SELECT * FROM SYS.M_DATABASES;"|;
     my $output_cmd = $self->run_cmd(cmd => $hdb_cmd, runas => get_required_var('SAP_SIDADM'), proceed_on_failure => 1);
 
     if ($output_cmd =~ /Connection failed/) {
@@ -1470,7 +1470,7 @@ sub is_hana_database_online {
     my $consecutive_online = 0;
     my $password_db = get_required_var('_HANA_MASTER_PW');
     my $start_time = time;
-    my $hdb_cmd = "hdbsql -u SYSTEM -p $password_db -i $instance_id 'SELECT * FROM SYS.M_DATABASES;'";
+    my $hdb_cmd = qq|hdbsql -u SYSTEM -p $password_db -i $instance_id "SELECT * FROM SYS.M_DATABASES;"|;
 
     while (1) {
         $db_status = $self->get_hana_database_status(password_db => $password_db, instance_id => $instance_id);
