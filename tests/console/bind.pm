@@ -53,6 +53,7 @@ sub run {
             my $bind_repo = get_var('BIND_REPO');
             zypper_call("ar -f $bind_repo bind_repo");
             zypper_call("--gpg-auto-import-keys ref");
+            assert_script_run 'echo "%product_libs_gcc_ver 15" >> ~/.rpmmacros';
         }
         # bind-utils for dig, net-tools-deprecated for ifconfig, perl-IO-Socket-INET6 for reclimit,
         # perl-Net-DNS for xfer, dnspython for chain test
