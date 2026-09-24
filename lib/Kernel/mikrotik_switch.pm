@@ -39,7 +39,12 @@ coordinated with any wider address plan, since the switch's uplink to
 the managed network stays untagged/access-only (see that ticket for
 why).
 
+add_vlan() and set_port_pvid() enforce the VLAN id rule and die for any
+id outside 1..MAX_VLAN_ID.
+
 =cut
+
+use constant MAX_VLAN_ID => 9;
 
 =head2 get_all_vlans
 
@@ -61,7 +66,7 @@ sub get_all_vlans {
 
  get_vlan($vlan_id);
 
-Fetches the bridge VLAN table entry for a given VLAN id, e.g. get_vlan(42).
+Fetches the bridge VLAN table entry for a given VLAN id, e.g. get_vlan(5).
 Dies if no entry with that VLAN id exists.
 
 Dies on any non-2xx response.
@@ -77,12 +82,14 @@ sub get_vlan {
 
 =head2 add_vlan
 
- add_vlan(bridge => 'bridge1', vlan_id => 42, untagged => 'ether5', tagged => 'ether1');
+ add_vlan(bridge => 'bridge1', vlan_id => 5, untagged => 'ether5', tagged => 'ether1');
 
 Adds a new entry to the bridge VLAN table. 'bridge' and 'vlan_id' are
 required. 'tagged' and 'untagged' are optional comma-separated interface
 lists (as accepted by RouterOS) naming the bridge member ports to attach
 to the VLAN. Returns the created entry.
+
+Dies if vlan_id is outside 1..MAX_VLAN_ID (see L</VLAN AND NETWORK CONVENTIONS>).
 
 Dies if an entry already exists for that bridge/vlan_id - use
 update_vlan() (not yet implemented) to change an existing VLAN's port
@@ -96,6 +103,7 @@ sub add_vlan {
     my (%args) = @_;
     my $bridge = $args{bridge} // die 'add_vlan requires a bridge';
     my $vlan_id = $args{vlan_id} // die 'add_vlan requires a vlan_id';
+    _check_vlan_id($vlan_id);
 
     die "Mikrotik switch add_vlan($vlan_id) failed: a VLAN with that id already exists on bridge '$bridge'\n"
       if grep { $_->{bridge} eq $bridge && $_->{'vlan-ids'} eq $vlan_id } get_all_vlans();
@@ -111,7 +119,7 @@ sub add_vlan {
 
  remove_vlan($vlan_id);
 
-Removes the bridge VLAN table entry for a given VLAN id, e.g. remove_vlan(42).
+Removes the bridge VLAN table entry for a given VLAN id, e.g. remove_vlan(5).
 Dies if no entry with that VLAN id exists.
 
 Dies on any non-2xx response.
@@ -146,8 +154,9 @@ sub get_port_pvid {
  set_port_pvid($port_name, $vlan_id);
 
 Sets the PVID (untagged/native VLAN id) of a bridge port, e.g.
-set_port_pvid('ether5', 42). This is what makes a port an untagged member
-of a VLAN. Dies if the port is not a member of any bridge.
+set_port_pvid('ether5', 5). This is what makes a port an untagged member
+of a VLAN. Dies if the port is not a member of any bridge, or if
+vlan_id is outside 1..MAX_VLAN_ID (see L</VLAN AND NETWORK CONVENTIONS>).
 
 Dies on any non-2xx response.
 
@@ -155,8 +164,15 @@ Dies on any non-2xx response.
 
 sub set_port_pvid {
     my ($port_name, $vlan_id) = @_;
+    _check_vlan_id($vlan_id);
     my $bridge_port = _get_bridge_port($port_name);
     _request('PATCH', "interface/bridge/port/$bridge_port->{'.id'}", {pvid => $vlan_id});
+}
+
+sub _check_vlan_id {
+    my ($vlan_id) = @_;
+    die "Mikrotik switch: VLAN id '" . ($vlan_id // 'undef') . "' is not allowed, use 1.." . MAX_VLAN_ID . " (progress#188433)\n"
+      unless defined $vlan_id && $vlan_id =~ /^\d+$/ && $vlan_id >= 1 && $vlan_id <= MAX_VLAN_ID;
 }
 
 sub _get_bridge_port {
