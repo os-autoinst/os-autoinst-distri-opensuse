@@ -21,7 +21,7 @@ my $mirror_dir = "/var/tmp/buildkit-registry-mirror";
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(distribution-registry docker docker-buildx go1.26 openssl);
+    my @pkgs = qw(distribution-registry docker docker-buildx go1.27 openssl);
     push @pkgs, qw(buildkit docker-compose) unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
