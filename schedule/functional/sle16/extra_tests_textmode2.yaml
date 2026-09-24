@@ -16,7 +16,7 @@ schedule:
     - console/zypper_ref
     - console/systemd_wo_udev
     - console/curl_https
-    - console/ansible
+    - console/oqa_agnostic/ansible_agnostic
     - console/glibc_sanity
     - console/glibc_tunables
     - console/zypper_in

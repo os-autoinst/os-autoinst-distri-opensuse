@@ -247,7 +247,7 @@ sub load_common_tests {
     loadtest 'console/perl_bootloader' unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
     # Staging has no access to repos and the MicroOS-DVD does not contain ansible
     # Ansible test needs Packagehub in SLE and it can't be enabled in SLEM
-    loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro);
+    loadtest 'console/oqa_agnostic/ansible_agnostic' unless (is_staging || is_sle_micro || is_leap_micro);
     loadtest 'console/salt' unless (is_staging || is_sle_micro || (is_jeos && is_transactional));
     # On s390x zvm setups we need more time to wait for system to boot up.
     # Skip this test with sd-boot. The reason is not what you'd think though:

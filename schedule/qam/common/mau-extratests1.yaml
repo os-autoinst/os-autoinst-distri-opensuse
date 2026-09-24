@@ -56,7 +56,7 @@ conditional_schedule:
         - console/openssl_nodejs
         - console/golang
         - console/redis
-        - console/ansible
+        - console/oqa_agnostic/ansible_agnostic
         - console/libxslt
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
@@ -67,7 +67,7 @@ conditional_schedule:
         - console/openssl_nodejs
         - console/golang
         - console/redis
-        - console/ansible
+        - console/oqa_agnostic/ansible_agnostic
         - console/libxslt
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
@@ -78,7 +78,7 @@ conditional_schedule:
         - console/openssl_nodejs
         - console/golang
         - console/redis
-        - console/ansible
+        - console/oqa_agnostic/ansible_agnostic
         - console/libxslt
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
@@ -89,7 +89,7 @@ conditional_schedule:
         - console/openssl_nodejs
         - console/golang
         - console/redis
-        - console/ansible
+        - console/oqa_agnostic/ansible_agnostic
         - console/libxslt
         - '{{arch_specific}}'
       15-SP4:
@@ -99,7 +99,7 @@ conditional_schedule:
         - console/openssl_nodejs
         - console/golang
         - console/redis
-        - console/ansible
+        - console/oqa_agnostic/ansible_agnostic
         - console/libxslt
         - '{{arch_specific}}'
       15-SP3:
