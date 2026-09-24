@@ -348,6 +348,13 @@ sub wait_for_guestregister {
     # Check what version of registercloudguest binary we use
     $self->ssh_script_run(cmd => "rpm -qa cloud-regionsrv-client", apply_graceful_timeout => 1);
     record_info('CHECK guestregister', 'guestregister check');
+
+    if (is_gce()) {
+        # guestregister.service may already be hung in a gcemetadata dual-stack
+        # DNS call; restart it now IPv6 is off. See bsc#1277388, poo#205101.
+        $self->ssh_script_run(cmd => 'sudo systemctl restart guestregister.service', proceed_on_failure => 1);
+    }
+
     while (time() - $start_time < $args{timeout}) {
         my $out = $self->ssh_script_output(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
         # guestregister is expected to be inactive because it runs only once

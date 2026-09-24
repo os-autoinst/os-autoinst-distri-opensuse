@@ -118,6 +118,11 @@ variable "ssh_public_key" {
   description = "Explicit path to the SSH public key. Overrides ssh_key_algo when non-empty."
 }
 
+variable "disable_ipv6" {
+  description = "Temporary workaround for gcemetadata dual-stack DNS hang, see bsc#1277388, poo#205101"
+  default     = true
+}
+
 variable "stack_type" {
   default = "IPV4_ONLY"
 }
@@ -167,12 +172,17 @@ resource "google_compute_instance" "openqa" {
     }
   }
 
-  metadata = merge({
-    sshKeys             = "susetest:${file(local.ssh_public_key)}"
-    openqa_created_by   = var.name
-    openqa_created_date = timestamp()
-    openqa_created_id   = element(random_id.service[*].hex, count.index)
-  }, var.tags)
+  metadata = merge(
+    {
+      sshKeys             = "susetest:${file(local.ssh_public_key)}"
+      openqa_created_by   = var.name
+      openqa_created_date = timestamp()
+      openqa_created_id   = element(random_id.service[*].hex, count.index)
+    },
+    # Temporary workaround for a gcemetadata dual-stack DNS hang, see bsc#1277388, poo#205101.
+    var.disable_ipv6 ? { startup-script = "sysctl -w net.ipv6.conf.all.disable_ipv6=1" } : {},
+    var.tags
+  )
 
   network_interface {
     network      = "tf-network"
