@@ -112,6 +112,13 @@ my %opensuse_containers = (
             'registry.opensuse.org/opensuse/leap/16.0/images/totest/containers/opensuse/leap:16.0';
         },
         available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
+    },
+    '16.1' => {
+        released => sub { 'registry.opensuse.org/opensuse/leap:16.1' },
+        totest => sub {
+            'registry.opensuse.org/opensuse/leap/16.1/images/totest/containers/opensuse/leap:16.1';
+        },
+        available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
     }
 );
 
