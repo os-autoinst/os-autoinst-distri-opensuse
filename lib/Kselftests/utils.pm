@@ -27,6 +27,7 @@ our @EXPORT = qw(
   export_kselftest_env
   get_whitelist
   install_kselftests
+  install_dependencies
   livepatch_conflicts_with_kgraft
   post_process
   post_process_single
@@ -252,8 +253,6 @@ sub install_dependencies
 sub install_kselftests
 {
     my ($collection) = @_;
-
-    install_dependencies($collection);
 
     if (get_var('KSELFTEST_FROM_GIT', 0)) {
         install_from_git($collection);
