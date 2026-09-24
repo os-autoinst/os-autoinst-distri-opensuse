@@ -34,7 +34,7 @@ use POSIX 'strftime';
 use testapi qw(:DEFAULT);
 use serial_terminal qw(select_serial_terminal);
 use virt_autotest::common;
-use virt_autotest::utils qw(guest_is_sle wait_guest_online is_guest_online execute_over_ssh upload_virt_logs);
+use virt_autotest::utils qw(guest_is_sle wait_guest_online is_guest_online is_sev_snp_guest execute_over_ssh upload_virt_logs);
 use version_utils qw(is_sle package_version_cmp);
 use Utils::Architectures;
 use utils qw(write_sut_file);
@@ -77,12 +77,18 @@ sub run_test {
     # Determine test context
     my $is_unified_guest_install = get_var("VIRT_UNIFIED_GUEST_INSTALL", 0) || get_var("VIRT_SEV_SNP_GUEST_INSTALL", 0);
     my $is_maintenance_update_mode = get_var("ENABLE_SEV_SNP", 1);
+    my $is_guest_only_snp_update = check_var('UPDATE_PACKAGE', 'snpguest') && !$is_unified_guest_install;
 
     # Log test context based on mode
     $self->_log_test_context($is_unified_guest_install, $is_maintenance_update_mode);
 
-    # Check SEV-SNP on host
-    $self->check_sev_snp_on_host;
+    # snpguest MU validates the guest package and attestation only. Unified
+    # installation still performs the host check because it prepares SNP support.
+    if ($is_guest_only_snp_update) {
+        record_info('SNP Host Check', 'Skipping host package and capability validation for guest-only snpguest MU');
+    } else {
+        $self->check_sev_snp_on_host;
+    }
 
     # Check SEV-SNP on each guest
     foreach my $guest (keys %virt_autotest::common::guests) {
@@ -164,10 +170,13 @@ sub check_sev_snp_on_host {
     # Activate Confidential Computing module if needed
     $self->activate_coco_module();
 
-    # Install packages before kernel parameter configuration so the reboot also loads new microcode
-    # (configure_sev_snp_kernel_parameters triggers a reboot when parameters are missing)
-    record_info('Installing SNP packages', "Installing SEV-SNP packages: " . join(', ', @{+SNP_HOST_TOOLS}));
-    install_package(join(' ', @{+SNP_HOST_TOOLS}));
+    # Install SNP prerequisites for functional tests before kernel configuration.
+    # MU snphost is installed by the regular host package flow so its TEST repository package is used.
+    my $is_unified_guest_install = get_var('VIRT_UNIFIED_GUEST_INSTALL', 0) || get_var('VIRT_SEV_SNP_GUEST_INSTALL', 0);
+    unless (check_var('UPDATE_PACKAGE', 'snphost') && !$is_unified_guest_install) {
+        record_info('Installing SNP packages', "Installing SEV-SNP packages: " . join(', ', @{+SNP_HOST_TOOLS}));
+        install_package(join(' ', @{+SNP_HOST_TOOLS}));
+    }
 
     # Simple verification of package installation - check first package in list
     my $primary_package = SNP_HOST_TOOLS->[0];    # snphost for both SLE15 and SLE16
@@ -180,8 +189,6 @@ sub check_sev_snp_on_host {
         my $installed_pkgs_info = script_output("rpm -q " . join(' ', @{+SNP_HOST_TOOLS}) . " 2>/dev/null || echo 'Some packages not found'", proceed_on_failure => 1);
         record_info('Installed SEV-SNP Packages', $installed_pkgs_info);
     }
-
-    validate_script_output("zypper if snphost", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if check_var("UPDATE_PACKAGE", "snphost");
 
     # Configure SEV-SNP kernel parameters (reboots if needed, also loads newly installed ucode-amd)
     $self->configure_sev_snp_kernel_parameters();
@@ -472,7 +479,7 @@ sub check_sev_snp_on_guest {
     my $guest_type = 'unknown';    # Will be set to 'sev-snp' if verification passes
 
     # SEV-SNP requires UEFI. Match 'efi' (MU tests) or 'sev-snp' (new products)
-    if ($guest_name !~ /efi|sev-snp/) {
+    if (!is_sev_snp_guest($guest_name)) {
         record_info("SEV-SNP Skip", "Skipping guest $guest_name: SEV-SNP requires UEFI boot.\n" .
               "Guest name must contain 'efi' (for MU tests) or 'sev-snp' (for new product tests).", result => 'ok');
         return 1;    # Return success but skip the test
@@ -533,16 +540,30 @@ sub check_sev_snp_on_guest {
         # Wait for guest to be online before further checks
         wait_guest_online($guest_name, 50, 1);
 
-        # Install required packages on guest
-        record_info('Package Installation', "Installing required SEV-SNP packages on guest $guest_name");
-        if (!$self->install_snp_packages_on_guest(guest_name => $guest_name, packages => +SNP_GUEST_TOOLS)) {
-            record_info("Package Install Warning", "Some packages could not be installed on guest $guest_name. Proceeding with verification anyway.", result => 'softfail');
-        }
+        # patch_guests installs UPDATE_PACKAGE on MU guests. Unified guest installation
+        # does not use patch_guests, so install the tool locally in that path.
+        my $is_unified_guest_install = get_var('VIRT_UNIFIED_GUEST_INSTALL', 0) || get_var('VIRT_SEV_SNP_GUEST_INSTALL', 0);
+        if (check_var('UPDATE_PACKAGE', 'snpguest') && !$is_unified_guest_install) {
+            if (check_var('VIRT_NEW_GUEST_MIGRATION_DST', 1) && !$self->verify_snpguest_package_on_guest(guest_name => $guest_name)) {
+                record_info('Package Installation', "Installing required SEV-SNP packages on migration guest $guest_name");
+                $self->install_snp_packages_on_guest(guest_name => $guest_name, packages => +SNP_GUEST_TOOLS);
+                unless ($self->verify_snpguest_package_on_guest(guest_name => $guest_name)) {
+                    record_info('Package Verification Failed', "snpguest is not from a TEST repository or is not up-to-date on migration guest $guest_name", result => 'fail');
+                    die "SEV-SNP verification requires an up-to-date snpguest package from a TEST repository on the migration guest.";
+                }
+            }
+            record_info('Package Validation', "snpguest is from a TEST repository and up-to-date on guest $guest_name");
+        } else {
+            record_info('Package Installation', "Installing required SEV-SNP packages on guest $guest_name");
+            if (!$self->install_snp_packages_on_guest(guest_name => $guest_name, packages => +SNP_GUEST_TOOLS)) {
+                record_info("Package Install Warning", "Some packages could not be installed on guest $guest_name. Proceeding with verification anyway.", result => 'softfail');
+            }
 
-        # Verify at least one package installed successfully
-        if (!$self->verify_any_snp_package_installed(required_pkgs => +SNP_GUEST_TOOLS, dst_machine => $guest_name)) {
-            record_info('Package Verification Failed', "No required SEV-SNP packages are installed on guest $guest_name", result => 'fail');
-            die "SEV-SNP verification requires at least one SEV-SNP package to be installed on the guest. Test cannot continue.";
+            # Verify at least one package installed successfully
+            if (!$self->verify_any_snp_package_installed(required_pkgs => +SNP_GUEST_TOOLS, dst_machine => $guest_name)) {
+                record_info('Package Verification Failed', "No required SEV-SNP packages are installed on guest $guest_name", result => 'fail');
+                die "SEV-SNP verification requires at least one SEV-SNP package to be installed on the guest. Test cannot continue.";
+            }
         }
 
         # Verify attestation report
@@ -773,6 +794,24 @@ EOL
 #  SECTION 4: PACKAGE VERIFICATION FUNCTIONS #
 #############################################
 
+=head2 verify_snpguest_package_on_guest
+
+    verify_snpguest_package_on_guest($self, guest_name => 'name')
+
+Verify that snpguest is installed from a TEST repository and is up to date.
+
+=cut
+
+sub verify_snpguest_package_on_guest {
+    my ($self, %args) = @_;
+    $args{guest_name} //= '';
+
+    die 'Guest name must be provided for package verification' if ($args{guest_name} eq '');
+
+    my $package_info = script_output("ssh root\@$args{guest_name} zypper if snpguest", proceed_on_failure => 1);
+    return $package_info =~ /(?=.*TEST_\d+)(?=.*up-to-date)/s;
+}
+
 =head2 verify_any_snp_package_installed
 
   verify_any_snp_package_installed($self, required_pkgs => ['pkg1', 'pkg2'], [dst_machine => 'machine'])
@@ -859,8 +898,6 @@ sub install_snp_packages_on_guest {
         timeout => 180    # Increased timeout for package installation
     );
     save_screenshot;
-
-    validate_script_output("ssh root\@$guest_name zypper if snpguest", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if check_var("UPDATE_PACKAGE", "snpguest");
 
     if ($install_result != 0) {
         record_info('Installation Failed', "Failed to install packages on guest $guest_name: $package_list", result => 'softfail');

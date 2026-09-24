@@ -2393,6 +2393,9 @@ sub check_and_load_mu_virt_features {
         foreach my $module (@$modules) {
             loadtest $module;
         }
+        if ($test eq 'ENABLE_SEV_SNP' && check_var('UPDATE_PACKAGE', 'snphost')) {
+            loadtest "virtualization/universal/kernel";
+        }
         loadtest "virtualization/universal/finish";
     }
 }
@@ -2705,8 +2708,14 @@ sub load_hypervisor_tests {
                 loadtest "virt_autotest/login_console";
                 loadtest "virtualization/universal/list_guests" unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1'));
             }
+        } elsif (check_var('UPDATE_PACKAGE', 'kernel-default') || check_var('UPDATE_PACKAGE', 'snpguest')) {
+            loadtest "virt_autotest/login_console";
+            loadtest "virtualization/universal/list_guests";
+            loadtest "virtualization/universal/patch_guests";
         }
-        loadtest "virtualization/universal/kernel" unless (check_var("UPDATE_PACKAGE", "snpguest") || check_var("UPDATE_PACKAGE", "snphost"));
+        # snphost is a host-only MU package, independent of full host patching.
+        loadtest "virtualization/universal/install_update_package" if check_var('UPDATE_PACKAGE', 'snphost');
+        loadtest "virtualization/universal/kernel" unless (check_var("UPDATE_PACKAGE", "snpguest") || (check_var("UPDATE_PACKAGE", "snphost") && check_var('ENABLE_SEV_SNP', 1)));
         loadtest "virtualization/universal/finish";
     }
 
@@ -2760,14 +2769,16 @@ sub load_sles16_mu_virt_tests {
         # For SLES16 MU tests, repositories are already configured during agama installation
         # Run zypper_lr to verify installed repositories
         loadtest "console/zypper_lr";
-        # Host always needs package installation check and install if missing
-        loadtest "virtualization/universal/install_update_package";
+        # Host package installation is not part of the snpguest guest-only flow
+        loadtest "virtualization/universal/install_update_package" unless check_var('UPDATE_PACKAGE', 'snpguest');
 
         #Feature test specific preparation steps on host before vm installation
         if (check_var('ENABLE_SNAPSHOTS', '1') && is_sle('=16.0')) {
             loadtest "virt_autotest/prepare_nvram_for_snapshot";
         }
     }
+
+    loadtest "virtualization/universal/kernel" if (check_var('UPDATE_PACKAGE', 'snphost') && !check_var('ENABLE_SEV_SNP', 1));
 
     # Guest installation phase
     if (check_var('ENABLE_VM_INSTALL', 1)) {
@@ -2780,10 +2791,10 @@ sub load_sles16_mu_virt_tests {
             loadtest "virtualization/universal/waitfor_guests";
         }
 
-        # Guest patching workflow (controlled by PATCH_ON_GUEST)
+        # Guest patching workflow
         # Skip patching for migration destination - no guests installed yet
         unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
-            if (check_var('PATCH_ON_GUEST', 1)) {
+            if (check_var('PATCH_ON_GUEST', 1) || check_var('UPDATE_PACKAGE', 'kernel-default')) {
                 my $update_pkg = get_var('UPDATE_PACKAGE', '');
                 if ($update_pkg) {
                     loadtest "virt_autotest/login_console";
