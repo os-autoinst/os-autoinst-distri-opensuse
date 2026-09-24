@@ -279,8 +279,8 @@ subtest '[terraform_apply] query csp at each region loop' => sub {
         set_var('PUBLIC_CLOUD_PROVIDER', $csp);
         @csp_cli = ();
         $provider = publiccloud::provider->new(provider_client => publiccloud::azure_client->new()) if ($csp eq 'AZURE');
-        $provider = publiccloud::provider->new(provider_client => publiccloud::aws_client->new()) if ($csp eq 'AWS');
-        $provider = publiccloud::provider->new(provider_client => publiccloud::gcp_client->new()) if ($csp eq 'GCP');
+        $provider = publiccloud::provider->new(provider_client => publiccloud::aws_client->new()) if ($csp eq 'EC2');
+        $provider = publiccloud::provider->new(provider_client => publiccloud::gcp_client->new()) if ($csp eq 'GCE');
         $provider->terraform_apply(vars => {});
         note("\n  CSP_CLI ($csp) -->  " . join("\n  CSP_CLI ($csp) -->  ", @csp_cli));
 
@@ -704,6 +704,84 @@ subtest '[terraform_apply] GCE loops over zones, then over regions' => sub {
     is($provider->provider_client->region, 'Bajoran', 'active region left on the successful alternate');
 
     _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_ALTERNATE_REGIONS PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
+};
+
+subtest '[terraform_apply] GCE syncs provider_client availability_zone on first-zone success' => sub {
+    # poo#207570: when the very first zone tried in a region already succeeds,
+    # terraform_apply() must still write it back to
+    # provider_client->availability_zone. Otherwise a stale
+    # PUBLIC_CLOUD_AVAILABILITY_ZONE (left over from an earlier deployment)
+    # keeps being reported to run_ltp/img_proof, which then point the kirk
+    # reset command at the wrong zone.
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('FLAVOR', 'Talaxian');
+    set_var('OPENQA_URL', 'Xindi');
+    set_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'Romulan');
+    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+    set_var('PUBLIC_CLOUD_REGION', 'Ferengi');
+    set_var('PUBLIC_CLOUD_AVAILABILITY_ZONE', 'c');
+
+    my @calls;
+    my $mock = _mock_terraform_apply(
+        calls => \@calls,
+        script_responses => {
+            'apply.*myplan' => [{exit => 0, output => ''}],
+            '^cat ' => [_cat_responses({exit => 0, output => ''})],
+            'gcloud compute zones list.*filter.*region.*Ferengi' => [{exit => 0, output => 'a,b,c,'}],
+        });
+    Test::MockModule->new('publiccloud::instances', no_auto => 1)->redefine(set_instances => sub { });
+    my $provider = publiccloud::provider->new(provider_client => publiccloud::gcp_client->new());
+
+    $provider->terraform_apply(vars => {availability_zone => 'c'});
+
+    is($provider->provider_client->availability_zone, 'a',
+        'availability_zone follows the zone gcloud tried first, not the stale PUBLIC_CLOUD_AVAILABILITY_ZONE');
+
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL PUBLIC_CLOUD_AVAILABILITY_ZONE/);
+};
+
+subtest '[terraform_apply] GCE syncs provider_client availability_zone after a region fallback' => sub {
+    # Same bug as above, but the successful zone is the first zone of an
+    # alternate region reached after the primary region's zones are all
+    # exhausted.
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('FLAVOR', 'Talaxian');
+    set_var('OPENQA_URL', 'Xindi');
+    set_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'Romulan');
+    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+    set_var('PUBLIC_CLOUD_REGION', 'Ferengi');
+    set_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', 'Bajoran');
+    set_var('PUBLIC_CLOUD_AVAILABILITY_ZONE', 'z');    # stale, matches none of the zones below
+
+    my @calls;
+    my $mock = _mock_terraform_apply(
+        calls => \@calls,
+        script_responses => {
+            'apply.*myplan' => [
+                {exit => 42, output => 'None care'},    # primary region, zone 'a'
+                {exit => 42, output => 'None care'},    # primary region, zone 'b'
+                {exit => 42, output => 'None care'},    # primary region, zone 'c'
+                {exit => 0, output => ''},    # alternate region, zone 'd'
+            ],
+            '^cat ' => [
+                _cat_responses(
+                    {exit => 0, output => $OUT_OF_RESOURCES{GCE}},
+                    {exit => 0, output => $OUT_OF_RESOURCES{GCE}},
+                    {exit => 0, output => $OUT_OF_RESOURCES{GCE}},
+                    {exit => 0, output => ''},
+                )],
+            'gcloud compute zones list.*filter.*region.*Ferengi' => [{exit => 0, output => 'a,b,c,'}],
+            'gcloud compute zones list.*filter.*region.*Bajoran' => [{exit => 0, output => 'd,e,f,'}],
+        });
+    Test::MockModule->new('publiccloud::instances', no_auto => 1)->redefine(set_instances => sub { });
+    my $provider = publiccloud::provider->new(provider_client => publiccloud::gcp_client->new());
+
+    $provider->terraform_apply(vars => {availability_zone => 'a'});
+
+    is($provider->provider_client->availability_zone, 'd',
+        'availability_zone follows the alternate region\'s first zone, not left stale from the primary region');
+
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_ALTERNATE_REGIONS PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL PUBLIC_CLOUD_AVAILABILITY_ZONE/);
 };
 
 subtest '[terraform_apply] init/plan failures die with captured output, no region retry' => sub {

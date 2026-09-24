@@ -479,6 +479,7 @@ sub terraform_apply {
             @alternative_zones = split /\s*,\s*/,
               script_output("gcloud compute zones list --filter='region=" . $region . "' --format=\"value(name.split('-').slice(-1))\" | tr '\n' ','");
             $vars{availability_zone} = $alternative_zones[0];
+            $self->provider_client->availability_zone($vars{availability_zone});
         }
         $vars{region} = $self->provider_client->region;
 
