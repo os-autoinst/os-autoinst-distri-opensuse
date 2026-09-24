@@ -102,40 +102,36 @@ sub run {
     barrier_wait("FS_MKFS_DONE_${barrier_tag}_$cluster_name");
 
     if (is_node(1)) {
-        # Create the Filesystem resource
-        my $clean_flag = undef;
-        my $edit_crm_config_script = "#!/bin/sh
-EDITOR='sed -ie \"\$ a primitive $fs_rsc ocf:heartbeat:Filesystem params device=\'$fs_lun\' directory=\'/srv/$fs_rsc\' fstype=\'$fs_type\'\"' crm configure edit
-";
+        # Create the Filesystem resource atomically in a single CIB transaction
+        my @sed_cmds = ("\$ a primitive $fs_rsc ocf:heartbeat:Filesystem params device='$fs_lun' directory='/srv/$fs_rsc' fstype='$fs_type'");
+
         # Only OCFS2 and GFS can be cloned
         if ($fs_type eq 'ocfs2' || $fs_type eq 'gfs2') {
-            $edit_crm_config_script .= "
-EDITOR='sed -ie \"s/^\\(group base-group.*\\)/\\1 $fs_rsc/\"' crm configure edit
-";
+            push @sed_cmds, 's/^\(group base-group.*\)/\1 ' . $fs_rsc . '/';
         }
         else {
             if ($resource eq 'drbd_passive') {
                 my $role = is_sle('>=15-SP4') ? "Promoted" : "Master";
-                $edit_crm_config_script .= "
-EDITOR='sed -ie \"\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:$role\"' crm configure edit
-EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: ms_$resource:promote $fs_rsc:start\"' crm configure edit
-";
+                push @sed_cmds, "\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:$role";
+                push @sed_cmds, "\$ a order order_$fs_rsc Mandatory: ms_$resource:promote $fs_rsc:start";
             }
             else {
-                $edit_crm_config_script .= "
-EDITOR='sed -ie \"\$ a colocation colocation_$fs_rsc inf: $fs_rsc vg_$resource\"' crm configure edit
-EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' crm configure edit
-";
+                push @sed_cmds, "\$ a colocation colocation_$fs_rsc inf: $fs_rsc vg_$resource";
+                push @sed_cmds, "\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc";
             }
-            $clean_flag = "cleanup";
         }
+
+        my $sed_script = join("\n", @sed_cmds);
+        my $edit_crm_config_script = "#!/bin/sh
+cat << 'EOF' > /root/crm_edit.sed
+$sed_script
+EOF
+EDITOR='sed -i -f /root/crm_edit.sed' crm configure edit
+";
 
         # run bash script to edit crm configure
         write_sut_file '/root/crm_edit_config.sh', $edit_crm_config_script;
         assert_script_run 'bash -ex /root/crm_edit_config.sh', $default_timeout;
-
-        # Sometimes we need to cleanup the resource
-        rsc_cleanup $fs_rsc if defined($clean_flag) && $clean_flag eq 'cleanup';
 
         # Wait to get Filesystem running on all nodes (if applicable)
         wait_until_resources_started;
@@ -197,10 +193,6 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
                     assert_script_run "crm resource $action ms_$resource", $default_timeout;
                     wait_for_idle_cluster;
                 }
-
-                # Clean up any previous failure on the filesystem resource before moving
-                rsc_cleanup $fs_rsc;
-                wait_for_idle_cluster;
 
                 # Migrate resource on the node
                 assert_script_run "crm resource move ms_$resource $node", $default_timeout;
