@@ -15,6 +15,7 @@
 
 use Mojo::Base 'bootbasetest';
 use testapi;
+use Utils::Architectures;
 use x11utils qw(turn_off_plasma_tooltips update_x11_vt);
 
 sub run {
@@ -30,7 +31,7 @@ sub run {
             send_key 'ret';
         }
     }
-    $self->handle_grub(bootloader_time => 300, in_grub => 0) if (check_var('KEEP_GRUB_TIMEOUT', '0'));
+    $self->handle_grub(bootloader_time => 300, in_grub => 0) if (!is_s390x && check_var('KEEP_GRUB_TIMEOUT', '0'));
     $self->wait_boot_past_bootloader;
     # This only works with generic-desktop. In the opensuse-welcome case,
     # the opensuse-welcome module will handle it instead.
