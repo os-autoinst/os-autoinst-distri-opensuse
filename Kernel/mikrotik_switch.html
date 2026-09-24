@@ -33,6 +33,8 @@
 
 <p>Per progress#188433: pick a VLAN id below 10, and any subnet within 192.168.0.0/16 - both are only locally significant to this switch, not coordinated with any wider address plan, since the switch&#39;s uplink to the managed network stays untagged/access-only (see that ticket for why).</p>
 
+<p>add_vlan() and set_port_pvid() enforce the VLAN id rule and die for any id outside 1..MAX_VLAN_ID.</p>
+
 <h2 id="get_all_vlans">get_all_vlans</h2>
 
 <pre><code>get_all_vlans();</code></pre>
@@ -45,15 +47,17 @@
 
 <pre><code>get_vlan($vlan_id);</code></pre>
 
-<p>Fetches the bridge VLAN table entry for a given VLAN id, e.g. get_vlan(42). Dies if no entry with that VLAN id exists.</p>
+<p>Fetches the bridge VLAN table entry for a given VLAN id, e.g. get_vlan(5). Dies if no entry with that VLAN id exists.</p>
 
 <p>Dies on any non-2xx response.</p>
 
 <h2 id="add_vlan">add_vlan</h2>
 
-<pre><code>add_vlan(bridge =&gt; &#39;bridge1&#39;, vlan_id =&gt; 42, untagged =&gt; &#39;ether5&#39;, tagged =&gt; &#39;ether1&#39;);</code></pre>
+<pre><code>add_vlan(bridge =&gt; &#39;bridge1&#39;, vlan_id =&gt; 5, untagged =&gt; &#39;ether5&#39;, tagged =&gt; &#39;ether1&#39;);</code></pre>
 
 <p>Adds a new entry to the bridge VLAN table. &#39;bridge&#39; and &#39;vlan_id&#39; are required. &#39;tagged&#39; and &#39;untagged&#39; are optional comma-separated interface lists (as accepted by RouterOS) naming the bridge member ports to attach to the VLAN. Returns the created entry.</p>
+
+<p>Dies if vlan_id is outside 1..MAX_VLAN_ID (see <a href="#VLAN-AND-NETWORK-CONVENTIONS">&quot;VLAN AND NETWORK CONVENTIONS&quot;</a>).</p>
 
 <p>Dies if an entry already exists for that bridge/vlan_id - use update_vlan() (not yet implemented) to change an existing VLAN&#39;s port membership.</p>
 
@@ -63,7 +67,7 @@
 
 <pre><code>remove_vlan($vlan_id);</code></pre>
 
-<p>Removes the bridge VLAN table entry for a given VLAN id, e.g. remove_vlan(42). Dies if no entry with that VLAN id exists.</p>
+<p>Removes the bridge VLAN table entry for a given VLAN id, e.g. remove_vlan(5). Dies if no entry with that VLAN id exists.</p>
 
 <p>Dies on any non-2xx response.</p>
 
@@ -79,7 +83,7 @@
 
 <pre><code>set_port_pvid($port_name, $vlan_id);</code></pre>
 
-<p>Sets the PVID (untagged/native VLAN id) of a bridge port, e.g. set_port_pvid(&#39;ether5&#39;, 42). This is what makes a port an untagged member of a VLAN. Dies if the port is not a member of any bridge.</p>
+<p>Sets the PVID (untagged/native VLAN id) of a bridge port, e.g. set_port_pvid(&#39;ether5&#39;, 5). This is what makes a port an untagged member of a VLAN. Dies if the port is not a member of any bridge, or if vlan_id is outside 1..MAX_VLAN_ID (see <a href="#VLAN-AND-NETWORK-CONVENTIONS">&quot;VLAN AND NETWORK CONVENTIONS&quot;</a>).</p>
 
 <p>Dies on any non-2xx response.</p>
 
