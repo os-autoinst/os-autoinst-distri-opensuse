@@ -593,6 +593,13 @@ sub _handle_transient_failure {
             diag 'Package conflicts found, not retrying anymore' if $conflicts;
             return 'stop';
         }
+        # bsc#1254982 -- SMT eventual-consistency lag right after
+        # registration: repos exist but auth hasn't propagated to the SMT
+        # proxy yet ("Login failed"/401, sometimes "media.1/media not found").
+        if (_log_grep($instance, 'Login failed|media\.1/media.*not found') == 0) {
+            record_info("Retry $attempt/$max: bsc#1254982 SMT auth propagation lag");
+            return 'retry';
+        }
         return 'retry';
     }
     if ($ret == EXIT_LOCKED) {
