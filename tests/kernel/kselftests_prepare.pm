@@ -39,6 +39,7 @@ sub run {
     }
 
     setup_repos;
+    install_dependencies($collection);
 
     eval { install_kselftests($collection) };
     if ($@) {
