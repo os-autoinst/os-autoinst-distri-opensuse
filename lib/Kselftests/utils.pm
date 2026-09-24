@@ -28,7 +28,6 @@ our @EXPORT = qw(
   export_kselftest_env
   get_whitelist
   install_dependencies
-  install_upstream_harness
   livepatch_conflicts_with_kgraft
   post_process
   post_process_single
@@ -119,31 +118,6 @@ sub build
 
     assert_script_run($make_cmd, 7200);
     assert_script_run("cd $build_dir/kselftest/kselftest_install");
-}
-
-sub install_upstream_harness
-{
-    my ($install_dir) = @_;
-
-    my $version = script_output('uname -r');
-    $install_dir //= "/lib/modules/$version/build/kselftest/kselftest_install";
-
-    my $git_tree = get_var('KSELFTEST_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
-    my $tmpdir = '/var/tmp/linux-harness';
-
-    install_package('git', trup_apply => 1);
-
-    # Partial clone: fetch only tree/commit metadata, no blobs, no working tree.
-    # Then check out just the two harness paths, lazily fetching only those blobs.
-    assert_script_run("rm -rf $tmpdir");
-    assert_script_run("git clone --depth 1 --filter=blob:none --no-checkout --branch master $git_tree $tmpdir", 300);
-    assert_script_run("git -C $tmpdir checkout HEAD -- tools/testing/selftests/run_kselftest.sh tools/testing/selftests/kselftest", 120);
-
-    record_info("Upstream harness", script_output("git -C $tmpdir --no-pager log -1 --oneline"));
-
-    assert_script_run("cp $tmpdir/tools/testing/selftests/run_kselftest.sh $install_dir/");
-    assert_script_run("cp -r $tmpdir/tools/testing/selftests/kselftest/ $install_dir/");
-    assert_script_run("rm -rf $tmpdir");
 }
 
 sub setup_repos

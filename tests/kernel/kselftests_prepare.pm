@@ -59,8 +59,13 @@ sub run {
             }
             build($collection, '.');
         } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
+            if (script_run('test -d ./linux') == 0) {
+                my $version = script_output('uname -r');
+                my $dest = "/lib/modules/$version/source/tools/testing/selftests/";
+                assert_script_run("cp ./linux/tools/testing/selftests/run_kselftest.sh $dest");
+                assert_script_run("cp -r ./linux/tools/testing/selftests/kselftest/ $dest");
+            }
             build($collection);
-            install_upstream_harness();
         }
     };
     if ($@) {
