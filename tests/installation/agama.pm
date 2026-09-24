@@ -355,6 +355,9 @@ sub run {
         agama_fde_setup();
     }
 
+    # Ensure that we're at the bottom of the overview screen so we can actually see the install button
+    scroll_down();
+    send_key_until_needlematch('agama-install-button', 'ctrl-down');
     assert_and_click('agama-install-button');
 
     # confirmation dialog if we keep default partitioning layout
