@@ -139,25 +139,13 @@ Examples:
 =head2 KSELFTEST_FROM_SRC
 
 If set, kselftests are built from the kernel source tree provided by the
-C<kernel-source> package instead of using packaged RPMs. The test harness
-(C<run_kselftest.sh> and the C<kselftest/> support directory) is then
-replaced with the version from the upstream linux tree (C<KSELFTEST_GIT_TREE>,
-default: C<torvalds/linux.git> master branch), so that the SUSE-patched test
-binaries run under the upstream harness. This step requires network access
-and C<git>.
-
-=head2 KSELFTEST_REPO
-
-URL of a zypper repository providing the C<kselftests> RPM package. Required
-when neither C<KSELFTEST_FROM_GIT> nor C<KSELFTEST_FROM_SRC> is set (the
-default install path).
+C<kernel-source> package.
 
 =head2 KSELFTEST_BUILD_ENV
 
 Optional string containing environment variable assignments to append to
 the C<make> command when building kselftests from source (i.e. when
-C<KSELFTEST_FROM_GIT> or C<KSELFTEST_FROM_SRC> is set). Has no effect
-when installing from a pre-built RPM package.
+C<KSELFTEST_FROM_GIT> or C<KSELFTEST_FROM_SRC> is set).
 
 Example:
 
