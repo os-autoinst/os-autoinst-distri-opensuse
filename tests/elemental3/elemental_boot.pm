@@ -95,7 +95,7 @@ sub run {
 
         # In recovery mode we have auto-login configured on tty1
         console('root-console')->set_tty(1);
-        select_console('root-console');
+        select_console('root-console', await_console => 0);
 
         # Check for recovery boot option
         assert_script_run('grep -q recovery /proc/cmdline');
