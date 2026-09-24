@@ -218,29 +218,35 @@ sub install_dependencies
 {
     my ($collection) = @_;
 
+    my @deps = qw(curl coreutils git-core gpg2 tar);
+    my @maybe_deps;
+
     if ($collection eq 'mm') {
-        install_package('libcap-devel liburing-devel libnuma-devel', trup_continue => 1);
+        # build
+        push @deps, qw(libcap-devel liburing-devel libnuma-devel);
     }
 
     if ($collection eq 'bpf') {
-        # install build deps
-        install_package('clang llvm-devel lld python3-docutils rsync', trup_continue => 1);
-        # install test deps
-        install_package('iptables');
+        # build
+        push @deps, qw(clang llvm-devel lld python3-docutils rsync);
+        # runtime
+        push @deps, qw(iptables);
     }
 
     if ($collection eq 'namespaces') {
-        # install build deps
-        install_package('libcap-devel', trup_continue => 1);
+        # build
+        push @deps, qw(libcap-devel);
     }
 
     if ($collection =~ m{^net(/|$)}) {
-        # install build deps
-        install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_apply => 1);
-
-        # install test deps
-        install_available_packages('packetdrill libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
+        # build
+        push @deps, qw(clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema);
+        # runtime
+        push @maybe_deps, qw(packetdrill libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch);
     }
+
+    install_package(join(' ', @deps), (@maybe_deps ? (trup_continue => 1) : ()));
+    install_available_packages(join(' ', @maybe_deps)) if @maybe_deps;
 }
 
 sub install_kselftests

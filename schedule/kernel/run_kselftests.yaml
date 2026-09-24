@@ -5,6 +5,7 @@ schedule:
     - '{{boot}}'
     - '{{update_kernel}}'
     - boot/boot_to_desktop
+    - '{{fetch}}'
     - kernel/kselftests_prepare
     - kernel/kselftests_run
     - shutdown/shutdown
@@ -23,3 +24,7 @@ conditional_schedule:
         INSTALL_KOTD:
             '1':
                 - kernel/update_kernel
+    fetch:
+        KERNEL_FETCH:
+            '1':
+                - kernel/get_verified_shallow_tar
