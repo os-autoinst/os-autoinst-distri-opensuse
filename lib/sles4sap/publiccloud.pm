@@ -63,7 +63,6 @@ our @EXPORT = qw(
   list_cluster_nodes
   deployment_cleanup
   is_hana_database_online
-  get_hana_database_status
   is_primary_node_online
   record_takeover_diagnostics
   get_online_string
@@ -647,7 +646,7 @@ sub is_local_primary_recovery_aborting_takeover {
     return 0 unless $self->is_primary_node_online(timeout => 0);
     my $password_db = get_required_var('_HANA_MASTER_PW');
     my $instance_id = get_required_var('INSTANCE_ID');
-    return $self->get_hana_database_status(password_db => $password_db, instance_id => $instance_id);
+    return get_hana_database_status($self, password_db => $password_db, instance_id => $instance_id);
 }
 
 =head2 check_takeover
@@ -1473,7 +1472,7 @@ sub is_hana_database_online {
     my $hdb_cmd = qq|hdbsql -u SYSTEM -p $password_db -i $instance_id "SELECT * FROM SYS.M_DATABASES;"|;
 
     while (1) {
-        $db_status = $self->get_hana_database_status(password_db => $password_db, instance_id => $instance_id);
+        $db_status = get_hana_database_status($self, password_db => $password_db, instance_id => $instance_id);
         if (time - $start_time > $timeout) {
             record_info('HANA database after timeout', $self->run_cmd(cmd => $hdb_cmd));
             die('HANA database is still online');
