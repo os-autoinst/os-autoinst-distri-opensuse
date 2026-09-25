@@ -7,7 +7,7 @@
 Ported from tests/console/ansible.pm. Exercises ansible basics, galaxy,
 playbook testing and execution and vault. The wrapper provides the collection
 under ~/ansible_collections/openqa/ansible, installs the packages and provides
-the openQA test user. This test must not create users.
+the openQA test user, which this test must not create.
 """
 
 import os
