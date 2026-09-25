@@ -707,7 +707,16 @@ sub cleanup_cloudinit() {
 
 sub upload_supportconfig_log {
     my ($self, %args) = @_;
-    my $timeout = 600 + (is_sle('=12-SP5') ? 1400 : 0);
+    my $timeout = 600;
+    $timeout += 1400 if is_sle('=12-SP5');
+    if (is_gce()) {
+        my $gcever = $self->ssh_script_output(cmd => q(rpm -q --qf '%{VERSION}' python-gcemetadata), proceed_on_failure => 1);
+        $gcever =~ s/^\s+|\s+$//g;
+        if ($gcever =~ /^\d+(?:\.\d+)*$/ && package_version_cmp($gcever, '1.1.2') < 0) {
+            # bsc#1277388 - dual-stack gcemetadata stall
+            $timeout = 2000;
+        }
+    }
     my $start = time();
     my $logs = "/var/tmp/scc_supportconfig";
     # Eventual comma-separated tokens list to exclude
