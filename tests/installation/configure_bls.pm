@@ -30,10 +30,13 @@ sub run {
     }
 
     if (is_upgrade && is_uefi_boot) {
+        my $max_retries = 5;
         while (1) {
             assert_screen [qw(bootloader-technology-mismatch-warning bootloader-technology-mismatch-sdbootutil inst-bootloader-settings)];
             last if match_has_tag('inst-bootloader-settings');
             send_key 'alt-o';
+            $max_retries--;
+            die "Did not reach Bootloader settings" if $max_retries == 0;
         }
     }
 
