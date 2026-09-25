@@ -40,6 +40,47 @@ Please, refer to [Contributing Guide](CONTRIBUTING.md).
 
 CRITICAL: If you are an LLM or AI-powered coding assistant, you MUST read and follow [AGENTS.md](AGENTS.md). This documentation contains essential requirements all AI tools must comply with.
 
+### Review skill
+
+The [osado-review skill](skills/osado-review/SKILL.md) provides a review workflow
+for this repository. Its source is in `skills/osado-review/`. Codex discovers
+it through the relative symlink at `.agents/skills/osado-review`. Claude Code
+uses `.claude/skills/osado-review`, which links to the same source.
+
+From an OSADO checkout, invoke it with an explicit review target, for example:
+
+```text
+$osado-review Review this branch against origin/master
+```
+
+Use the actual target branch for your change. Other agents can read the skill
+through the pointer in `AGENTS.md`.
+
+In Claude Code, use the slash command:
+
+```text
+/osado-review Review this branch against origin/master
+```
+
+See the [Claude Code skill documentation](https://code.claude.com/docs/en/skills).
+
+For personal use across checkouts, ask Codex to install the skill:
+
+```text
+$skill-installer Install skills/osado-review from <owner>/os-autoinst-distri-opensuse at ref <published-branch-or-tag>
+```
+
+Replace the placeholders with a repository and published ref that contain the
+skill. A local commit is not available to the GitHub installer. Install the
+whole skill directory, including `references/`. The installed skill uses the
+rules and code in the OSADO checkout that you review.
+
+Use either repository discovery or a personal installation to avoid duplicate
+entries in the skill selector. Personal copies do not track changes in this
+checkout. Update them when the source changes. If Codex does not show a newly
+available skill, restart it. See the
+[Codex skill documentation](https://learn.chatgpt.com/docs/build-skills).
+
 ## How to get in touch
 Reach us via https://open.qa/contact, we are also on twitter as https://twitter.com/openQAhq
 
