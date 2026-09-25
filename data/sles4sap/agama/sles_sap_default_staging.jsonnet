@@ -22,7 +22,9 @@ local product_id = '{{AGAMA_PRODUCT_ID}}';
     userName: 'bernhard'
   },
   software: {
-    packages: [],
+    packages: [
+      'openssh-server-config-rootlogin',
+    ],
     [if desktop == 'gnome' then 'patterns']: {
       add: ['gnome']
     },
@@ -48,17 +50,5 @@ local product_id = '{{AGAMA_PRODUCT_ID}}';
         class: 'software.import_gpg'
       }
     ]
-  },
-  scripts: {
-    post: [
-      {
-        name: 'enable root login',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-        |||,
-      },
-    ],
   },
 }
