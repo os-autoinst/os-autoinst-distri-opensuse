@@ -1,0 +1,17 @@
+name:           ibtest-slave-sle12
+description:    >
+    The slave node for the infiniband testsuite (hpc-testing) on SLE 12,
+    installed via AutoYaST
+schedule:
+    - autoyast/prepare_profile
+    - installation/ipxe_install
+    - autoyast/installation
+    - autoyast/console
+    - autoyast/login
+    - autoyast/autoyast_reboot
+    - kernel/update_kernel
+    - boot/boot_to_desktop
+    - kernel/ibtests_prepare
+    - installation/handle_reboot
+    - boot/boot_to_desktop
+    - kernel/ibtests
