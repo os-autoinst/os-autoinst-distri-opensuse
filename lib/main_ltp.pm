@@ -99,10 +99,6 @@ sub load_kernel_tests {
         boot_hdd_image();
         loadtest_kernel 'blktests';
     }
-    elsif (get_var('NUMA_IRQBALANCE')) {
-        boot_hdd_image();
-        loadtest_kernel 'numa_irqbalance';
-    }
     elsif (get_var('LIBC_LIVEPATCH')) {
         loadtest_kernel 'boot_ltp';
         loadtest_kernel 'ulp_openposix';
