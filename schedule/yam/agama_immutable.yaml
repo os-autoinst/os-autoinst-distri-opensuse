@@ -7,8 +7,7 @@ schedule:
   - yam/agama/import_agama_profile
   - yam/agama/patch_agama_tests
   - yam/agama/agama
-  - installation/grub_test
-  - installation/first_boot
+  - yam/validate/first_boot
   - yam/validate/validate_selinux
   - yam/validate/validate_base_product
   - yam/validate/validate_product
