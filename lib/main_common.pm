@@ -300,7 +300,6 @@ sub is_kernel_test {
         || get_var('VIRTIO_CONSOLE_TEST')
         || get_var('BLKTESTS')
         || get_var('TRINITY')
-        || get_var('NUMA_IRQBALANCE')
         || get_var('TUNED')
         || get_var('KDUMP')
         || get_var('PSI'));
