@@ -1,0 +1,9 @@
+name: ncurses_based_installation
+description: >
+  Installation using the ncurses installer with Common Criteria role and full
+  disk encryption on SLE 16.0. Currently only for x86_64 and aarch64.
+
+  Set the settings in the job group, test suite or command line. See the header
+  of the test module for the list.
+schedule:
+  - security/installation/sle16cc/fips_cc_installation_smoketest
