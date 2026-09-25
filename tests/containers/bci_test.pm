@@ -53,8 +53,8 @@ sub skip_testrun {
 }
 
 sub record_disk_usage {
-    my ($label) = @_;
-    my $out = script_output('df -h / 2>&1; echo ---; podman system df 2>&1', proceed_on_failure => 1);
+    my ($engine, $label) = @_;
+    my $out = script_output("df -h / 2>&1; echo ---; $engine system df 2>&1", proceed_on_failure => 1);
     record_info("disk: $label", $out);
 }
 
@@ -157,12 +157,12 @@ sub run {
     assert_script_run("export TARGET=$bci_target");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
 
-    record_disk_usage('before tests');
+    record_disk_usage($engine, 'before tests');
 
     # Run environment specific tests
     for my $env (split(/,/, $test_envs)) {
         $self->run_tox_cmd($env);
-        record_disk_usage("after $env");
+        record_disk_usage($engine, "after $env");
         script_run("$engine system prune -a -f", timeout => 300);
     }
 
