@@ -181,6 +181,25 @@ sub add_custom_grub_entries {
         $cnt_new = script_output("$run_cmd grep -c -E 'linux.*(/boot|/vmlinu[xz]-).* $grub_param' " . GRUB_CFG_FILE);
         die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
     }
+
+    my $extract_kernel_args = sprintf('grep -oP "(linux\s.*/boot/\S+\s)\K.*" %s', GRUB_CFG_FILE);
+    my $get_long_arg = $extract_kernel_args . ' | awk \'{ if (length > max) { max = length; long = $0 } } END { print long }\'';
+    my $extract_cmd_line_size = q(grep -rhPo --include=*.h '#define\s+COMMAND_LINE_SIZE\s+\K\d+' /usr/include/*asm*/|sort -nr|head -1);
+
+    my $kernel_args = script_output($get_long_arg);
+    my $defined_cmd_line_size = script_output($extract_cmd_line_size);
+
+    # Strip any trailing newlines or spaces from the grep output
+    $kernel_args =~ s/^\s+|\s+$//g;
+    $defined_cmd_line_size =~ s/^\s+|\s+$//g;
+
+    my $length = length($kernel_args);
+
+    if ($defined_cmd_line_size >= $length) {
+        record_info('KERNEL', "COMMAND_LINE_SIZE: $defined_cmd_line_size\nLength: $length\nCLI: $kernel_args\nCLI Len: OK");
+    } else {
+        record_info('KERNEL', "COMMAND_LINE_SIZE: $defined_cmd_line_size\nLength: $length\nCLI: $kernel_args\nCLI Len: NOT OK");
+    }
 }
 
 sub grub_key_down {
