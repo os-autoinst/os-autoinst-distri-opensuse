@@ -41,3 +41,5 @@ conditional_schedule:
                 - virt_autotest/esxi_open_vm_tools
             '16.0':
                 - virt_autotest/esxi_open_vm_tools
+            '16.1':
+                - virt_autotest/esxi_open_vm_tools
