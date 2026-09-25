@@ -3,7 +3,7 @@
 #
 # Summary: Test "# yast2 apparmor" can scan audit logs
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#67933, tc#1741266, poo#103341
+# Tags: poo#67933, tc#1741266, poo#103341, poo#204771
 
 use Mojo::Base qw(apparmortest y2_module_consoletest);
 use testapi;
@@ -98,11 +98,11 @@ sub run {
     select_serial_terminal;
 
     # Upload test profile for reference
-    upload_logs($test_profile);
+    $self->upload_logs_from_tmp($test_profile);
 
     # Yast2 AppArmor clean up
     assert_script_run("mv $test_profile_bk $test_profile");
-    upload_logs($apparmortest::audit_log);
+    $self->upload_logs_from_tmp($audit_log);
 }
 
 1;
