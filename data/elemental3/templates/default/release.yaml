@@ -1,3 +1,5 @@
 manifestURI: %RELEASE_MANIFEST_URI%
 components:
   kubernetes: {}
+  helm:
+    - chart: elemental-lifecycle-manager

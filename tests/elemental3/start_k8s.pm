@@ -9,7 +9,8 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use elemental3;
-use utils qw(file_content_replace);
+use serial_terminal qw(select_serial_terminal);
+use utils qw(file_content_replace validate_script_output_retry);
 use Mojo::File qw(path);
 use Carp qw(croak);
 
@@ -83,6 +84,10 @@ sub prepare_test_framework {
     # Wait for tests to be executed on master node
     barrier_wait('TEST_FRAMEWORK_DONE');
     mutex_unlock('wait_nodes') if ($hostname eq 'node01');
+    mutex_unlock('wait_nodes') if ($hostname eq 'node01');
+
+    # Record K8s status (we want all, stderr as well)
+    record_info('K8s status', script_output('kubectl get pod -A 2>&1')) unless ($hostname eq 'node04');
 }
 
 sub run {
@@ -90,7 +95,7 @@ sub run {
     my $arch = get_required_var('ARCH');
     my $k8s = get_required_var('K8S');
     my $k8s_dir = "/etc/rancher/$k8s";
-    my $default_timeout = 60;
+    my $default_timeout = 120;
     my $long_timeout = 900;
 
     # Skip the test with if the OS image is not generated with 'customize'
@@ -103,12 +108,25 @@ sub run {
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
 
+    # Wait for system to be in running state
+    # NOTE: a lot of things are done through systemd at firstboot,
+    #       so this is why we have to wait quite a long time.
+    validate_script_output_retry(
+        'systemctl is-system-running',
+        sub { m/running/ },
+        retry => 30,
+        delay => $default_timeout,
+        die => 1,
+        fail_message => 'systemd not in running state!'
+    );
+    barrier_wait('WAIT_SYSTEMD_RUNNING') if (get_var('CLUSTER_TYPE') =~ /(singlenode|multinode)/);
+
     # Cannot be defined with the other variables, as we need terminal access
     my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
 
     # Wait for K8s directory and configuration file to appear
     wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $default_timeout);
-    wait_on_cmd(cmd => "test -f $k8s_dir/$k8s.yaml", timeout => $default_timeout);
+    wait_on_cmd(cmd => "test -f $k8s_dir/$k8s.yaml", timeout => $default_timeout) unless ($hostname eq 'node04');
 
     # Record K8s configuration files
     record_info("$k8s_dir config files", "ls -l $k8s_dir; echo; cat $k8s_dir/*");

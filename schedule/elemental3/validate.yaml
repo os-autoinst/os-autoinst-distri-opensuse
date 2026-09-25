@@ -5,4 +5,11 @@ description: |
   Maintainer: unified-core@suse.com, ldevulder@suse.com
 schedule:
   - microos/disk_boot
-  - elemental3/validate_container_image
+  - '{{validation_tests}}'
+conditional_schedule:
+  validation_tests:
+    TEST_TYPE:
+      container:
+        - elemental3/validate_container_image
+      chart:
+        - elemental3/validate_chart_image

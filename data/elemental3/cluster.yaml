@@ -11,30 +11,3 @@ nodes:
 network:
   apiVIP: 10.0.2.200
   apiHost: 10.0.2.200.sslip.io
-helm:
-  charts:
-    - name: "cert-manager"
-      version: "%CERTMANAGER_VERSION%"
-      targetNamespace: "cert-manager"
-      repositoryName: "jetstack-charts"
-      valuesFile: cert-manager.yaml
-    - name: "system-upgrade-controller"
-      version: "109.0.2"
-      targetNamespace: "cattle-system"
-      repositoryName: "rancher-charts"
-    - name: "elemental-lifecycle-manager-crds"
-      version: "%LCM_VERSION%"
-      targetNamespace: "elemental-system"
-      repositoryName: "elemental-charts"
-    - name: "elemental-lifecycle-manager"
-      version: "%LCM_VERSION%"
-      targetNamespace: "elemental-system"
-      repositoryName: "elemental-charts"
-      valuesFile: lcm-internal-suse-ca.yaml
-  repositories:
-    - name: "jetstack-charts"
-      url: "oci://quay.io/jetstack/charts"
-    - name: "rancher-charts"
-      url: "https://charts.rancher.io"
-    - name: "elemental-charts"
-      url: "%LCM_REGISTRY%"

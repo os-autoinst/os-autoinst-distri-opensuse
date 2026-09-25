@@ -42,18 +42,19 @@ subtest '[elemental3_cmd]' => sub {
     ok((any { /podman/ } @calls), 'podman called');
 };
 
-# Test get_container_uri function
-subtest '[get_container_uri]' => sub {
+# Test get_artifact_uri function
+subtest '[get_artifact_uri]' => sub {
     my $elemental3 = Test::MockModule->new('elemental3', no_auto => 1);
 
     my %params = (
         url => 'https://dist.suse.de/ibs/Devel:/UnifiedCore:/Main:/ToTest',
         arch => 'aarch64',
-        regex => '.my-manifest-\([0-9]*\)-\(.*\)'
+        regex => '.my-manifest-\([0-9]*\)-\(.*\)',
+        prefix => '\.aarch64-.*\.tar\.registry\.txt$'
     );
 
     # Check with no arguments
-    dies_ok { get_container_uri() } 'Croak if no argument is provided';
+    dies_ok { get_artifact_uri() } 'Croak if no argument is provided';
 
     # Mock get_values to avoid testing it again here
     $elemental3->redefine('get_values' => sub {
@@ -70,8 +71,8 @@ subtest '[get_container_uri]' => sub {
             return $tx;
     });
 
-    my $uri = get_container_uri(%params);
-    is($uri, 'my-registry.com/my/image:123-abc', 'get_container_uri returns correct URI');
+    my $uri = get_artifact_uri(%params);
+    is($uri, 'my-registry.com/my/image:123-abc', 'get_artifact_uri returns correct URI');
 
     # Test failed web request
     $ua_mock->redefine('get', sub {
@@ -81,7 +82,7 @@ subtest '[get_container_uri]' => sub {
             $tx->res($res);
             return $tx;
     });
-    throws_ok { get_container_uri(%params) } qr/Cannot get '$params{url}\/.*': Not Found/, 'croaks on failed web request';
+    throws_ok { get_artifact_uri(%params) } qr/Cannot get '$params{url}\/.*': Not Found/, 'croaks on failed web request';
 
     # Test no match
     $ua_mock->redefine('get', sub {
@@ -91,7 +92,7 @@ subtest '[get_container_uri]' => sub {
             $tx->res($res);
             return $tx;
     });
-    throws_ok { get_container_uri(%params) } qr/Could not find any URI matching the regex/, 'croaks on no match';
+    throws_ok { get_artifact_uri(%params) } qr/Could not find any URI matching the regex/, 'croaks on no match';
 };
 
 # Test get_sysext function
@@ -117,8 +118,7 @@ subtest '[get_values]' => sub {
 
     my %params = (
         url => 'https://dist.suse.de/ibs/Devel:/UnifiedCore:/Main:/ToTest',
-        arch => 'aarch64',
-        regex => '.*my-manifest-([0-9]*)-(.*)'
+        regex => '.*my-manifest-([0-9]*)-(.*)\.aarch64-.*\.tar\.registry\.txt$'
     );
 
     # Check with no arguments

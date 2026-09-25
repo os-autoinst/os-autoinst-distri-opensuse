@@ -146,14 +146,6 @@ sub customize_cmd {
                     "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $cluster_yaml"
                 );
             }
-
-            # Set CertManager version and LCM registry/version
-            file_content_replace(
-                $cluster_yaml,
-                '%CERTMANAGER_VERSION%' => get_required_var('CERTMANAGER_VERSION'),
-                '%LCM_REGISTRY%' => get_required_var('LCM_REGISTRY'),
-                '%LCM_VERSION%' => get_required_var('LCM_VERSION')
-            );
         } else {
             # Remove k8s-preinstall service, as this is only useful
             # for the single-node and multi-node tests
@@ -343,7 +335,7 @@ sub run {
     {
         my $kernel_type = get_required_var('KERNEL_TYPE');
         my $kernel = "base-os-kernel-$kernel_type-";
-        my $uri = get_container_uri(
+        my $uri = get_artifact_uri(
             url => $totest_path,
             arch => $arch,
             regex => ".*${kernel}\([0-9]*\\..*\)-\(.*\)"
@@ -374,14 +366,14 @@ sub run {
     {
         my $k8s = get_required_var('K8S');
         my $k8s_version_prefix = get_required_var('K8S_VERSION_PREFIX');
-        my $uri = get_container_uri(
+        my $uri = get_artifact_uri(
             url => $totest_path,
             arch => $arch,
             regex =>
               ".*${k8s}-manifest-\(${k8s_version_prefix}\\.[0-9]*\)-\(.*\)"
         );
 
-        my $elemental3_uri = get_container_uri(
+        my $elemental3_uri = get_artifact_uri(
             url => $totest_path,
             arch => $arch,
             regex => ".*elemental-\([0-9]\\..*\)-\(.*\)"
@@ -403,7 +395,7 @@ sub run {
     if (check_var('TESTED_CMD', 'extract_iso')) {
         my $kernel_type = get_required_var('KERNEL_TYPE');
         my $kernel = "base-os-kernel-$kernel_type-iso-";
-        my $uri = get_container_uri(
+        my $uri = get_artifact_uri(
             url => $totest_path,
             arch => $arch,
             regex => ".*${kernel}\([0-9]*\\..*\)-\(.*\)"
@@ -442,7 +434,7 @@ sub post_run {
     # Create a tarball file with all and upload it
     my $k8s = get_var('K8S', 'k8s');
     my $tar_file = "${k8s}-manifest.tar.bz2";
-    script_run("cd ${tmpdir} ; tar --exclude='*.raw*' --exclude='*.qcow2*' -cvjf $tar_file *");
+    script_run("cd ${tmpdir} ; tar --exclude='*.raw*' --exclude='*.qcow2*' -cvjf $tar_file *", timeout => 120);
     upload_asset("$tar_file", 1);
 }
 
