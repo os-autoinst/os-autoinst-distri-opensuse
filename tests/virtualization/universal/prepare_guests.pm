@@ -20,7 +20,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use File::Copy 'copy';
 use File::Path 'make_path';
-use virt_autotest::utils qw(is_sles16_mu_virt_test);
+use virt_autotest::utils qw(get_virt_install_os_variant is_sles16_mu_virt_test);
 use autoyast qw(expand_agama_secrets);
 
 sub create_agama_profile {
@@ -144,7 +144,7 @@ sub create_profile {
 sub gen_osinfo {
     my ($vm_name) = @_;
     my $h_version = get_var("VERSION") =~ s/-SP/./r;
-    my $g_version = $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+)\D*/$1/r;
+    my $g_version = $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+(?:\.\d+)?)\D*/$1/r;
     my $info_op = $h_version > 15.2 ? "--osinfo" : "--os-variant";
 
     # Clean VM name by removing virtualization type suffixes (order matters: longer matches first)
@@ -164,13 +164,9 @@ sub gen_osinfo {
         $info_val = $clean_name;    # SLES12: keep as-is
     }
 
-    # Handle host/guest version compatibility issues
-    if ($h_version == 12.3 && $g_version > 15.1) { $info_val = "sle15-unknown"; }
-    if ($h_version == 12.3 && $g_version == 12.5) { $info_val = "sles12-unknown"; }
-    if ($h_version == 12.4 && $g_version > 15.2) { $info_val = "sle15-unknown"; }
-    if ($h_version == 15 && $g_version > 15.1) { $info_val = "sle15-unknown"; }
+    $info_val = get_virt_install_os_variant($info_val, $g_version);
 
-    return "$info_op $info_val";
+    return $info_op eq '--osinfo' ? "$info_op detect=on,name=$info_val" : "$info_op $info_val";
 }
 
 sub run {
@@ -186,7 +182,7 @@ sub run {
 
 
     # Ensure additional package is installed
-    zypper_call '-t in libvirt-client iputils nmap supportutils';
+    zypper_call '-t in libvirt-client iputils nmap supportutils libosinfo osinfo-db';
     if (script_run("virsh net-list --all | grep default") != 0) {
         assert_script_run "curl " . data_url("virt_autotest/default_network.xml") . " -o ~/default_network.xml";
         assert_script_run "virsh net-define --file ~/default_network.xml";
