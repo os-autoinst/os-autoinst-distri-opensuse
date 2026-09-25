@@ -13,6 +13,7 @@ use Utils::Backends;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use Utils::Systemd 'disable_and_stop_service';
 use power_action_utils 'power_action';
 use version_utils;
 use registration;
@@ -30,8 +31,13 @@ sub run {
     select_serial_terminal;
     permit_root_ssh_in_sol unless is_sle('16+');
 
-    # unload firewall. MPI- and libfabric-tests require too many open ports
-    systemctl("disable --now " . opensusebasetest::firewall);
+    # unload firewall. MPI- and libfabric-tests require too many open ports.
+    # SuSEfirewall2 is not always installed on SLE 12, so only disable it if
+    # the unit exists and is enabled. Don't use "disable --now" there, it
+    # fails trying to stop the SuSEfirewall2_setup alias it just removed.
+    my $firewall = opensusebasetest::firewall;
+    my $ret = systemctl("is-enabled $firewall", ignore_failure => 1);
+    disable_and_stop_service($firewall) if (defined($ret) && $ret == 0);
 
     # create a ssh key if we don't have one
     script_run('[ ! -f /root/.ssh/id_rsa ] && ssh-keygen -b 2048 -t rsa -q -N "" -f /root/.ssh/id_rsa');
