@@ -57,6 +57,42 @@ sub search_image_on_svirt_host {
     return $path;
 }
 
+sub verify_image_checksum {
+    my ($location) = @_;
+    # verify_checksum() only compares images which have a CHECKSUM_ variable and silently
+    # ignores others. Those have to be reported separately, otherwise a job which
+    # verified nothing at all is indistinguishable from one which passed verification.
+    my @attached = grep { get_var($_) } ('ISO', (map { "ISO_$_" } 1 .. 9), (map { "HDD_$_" } 1 .. get_var('NUMDISKS', 1)));
+    my @published = grep { get_var("CHECKSUM_$_") } @attached;
+    if (my @unverified = grep { !get_var("CHECKSUM_$_") } @attached) {
+        record_info('Checksum missing', 'No CHECKSUM_* variable published for ' . join(', ', @unverified) .
+              ', so these images were booted without being verified', result => 'softfail');
+    }
+
+    # On VMware os-autoinst verifies an image against its CHECKSUM_ variable while it copies
+    # the image into the datastore and publishes it only once it matches, and it reuses an
+    # image already in the datastore only if that one was verified against the very same
+    # checksum, so a corrupt image never reaches a VM. Repeating that here would read a
+    # multi-GB image for nothing, and cannot even be done reliably: VMFS locks an image
+    # exclusively while another job's VM runs from it, so sha256sum fails with "Device or
+    # resource busy". See https://github.com/os-autoinst/os-autoinst/pull/3099
+    # Only the images which carry a checksum were verified there, so stay silent when there
+    # is none instead of claiming a verification which never happened - the softfail above
+    # already says that nothing was checked.
+    if (is_vmware) {
+        return unless @published;
+        return record_info('Checksum verified on copy',
+            'The images were verified by os-autoinst while they were copied into the datastore');
+    }
+
+    return unless grep { /^CHECKSUM_/ } keys %bmwqemu::vars;
+    my $errors = verify_checksum $location;
+    return record_info('Checksum matched', '', result => 'ok') unless $errors;
+
+    record_info('Checksum', $errors, result => 'fail');
+    die 'Checksum verification failed.';
+}
+
 sub cleanup_leftover_vmware_vms {
     my ($svirt, $name, $vmware_openqa_datastore) = @_;
 
@@ -195,11 +231,8 @@ sub run {
 
     ## Verify checksum of the copied images
     my $location = '/var/lib/libvirt/images/';
-    if (is_vmware) {
-        $location = get_var('BOOT_HDD_IMAGE') ? $vmware_openqa_datastore : $isodir;
-    }
-    my $errors = verify_checksum $location;
-    record_info("Checksum", $errors, result => 'fail') if $errors;
+    $location = $vmware_openqa_datastore if is_vmware;
+    verify_image_checksum($location);
 
     # We need to use 'tablet' as a pointer device, i.e. a device
     # with absolute axis. That needs to be explicitely configured
