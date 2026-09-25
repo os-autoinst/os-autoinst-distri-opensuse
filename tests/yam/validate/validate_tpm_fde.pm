@@ -18,7 +18,7 @@ sub run {
     # it's 'SLES', but in 16.1 it's 'Installation'
     zypper_call("mr -e 1") if (check_var('FLAVOR', 'Full'));
     zypper_call("in tpm2.0-tools");
-    assert_script_run("fdectl tpm-present");
+    assert_script_run("fdectl tpm-present", timeout => 300);
 }
 
 1;
