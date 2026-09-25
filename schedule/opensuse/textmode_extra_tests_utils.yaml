@@ -40,6 +40,7 @@ schedule:
     - console/zypper_extend
     - console/ds389_advanced_functional
     - console/pam
+    - console/run0
     - console/shar
     - console/update_alternatives
     - console/rpm
