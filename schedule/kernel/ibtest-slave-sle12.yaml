@@ -9,7 +9,7 @@ schedule:
     - autoyast/console
     - autoyast/login
     - autoyast/autoyast_reboot
-    - kernel/update_kernel
+#    - kernel/update_kernel
     - boot/boot_to_desktop
     - kernel/ibtests_prepare
     - installation/handle_reboot
