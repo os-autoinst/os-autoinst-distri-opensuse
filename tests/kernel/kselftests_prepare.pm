@@ -22,6 +22,7 @@ sub run {
 
     select_serial_terminal;
     record_info('KERNEL VERSION', script_output('uname -a'));
+    $self->{kernel} = script_output('uname -r');
 
     my $collection = get_required_var('KSELFTEST_COLLECTION');
 
@@ -33,7 +34,25 @@ sub run {
         return;
     }
 
-    install_kselftests($collection);
+    eval { install_kselftests($collection) };
+    if ($@) {
+        $self->{fail_reason} = $@;
+        die $@;
+    }
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    if (($self->{result} // '') eq 'fail' && defined($self->{kernel}) && ($self->{fail_reason} // '') =~ /\bmake\b.*failed/) {
+        my $whitelist = get_whitelist();
+        my $env = {
+            product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
+            arch => get_var('ARCH', ''),
+            kernel => $self->{kernel},
+        };
+        $whitelist->override_known_failures($self, $env, 'kselftests_prepare', '');
+    }
 }
 
 1;

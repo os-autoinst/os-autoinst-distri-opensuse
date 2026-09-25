@@ -28,6 +28,7 @@ use Utils::Systemd qw(disable_and_stop_service);
 
 our @EXPORT = qw(
   export_kselftest_env
+  get_whitelist
   install_kselftests
   livepatch_conflicts_with_kgraft
   post_process_single
