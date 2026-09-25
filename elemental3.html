@@ -15,7 +15,7 @@
   <li>
     <ul>
       <li><a href="#elemental3_cmd">elemental3_cmd</a></li>
-      <li><a href="#get_container_uri">get_container_uri</a></li>
+      <li><a href="#get_artifact_uri">get_artifact_uri</a></li>
       <li><a href="#get_sysext">get_sysext</a></li>
       <li><a href="#get_values">get_values</a></li>
       <li><a href="#kubectl_cmd">kubectl_cmd</a></li>
@@ -35,9 +35,9 @@
 
 <p>Execute elemental3 command from container.</p>
 
-<h2 id="get_container_uri">get_container_uri</h2>
+<h2 id="get_artifact_uri">get_artifact_uri</h2>
 
-<pre><code>get_container_uri( url =&gt; &lt;value&gt;, arch =&gt; &lt;value&gt;, regex =&gt; &lt;value&gt; );</code></pre>
+<pre><code>get_artifact_uri( url =&gt; &lt;value&gt;, regex =&gt; &lt;value&gt;, [arch =&gt; &lt;value&gt;,] [dir =&gt; &lt;value&gt;,] [prefix =&gt; &lt;value&gt;]);</code></pre>
 
 <p>Get URI from registry file.</p>
 
@@ -49,7 +49,7 @@
 
 <h2 id="get_values">get_values</h2>
 
-<pre><code>get_values( url =&gt; &lt;value&gt;, arch =&gt; &lt;value&gt;, regex =&gt; &lt;value&gt; );</code></pre>
+<pre><code>get_values( url =&gt; &lt;value&gt;, regex =&gt; &lt;value&gt; );</code></pre>
 
 <p>Get values from filelist webpage based on provided regex.</p>
 
