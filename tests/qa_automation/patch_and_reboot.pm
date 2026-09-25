@@ -49,7 +49,7 @@ sub run {
         zypper_call('up -l', timeout => 600);
         if (is_aarch64) {
             # Disable grub timeout for aarch64 cases so that the test doesn't stall
-            assert_script_run("sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=-1/\' /etc/default/grub");
+            assert_script_run("sed -i -e \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=-1/\' /etc/default/grub");
             assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
             record_info('GRUB', script_output('cat /etc/default/grub'));
         }

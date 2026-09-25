@@ -15,7 +15,7 @@ sub run {
     #revert dns setting
     if (script_run('ls /etc/resolv.conf.orig') == 0) {
         script_run("mv /etc/resolv.conf.orig /etc/resolv.conf; mv /etc/named.conf.orig /etc/named.conf; mv /etc/ssh/ssh_config.orig /etc/ssh/ssh_config; mv /etc/dhcpd.conf.orig /etc/dhcpd.conf");
-        script_run("sed -irn '/^nameserver 192\\.168\\.123\\.1/d' /etc/resolv.conf");
+        script_run("sed -i '/^nameserver 192\\.168\\.123\\.1/d' /etc/resolv.conf");
         script_run("rm /var/lib/named/testvirt.net.zone; rm /var/lib/named/123.168.192.zone");
     }
 

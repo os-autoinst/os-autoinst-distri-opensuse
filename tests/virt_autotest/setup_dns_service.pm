@@ -37,7 +37,7 @@ sub post_fail_hook {
     script_run("cat /var/lib/named/123.168.192.zone");
     save_screenshot;
     script_run("mv /etc/resolv.conf.orig /etc/resolv.conf; mv /etc/named.conf.orig /etc/named.conf; mv /etc/ssh/ssh_config.orig /etc/ssh/ssh_config; mv /etc/dhcpd.conf.orig /etc/dhcpd.conf");
-    script_run("sed -irn '/^nameserver 192\\.168\\.123\\.1/d' /etc/resolv.conf");
+    script_run("sed -i '/^nameserver 192\\.168\\.123\\.1/d' /etc/resolv.conf");
     script_run("rm /var/lib/named/testvirt.net.zone; rm /var/lib/named/123.168.192.zone");
 
     script_run("systemctl stop named.service");

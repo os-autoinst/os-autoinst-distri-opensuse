@@ -34,7 +34,7 @@ function ifcfg_set_zone {
     local ifc=${1:? Function need interface as parameter}
     local zone=${2:? Function need zone as parameter}
 
-    sed -iE '/\s*ZONE=/d' "$ifcfg"
+    sed -i -E '/\s*ZONE=/d' "$ifcfg"
     echo "ZONE=$zone" >> "$ifcfg"
 }
 
@@ -186,7 +186,7 @@ function test6 {
     logex wicked ifreload "$ifc"
     check_ifc_in_zone "$ifc" "$zone1"
     
-    logex sed -iE '/\s*ZONE=/d' "$ifcfg"
+    logex sed -i -E '/\s*ZONE=/d' "$ifcfg"
     logex wicked ifreload "$ifc"
     check_ifc_in_zone "$ifc" "$default_zone"
 }
