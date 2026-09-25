@@ -29,7 +29,6 @@ sub run {
 
 
     select_serial_terminal;
-    permit_root_ssh_in_sol unless is_sle('16+');
 
     # unload firewall. MPI- and libfabric-tests require too many open ports.
     # SuSEfirewall2 is not always installed on SLE 12, so only disable it if
