@@ -49,7 +49,8 @@ sub run {
     # s390x MinimalVM with wicked takes its transient hostname from the VLAN
     assert_script_run('hostnamectl --transient hostname susetest') if is_s390x && is_jeos && is_sle('<16');
 
-    # Later modules log in as the test user; the pytest fixture would add it without a password
+    # The agnostic test does not create the test user. Provide it with the
+    # test password for this module and for the later modules that log in as it.
     ensure_testuser_present;
 
     # Provide the ansible collection used by the test and set the login user
