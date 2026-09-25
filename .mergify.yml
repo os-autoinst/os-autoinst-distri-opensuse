@@ -28,3 +28,12 @@ pull_request_rules:
     actions:
       review:
         type: APPROVE
+  - name: automatic merge for dependabot updates
+    conditions:
+      - and: *base_checks
+      - and:
+          - base=master
+          - author=dependabot[bot]
+    actions:
+      merge:
+        method: squash
