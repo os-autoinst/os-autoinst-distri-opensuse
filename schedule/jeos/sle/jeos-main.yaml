@@ -85,7 +85,7 @@ schedule:
     - console/ncurses
     - console/yast2_lan
     - console/curl_https
-    - console/salt
+    - console/oqa_agnostic/salt_agnostic
     - console/glibc_sanity
     - update/zypper_up
     - console/console_reboot
