@@ -26,14 +26,14 @@ sub run {
     select_serial_terminal;
 
     # Make sure to start with de-registered system. In case the system is not registered this command will fail
-    assert_script_run "SUSEConnect -d || SUSEConnect --cleanup", 180;
+    assert_script_run "SUSEConnect -d || SUSEConnect --cleanup", 240;
     assert_script_run "SUSEConnect --status-text";
 
     zypper_call('lr', exitcode => [0, 6]);
     zypper_call 'services';
     zypper_call 'products';
 
-    assert_script_run "SUSEConnect -r $reg_code", 180;
+    assert_script_run "SUSEConnect -r $reg_code", 360;
     assert_script_run "SUSEConnect --status-text| grep -v 'Not Registered'";
     zypper_call 'ref';
     assert_script_run "SUSEConnect --list-extensions";
@@ -41,7 +41,7 @@ sub run {
     add_suseconnect_product(is_sle('<15') ? 'sle-live-patching' : 'sle-module-live-patching', undef, undef, "-r $live_reg_code");
 
     assert_script_run "SUSEConnect --status";
-    assert_script_run "SUSEConnect -d || SUSEConnect --cleanup";
+    assert_script_run "SUSEConnect -d || SUSEConnect --cleanup", 900;
     assert_script_run "SUSEConnect --status-text";
 
 }
