@@ -49,7 +49,7 @@ sub run {
     # s390x MinimalVM with wicked takes its transient hostname from the VLAN
     assert_script_run('hostnamectl --transient hostname susetest') if is_s390x && is_jeos && is_sle('<16');
 
-    # The agnostic test does not create users. Provide the test user with the
+    # The agnostic test does not create the test user. Provide it with the
     # test password for this module and for the later modules that log in as it.
     ensure_testuser_present;
 
