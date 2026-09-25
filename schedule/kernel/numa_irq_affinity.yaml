@@ -1,0 +1,8 @@
+name:           numa_irq_affinity
+description:    >
+    Verify that the kernel spreads NVMe interrupt affinity across all NUMA
+    nodes, even when the virtual NVMe device has fewer hardware queues than
+    the VM has NUMA nodes.
+schedule:
+    - boot/boot_to_desktop
+    - kernel/numa_irq_affinity
