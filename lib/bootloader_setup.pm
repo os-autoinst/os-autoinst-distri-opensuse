@@ -18,6 +18,7 @@ use utils;
 use version_utils;
 use mm_network;
 use Utils::Backends;
+use Utils::Bootloader;
 
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_CONSOLE_DEFAULT_DEVICE SERIAL_CONSOLE_DEFAULT_PORT SERIAL_USER_TERMINAL_DEFAULT_DEVICE SERIAL_USER_TERMINAL_DEFAULT_PORT);
 
@@ -116,6 +117,8 @@ And of course the new entries have C<ima_policy=tcb> added to kernel parameters.
 =cut
 
 sub add_custom_grub_entries {
+    my (%args) = @_;
+    my $validate_kernel_arg_len = $args{check_kernel_arg_len} // 0;
     # grep: ignore empty items (helps to avoid trailing semicolon)
     my @grub_params = grep { /\S/ } split(/\s*;\s*/, trim(get_var('GRUB_PARAM', '')));
 
@@ -180,6 +183,7 @@ sub add_custom_grub_entries {
         die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
         $cnt_new = script_output("$run_cmd grep -c -E 'linux.*(/boot|/vmlinu[xz]-).* $grub_param' " . GRUB_CFG_FILE);
         die("Unexpected number of new grub entries with '$grub_param': $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
+        check_kernel_arg_len unless ($validate_kernel_arg_len == 0);
     }
 }
 
