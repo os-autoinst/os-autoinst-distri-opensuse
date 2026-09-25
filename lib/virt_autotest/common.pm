@@ -227,14 +227,14 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles16efi_online => {
             name => 'sles16efi_online',
-            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            extra_params => '--os-variant sles16.0',    # Use SLES16 variant
             distro => 'SLE_16',
             iso_url => 'http://openqa.suse.de/assets/iso/fixed/SLES-16.0-Online-x86_64-GM.install.iso',    # ISO download URL
             boot_firmware => 'efi',    # SLES16 only supports EFI guests, no BIOS support
         },
         sles16efi_full => {
             name => 'sles16efi_full',
-            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            extra_params => '--os-variant sles16.0',    # Use SLES16 variant
             distro => 'SLE_16',
             location => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.0-Full-x86_64-GM.install/',    # Network location for live OS
             install_url => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.0-x86_64-GM/',    # Install repository URL
@@ -242,7 +242,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles16efi_full_snapshot => {
             name => 'sles16efi_full_snapshot',
-            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            extra_params => '--os-variant sles16.0',    # Use SLES16 variant
             distro => 'SLE_16',
             location => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.0-Full-x86_64-GM.install/',    # Network location for live OS
             install_url => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.0-x86_64-GM/',    # Install repository URL
@@ -259,7 +259,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         'sles16efi_full-sev-es' => {
             name => 'sles16efi_full-sev-es',
-            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            extra_params => '--os-variant sles16.0',    # Use SLES16 variant
             distro => 'SLE_16',
             location => 'http://download.suse.de/install/SLP/SLES-16.0-Full-LATEST/x86_64/DVD1/',    # Network location for live OS
             boot_firmware => 'efi_sev_es',    # sev_es
@@ -268,7 +268,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         'sles16efi_full-tdx' => {
             name => 'sles16efi_full-tdx',
-            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            extra_params => '--os-variant sles16.0',    # Use SLES16 variant
             distro => 'SLE_16',
             location => 'http://download.suse.de/install/SLP/SLES-16.0-Full-LATEST/x86_64/DVD1/',    # Network location for live OS
             launch_security => 'tdx',
