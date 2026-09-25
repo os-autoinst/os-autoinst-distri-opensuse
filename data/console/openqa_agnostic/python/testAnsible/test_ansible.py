@@ -6,7 +6,8 @@
 
 Ported from tests/console/ansible.pm. Exercises ansible basics, galaxy,
 playbook testing and execution and vault. The wrapper provides the collection
-under ~/ansible_collections/openqa/ansible and installs the packages.
+under ~/ansible_collections/openqa/ansible, installs the packages and provides
+the openQA test user. This test must not create users.
 """
 
 import os
@@ -53,8 +54,10 @@ def ansible_user():
 @pytest.fixture(scope='session', autouse=True)
 def environment():
     user = ansible_user()
-    if sh(f'id -u {user}').returncode != 0:
-        out(f'useradd -m {user}')
+    # The wrapper provides the test user (ensure_testuser_present). Do not
+    # create users here; fail clearly if the user is missing.
+    assert sh(f'id -u {user}').returncode == 0, \
+        f'the test user {user} does not exist, the wrapper must create it'
     out(f"echo '{user} ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/ansible")
     out('systemctl start sshd')
     out('test -f ~/.ssh/ansible_rsa || ssh-keygen -b 2048 -t rsa -N "" -f ~/.ssh/ansible_rsa')
