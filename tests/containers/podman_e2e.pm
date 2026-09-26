@@ -22,7 +22,7 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit docker glibc-devel-static go1.26 gpg2 jq libgpgme-devel
+    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit docker glibc-devel-static go1.27 gpg2 jq libgpgme-devel
       libseccomp-devel make netavark openssl podman podman-remote runc skopeo socat sudo systemd-container xfsprogs);
     push @pkgs, qw(criu crun libcriu2) unless is_sle;
     $oci_runtime = get_var("OCI_RUNTIME", "runc");

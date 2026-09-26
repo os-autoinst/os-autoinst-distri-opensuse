@@ -103,7 +103,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.26 libgpgme-devel libseccomp-devel make openssl podman qemu-linux-user selinux-tools);
+    my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.27 libgpgme-devel libseccomp-devel make openssl podman qemu-linux-user selinux-tools);
     # Packages needed for conformance tests
     push @pkgs, "busybox-static docker-buildx libbtrfs-devel" unless is_sle;
 
