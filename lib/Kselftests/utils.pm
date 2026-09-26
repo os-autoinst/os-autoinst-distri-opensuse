@@ -350,8 +350,16 @@ sub post_process_single
     }
     my $hardfails = 0;
     my $softfails = 0;
+    my $timed_out = 0;
+    my $subtest_plan;
+    my $subtest_results = 0;
     for my $test_ln (@log) {
-        next if $test_ln =~ /^(not )?ok \d+ selftests: \S+: \S+/;
+        if ($test_ln =~ /^(not )?ok \d+ selftests: \S+: \S+/) {
+            $timed_out = 1 if $test_ln =~ /#\s*TIMEOUT\b/;
+            next;
+        }
+        $subtest_plan //= $1 if $test_ln =~ /^#\s?1\.\.(\d+)\s*$/;
+        $subtest_results++ if $test_ln =~ /^#\s?(not\s)?ok\s\d+\s/;
         $test_ln = $parser->parse_line($test_ln);
         if (!$test_ln) {
             next;
@@ -371,6 +379,15 @@ sub post_process_single
             }
         }
         push(@ktap, $test_ln);
+    }
+
+    # A timeout or missing subtest results is a failure that no known issue
+    # explains. Count it as a hard failure, so that the TODO directive does
+    # not hide it at the top level.
+    if ($timed_out || (defined($subtest_plan) && $subtest_results < $subtest_plan)) {
+        my $reason = $timed_out ? 'timed out' : "reported $subtest_results of $subtest_plan subtest results";
+        record_info("Incomplete", "$args{test} $reason; not treated as a known issue");
+        $hardfails++;
     }
 
     if ($softfails > 0 && $hardfails == 0) {
@@ -458,7 +475,8 @@ sub post_process
         $softfails += $s;
         $hardfails += $h;
         $hardfails++ if $top_hardfail && !($s > 0 && $h == 0);
-        next unless $s == 0;
+        # post_process_single() already added a TODO top-level result
+        next if $s > 0 && $h == 0;
         push(@full_ktap, $summary_ln);
     }
 
