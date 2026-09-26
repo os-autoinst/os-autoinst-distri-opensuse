@@ -36,7 +36,8 @@ sub run {
     my @guests = keys %virt_autotest::common::guests;
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
     foreach my $guest (@guests) {
-        if (is_guest_of_host_version($guest)) {
+        my $is_snpguest_update = check_var('UPDATE_PACKAGE', 'snpguest');
+        if (($is_snpguest_update && check_var('ENABLE_SEV_SNP', 1) && is_sev_snp_guest($guest)) || (!$is_snpguest_update && is_guest_of_host_version($guest))) {
             if (check_var('PATCH_WITH_ZYPPER', '1') || check_var('PATCH_ON_GUEST', '1')) {
                 assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err -tx|sort -o /tmp/${guest}_dmesg_err_before.txt");
                 record_info("Patching $guest");
