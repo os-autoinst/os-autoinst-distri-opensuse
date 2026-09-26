@@ -11,11 +11,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     ensure_serialdev_permissions;
     # default is true, for legacy reasons we were running this on openSUSE only
     assert_script_run "echo \"download.use_deltarpm = false\" >> /etc/zypp/zypp.conf" if !is_sle;
