@@ -14,6 +14,14 @@ use Kernel::magic_sysrq;
 sub run {
     my $self = shift;
 
+    my $arch = get_var('ARCH');
+
+    unless ($arch eq 'x86_64') {
+        record_info('SKIP', 'Skipping sysrq test on arch other than x86_64 poo#42299');
+        $self->result('skip');
+        return;
+    }
+
     select_console 'root-console';
 
     if (sysrq_check_kconfig()) {
