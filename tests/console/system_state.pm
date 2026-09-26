@@ -12,14 +12,14 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
-use Utils::Backends;
 use Utils::Architectures;
 use Utils::Logging 'tar_and_upload_log';
 
 sub run {
     my ($self) = shift;
-    is_ipmi ? use_ssh_serial_console : select_console 'root-console';
+    select_serial_terminal;
     my $timeout = is_s390x ? '90' : '30';
     script_run("mkdir /tmp/system_state", timeout => $timeout);
     script_run "ps axf > /tmp/system_state/psaxf.log";
