@@ -2872,7 +2872,10 @@ sub load_extra_tests_kernel {
 
     # keep it on the latest place as it taints kernel
     loadtest "kernel/module_build";
-    loadtest "kernel/sysrq_test";
+
+    if (is_x86_64) {
+        loadtest "kernel/sysrq_test";
+    }
 }
 
 # Scheduling set for validation of specific installation
