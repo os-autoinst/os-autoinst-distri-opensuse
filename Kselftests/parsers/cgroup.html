@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kselftests/parsers/cgroup.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#parse_line">parse_line</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kselftests/parsers/cgroup.pm</h1>
+
+<h2 id="parse_line">parse_line</h2>
+
+<pre><code>parse_line($string);</code></pre>
+
+<p>The cgroup selftests print a diagnostic line before a failed subtest result, for example the line from values_close_report():</p>
+
+<pre><code># [FAIL] actual=18722816 expected=30408704 | diff=11685888 | ...
+# not ok 3 test_memcg_min</code></pre>
+
+<p>openQA shows only the result line in the subtest box. This parser keeps the diagnostic lines and appends them to the next <code>not ok</code> result line:</p>
+
+<pre><code># not ok 3 test_memcg_min # [FAIL] actual=18722816 expected=30408704 | ...</code></pre>
+
+<p>The subtest name stays in front of the first <code>#</code>, so the openQA box title and the known issues lookup do not change. All other lines are returned unchanged.</p>
+
+
+</body>
+
+</html>
+
+
