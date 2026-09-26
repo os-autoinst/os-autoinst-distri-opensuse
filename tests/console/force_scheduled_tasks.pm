@@ -16,7 +16,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use utils 'assert_screen_with_soft_timeout';
+use serial_terminal 'select_serial_terminal';
 use version_utils 'is_jeos';
 
 sub settle_load {
@@ -31,7 +31,7 @@ sub settle_load {
 }
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # show dmesg output in console during cron run
     assert_script_run "dmesg -n 7";
