@@ -11,10 +11,11 @@
 
 use Mojo::Base 'y2_module_consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     quit_packagekit;
     fully_patch_system;
     assert_script_run("rpm -q libzypp zypper");
