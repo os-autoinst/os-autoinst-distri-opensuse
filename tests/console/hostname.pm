@@ -12,9 +12,10 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Prevent HOSTNAME from being reset by DHCP
     if (script_run('test -f /etc/sysconfig/network/dhcp') == 0) {
