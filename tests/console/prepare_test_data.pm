@@ -10,12 +10,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
-use Utils::Backends;
 use version_utils 'is_public_cloud';
 
 sub run {
-    is_ipmi ? use_ssh_serial_console : select_console 'root-console';
+    select_serial_terminal;
     ensure_serialdev_permissions;
 
     my $timeout = get_var('PREPARE_TEST_DATA_TIMEOUT', 300);
