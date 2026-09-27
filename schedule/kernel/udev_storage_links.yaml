@@ -1,0 +1,18 @@
+name:          udev_storage_links
+description:    >
+    Check udev persistent storage links (/dev/disk/by-*) on a scsi_debug
+    RAM disk, including link updates, duplicate names and removal
+schedule:
+    - '{{boot}}'
+    - boot/boot_to_desktop
+    - kernel/udev_storage_links
+    - shutdown/shutdown
+
+conditional_schedule:
+    boot:
+        BACKEND:
+            spvm:
+                - installation/bootloader
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
