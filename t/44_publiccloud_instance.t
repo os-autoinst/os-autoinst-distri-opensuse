@@ -440,4 +440,98 @@ subtest '[wait_for_guestregister] timeout captures diagnostics before dying' => 
     ok((any { /journalctl -u guestregister\.service/ } @calls), 'journal command targets guestregister.service');
 };
 
+subtest '[upload_supportconfig_log] timeout adjustments: SLE 12-SP5' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my $captured_timeout;
+    $instmod->redefine(ssh_script_run => sub {
+            my $self = shift;
+            my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+            $captured_timeout = $args{timeout} if ($args{cmd} && $args{cmd} =~ /supportconfig -R/);
+            return 0;
+    });
+    $instmod->redefine(upload_log => sub { return 1 });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    $instmod->redefine(is_gce => sub { 0 });
+    $instmod->redefine(is_sle => sub { my ($v) = @_; return ($v eq '=12-SP5') ? 1 : 0 });
+
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+    $inst->upload_supportconfig_log();
+    is($captured_timeout, 2000, 'timeout is 2000s on SLE 12-SP5');
+};
+
+subtest '[upload_supportconfig_log] timeout adjustments: GCE with python-gcemetadata < 1.1.2' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my $captured_timeout;
+    $instmod->redefine(ssh_script_run => sub {
+            my $self = shift;
+            my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+            $captured_timeout = $args{timeout} if ($args{cmd} && $args{cmd} =~ /supportconfig -R/);
+            return 0;
+    });
+    $instmod->redefine(upload_log => sub { return 1 });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    $instmod->redefine(is_gce => sub { 1 });
+    $instmod->redefine(is_sle => sub { 0 });
+    $instmod->redefine(ssh_script_output => sub {
+            my $self = shift;
+            my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+            return "1.1.1\n" if ($args{cmd} && $args{cmd} =~ /python-gcemetadata/);
+            return '';
+    });
+
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+    $inst->upload_supportconfig_log();
+    is($captured_timeout, 2000, 'timeout increased to 2000s on GCE when python-gcemetadata < 1.1.2');
+};
+
+subtest '[upload_supportconfig_log] timeout adjustments: GCE with python-gcemetadata >= 1.1.2' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my $captured_timeout;
+    $instmod->redefine(ssh_script_run => sub {
+            my $self = shift;
+            my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+            $captured_timeout = $args{timeout} if ($args{cmd} && $args{cmd} =~ /supportconfig -R/);
+            return 0;
+    });
+    $instmod->redefine(upload_log => sub { return 1 });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    $instmod->redefine(is_gce => sub { 1 });
+    $instmod->redefine(is_sle => sub { 0 });
+    $instmod->redefine(ssh_script_output => sub {
+            my $self = shift;
+            my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+            return "1.1.2\n" if ($args{cmd} && $args{cmd} =~ /python-gcemetadata/);
+            return '';
+    });
+
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+    $inst->upload_supportconfig_log();
+    is($captured_timeout, 600, 'timeout remains 600s on GCE when python-gcemetadata is 1.1.2 or newer');
+};
+
+subtest '[upload_supportconfig_log] timeout adjustments: both SLE 12-SP5 and GCE with old python-gcemetadata' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my $captured_timeout;
+    $instmod->redefine(ssh_script_run => sub {
+            my $self = shift;
+            my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+            $captured_timeout = $args{timeout} if ($args{cmd} && $args{cmd} =~ /supportconfig -R/);
+            return 0;
+    });
+    $instmod->redefine(upload_log => sub { return 1 });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    $instmod->redefine(is_gce => sub { 1 });
+    $instmod->redefine(is_sle => sub { my ($v) = @_; return ($v eq '=12-SP5') ? 1 : 0 });
+    $instmod->redefine(ssh_script_output => sub {
+            my $self = shift;
+            my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+            return "1.1.1\n" if ($args{cmd} && $args{cmd} =~ /python-gcemetadata/);
+            return '';
+    });
+
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+    $inst->upload_supportconfig_log();
+    is($captured_timeout, 2000, 'timeout is capped at 2000s when both SLE 12-SP5 and GCE with old gcemetadata');
+};
+
 done_testing;
