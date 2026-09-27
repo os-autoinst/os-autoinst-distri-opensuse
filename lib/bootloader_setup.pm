@@ -85,9 +85,7 @@ sub stop_grub_timeout {
     # The bootloader uses USB polling, which can be slow, especially if storage is also
     # attached over USB (e.g. USBBOOT=1). A plain send_key releases it too quickly,
     # so hold the key for longer.
-    hold_key("up");
-    sleep(0.2);
-    release_key("up");
+    send_key('up', hold_duration => .2);
 }
 
 =head2 add_custom_grub_entries
