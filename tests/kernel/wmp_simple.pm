@@ -91,3 +91,42 @@ sub run {
 }
 
 1;
+
+=head1 Description
+
+Basic Workload Memory Protection (WMP) test for SAP systems. The test sets
+C<MemoryLow> on the C<SAP.slice> systemd slice, starts the SAP system, then
+uses C<stress-ng> (installed from PackageHub) to put the machine under memory
+pressure. After that, every process in C<SAP.slice> is checked, and the test
+fails if any of them has memory swapped out.
+
+It expects a SAP instance that is already installed, and it only runs on
+SLE 15 up to SLE 15-SP4. On other versions it returns without doing anything.
+
+=head1 Configuration
+
+=head2 WMP_MEMORY_LOW
+
+Required. Value passed to C<systemctl set-property SAP.slice MemoryLow=>,
+for example C<30G>.
+
+=head2 WMP_STRESS_MEM
+
+Amount of memory for C<stress-ng --vm-bytes> to consume. It is capped at the
+C<MemFree> value from C</proc/meminfo>, and that value is also used if this is
+unset or set to C<0>.
+
+=head2 INSTANCE_SID
+
+Required. SAP system ID, for example C<NDB>. It is used to work out the
+C<E<lt>sidE<gt>adm> user and the instance path.
+
+=head2 INSTANCE_ID
+
+Required. SAP instance number, for example C<00>.
+
+=head2 INSTANCE_TYPE
+
+SAP instance type, used in the instance path. Defaults to C<HDB>.
+
+=cut
