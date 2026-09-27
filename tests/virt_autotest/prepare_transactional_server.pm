@@ -58,6 +58,7 @@ sub prepare_extensions {
 sub prepare_packages {
     my $self = shift;
 
+    zypper_call('in libosinfo osinfo-db');
     # install additional packages from product repositories
     install_product_software;
     # install auxiliary packages from additional repositories to facilitate automation, for example screen and etc.

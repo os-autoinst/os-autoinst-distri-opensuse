@@ -348,7 +348,7 @@ sub prepare_non_transactional_environment {
     $self->reveal_myself;
     if (!is_transactional) {
         virt_autotest::utils::setup_rsyslog_host($_host_params{common_log_folder}) if (is_sle('<16'));
-        my $_packages_to_check = 'wget curl screen dnsmasq xmlstarlet python3 nmap';
+        my $_packages_to_check = 'wget curl screen dnsmasq xmlstarlet python3 nmap libosinfo osinfo-db';
         $_packages_to_check .= ' yast2-schema' if (is_sle('<16'));
         zypper_call("install -y $_packages_to_check");
         # There is already the highest version for kvm/xen packages on TW
@@ -613,6 +613,7 @@ sub config_guest_os_variant {
     $self->reveal_myself;
     my $_current_os_variant_options = $self->{guest_os_variant_options};
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
+    $self->{guest_os_variant} = get_virt_install_os_variant($self->{guest_os_variant}, $self->{guest_version});
     if ($self->{guest_os_variant} ne '') {
         $self->{guest_os_variant_options} = "--os-variant $self->{guest_os_variant}";
         if (($self->{guest_installation_result} eq 'PASSED') and ($_current_os_variant_options ne $self->{guest_os_variant_options})) {

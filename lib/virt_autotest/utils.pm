@@ -43,6 +43,7 @@ our @EXPORT = qw(
   is_sles16_mu_virt_test
   host_os_version_prefix
   is_guest_of_host_version
+  get_virt_install_os_variant
   is_monolithic_libvirtd
   turn_on_libvirt_debugging_log
   restart_libvirtd
@@ -116,6 +117,7 @@ our @EXPORT = qw(
 );
 
 my %log_cursors;
+my $supported_virt_install_os_variants;
 
 # helper function: Trim string
 sub trim {
@@ -268,6 +270,95 @@ sub is_guest_of_host_version {
     # Negative lookahead: reject if followed by "sp\d" or bare digit,
     # which would indicate a different version (e.g. sles16sp1 != sles16).
     return $guest =~ /^${prefix}(?!sp\d|\d)/;
+}
+
+=head2 get_virt_install_os_variant
+
+Select a virt-install OS variant from the IDs supported by the host.
+
+=cut
+
+sub get_virt_install_os_variant {
+    my ($variant, $guest_version) = @_;
+
+    return $variant unless defined $variant && $variant ne '';
+    return _select_virt_install_os_variant($variant, $guest_version, _get_supported_virt_install_os_variants());
+}
+
+sub _get_supported_virt_install_os_variants {
+    return $supported_virt_install_os_variants if defined $supported_virt_install_os_variants;
+
+    my $output = script_output(
+        'rc=0; LC_ALL=C osinfo-query --fields=short-id os 2>/dev/null || rc=$?; printf "\n__OPENQA_OSINFO_QUERY_STATUS__%s\n" "$rc"',
+        proceed_on_failure => 1
+    ) // '';
+    my @lines = split(/\R/, $output);
+    my $status_line = pop @lines // '';
+    my ($status) = $status_line =~ /^__OPENQA_OSINFO_QUERY_STATUS__(\d+)$/;
+
+    die 'Unable to query supported osinfo OS variants' unless defined $status;
+    die "osinfo-query --fields=short-id os failed with exit status $status" if $status != 0;
+
+    my %supported = map {
+        my ($id) = /^\s*([^\s|]+)\s*$/;
+        defined $id && lc($id) ne 'short-id' && $id !~ /^-+$/ ? ($id => 1) : ()
+    } @lines;
+    $supported_virt_install_os_variants = \%supported;
+    return $supported_virt_install_os_variants;
+}
+
+sub _select_virt_install_os_variant {
+    my ($variant, $guest_version, $supported) = @_;
+    my @candidates = _virt_install_os_variant_candidates($variant, $guest_version, $supported);
+
+    for my $candidate (@candidates) {
+        return $candidate if $supported->{$candidate};
+    }
+
+    return 'generic' if $supported->{generic};
+
+    my $version = defined $guest_version ? $guest_version : '<unknown>';
+    die "No supported virt-install OS variant for '$variant' guest '$version'. "
+      . "Tried: " . join(', ', @candidates);
+}
+
+sub _virt_install_os_variant_candidates {
+    my ($variant, $guest_version, $supported) = @_;
+    my @candidates;
+    my %seen;
+    push @candidates, $variant if defined $variant && $variant ne '';
+    my ($variant_family, $variant_major) = $variant =~ /^((?:slem|slm|sles?))(\d+)?(?=\.|sp|-|$)/;
+    my ($guest_major, $dot_minor, $sp_minor) = defined $guest_version
+      ? $guest_version =~ /^(\d+)(?:\.(\d+)|-?sp(\d+))?$/i
+      : ();
+    my $guest_minor = defined $dot_minor ? $dot_minor : $sp_minor;
+    my $major = defined $guest_major ? $guest_major : $variant_major;
+
+    if (defined $variant_family && defined $major) {
+        my @families = $variant_family eq 'sles' ? qw(sles sle)
+          : $variant_family eq 'sle' ? qw(sle sles)
+          : $variant_family eq 'slem' ? qw(slem slm)
+          : qw(slm slem);
+        push @candidates, map { "${_}${major}" } @families;
+        push @candidates, map { "${_}${major}-unknown" } @families;
+
+        if (defined $guest_minor) {
+            my $suffix = $major >= 16 || $variant_family =~ /^(?:slem|slm)$/ ? "." : "sp";
+            push @candidates, map { "${_}${major}${suffix}${guest_minor}" } @families;
+        } elsif ($major >= 16) {
+            push @candidates, map { "${_}${major}.0" } @families;
+        }
+
+        my %family_rank = map { $families[$_] => $_ } 0 .. $#families;
+        my @older = map {
+            my ($family, $candidate_major, $candidate_minor) = /^((?:slem|slm|sles?))(\d+)(?:sp|\.)(\d+)$/;
+            defined $guest_minor && defined $candidate_minor && defined $family_rank{$family} && $candidate_major == $major && $candidate_minor <= $guest_minor
+              ? [$candidate_minor, $family_rank{$family}, $_]
+              : ()
+        } keys %$supported;
+        push @candidates, map { $_->[2] } sort { $b->[0] <=> $a->[0] || $a->[1] <=> $b->[1] || $a->[2] cmp $b->[2] } @older if @older;
+    }
+    return grep { $seen{$_}++ == 0 } @candidates;
 }
 
 #return 1 if it is a fv guest judging by name
@@ -929,12 +1020,12 @@ sub import_guest {
 }
 
 sub install_default_packages {
-    # Install nmap, ip, dig
+    # Install nmap, ip, dig and osinfo data used by virt-install.
     if (is_s390x()) {
         # Use static call to avoid cyclical imports
-        virt_utils::lpar_cmd("zypper --non-interactive in nmap iputils bind-utils");
+        virt_utils::lpar_cmd("zypper --non-interactive in nmap iputils bind-utils libosinfo osinfo-db");
     } else {
-        zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 4, 102, 103, 106];
+        zypper_call '-t in nmap iputils bind-utils libosinfo osinfo-db', exitcode => [0, 4, 102, 103, 106];
     }
 }
 
