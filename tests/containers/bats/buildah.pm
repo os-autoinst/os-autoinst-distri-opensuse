@@ -68,6 +68,10 @@ sub run_tests {
         "chroot.bats::chroot mount flags",
         "copy.bats::copy-preserving-extended-attributes",
     ) if (is_ppc64le);
+    # Test issue fixed in https://github.com/podman-container-tools/buildah/commit/363aa3ca4d0fb271913f5c1b6dd22a5c3e5b78e5
+    push @xfails, (
+        "bud.bats::bud-copy--parents-links",
+    ) if (is_tumbleweed && version->parse(numeric_version($version)) < version->parse("1.46.0"));
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 7500);
 
