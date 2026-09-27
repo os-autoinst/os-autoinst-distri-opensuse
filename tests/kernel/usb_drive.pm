@@ -104,3 +104,26 @@ sub test_flags {
 }
 
 1;
+
+=head1 Description
+
+Smoke test for a USB storage device connected to the SUT. The first USB disk
+reported by C<lsscsi> is formatted as ext4 and mounted. A random file is
+written to it, the drive is unmounted, the page cache is dropped, and after
+remounting the file's MD5 sum is checked against the original.
+
+If the C<lklfuse> package is available, it is installed and the same check is
+run again as the unprivileged user, this time mounting the drive with lklfuse.
+On SLE 16+ the test fails if lklfuse is missing.
+
+B<Warning:> the test wipes the USB drive it finds.
+
+=head1 Configuration
+
+=head2 REQUIRED_USB_DEVICES
+
+Optional comma-separated list of C<vendor:product> USB IDs, for example
+C<0781:5567>, that must be connected to the SUT. Missing devices are reported
+as a failure, but the test keeps going.
+
+=cut
