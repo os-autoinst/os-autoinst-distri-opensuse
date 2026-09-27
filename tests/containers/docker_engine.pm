@@ -21,7 +21,7 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.26 nftables-devel openssl rootlesskit selinux-tools skopeo);
+    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.27 nftables-devel openssl rootlesskit selinux-tools skopeo);
     # To test cross-platform builds
     push @pkgs, "qemu-linux-user" unless is_sle("<16");
     $self->setup_pkgs(@pkgs);

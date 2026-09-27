@@ -24,7 +24,7 @@ my $has_private_registries = 0;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(docker docker-buildx go1.26 openssl);
+    my @pkgs = qw(docker docker-buildx go1.27 openssl);
     push @pkgs, qw(docker-compose) unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
