@@ -129,6 +129,10 @@ sub run {
         "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80",
         "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80/AF_ALG",
     ) unless (is_sle("<16"));
+    # This fails for unknown reason on SLES 16.1 Build74.1
+    push @xfails, (
+        "github.com/moby/moby/v2/integration/daemon/nri::TestNRIReload",
+    ) if (is_sle(">16"));
 
     my $tags = "apparmor selinux seccomp pkcs11";
 
