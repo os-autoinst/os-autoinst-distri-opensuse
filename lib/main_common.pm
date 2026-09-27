@@ -1962,10 +1962,6 @@ sub load_wicked_create_hdd {
     return 1;
 }
 
-sub load_extra_tests_udev {
-    loadtest "kernel/udev_no_symlink";
-}
-
 sub load_nfv_master_tests {
     loadtest "nfv/prepare_env";
     loadtest "nfv/run_performance_tests";
