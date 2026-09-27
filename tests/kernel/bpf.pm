@@ -42,3 +42,16 @@ sub run {
 }
 
 1;
+
+=head1 Description
+
+Build and run the C<trace_output> BPF sample from the Linux kernel tree
+(C<samples/bpf>). The test installs C<clang>, C<bpftool> and C<libbpf-devel>
+and generates C<vmlinux.h> from the kernel BTF. It then builds the BPF
+program, which is attached to the C<write> syscall, and the userspace runner
+that loads it and reads 100000 events from a perf buffer.
+
+The sources are in C<data/kernel/>. On SLE, C<clang> comes from PackageHub.
+If PackageHub is not available, the test records a soft failure and skips.
+
+=cut
