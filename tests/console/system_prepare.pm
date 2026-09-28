@@ -18,7 +18,7 @@ use testapi;
 use utils;
 use zypper;
 use version_utils qw(is_sle is_agama is_tumbleweed);
-use serial_terminal 'prepare_serial_console';
+use serial_terminal qw(prepare_serial_console select_serial_terminal);
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
 use services::registered_addons 'full_registered_check';
@@ -31,7 +31,15 @@ use suseconnect_register qw(command_register);
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    # On ppc64le (OFW) the root-virtio-terminal is hvc1 and only gets its getty
+    # from prepare_serial_console below, so it is not usable yet; keep the VGA
+    # console there. Everywhere else the serial terminal is ready after boot.
+    if (get_var('OFW')) {
+        select_console 'root-console';
+    }
+    else {
+        select_serial_terminal;
+    }
     ensure_serialdev_permissions;
     prepare_serial_console;
     if (!check_var('DESKTOP', 'textmode')) {
@@ -128,7 +136,7 @@ sub run {
     # ZYPP_MEDIANETWORK was introduced in libzypp 17.28.x as an experimental multi-threaded/asynchronous
     # network backend feature which supports sle15+ and openSUSE Tumbleweed
     if (get_var('ZYPP_MEDIANETWORK')) {
-        assert_script_run qq(echo -e '[env]\nZYPP_MEDIANETWORK=1' > /etc/zypp/zypp.conf.d/medianetwork.conf);
+        assert_script_run qq(echo -e '[env]\\nZYPP_MEDIANETWORK=1' > /etc/zypp/zypp.conf.d/medianetwork.conf);
         record_info('ZYPP_MEDIANETWORK config', script_output('cat /etc/zypp/zypp.conf.d/medianetwork.conf'));
     }
 
