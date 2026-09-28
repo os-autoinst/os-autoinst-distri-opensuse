@@ -25,7 +25,7 @@ subtest '[export boundary] exported vs internal helpers' => sub {
         is_byos is_ondemand is_ec2 is_ec2_xen is_azure is_gce
         is_container_host is_hardened is_cloudinit_supported
         get_python_exec get_ssh_key_algo get_ssh_private_key_path pc_data_url
-        additional_repos calculate_custodian_ttl
+        additional_repos calculate_custodian_ttl check_dns
         )) {
         ok(__PACKAGE__->can($exported), "$exported is exported into caller");
     }
@@ -314,6 +314,60 @@ subtest '[register_addons_in_pc] discriminates the no-enabled-repos cause' => su
     qr/registered system \(bsc#1245651\)/, 'registered system is named as the cause';
 
     _unset(qw/SCC_ADDONS/);
+};
+
+subtest '[check_dns] resolv.conf and a host, diagnostics before dying' => sub {
+    # poo#207630
+    my $utils = Test::MockModule->new('publiccloud::utils', no_auto => 1);
+    my @infos;
+    $utils->redefine(record_info => sub { push @infos, [@_] });
+    my (%rc, @cmds);
+    my $inst = Test::MockObject->new;
+    my %retries;
+    $inst->mock(ssh_script_retry => sub {
+            my (undef, %args) = @_;
+            push @cmds, $args{cmd};
+            $retries{$args{cmd} =~ /resolv/ ? 'resolv' : 'getent'} = $args{retry};
+            return $rc{$args{cmd} =~ /resolv/ ? 'resolv' : 'getent'} // 0;
+    });
+    $inst->mock(ssh_script_output => sub { my (undef, %args) = @_; push @cmds, $args{cmd}; 'DIAG' });
+    my $reset = sub { %rc = @_; @cmds = (); @infos = () };
+    # The host check_dns resolves: the setting, or scc.suse.com by default.
+    my $host;
+    my $expect_host = sub { $host = testapi::get_var('PUBLIC_CLOUD_DNS_CHECK_HOST', 'scc.suse.com') };
+
+    _unset(qw/PUBLIC_CLOUD_DNS_CHECK_HOST/);
+    $expect_host->();
+    $reset->();
+    lives_ok { check_dns($inst) } 'a valid resolv.conf and a resolving default host pass';
+    like($cmds[0], qr{/etc/resolv\.conf.*nameserver}, 'resolv.conf is checked for a nameserver');
+    cmp_ok($retries{resolv}, '>', 1, 'a resolv.conf written late is waited for');
+    ok(grep(/getent ahosts \Q$host\E/, @cmds), 'scc.suse.com is resolved by default');
+
+    set_var('PUBLIC_CLOUD_DNS_CHECK_HOST', 'smt.example.org');
+    $expect_host->();
+    $reset->();
+    check_dns($inst);
+    ok(grep(/getent ahosts \Q$host\E/, @cmds), 'PUBLIC_CLOUD_DNS_CHECK_HOST overrides the host');
+
+    $reset->(resolv => 1);
+    throws_ok { check_dns($inst) } qr{/etc/resolv\.conf}, 'an invalid resolv.conf dies';
+    is($infos[0][1], 'DIAG', 'diagnostics are recorded before dying');
+
+    $reset->();
+    lives_ok { check_dns($inst) } 'a resolving host passes';
+    ok(grep(/getent ahosts \Q$host\E/, @cmds), 'the host is resolved with getent');
+
+    $reset->(getent => 2);
+    throws_ok { check_dns($inst) } qr/\Q$host\E did not resolve/, 'a host that never resolves dies';
+    ok(grep(/getent ahosts \Q$host\E/, @cmds[1 .. $#cmds]), 'diagnostics include the failed lookup');
+
+    set_var('PUBLIC_CLOUD_DNS_CHECK_HOST', 'x; rm -rf /');
+    $reset->();
+    throws_ok { check_dns($inst) } qr/not a host name/, 'a setting that is not a host name is refused';
+    ok(!@cmds, 'nothing runs on the instance for a bad setting');
+
+    _unset(qw/PUBLIC_CLOUD_DNS_CHECK_HOST/);
 };
 
 subtest '[ssh_allow_openqa_port_selinux] addresses $instance directly, not the current console' => sub {
