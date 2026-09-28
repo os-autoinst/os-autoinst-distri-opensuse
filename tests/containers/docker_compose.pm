@@ -21,7 +21,7 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(docker docker-buildx docker-compose go1.26 make openssl);
+    my @pkgs = qw(docker docker-buildx docker-compose go1.27 make openssl);
     $self->setup_pkgs(@pkgs);
 
     # docker-compose tests needs to be patched upstream to support SELinux
@@ -66,9 +66,14 @@ sub test ($target) {
         "github.com/docker/compose/$v/pkg/e2e::TestWatch",
         "github.com/docker/compose/$v/pkg/e2e::TestWatch/debian",
     );
+    push @xfails, (
+        # These fail due to https://github.com/docker/compose/issues/14005
+        "github.com/docker/compose/v5/pkg/e2e::TestImageVolume",
+        "github.com/docker/compose/v5/pkg/e2e::TestImageVolumeRecreateOnRebuild",
+    ) if (is_tumbleweed);
 
     run_timeout_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3600;
-    upload_logs "$target.txt";
+    upload_logs "$target.txt", failok => 1;
     assert_script_run "mv /tmp/report/report.xml $target.xml";
     die "Testsuite failed" if script_run("test -s $target.xml");
     patch_junit "docker-compose", $version, "$target.xml", @xfails;

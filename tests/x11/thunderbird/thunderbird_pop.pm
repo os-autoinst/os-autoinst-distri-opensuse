@@ -32,7 +32,7 @@ sub run {
 
     mouse_hide(1);
     # clean up and start thunderbird
-    x11_start_program("xterm -e \"killall -9 thunderbird; find ~ -name *thunderbird | xargs rm -rf;\"", valid => 0);
+    x11_start_program("xterm -e \"killall -9 thunderbird; rm -rf ~/.thunderbird ~/.mozilla-thunderbird ~/.var/app/org.mozilla.Thunderbird;\"", valid => 0);
     my $success = eval { x11_start_program("thunderbird", match_timeout => 120); 1 };
     unless ($success) {
         force_soft_failure "bsc#1131306";
@@ -47,6 +47,7 @@ sub run {
         assert_and_click 'thunderbird_check-message';
         my $filename = "thunderbird.pdf";
         save_print_file($filename);
+        $self->tb_delete_email;
         # exit Thunderbird
         assert_and_click 'close_thunderbird';
         x11_start_program(default_gui_terminal());

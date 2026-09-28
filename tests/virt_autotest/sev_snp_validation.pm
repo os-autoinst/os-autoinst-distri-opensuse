@@ -37,6 +37,7 @@ use virt_autotest::common;
 use virt_autotest::utils qw(guest_is_sle wait_guest_online is_guest_online execute_over_ssh upload_virt_logs);
 use version_utils qw(is_sle package_version_cmp);
 use Utils::Architectures;
+use utils qw(write_sut_file);
 use package_utils;
 use bootloader_setup qw(add_grub_cmdline_settings grub_mkconfig);
 use power_action_utils 'power_action';
@@ -44,7 +45,7 @@ use power_action_utils 'power_action';
 # Define constants for SNP verification
 use constant {
     # ucode-amd provides CPU microcode required by snphost ok verification
-    SNP_HOST_TOOLS => ['snphost', 'sevctl', 'snpguest', 'ucode-amd'],
+    SNP_HOST_TOOLS => ['snphost', 'sevctl', 'ucode-amd'],
     SNP_GUEST_TOOLS => ['snpguest'],
     SNP_MIN_KERNEL_VER => '5.19.0',
 
@@ -180,6 +181,8 @@ sub check_sev_snp_on_host {
         record_info('Installed SEV-SNP Packages', $installed_pkgs_info);
     }
 
+    validate_script_output("zypper if snphost", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if check_var("UPDATE_PACKAGE", "snphost");
+
     # Configure SEV-SNP kernel parameters (reboots if needed, also loads newly installed ucode-amd)
     $self->configure_sev_snp_kernel_parameters();
 
@@ -302,7 +305,7 @@ sub check_sev_snp_host_capability {
     # Store output for later reference (regardless of success or failure)
     my $output_file = LOG_DIR . "/${tool_name}_output.txt";
     script_run("mkdir -p " . LOG_DIR);
-    script_run("echo '$check_output' > $output_file");
+    write_sut_file($output_file, $check_output);
 
     # Just check if there are any FAIL entries in the output
     if ($check_output =~ /FAIL/) {
@@ -485,6 +488,8 @@ sub check_sev_snp_on_guest {
     } else {
         record_info('SEV-SNP Config', "Successfully configured SEV-SNP for guest $guest_name");
     }
+
+    wait_guest_online($guest_name, 50, 1);
 
     # Check if SEV-SNP is enabled in guest's dmesg
     record_info('Guest dmesg', "Checking for SEV-SNP features in guest $guest_name dmesg");
@@ -854,6 +859,8 @@ sub install_snp_packages_on_guest {
         timeout => 180    # Increased timeout for package installation
     );
     save_screenshot;
+
+    validate_script_output("ssh root\@$guest_name zypper if snpguest", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if check_var("UPDATE_PACKAGE", "snpguest");
 
     if ($install_result != 0) {
         record_info('Installation Failed', "Failed to install packages on guest $guest_name: $package_list", result => 'softfail');

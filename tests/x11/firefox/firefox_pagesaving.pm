@@ -28,16 +28,17 @@ sub run {
     $self->firefox_open_url('http://www.mozilla.org/en-US', assert_loaded_url => 'firefox-pagesaving-load');
     send_key "ctrl-s";
     assert_screen 'firefox-pagesaving-saveas';
-    wait_still_screen 3;
+    wait_still_screen 1, 2;
     # on sle15 just one alt-s does not work
-    send_key_until_needlematch 'firefox-downloading-saving_dialog', 'alt-s', 4, 3;
+    assert_and_click 'firefox-downloading-saveas_click';
+    wait_still_screen 1, 2;
 
     # Exit
     $self->exit_firefox;
 
     x11_start_program(default_gui_terminal());
     send_key "ctrl-l";
-    wait_still_screen 3;
+    wait_still_screen 1, 2;
     # look for file name "Internet for people, not profit",
     # if mozilla changes the title save the file with custom name
     assert_script_run 'ls Downloads/|grep "Internet for people, not profit"';

@@ -7,11 +7,8 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
-use serial_terminal qw(select_serial_terminal);
 
 sub run {
-    select_serial_terminal();
-
     # User and group details
     my $test_user = get_var('TEST_USER', 'qetest');
     my $test_group = get_var('TEST_GROUP', 'qetestgroup');

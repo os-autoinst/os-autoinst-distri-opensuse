@@ -1,0 +1,40 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: ansible
+# desc: >
+#   Functional tests for ansible. Exercises ansible setup, galaxy, playbook
+#   testing and execution and vault. Ported from tests/console/ansible.pm.
+# steps:
+#   - read the login user and prepare the test environment
+#   - check ansible version and the setup module facts
+#   - install and verify a galaxy role
+#   - run the playbook in check mode and, when available, ansible-test sanity
+#   - run the playbook and verify its results
+#   - round-trip a secret through ansible-vault
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 15+
+# tags: console ansible galaxy playbook vault
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_ansible.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+
+set +e
+pytest -v -s --tb=short test_ansible.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc

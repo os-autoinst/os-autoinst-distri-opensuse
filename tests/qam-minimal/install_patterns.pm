@@ -24,6 +24,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use power_action_utils qw(power_action);
 use Utils::Architectures 'is_s390x';
+use Utils::Backends 'is_pvm';
 
 sub install_packages {
     my $patch_info = shift;
@@ -61,7 +62,7 @@ sub run {
     script_run('sed -i -r "s/^DISPLAYMANAGER_AUTOLOGIN/#DISPLAYMANAGER_AUTOLOGIN/" /etc/sysconfig/displaymanager');
     script_run('sed -i -r "s/^DEFAULT_WM=\"icewm\"/DEFAULT_VM=\"\"/" /etc/sysconfig/windowmanager');
     # now we have gnome installed - restore DESKTOP variable
-    set_var('DESKTOP', 'gnome', reload_needles => 1);
+    set_var('DESKTOP', 'gnome', reload_needles => 1) unless is_pvm;
 
     # https://progress.opensuse.org/issues/184528
     if (is_s390x && is_sle('<15')) {
@@ -76,6 +77,7 @@ sub run {
     install_packages($patch_status) if $patch_status;
 
     power_action('reboot', textmode => 1);
+    reconnect_mgmt_console if is_pvm;
     $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
 }
 

@@ -23,6 +23,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use mmapi 'wait_for_children';
 use lockapi;
 use utils;
 use console::ovs_utils;
@@ -219,6 +220,7 @@ sub run {
     assert_script_run("ping -I p0 -c 5 $client_vpn");
 
     barrier_wait 'end';
+    wait_for_children;
 
 }
 

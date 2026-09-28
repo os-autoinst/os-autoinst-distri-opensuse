@@ -42,7 +42,10 @@ sub run {
         }
     }
 
-    add_suseconnect_product(get_addon_fullname('phub')) if check_var('PATTERNS', 'all') && is_sle('15-SP6+') && is_sle('<16');
+    if (check_var('PATTERNS', 'all') && is_sle('15-SP6+') && is_sle('<16')) {
+        add_suseconnect_product(get_addon_fullname('phub'));
+        zypper_call('up');
+    }
 
     assert_script_run("rpm -ql --changelog --whatprovides kernel > /tmp/kernel_changelog.log");
     zypper_call("lr -u", log => 'repos_list.txt');

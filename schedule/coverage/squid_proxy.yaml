@@ -22,10 +22,9 @@ schedule:
   - fips/squid/squid_reverse_proxy
   - coverage/coverage_report
 test_data:
-  # these packages are needed by the tests, we need to install them early to instrument them
-  extra_packages:
-    - wget    # to download the test data
-    - squid
-  # the following section is an array of binaries that we want to instrument
+  # packages needed to make tests work, but NOT instrumented
+  helper_packages:
+    - wget    # to download test data
+  # package -> binary (or list of binaries) to instrument
   coverage_targets:
-    - /usr/sbin/squid
+    squid: /usr/sbin/squid

@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use Test::Mock::Time;
 use Test::More;
 use Test::Exception;
 use Test::Warnings;
@@ -25,6 +26,8 @@ subtest '[saphostctrl_list_instances] Command composition' => sub {
     my $saphostagent = Test::MockModule->new('sles4sap::sap_host_agent', no_auto => 1);
     my $mock_data = ' Inst Info : HDB - 00 - qesdhdb01l000 - 753, patch 1236, changelist 2222163';
     my @cmd_args;
+    $saphostagent->redefine(script_run => sub { return 0; });
+    $saphostagent->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $saphostagent->redefine(script_output => sub { @cmd_args = @_; return $mock_data; });
     $saphostagent->redefine(get_instance_type => sub { return 'ERS'; });
 
@@ -34,12 +37,17 @@ subtest '[saphostctrl_list_instances] Command composition' => sub {
     ok((grep /-function/, @cmd_args), 'Add "-function" argument');
     ok((grep /ListInstances/, @cmd_args), 'Execute "ListInstances" function');
     ok((grep /| grep 'Inst Info'/, @cmd_args), 'Filter out instance info');
+
+    $saphostagent->redefine(script_run => sub { return 1; });
+    dies_ok { saphostctrl_list_instances() } 'Die if no instances found after retry';
 };
 
 subtest '[saphostctrl_list_instances] Command composition - switch user' => sub {
     my $saphostagent = Test::MockModule->new('sles4sap::sap_host_agent', no_auto => 1);
     my $mock_data = ' Inst Info : HDB - 00 - qesdhdb01l000 - 753, patch 1236, changelist 2222163';
     my @cmd_args;
+    $saphostagent->redefine(script_run => sub { return 0; });
+    $saphostagent->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $saphostagent->redefine(script_output => sub { @cmd_args = @_; return $mock_data; });
     $saphostagent->redefine(get_instance_type => sub { return 'ERS'; });
 

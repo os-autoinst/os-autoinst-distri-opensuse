@@ -99,4 +99,8 @@ sub run {
     run_tests;
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;

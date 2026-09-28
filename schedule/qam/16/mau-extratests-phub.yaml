@@ -12,6 +12,7 @@ schedule:
   - console/vmstat
   - console/systemd_rpm_macros
   - console/apache2_php_fpm
+  - console/stalld
   - console/coredump_collect
 conditional_schedule:
   sle15_x86_64:

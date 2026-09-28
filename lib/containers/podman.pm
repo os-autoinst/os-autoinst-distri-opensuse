@@ -13,7 +13,6 @@ use Mojo::Base 'containers::engine';
 use testapi;
 use containers::utils qw(registry_url);
 use containers::common qw(install_podman_when_needed);
-use utils qw(file_content_replace);
 has runtime => "podman";
 
 sub init {

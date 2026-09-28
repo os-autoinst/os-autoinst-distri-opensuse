@@ -1,0 +1,31 @@
+From 059cc11d45b702b5e56242c8f2debfd43e8368ad Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Mon, 21 Sep 2026 09:08:39 +0200
+Subject: [PATCH] test(e2e): fix TestPullFailure's daemon-specific error
+ assertion
+
+The exact pull-failure wording is daemon-backend dependent (classic
+graphdriver: "pull access denied for ..."; containerd image store:
+"...: not found"), and OutputMatches only checks stdout while the
+daemon's progress line is written to stderr. Assert the image name
+appears on stderr instead, which holds regardless of backend or
+wording.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ pkg/e2e/pull_test.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pkg/e2e/pull_test.go b/pkg/e2e/pull_test.go
+index 906fff4f67..4af831204a 100644
+--- a/pkg/e2e/pull_test.go
++++ b/pkg/e2e/pull_test.go
+@@ -61,7 +61,7 @@ func TestPullFailure(t *testing.T) {
+ 		Step("pull reports the denied image and fails",
+ 			ComposeCmd("pull").MayFail(),
+ 			ExitCode(1),
+-			OutputContains("pull access denied for does_not_exists"))
++			StderrContains("does_not_exists"))
+ }
+ 
+ func TestPullIgnoreFailures(t *testing.T) {

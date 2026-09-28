@@ -1,0 +1,38 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: libgcrypt extended FIPS and sign/verify validation
+# desc: Verifies libgcrypt FIPS mode detection and runtime crypto operations
+# steps:
+# - 1. Detect FIPS mode (kernel or crypto-policy).
+# - 2. Compile and run libgcrypt-fips-check.c, verify TAP output.
+# - 3. Compile and run libgcrypt-sign-verify.c for RSA, ECDSA, and ML-DSA.
+# - 4. ML-DSA is optional in FIPS mode.
+# author: <mmilian@suse.de>
+# maintainer: QE Security <none@suse.de>
+# expected: no errors raised
+# platform: SLE15 SP6 x86_64, SLE16+ (all arches)
+# tags: security libgcrypt fips sign-verify
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_libgcrypt_extended.py)
+
+handle_args "$0" "$@"
+
+echo "--- Test directory: $PWD ---"
+ls -l
+echo "----------------------------"
+
+set +e
+pytest -v test_libgcrypt_extended.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ]; then
+    exit 0
+fi
+exit $rc

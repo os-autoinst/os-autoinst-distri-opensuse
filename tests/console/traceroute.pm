@@ -31,4 +31,6 @@ sub run {
     assert_script_run("test -s $log", fail_message => "Log file is empty");
 }
 
+sub test_flags { return {no_rollback => 1} }
+
 1;

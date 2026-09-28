@@ -11,7 +11,6 @@ use testapi;
 use lockapi;
 use mm_network qw(configure_hostname setup_static_mm_network);
 use serial_terminal qw(select_serial_terminal);
-use utils qw(systemctl);
 
 sub run {
     my $hostname = get_required_var('HOSTNAME');

@@ -50,6 +50,7 @@ use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;
+use version_utils qw(package_version_cmp);
 use Data::Dumper;
 
 sub run {
@@ -58,7 +59,10 @@ sub run {
     my $lun = get_lun;
 
     if (is_node(1)) {
+        my $crmsh_flag = (package_version_cmp(get_crmsh_version(), '5.1.0') >= 0);
+        assert_script_run("crm resource stop base-clone") if $crmsh_flag;
         assert_script_run("crm sbd device add $lun");
+        assert_script_run("crm resource start base-clone") if $crmsh_flag;
 
         # Check the sbd device is added into the configuration
         validate_script_output('crm sbd configure show disk_metadata', qr/$lun/);

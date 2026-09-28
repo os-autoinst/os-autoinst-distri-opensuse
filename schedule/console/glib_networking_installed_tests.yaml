@@ -1,0 +1,9 @@
+name: glib_networking_installed_tests
+description: >
+  Run upstream installed tests for glib-networking via
+  gnome-desktop-testing-runner.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - console/oqa_agnostic/glib_networking

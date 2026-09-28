@@ -22,6 +22,57 @@ our @all_tests_results;
 
 our $slurm_pkg = get_slurm_version(get_var('SLURM_VERSION', ''));
 
+sub validate_result ($result) {
+    if ($result == 0) {
+        return 'PASS';
+    } elsif ($result == 1) {
+        return 'FAIL';
+    } else {
+        return undef;
+    }
+}
+
+sub generate_results ($name, $description, $result) {
+    my %results = (
+        test => $name,
+        description => $description,
+        result => validate_result($result)
+    );
+    return %results;
+}
+
+sub parse_test_results ($testsuite, $xmlfile, @test) {
+    my $fail_check = 0;
+    for my $i (@test) {
+        if ($i->{result} eq 'FAIL') {
+            $fail_check++;
+        }
+    }
+
+    # Ensure we start with a clean file on SUT
+    script_run("rm -f $xmlfile");
+
+    if ($fail_check > 0) {
+        script_run(qq{echo "<testsuite name='$testsuite' errors='1'>" >> $xmlfile});
+    } else {
+        script_run(qq{echo "<testsuite name='$testsuite'>" >> $xmlfile});
+    }
+
+    # Parse all results and write the junit test cases directly to the SUT
+    for my $i (@test) {
+        if ($i->{result} eq 'FAIL') {
+            script_run("echo \"<testcase name='$i->{test}' errors='1'>\" >> $xmlfile");
+        } else {
+            script_run("echo \"<testcase name='$i->{test}'>\" >> $xmlfile");
+        }
+        script_run("echo \"<system-out>\" >> $xmlfile");
+        script_run("echo \"$i->{description}\" >> $xmlfile");
+        script_run("echo \"</system-out>\" >> $xmlfile");
+        script_run("echo \"</testcase>\" >> $xmlfile");
+    }
+    script_run(qq{echo "</testsuite>" >> $xmlfile});
+}
+
 sub run_tests ($slurm_conf) {
     my $xmlfile = 'testresults.xml';
     assert_script_run("touch $xmlfile");
@@ -40,7 +91,7 @@ sub run_tests ($slurm_conf) {
     }
 
     parse_test_results('HPC slurm tests', $xmlfile, @all_tests_results);
-    parse_extra_log('XUnit', "/tmp/$xmlfile");
+    parse_extra_log('XUnit', $xmlfile);
 }
 
 ########################################
@@ -314,19 +365,25 @@ sub t01_accounting() {
     script_run("srun --account=UNI_X_Math -w slave-node00,slave-node01 date");
     type_string("su - $users{user_2}", lf => 1);
     wait_serial("Password:"); type_string("$testapi::password", lf => 1);
+    wait_serial(qr/:~> \s*$/);
+    type_string("export PS1=\"\$ \"", lf => 1);
 
     $testapi::username = $users{user_2};
-    script_run("srun --account=UNI_X_IT -N 2 -x master-node01,slave-node02 hostname");
+    script_run("srun --account=UNI_X_IT -N 2 -x master-node00,slave-node02 hostname");
     $testapi::username = $users{user_3};
     type_string("su - $users{user_3}", lf => 1);
     wait_serial("Password:"); type_string("$testapi::password", lf => 1);
+    wait_serial(qr/:~> \s*$/);
+    type_string("export PS1=\"\$ \"", lf => 1);
 
-    script_run("srun --account=UNI_Y_Biology -N 3 -x master-node01,slave-node02 date");
+    script_run("srun --account=UNI_Y_Biology -N 2 -x master-node00,slave-node02 date");
     $testapi::username = $users{user_4};
     $prompt = $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ';
     type_string("su - $users{user_4}", lf => 1);
     wait_serial("Password:"); type_string("$testapi::password", lf => 1);
-    script_run("srun --account=UNI_Y_Physics -N 3 -x master-node01,slave-node02 hostname");
+    wait_serial(qr/:~> \s*$/);
+    type_string("export PS1=\"\$ \"", lf => 1);
+    script_run("srun --account=UNI_Y_Physics -N 2 -x master-node00,slave-node02 hostname");
 
     select_serial_terminal;
     # this is required; see: bugzilla#1150565?

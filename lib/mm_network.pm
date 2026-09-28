@@ -117,6 +117,7 @@ sub configure_default_gateway {
 
         assert_script_run "nmcli connection modify '$nm_id' ipv4.gateway 10.0.2.2";
     } else {
+        wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
         enter_cmd("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes");
     }
 }

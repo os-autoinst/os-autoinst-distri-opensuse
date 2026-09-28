@@ -14,6 +14,8 @@ use Kselftests::parsers::net::l2tp_sh;
 
 use Kselftests::parsers::livepatch;
 
+use Kselftests::parsers::cgroup;
+
 use Kselftests::parsers::bpf::test_bpftool_sh;
 use Kselftests::parsers::bpf::test_lru_map;
 use Kselftests::parsers::bpf::test_maps;

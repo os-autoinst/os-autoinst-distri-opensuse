@@ -13,7 +13,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use publiccloud::ssh_interactive qw(ssh_interactive_tunnel);
-use publiccloud::utils qw(allow_openqa_port_selinux);
 use version_utils;
 use Utils::Systemd qw(systemctl);
 
@@ -21,10 +20,12 @@ sub run {
     my ($self, $args) = @_;
     die "tunnel-console requires the TUNNELED=1 setting" unless (is_tunneled());
 
-    # activate tty2/tty3/tty4 in advance, as under some circumstances test fails
-    # on assert_screen() if too much time has passed without activity in the tty
+    # activate tty2/tty3/tty4/tty5 in advance, as under some circumstances test
+    # fails on assert_screen() if too much time has passed without activity in
+    # the tty. tty5 (log-console) is rarely used during a passing run, so it's
+    # especially prone to this - see poo#204498.
     select_serial_terminal();
-    systemctl("restart getty\@tty$_.service", timeout => 60) for (2 .. 4);
+    systemctl('restart ' . join(' ', map { "getty\@tty$_.service" } 2 .. 5), timeout => 120);
 
     # Initialize ssh tunnel for the serial device, if not yet happened
     ssh_interactive_tunnel($args->{my_instance}) if (get_var('_SSH_TUNNELS_INITIALIZED', 0) == 0);
@@ -32,9 +33,6 @@ sub run {
     # The serial terminal needs to be activated manually, as it requires the $self argument
     select_serial_terminal();
     enter_cmd('ssh -E /var/tmp/ssh_sut.log -t sut');
-
-    # Allow openQA on instances where SELinux is in enforcing state by default
-    allow_openqa_port_selinux() if (is_public_cloud && is_sle_micro(">=5.4"));
 
     ## Test most important consoles to ensure they are working
     select_console('root-console');

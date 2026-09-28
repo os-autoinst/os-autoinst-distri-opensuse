@@ -10,3 +10,4 @@ schedule:
   - boot/reconnect_mgmt_console
   - installation/first_boot
   - yam/validate/validate_installed_patterns
+  - yam/validate/validate_webconsole

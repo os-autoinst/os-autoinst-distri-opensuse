@@ -73,6 +73,7 @@ our @EXPORT = qw(
   collect_fs_status
   copy_all_log
   reload_loop_device
+  recover_after_crash
   umount_xfstests_dev
   config_debug_option
   test_run_without_heartbeat
@@ -455,6 +456,7 @@ sub copy_fsxops {
         my $fsxops = script_output("cat $TEST_FOLDER/junk.fsxops 2>/dev/null", 30, proceed_on_failure => 1);
         record_info('fsxops', $fsxops) if $fsxops;
     }
+    script_run("umount $TEST_FOLDER 2>/dev/null");
 }
 
 =head2 raw_dump
@@ -515,6 +517,26 @@ END_CMD
     record_info('fs_stat log', script_output("find $LOG_DIR/$category/ -name $num.fs_stat -type f -exec cat {} +", 120, type_command => 1, proceed_on_failure => 1));
 }
 
+=head2 record_env_pressure
+
+Record the host-contention fingerprint on a subtest failure: load average plus
+CPU steal (mpstat) and IO await / avg-cpu (iostat), to help diagnose failures
+caused by an oversubscribed/contended host. Reported via a single dedicated
+record_info.
+
+=cut
+
+sub record_env_pressure {
+    my ($category, $num) = @_;
+    my $load = script_output('cat /proc/loadavg', proceed_on_failure => 1, timeout => 30);
+    my $cpu = script_output('mpstat 1 1', proceed_on_failure => 1, timeout => 30);
+    my $io = script_output('iostat -x 1 1', proceed_on_failure => 1, timeout => 30);
+    my $info = "loadavg (1/5/15 min):\n$load\n\n"
+      . "CPU (watch %steal for host CPU oversubscription):\n$cpu\n\n"
+      . "IO (watch await/%util and avg-cpu for shared-storage/host contention):\n$io";
+    record_info("random-fail env: $category/$num", $info);
+}
+
 =head2 copy_all_log
 
 Add all above logs
@@ -523,9 +545,14 @@ Add all above logs
 
 sub copy_all_log {
     my ($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, $is_crash) = @_;
+    # Host-contention fingerprint for sporadic/random failure debugging. Taken
+    # first, before the log copying below adds IO/CPU of its own, and skipped on
+    # crash paths where the reading would be post-reboot or the SUT is stuck.
+    record_env_pressure($category, $num) unless $is_crash;
     copy_log($category, $num, 'out.bad');
     copy_log($category, $num, 'full');
     copy_log($category, $num, 'dmesg');
+    copy_log($category, $num, 'mountfail');
     copy_fsxops($category, $num);
     if (script_run("ls /opt/xfstests/results/$category/$num.*.md* 1> /dev/null 2>&1") == 0) {
         script_run("tar -cf $LOG_DIR/$num.dump.tar /opt/xfstests/results/$category/$num.*.md*");
@@ -555,6 +582,41 @@ sub reload_loop_device {
     format_partition("$INST_DIR/test_dev", $fstype);
 }
 
+=head2 recover_after_crash
+
+Recover the SUT after a subtest crashed or hung. Reboots the system (soft reboot
+on public cloud), saves kdump data when enabled and reloads loop devices so that
+the next subtest starts from a clean environment. Shared by the heartbeat path
+and the non-heartbeat path (test_run_without_heartbeat), and by the sporadic
+debug loop. $cloud_instance is only used on public cloud.
+
+=cut
+
+sub recover_after_crash {
+    my ($self, $test, $fstype, $enable_kdump, $cloud_instance) = @_;
+    my ($category, $num) = split(/\//, $test);
+    if (is_public_cloud) {
+        $cloud_instance->softreboot();
+    }
+    else {
+        prepare_system_shutdown;
+        reset_consoles if check_var('DESKTOP', 'textmode');
+        check_var('VIRTIO_CONSOLE', '1') ? power_action('reboot') : send_key 'alt-sysrq-b';
+        reconnect_mgmt_console if is_pvm;
+        check_var('DESKTOP', 'textmode') ? $self->wait_boot_textmode : $self->wait_boot;
+        select_serial_terminal();
+    }
+    # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
+    if ($enable_kdump) {
+        unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
+            # If no kdump data found, write warning to log
+            script_run("echo 'Warning: $test crashed SUT but has no kdump data' >> $LOG_DIR/$category/$num");
+        }
+    }
+    # Reload loop device after a reboot
+    reload_loop_device($self, $fstype) if get_var('XFSTESTS_LOOP_DEVICE');
+}
+
 =head2 umount_xfstests_dev
 
 Umount TEST_DEV and SCRATCH_DEV
@@ -578,6 +640,7 @@ Enable softlockup panic collection and could manually enable other setting by XF
 
 sub config_debug_option {
     my $debug_info = shift;
+    script_run('echo 1 > /proc/sys/kernel/sysrq');    # The default 184 will skip some sysrq key
     script_run('echo 1 > /proc/sys/kernel/softlockup_all_cpu_backtrace');    # on detection capture more debug information
     script_run('echo 1 > /proc/sys/kernel/softlockup_panic');    # panic when softlockup
     if ($debug_info) {
@@ -618,29 +681,7 @@ sub test_run_without_heartbeat {
         $test_status = 'FAILED';
         $test_duration = time() - $test_start;
         copy_all_log($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, 1);
-
-        if (is_public_cloud) {
-            $cloud_instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
-        }
-        else {
-            prepare_system_shutdown;
-            reset_consoles if check_var('DESKTOP', 'textmode');
-            ($virtio_console == 1) ? power_action('reboot') : send_key 'alt-sysrq-b';
-            reconnect_mgmt_console if is_pvm;
-            check_var('DESKTOP', 'textmode') ? $self->wait_boot_textmode : $self->wait_boot;
-            select_serial_terminal();
-        }
-        # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
-        if ($enable_kdump) {
-            unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
-                # If no kdump data found, write warning to log
-                my $msg = "Warning: $test crashed SUT but has no kdump data";
-                script_run("echo '$msg' >> $LOG_DIR/$category/$num");
-            }
-        }
-
-        # Reload loop device after a reboot
-        reload_loop_device($self, $fstype) if $loop_device;
+        recover_after_crash($self, $test, $fstype, $enable_kdump, $cloud_instance);
     }
     else {
         $status_num = script_output("tail -n 1 $LOG_DIR/subtest_result_num", 120, type_command => 1, proceed_on_failure => 1);

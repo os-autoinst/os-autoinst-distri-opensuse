@@ -54,6 +54,19 @@ generate_xunit_report() {
 	local error
 	error=$(check_for_errors "$dir")
 
+	local any_tests=0
+	for file in $(find ./results/$dir -type f); do
+		if ! is_not_run "$file"; then
+			any_tests=1
+			break
+		fi
+	done
+
+	if [[ $any_tests -eq 0 ]]; then
+		echo "Skipping group $dir: all tests were skipped"
+		return
+	fi
+
 	echo "<testsuite errors=\"$error\" name=\"$dir\">" > "./$results"
 
 	for file in $(find ./results/$dir -type f); do

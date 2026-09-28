@@ -71,6 +71,10 @@ variable "cloud_init" {
   default = ""
 }
 
+variable "use_user_data" {
+  default = true
+}
+
 variable "storage-account" {
   # Note: Don't delete the default value!!!
   # Not all of our `terraform destroy` calls pass this variable and neither is it necessary.
@@ -92,8 +96,20 @@ variable "subnet_id" {
   default = ""
 }
 
+variable "ssh_key_algo" {
+  type        = string
+  default     = "rsa"
+  description = "SSH key algorithm"
+}
+
 variable "ssh_public_key" {
-  default = "/root/.ssh/id_rsa.pub"
+  type        = string
+  default     = ""
+  description = "Explicit path to the SSH public key. Overrides ssh_key_algo when non-empty."
+}
+
+locals {
+  ssh_public_key = var.ssh_public_key != "" ? var.ssh_public_key : "/root/.ssh/id_${var.ssh_key_algo}.pub"
 }
 
 resource "random_id" "service" {
@@ -158,10 +174,10 @@ resource "azurerm_image" "image" {
   count               = var.image_id != "" ? 1 : 0
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "https://${var.storage-account}.blob.core.windows.net/sle-images/${var.image_id}"
-    size_gb  = var.root-disk-size 
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "https://${var.storage-account}.blob.core.windows.net/sle-images/${var.image_id}"
+    size_gb      = var.root-disk-size
     storage_type = "Standard_LRS"
   }
 
@@ -193,7 +209,7 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
 
   admin_ssh_key {
     username   = "azureuser"
-    public_key = file(var.ssh_public_key)
+    public_key = file(local.ssh_public_key)
   }
 
   os_disk {
@@ -202,7 +218,7 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
     storage_account_type = "Standard_LRS"
     # SLE images are 30G by default. Uncomment this line in case we need to increase the disk size
     # note: value can not be decreased because 30 GB is minimum allowed by Azure
-    disk_size_gb         = var.root-disk-size
+    disk_size_gb = var.root-disk-size
   }
 
   source_image_id = var.image_uri != "" ? var.image_uri : (var.image_id != "" ? azurerm_image.image[0].id : null)
@@ -225,7 +241,8 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
     create = var.vm_create_timeout
   }
 
-  custom_data = var.cloud_init != "" ? filebase64(var.cloud_init) : null
+  custom_data = (!var.use_user_data && var.cloud_init != "") ? filebase64(var.cloud_init) : null
+  user_data   = (var.use_user_data && var.cloud_init != "") ? filebase64(var.cloud_init) : null
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "default" {

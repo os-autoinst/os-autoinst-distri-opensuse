@@ -16,6 +16,7 @@ use utils;
 use Kselftests::parser;
 use LTP::WhiteList;
 use version_utils qw(is_sle has_selinux is_tumbleweed is_transactional);
+use Kernel::utils qw(is_debugfs_mounted enable_debugfs);
 use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
@@ -23,13 +24,47 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 use package_utils qw(install_package install_available_packages);
 use transactional qw(trup_apply);
 use utils qw(write_sut_file systemctl);
+use Utils::Systemd qw(disable_and_stop_service);
 
 our @EXPORT = qw(
+  export_kselftest_env
+  get_whitelist
   install_kselftests
+  livepatch_conflicts_with_kgraft
   post_process_single
   post_process
   validate_kconfig
 );
+
+sub livepatch_conflicts_with_kgraft {
+    my ($collection) = @_;
+    return $collection eq 'livepatch' && get_var('KGRAFT');
+}
+
+sub export_kselftest_env {
+    my $kselftest_env = get_var('KSELFTEST_ENV');
+
+    if ($kselftest_env) {
+        $kselftest_env =~ s/,/ /g;
+        script_run("export $kselftest_env");
+    }
+}
+
+# Without an uncompressed vmlinux in the build tree, scripts/Makefile.modfinal
+# skips module BTF generation (needed by e.g. bpf's bpf_testmod.ko), which
+# breaks any test relying on it. Extract the distro-provided compressed copy.
+sub extract_vmlinux
+{
+    my ($build_dir, $version) = @_;
+
+    if (is_sle('<16.0')) {
+        return if script_run("test -f /boot/vmlinux-$version.gz") != 0;
+        assert_script_run("gzip -dc /boot/vmlinux-$version.gz > $build_dir/vmlinux");
+    } else {
+        return if script_run("test -f /usr/lib/modules/$version/vmlinux.xz") != 0;
+        assert_script_run("xz -dc /usr/lib/modules/$version/vmlinux.xz > $build_dir/vmlinux");
+    }
+}
 
 sub build
 {
@@ -56,6 +91,9 @@ sub build
         assert_script_run("mount -t overlay overlay -o lowerdir=$real_build_dir,upperdir=$overlay/upper,workdir=$overlay/work $real_build_dir");
     }
 
+    extract_vmlinux($build_dir, $version) if get_var('KSELFTEST_FROM_SRC', 0);
+
+    export_kselftest_env();
     my $jobs = get_var('KSELFTEST_BUILD_JOBS', '$(getconf _NPROCESSORS_ONLN)');
     my $build_env = get_var('KSELFTEST_BUILD_ENV', '');
     my $make_cmd = "make -j$jobs -C $source_dir/tools/testing/selftests install O=$build_dir SKIP_TARGETS= TARGETS=$targets FORCE_TARGETS=1 $build_env";
@@ -63,9 +101,14 @@ sub build
 
     assert_script_run("make -j$jobs -C $source_dir headers O=$build_dir $build_env");
 
-    # Mount the source dir overlay only after make headers. Mounting it earlier
-    # disturbs make's timestamp evaluation and causes it to try to regenerate
-    # headers from source files absent in the kernel-source package.
+    # Needed for resolve_btfids/BTF module builds. Only safe for
+    # KSELFTEST_FROM_SRC, where .config is in sync with the source tree
+    assert_script_run("make -j$jobs -C $source_dir modules_prepare O=$build_dir $build_env") if get_var('KSELFTEST_FROM_SRC', 0);
+
+    # Mount the source dir overlay only after make headers/modules_prepare.
+    # Mounting it earlier disturbs make's timestamp evaluation and causes it
+    # to try to regenerate headers from source files absent in the
+    # kernel-source package.
     my $real_source_dir = script_output("readlink -f $source_dir");
     if (script_run("test -w $real_source_dir") != 0) {
         (my $tag = $real_source_dir) =~ s|[/ ]|_|g;
@@ -82,18 +125,16 @@ sub install_from_git
 {
     my ($collection) = @_;
 
-    my $git_tree = get_var('KERNEL_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
-    my $git_tag = get_var('KERNEL_GIT_TAG', '');
+    my $git_tree = get_var('KSELFTEST_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
+    my $git_ref = get_var('KSELFTEST_GIT_REF', '');
 
     install_package('git', trup_apply => 1);
-    assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 240);
+    my $clone_cmd = "git clone --depth 1 --filter=blob:none --single-branch";
+    $clone_cmd .= " --branch $git_ref" if $git_ref ne '';
+    $clone_cmd .= " $git_tree linux";
+    assert_script_run($clone_cmd, 240);
 
     assert_script_run("cd ./linux");
-
-    if ($git_tag ne '') {
-        assert_script_run("git fetch --unshallow --tags", 7200);
-        assert_script_run("git checkout $git_tag");
-    }
 
     record_info("GIT Commit", script_output("git --no-pager log -1 --oneline"));
 
@@ -113,7 +154,7 @@ sub install_upstream_harness
     my $version = script_output('uname -r');
     $install_dir //= "/lib/modules/$version/build/kselftest/kselftest_install";
 
-    my $git_tree = get_var('KERNEL_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
+    my $git_tree = get_var('KSELFTEST_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
     my $tmpdir = '/var/tmp/linux-harness';
 
     install_package('git', trup_apply => 1);
@@ -152,9 +193,15 @@ sub install_dependencies
 {
     my ($collection) = @_;
 
+    enable_debugfs() unless is_debugfs_mounted();
+
     # selftests may manipulate namespaces and devices in ways that
     # trigger AVC denials on SELinux-enabled systems
     script_run('setenforce 0') if has_selinux;
+
+    # the default firewall might interfere with many tests,
+    # stop it to avoid false negative test results
+    disable_and_stop_service('firewalld');
 
     # cgroup tests do not require phub nor qa repo
     if (is_sle() && $collection ne 'cgroup') {
@@ -163,25 +210,33 @@ sub install_dependencies
         trup_apply() if is_transactional;
     }
 
+    if ($collection eq 'mm') {
+        install_package('libcap-devel liburing-devel libnuma-devel', trup_continue => 1);
+    }
+
+    if ($collection eq 'bpf') {
+        # install build deps
+        install_package('clang llvm-devel lld python3-docutils rsync', trup_continue => 1);
+        # install test deps
+        install_package('iptables');
+    }
+
     if ($collection eq 'namespaces') {
         # install build deps
         install_package('libcap-devel', trup_continue => 1);
     }
 
     if ($collection =~ m{^net(/|$)}) {
-        my $netutils_repo, my $bench_repo;
+        my $version;
         if (is_tumbleweed()) {
-            $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/openSUSE_Factory/network:utilities.repo';
-            $bench_repo = 'https://download.opensuse.org/repositories/benchmark/openSUSE_Factory/benchmark.repo';
-        } elsif (is_sle('<16')) {
-            $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/15.6/network:utilities.repo';
-            $bench_repo = 'https://download.opensuse.org/repositories/benchmark/15.6/benchmark.repo';
-        } elsif (is_sle('=16.0')) {
-            $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/16.0/network:utilities.repo';
-            $bench_repo = 'https://download.opensuse.org/repositories/benchmark/16.0/benchmark.repo';
+            $version = 'openSUSE_Factory';
+        } elsif (is_sle('>=16.0')) {
+            $version = '16.0';
         }
-        zypper_ar($netutils_repo) if $netutils_repo;
-        zypper_ar($bench_repo) if $bench_repo;
+        if ($version) {
+            # ipv6toolkit netsniff-ng ndisc6 dropwatch
+            zypper_ar("https://download.opensuse.org/repositories/network:/utilities/$version/network:utilities.repo", priority => 100);
+        }
 
         # install build deps
         install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_apply => 1);
@@ -200,6 +255,12 @@ EOF
             write_sut_file('/etc/NetworkManager/conf.d/99-disable-netdevsim.conf', $netdevsim_mask);
             systemctl('reload NetworkManager');
         }
+
+        # The sit module auto-claims 2002::/16 (6to4) addresses, which are used by
+        # net:tun tests as outer IPv6 tunnel addresses. This creates competing local
+        # routes that prevent GENEVE-decapsulated packets from reaching the test socket
+        # (observed as failures in *_gtgso send_gso_packet variants).
+        script_run('rmmod sit');
     }
 }
 
@@ -289,7 +350,16 @@ sub post_process_single
     }
     my $hardfails = 0;
     my $softfails = 0;
+    my $timed_out = 0;
+    my $subtest_plan;
+    my $subtest_results = 0;
     for my $test_ln (@log) {
+        if ($test_ln =~ /^(not )?ok \d+ selftests: \S+: \S+/) {
+            $timed_out = 1 if $test_ln =~ /#\s*TIMEOUT\b/;
+            next;
+        }
+        $subtest_plan //= $1 if $test_ln =~ /^#\s?1\.\.(\d+)\s*$/;
+        $subtest_results++ if $test_ln =~ /^#\s?(not\s)?ok\s\d+\s/;
         $test_ln = $parser->parse_line($test_ln);
         if (!$test_ln) {
             next;
@@ -309,6 +379,15 @@ sub post_process_single
             }
         }
         push(@ktap, $test_ln);
+    }
+
+    # A timeout or missing subtest results is a failure that no known issue
+    # explains. Count it as a hard failure, so that the TODO directive does
+    # not hide it at the top level.
+    if ($timed_out || (defined($subtest_plan) && $subtest_results < $subtest_plan)) {
+        my $reason = $timed_out ? 'timed out' : "reported $subtest_results of $subtest_plan subtest results";
+        record_info("Incomplete", "$args{test} $reason; not treated as a known issue");
+        $hardfails++;
     }
 
     if ($softfails > 0 && $hardfails == 0) {
@@ -396,7 +475,8 @@ sub post_process
         $softfails += $s;
         $hardfails += $h;
         $hardfails++ if $top_hardfail && !($s > 0 && $h == 0);
-        next unless $s == 0;
+        # post_process_single() already added a TODO top-level result
+        next if $s > 0 && $h == 0;
         push(@full_ktap, $summary_ln);
     }
 
@@ -420,7 +500,7 @@ sub validate_kconfig
         record_info('KConfig', "Unable to find /boot/config-$kver file");
         return;
     }
-    assert_script_run('wget https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/scripts/config && chmod +x config');
+    assert_script_run("curl -o config " . data_url("kernel/config"));
     my @mismatches;
     for my $expected (@expected) {
         my ($sym, $expected_st);
@@ -433,7 +513,7 @@ sub validate_kconfig
         } else {
             next;
         }
-        my $actual_st = script_output("./config --state --file /boot/config-$kver $sym");
+        my $actual_st = script_output("sh config --state --file /boot/config-$kver $sym");
         if ($actual_st ne $expected_st) {
             my $mismatch = "$sym => $actual_st (actual) -> $expected_st (expected)";
             push(@mismatches, $mismatch);

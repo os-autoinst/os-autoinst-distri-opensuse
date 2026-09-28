@@ -89,4 +89,8 @@ sub run {
     query_space_several_snapshot;
 }
 
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;

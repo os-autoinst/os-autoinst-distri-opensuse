@@ -1,0 +1,42 @@
+version: 1.6.0
+variant: fcos
+passwd:
+  # Create secondary group for 'qetest' user
+  groups:
+    - name: qetestgroup
+  # Create 'root' and 'qetest' users
+  users:
+    - name: qetest
+      password_hash: "%TEST_PASSWORD%"
+      groups:
+        - qetestgroup
+    - name: root
+      password_hash: "%TEST_PASSWORD%"
+      ssh_authorized_keys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCfUK3osL0inEfTKGEXPus7nlOcnNBrVdyMWXe1UVvHV/8LXbdHKTSS9BxJC2wnjBETa/d+z2Ghfcyl6R4aN9AXyiU5DmHXg3V1sMfouibH7ilpJ4EXgQTyWc2ConVtg1/4f331RRAG5Jotd0N0YVCzFJtlnn/EQ1SUKrT+d3pZUPuaMQYUsF6mL3sFXM0NkOZfi1amrPuSZaEUP04wWT5p2ummrDTOfXP3+tEi874v5GpBdxRhIxutQcOjFgvEearf0aF8iOV8xCg4zbbLSi+f2gyg7mEF8VPYlU9kroB20zP46OP6GCwBTUq2mds/dZzjsY3VVWJmjbq3AHQmtX2tiC/9QJ1n0ihhGMxdKhKEW8kEf1nufACCfbtkr8Ai9YnyWhOVFdTcHHzFZob5nGT3eIk6iVJJE1QMnCoB95SU0KTNa+PV0JMp/Ycxdbrs9nq1FF312L1Q5lctN3knaU/Hh0SyQaPa5iPxEeBMMI8VooW/C180Zwpiwhov8kXcMT0+vxbUSQHgW88LwB8bu7GpMKhPhlA9VX87YMpX4w8Jwe/xzDETsdg8CVdWwnvZZz+iWPwLulcT/vjM5oUxn6WtaKF9BKAfnCMCWqosnpKuqmMhoyFgrQH8UUsyBpS4Q7z3pbOZobBriCQ5FTNLnEbdsWJZr3qGmZVT/9mYOHoqzw== UnifiedCore
+storage:
+  # Workaround to be able to create a regular user at first boot with Butane
+  filesystems:
+    - device: /dev/disk/by-label/SYSTEM
+      format: btrfs
+      mount_options:
+        - subvol=/@/home
+      path: /home
+  files:
+    - path: /etc/ssh/sshd_config.d/root_access.conf
+      overwrite: true
+      mode: 0600
+      contents:
+        inline: PermitRootLogin yes
+    - path: /root/.ssh/config
+      overwrite: true
+      mode: 0600
+      contents:
+        inline: |
+          UserKnownHostsFile /dev/null
+          CheckHostIP no
+          StrictHostKeyChecking no
+systemd:
+  units:
+    - name: sshd.service
+      enabled: true

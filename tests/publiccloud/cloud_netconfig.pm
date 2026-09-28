@@ -14,6 +14,20 @@ use testapi;
 use publiccloud::utils qw(is_azure is_ec2 is_gce);
 use version_utils qw(is_sle);
 
+# Endpoints for the SUT's public IP per interface; prefer openSUSE's own
+# service over third-party ones, with fallbacks if it's ever unreachable.
+my @PUBLIC_IP_URLS = ('https://ip.opensuse.org/', 'https://checkip.amazonaws.com', 'https://ifconfig.me');
+
+sub _get_public_ip {
+    my ($instance, $iface) = @_;
+    for my $url (@PUBLIC_IP_URLS) {
+        my $ip = $instance->ssh_script_output(cmd => "curl -sLf --max-time 10 --interface $iface $url", proceed_on_failure => 1);
+        chomp($ip);
+        return $ip if $ip;
+    }
+    die "Could not determine public IP for interface $iface via any of: @PUBLIC_IP_URLS";
+}
+
 sub run {
     my ($self, $args) = @_;
     my $instance = $args->{my_instance};
@@ -50,8 +64,8 @@ sub run {
         die('No default route set for eth1') if ($instance->ssh_script_output('ip route show default dev eth1 | wc -l') == 0);
 
         # Make HTTPS connection from each interface and check they have different public IP address
-        my $eth0_public_ip = $instance->ssh_script_output('curl -sLf --interface eth0 -s https://wtfismyip.com/text');
-        my $eth1_public_ip = $instance->ssh_script_output('curl -sLf --interface eth1 -s https://wtfismyip.com/text');
+        my $eth0_public_ip = _get_public_ip($instance, 'eth0');
+        my $eth1_public_ip = _get_public_ip($instance, 'eth1');
         assert_not_equals($eth0_public_ip, $eth1_public_ip, "The connection from eth0 shouldn't have the same public IPv4 address as connection from eth1");
 
         # Make sure there are IP rules for each IP address

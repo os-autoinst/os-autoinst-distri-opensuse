@@ -22,8 +22,9 @@ use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638 do
 use Utils::Systemd 'get_started_systemd_services';
 use File::Basename 'basename';
 use Mojo::File 'path';
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal upload_file);
 use version_utils qw(is_tumbleweed is_transactional);
+use network_utils;
 
 our @EXPORT = qw(
   save_and_upload_log
@@ -56,8 +57,16 @@ sub save_and_upload_log {
     my ($cmd, $file, $args) = @_;
     script_run("$cmd | tee $file", timeout => $args->{timeout});
     my $lname = $args->{logname} ? $args->{logname} : '';
-    upload_logs($file, failok => 1, log_name => $lname) unless $args->{noupload};
-    save_screenshot if $args->{screenshot};
+    if (can_upload_logs()) {
+        upload_logs($file, failok => 1, log_name => $lname) unless $args->{noupload};
+        save_screenshot if $args->{screenshot};
+    }
+    else {
+        select_serial_terminal;
+        my $file_name = $file =~ s|^/||r =~ tr|/|_|r;
+        upload_file($file, $file_name);
+    }
+
 }
 
 =head2 tar_and_upload_log
@@ -144,7 +153,13 @@ echo -e "\nALL Processes" >> $health_log_file
 ps axwwo user,pid,ppid,%cpu,%mem,vsz,rss,stat,time,cmd >> $health_log_file
 EOF
     script_run($_) foreach (split /\n/, $cmd);
-    upload_logs "/tmp/basic_health_check.txt";
+    if (can_upload_logs()) {
+        upload_logs "/tmp/basic_health_check.txt";
+    }
+    else {
+        select_serial_terminal;
+        upload_file("/tmp/basic_health_check.txt", "basic_health_check.txt");
+    }
 
 }
 
@@ -173,6 +188,12 @@ sub cleanup_known_coredumps {
     my %known_coredumps = (
         # cmdline is a literal string, not a regex, matching part of the command line.
         # signals is optional; all signals match if not specified.
+        # architectures is optional; all architectures match if not specified.
+        'poo#200531' => {
+            cmdline => q(/usr/sbin/nscd),
+            signals => [qw(BUS)],
+            architectures => [qw(s390x)],
+        },
         'poo#198596' => {
             cmdline => q(openssl3-conf/base_only.cnf -p $'"hello"'),
             signals => [qw(ABRT)],
@@ -190,6 +211,7 @@ sub cleanup_known_coredumps {
         },
     );
 
+    my $arch = get_var('ARCH');
     for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 ~ /^(present|truncated)$/ { print $5 }'), proceed_on_failure => 1))) {
         my $coredump_info = script_output("time coredumpctl info --no-pager $pid", proceed_on_failure => 1);
         my ($cmdline) = $coredump_info =~ /^\s+Command Line: (.*)$/m;
@@ -200,6 +222,7 @@ sub cleanup_known_coredumps {
             my $entry = $known_coredumps{$known};
             next if index($cmdline, $entry->{cmdline}) < 0;
             next if $entry->{signals} && !grep { $_ eq $signal } @{$entry->{signals}};
+            next if $entry->{architectures} && !grep { $_ eq $arch } @{$entry->{architectures}};
             record_info('Known dump', $coredump_info);
             # Fetch path from a line like:
             #   Storage: /var/lib/systemd/coredump/core.binary.999.zst (present)
@@ -250,7 +273,7 @@ sub upload_coredumps {
             upload_logs("backtrace$pid.txt", log_name => basename($core) . "_backtrace.txt", failok => 1);
         }
     }
-    die("COREDUMPS found");
+    die("COREDUMPS found") unless get_var('COREDUMP_IGNORE_ERRORS');
 }
 
 =head2 export_logs
@@ -391,9 +414,15 @@ Upload C</tmp/solverTestCase.tar.bz2>.
 =cut
 
 sub upload_solvertestcase_logs {
+    if (script_run('pkill zypper') == 0) {
+        record_info('Zypper is locked', "zypper is still running in the background");
+        script_run('while pgrep zypper; do sleep 1; done', timeout => 120);
+    }
+
     my $ret = script_run("zypper -n patch --debug-solver --with-interactive -l");
-    # if zypper was not found, we just skip upload solverTestCase.tar.bz2
-    return if $ret != 0;
+    # if zypper had an error, we just skip upload solverTestCase.tar.bz2
+    return if $ret;
+
     script_run("tar -cvjf /tmp/solverTestCase.tar.bz2 /var/log/zypper.solverTestCase/*");
     upload_logs "/tmp/solverTestCase.tar.bz2 ";
 }

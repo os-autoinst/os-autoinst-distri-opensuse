@@ -20,6 +20,7 @@ use kernel;
 use klp;
 use power_action_utils 'power_action';
 use repo_tools qw(add_qa_head_repo);
+use Utils::Architectures 'is_zvm';
 use Utils::Backends;
 use LTP::utils;
 use transactional;
@@ -420,9 +421,31 @@ sub install_kotd {
     remove_kernel_packages;
     zypper_ar($repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
     install_package("-r KOTD $kernel_flavor", trup_continue => 1);
+    install_available_packages("$kernel_flavor-extra $kernel_flavor-optional", repo => 'KOTD');
     my $kver = script_output("rpm -q --qf '%{VERSION}-%{RELEASE}' $kernel_flavor");
     install_package("$src_flavor=$kver kernel-syms=$kver", trup_continue => 1);
     install_package("--recommends $devel_flavor", trup_continue => 1);
+}
+
+sub cleanup_kernel_repos {
+    # Detect leftover kernel update repositories by name (present when this
+    # image already went through a kernel update, e.g. a published KOTD
+    # image). If none exist, there is nothing to clean up.
+    my @stale = grep { /^(KOTD|kernel-update-\d+)$/ } map { $$_{alias} } @{zypper_repos()};
+    return unless @stale;
+
+    # Remove locks on all installed kernel packages, otherwise
+    # remove_kernel_packages() fails in the install branches.
+    my @kpkgs = grep { m/^kernel-(?!firmware)/ }
+      map { $_->{name} } @{zypper_search('-i kernel')};
+    zypper_call('rl ' . join(' ', @kpkgs)) if @kpkgs;
+
+    # Remove the stale repositories so a new KOTD_REPO takes effect.
+    zypper_call('rr ' . join(' ', @stale));
+
+    # Remove LTP to avoid conflicts with the following install_ltp
+    zypper_call('rm ltp ltp-stable', exitcode => [0, 104]);
+    script_run('rm -rf ' . get_ltproot(0) . ' ' . get_ltproot(1));
 }
 
 sub update_kgraft_under_load {
@@ -510,7 +533,7 @@ sub run {
 
     $self->{repos} = {};
 
-    if (((is_ipmi || is_pvm) && get_var('LTP_BAREMETAL')) || (is_transactional && (get_var('FLAVOR', '') !~ /Immutable/))) {
+    if (((is_ipmi || is_pvm || is_zvm) && get_var('LTP_BAREMETAL')) || (is_transactional && (get_var('FLAVOR', '') !~ /Immutable/))) {
         # System is already booted after installation, just switch terminal
         select_serial_terminal;
     } else {
@@ -519,6 +542,11 @@ sub run {
 
     # Install requirements for SLE 16 staging tests
     install_requirements if get_var('FLAVOR') =~ /Updates-Staging/;
+
+    # Clean up leftover kernel update repositories, locks and LTP from a
+    # previous kernel update (e.g. a republished KOTD image) so the
+    # installation below can proceed with fresh settings.
+    cleanup_kernel_repos;
 
     my $repo = get_var('KOTD_REPO');
     $repo = get_var('OS_TEST_REPOS') if (!defined($repo) && (is_sle_micro('>=6.0') || (is_sle('16+'))));

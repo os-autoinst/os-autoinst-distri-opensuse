@@ -10,6 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use Utils::Architectures;
 use version_utils;
 use version;
 use containers::bats;
@@ -26,9 +27,10 @@ sub run_tests {
 
     my @xfails = ();
     push @xfails, (
-        # Test fails on SLES 15 which uses netavark 1.12.x
-        "250-bridge-nftables.bats",
-    ) if (version->parse(numeric_version($version)) < version->parse("1.14.0"));
+        # For some reason it fails on s390x with:
+        # ping: connect: Network is unreachable
+        "250-bridge-nftables.bats::nftables - isolate networks",
+    ) if (is_s390x);
 
     return bats_tests($log_file, \%env, \@xfails, 1200);
 }
@@ -56,9 +58,6 @@ sub run {
     # Download netavark sources
     patch_sources "netavark", "v$version", "test";
 
-    my $firewalld_backend = script_output "awk -F= '\$1 == \"FirewallBackend\" { print \$2 }' < /etc/firewalld/firewalld.conf";
-    record_info("Firewalld backend", $firewalld_backend);
-
     # Compile helpers & patch tests
     run_command "make examples", timeout => 600;
     if (version->parse(numeric_version($version)) >= version->parse("1.16.0")) {
@@ -67,12 +66,8 @@ sub run {
         run_command "cp target/debug/netavark-connection-tester bin/";
     }
 
-    unless (get_var("RUN_TESTS")) {
-        if ($firewalld_backend ne "iptables") {
-            run_command "rm -f test/100-bridge-iptables.bats";
-            run_command "rm -f test/200-bridge-firewalld.bats";
-        }
-    }
+    # This test was removed on netavark v2.0.0 and the default firewall backend is nftables
+    run_command "rm -f test/100-bridge-iptables.bats" if (version->parse(numeric_version($version)) < version->parse("2.0.0"));
 
     return if check_var("BATS_IGNORE", "all");
     my $errors = run_tests;

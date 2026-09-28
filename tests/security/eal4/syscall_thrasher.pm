@@ -51,10 +51,6 @@ sub run {
     upload_logs("$log_file");
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 sub post_fail_hook {
     my ($self) = @_;
     upload_logs("$log_file");

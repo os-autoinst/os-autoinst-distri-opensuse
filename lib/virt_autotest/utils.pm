@@ -285,7 +285,12 @@ sub is_pv_guest {
 }
 
 #Check if guest is SLE with optional filter for:
-#Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+ (>=15 and 15+ are equivalent)
+#Version: 16 =16.1 <16.0 16.1+ <=12-sp3 >=15 15+ (>=15 and 15+ are equivalent)
+#Examples of guest name:
+#   sles-16-1-64-kvm-hvm-uefi-agama-online-iso,
+#   sles_15_sp7_64_kvm_hvm_uefi-qcow2nvram,
+#   sles16efi_full-sev-es, sles15sp7-efi-sev-es
+#   sles-16dot1-aarch64-kvm-uefi
 #usage: guest_is_sle($guest_name, '<=12-sp2')
 sub guest_is_sle {
     my $guest_name = lc shift;
@@ -294,10 +299,22 @@ sub guest_is_sle {
     return 0 unless $guest_name =~ /sle/;
     return 1 unless $query;
 
+    # Replace "dot" with hyphen (eg. sles-16dot1 -> sles-16-1)
+    $guest_name =~ s/(\d+)dot(\d+)/$1-$2/g;
+
     # Version check
-    $guest_name =~ /sles-*(\d{2})(?:-*sp(\d))?/;
-    my $version = defined($2) ? "$1-sp$2" : "$1-sp0";
-    return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
+    if ($guest_name =~ /sles[-_]*(\d{2})(?:[-_]*(?:sp)?(?!(?:64|x86|aarch|efi|kvm)\b)(\d+)|sp(\d+))?/) {
+        my $major = $1;
+        my $sp = defined($2) ? $2 : (defined($3) ? $3 : 0);
+        my $version = "${major}.${sp}";
+        $query =~ s/[-_]*sp(\d+)/.$1/gi;
+        if ($query =~ /^\d+(?:\.\d+)?$/) {
+            $query = "=" . $query;
+        }
+        return check_version($query, $version, qr/\d{2}(?:\.\d+)?/);
+    }
+
+    return 0;
 }
 
 
@@ -845,10 +862,15 @@ sub create_guest {
             record_info("Boot Firmware", "Guest $name configured for EFI sev_es boot");
         }
         if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi-with-qcow2-based-nvram') {
-            # Need to match with SNAPSHOT_NVRAM_TEMPLATE_SRC and SNAPSHOT_NVRAM_TEMPLATE_NEW settings
-            $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,"
-              . "loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-qcow2-vars.bin,"
-              . "nvram.templateFormat=qcow2,hd,bootmenu.enable=yes,menu=on";
+            if (is_sle('>=16.1')) {
+                $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.qcow2,loader.readonly=yes,"
+                  . "loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-vars.qcow2,";
+            } else {
+                # Need to match with SNAPSHOT_NVRAM_TEMPLATE_SRC and SNAPSHOT_NVRAM_TEMPLATE_NEW settings
+                $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,"
+                  . "loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-qcow2-vars.bin,";
+            }
+            $virtinstall .= "nvram.templateFormat=qcow2,hd,bootmenu.enable=yes,menu=on";
             record_info("Boot Firmware", "Guest $name configured with EFI bootloader and qcow2 based nvram for snapshot test");
         }
 
@@ -1928,13 +1950,17 @@ sub reselect_openqa_console {
 
 =head2 select_backend_console
 
-Select corresponding ipmi or qemu backend console 'root-ssh' or 'root-console'.
-If argument init is set, select ipmi backend 'sol' console. User can also set
-arguments console or wait to select cusotmized console in desired behavior.
+Select corresponding ipmi, qemu or pvm_hmc backend console, namely 'root-ssh' or
+'root-console'. If argument init is set, select 'sol' console for ipmi backend, 
+or powerhmc-ssh for pvm_hmc backend because test run is in initialization or the
+very beginning phase, for example, pxe boot, host installation or startup. User
+can also set desired console or choose whether to wait for the selected console.
+Argument reset_times specifies the number of times reset_consoles to be done.
 =cut
 
 sub select_backend_console {
     my (%args) = @_;
+    $args{reset_times} //= 1;
     $args{init} //= 1;
     $args{wait} //= 0;
 
@@ -1944,8 +1970,11 @@ sub select_backend_console {
     elsif (is_qemu) {
         $args{console} //= 'root-console';
     }
+    elsif (is_ppc64le) {
+        $args{console} //= ($args{init} ? 'powerhmc-ssh' : 'root-ssh') if (is_pvm_hmc);
+    }
 
-    reset_consoles;
+    reset_consoles for (0 .. $args{reset_times} - 1);
     if (is_ipmi) {
         select_console($args{console}, await_console => $args{wait});
         use_ssh_serial_console if (!$args{init});
@@ -1955,6 +1984,10 @@ sub select_backend_console {
         select_console($args{console}, await_console => $args{wait});
         ensure_serialdev_permissions;
         serial_terminal::prepare_serial_console();
+    }
+    elsif (is_ppc64le) {
+        select_console($args{console}, await_console => $args{wait});
+        select_console('root-ssh') if (!$args{init});
     }
 }
 
@@ -1994,9 +2027,13 @@ Check whether kvm moduldes are successfully loaded on running system.
 =cut
 
 sub check_kvm_modules {
-    unless (script_run('lsmod | grep "^kvm\b"') == 0 or script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0) {
+    my $kvm_available = is_aarch64
+      ? (script_run('test -c /dev/kvm') == 0)
+      : (script_run('lsmod | grep "^kvm\b"') == 0
+          or script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0);
+    unless ($kvm_available) {
         save_screenshot;
-        die "KVM modules are not loaded!";
+        die "KVM is not available!";
     }
 
     # for modular libvirt, virtqemud is expected in "loaded: active or inactive" status.

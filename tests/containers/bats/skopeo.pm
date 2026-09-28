@@ -39,7 +39,7 @@ sub test_integration {
     install_gotestsum;
     run_command "cd integration";
     run_timeout_command "SKOPEO_BINARY=/usr/bin/skopeo gotestsum --junitfile integration.xml --format standard-verbose -- &> integration.txt", no_assert => 1, timeout => 300;
-    upload_logs "integration.txt";
+    upload_logs "integration.txt", failok => 1;
     die "Testsuite failed" if script_run("test -s integration.xml");
     patch_junit "skopeo", $skopeo_version, "integration.xml";
     parse_extra_log(XUnit => "integration.xml");
@@ -49,7 +49,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(apache2-utils go1.26 openssl podman squashfs skopeo);
+    my @pkgs = qw(apache2-utils go1.27 openssl podman squashfs skopeo);
     push @pkgs, "fakeroot" unless (is_sle('>=16.0') || (is_sle(">=15-SP6") && is_s390x));
     # Needed for integration tests
     push @pkgs, qw(distribution-registry libgpgme-devel) unless is_sle;
@@ -57,7 +57,8 @@ sub run {
     $self->setup_pkgs(@pkgs);
 
     # Prevent https://github.com/containers/skopeo/issues/2718
-    run_command "sed -i '/sigstore-staging:/d' /etc/containers/registries.d/default.yaml";
+    # Note: This file is no longer present on podman v6.0 / skopeo v1.23
+    run_command "sed -i '/sigstore-staging:/d' /etc/containers/registries.d/default.yaml" if (script_run("test -f /etc/containers/registries.d/default.yaml") == 0);
 
     record_info("skopeo version", script_output("skopeo --version"));
     record_info("skopeo package version", script_output("rpm -q skopeo"));

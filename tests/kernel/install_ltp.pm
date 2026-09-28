@@ -78,8 +78,7 @@ sub install_runtime_dependencies {
       dosfstools
       e2fsprogs
       evmctl
-      exfat-utils
-      fuse-exfat
+      exfatprogs
       ibmtss
       keyutils
       lvm2
@@ -103,9 +102,6 @@ sub install_runtime_dependencies {
     # modules then fail on SLE-12 because the required driver is available but
     # modprobe refuses to load it.
     push @maybe_deps, 'kernel-default-extra' unless is_sle('<15');
-
-    # exfatprogs create a conflict with exfat-utils on Tumbleweed.
-    push @maybe_deps, 'exfatprogs' unless is_tumbleweed();
 
     install_available_packages(join(' ', @maybe_deps));
 }

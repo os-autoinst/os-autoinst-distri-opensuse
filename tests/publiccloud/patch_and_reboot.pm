@@ -29,7 +29,7 @@ sub run {
     my $rpm_list_before = "/var/tmp/rpm-qa-before-patch-system.txt";
     my $rpm_list_after = "/var/tmp/rpm-qa-after-patch-system.txt";
     # kernel-azure is discontinued in LTSS so we need to replace it with kernel-default
-    if (is_ondemand && is_azure && is_sle('<=15-SP5')) {
+    if (is_ondemand && is_azure && is_sle('<=15-SP6')) {
         record_info('kernel-azure Switch', 'Switching from kernel-azure to kernel-default for LTSS');
         $args->{my_instance}->ssh_script_retry(
             "sudo zypper -n in kernel-default -kernel-azure",
@@ -57,11 +57,10 @@ sub run {
 
     if (is_cloudinit_supported) {
         $args->{my_instance}->cleanup_cloudinit();
-        $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), scan_ssh_host_key => 1);
-        $args->{my_instance}->check_cloudinit();
+        $args->{my_instance}->softreboot(scan_ssh_host_key => 1);
         permit_root_login($args->{my_instance});
     } else {
-        $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+        $args->{my_instance}->softreboot();
     }
 
     # Record package list after fully patch system

@@ -5,7 +5,7 @@
 
 # Package: cloud-regionsrv-client
 # Summary: Register addons in the remote system
-#   Registration is in registercloudguest test module
+#   Registration is in registration_lifecycle test module
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
@@ -15,6 +15,7 @@ use registration;
 use testapi;
 use utils;
 use publiccloud::utils;
+use publiccloud::zypper qw(pc_pkg_call pc_wait_quit);
 use publiccloud::ssh_interactive "select_host_console";
 use File::Basename 'basename';
 
@@ -23,19 +24,24 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
-    wait_quit_zypper_pc($args->{my_instance});
+    pc_wait_quit($args->{my_instance});
+    # Unified instance registration for BYOS and OnDemand. Run registercloudguest unconditionally when PUBLIC_CLOUD_FORCE_REGISTRATION is set.
+    if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION')) {
+        registercloudguest($args->{my_instance});
+    } elsif (is_ondemand()) {
+        $args->{my_instance}->wait_for_guestregister();
+    }
 
-    registercloudguest($args->{my_instance}) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
 
     # https://progress.opensuse.org/issues/196370 workaround for a known issue on 15-SP5
     if (is_sle('=15-SP5')) {
-        $args->{my_instance}->zypper_call_remote("update -y", retry => 10, delay => 60, timeout => 1800);
+        pc_pkg_call($args->{my_instance}, "update -y", retry => 10, delay => 60, timeout => 1800);
         $args->{my_instance}->softreboot(timeout => 3600);
     }
 
-    wait_quit_zypper_pc($args->{my_instance});
-    register_addons_in_pc($args->{my_instance}, timeout => 240);
-    wait_quit_zypper_pc($args->{my_instance});
+    pc_wait_quit($args->{my_instance});
+    register_addons_in_pc($args->{my_instance});
+    pc_wait_quit($args->{my_instance});
     # Double confirm system is correctly registered, and quit earlier if anything wrong
     # see bsc#1253777, we may need have to rerun the failed job in this case
     record_info('Check registration status');
@@ -45,16 +51,8 @@ sub run {
     die "System is not correctly registered" if ($reg_status =~ /Not Registered/m);
     # Since SLE 15 SP6 CHOST images don't have curl and we need it for testing
     if (is_sle('>15-SP5') && is_container_host()) {
-        $args->{my_instance}->zypper_call_remote("in --force-resolution -y curl");
+        pc_pkg_call($args->{my_instance}, "in --force-resolution -y curl");
     }
-}
-
-sub cleanup {
-    my ($self) = @_;
-    if (is_azure()) {
-        record_info('azuremetadata', $self->{run_args}->{my_instance}->ssh_script_output(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
-    }
-    1;
 }
 
 sub test_flags {

@@ -25,6 +25,7 @@ our @EXPORT = qw(
   esxi_vm_network_binding
   esxi_vm_public_ip
   esxi_vm_mac_address
+  esxi_vm_disconnect_cdrom
   get_host_timestamp
   disable_vm_time_synchronization
   revert_vm_timesync_setting
@@ -119,6 +120,22 @@ sub esxi_vm_mac_address {
         $vm_mac = script_output(qq(ssh -o StrictHostKeyChecking=no root\@$hypervisor "$vim_cmd"));
     }
     return $vm_mac;
+}
+
+sub esxi_vm_disconnect_cdrom {
+    my $vm_id = shift;
+    my $vim_cmd;
+    my $device_key;
+
+    if (is_svirt) {
+        $vim_cmd = qq(vim-cmd vmsvc/device.getdevices $vm_id | awk '/VirtualCdrom/{f=1} f&&/key = /{gsub(/[^0-9]/,\"\");print;exit}' | head -c -1);
+        (undef, $device_key) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
+        if ($device_key) {
+            # Usage: vim-cmd vmsvc/device.connection <Vmid> <DeviceId = Key> <1 for enable / 0 for disable>
+            $vim_cmd = "vim-cmd vmsvc/device.connection $vm_id $device_key 0 && vim-cmd vmsvc/reload $vm_id";
+            return console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
+        }
+    }
 }
 
 sub get_host_timestamp {

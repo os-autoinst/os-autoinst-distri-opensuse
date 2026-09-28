@@ -28,6 +28,7 @@ sub type_qnetd_pwd {
 sub cluster_init {
     my ($init_method, $fencing_opt, $unicast_opt, $qdevice_opt) = @_;
 
+    wait_serial($testapi::distri->{serial_term_prompt}, no_regex => 1, quiet => 1);
     record_info 'cluster_init', "Initializing cluster with: -y $fencing_opt $unicast_opt $qdevice_opt";
     if ($init_method eq 'crm-cluster-init') {
         enter_cmd "crm cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo cluster-init-finished-\$?";
@@ -68,7 +69,7 @@ sub run {
 
     # Qdevice configuration
     if (get_var('QDEVICE')) {
-        zypper_call 'in corosync-qdevice';
+        install_package('corosync-qdevice', trup_reboot => 1);
         my $qnet_node_host = choose_node(3);
         $qdevice_opt = "--qnetd-hostname=" . get_ip($qnet_node_host);
         barrier_wait("QNETD_SERVER_READY_$cluster_name");
@@ -131,7 +132,13 @@ sub run {
                 last;
             }
             elsif (!$count) {
-                die "Unexpected node count in sdb list command output";
+                # Fail only if after removing repeated nodes, the number still does not match
+                my %aux = map { (split(/\s/, $_))[1] => 1 } (grep { /clear/ } split(/\n/, $sbd_output));
+                my $actual_node_count = keys %aux;
+                die 'Unexpected node count in sbd list command output' if (get_node_number != $actual_node_count);
+                # If actual number of nodes match, then we're here because some of the nodes are listed
+                # more than once
+                record_soft_failure 'bsc#1249216 - Cluster node listed more than one time in sbd device';
             }
             sleep 2;
             record_info('Retry');

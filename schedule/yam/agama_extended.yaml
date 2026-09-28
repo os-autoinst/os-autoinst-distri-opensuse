@@ -6,6 +6,7 @@ description: >
     - Install packages gvim,rpm-build via profile.
 schedule:
   - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
   - yam/agama/patch_agama_tests
   - yam/validate/validate_self_update
   - yam/agama/agama
@@ -14,3 +15,4 @@ schedule:
   - yam/validate/validate_hostname
   - yam/validate/validate_connectivity
   - yam/validate/validate_bootloader_timeout
+  - yam/validate/validate_ntp

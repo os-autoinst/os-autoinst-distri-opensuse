@@ -52,6 +52,12 @@ sub skip_testrun {
     return 0;
 }
 
+sub record_disk_usage {
+    my ($engine, $label) = @_;
+    my $out = script_output("df -h / 2>&1; echo ---; $engine system df 2>&1", proceed_on_failure => 1);
+    record_info("disk: $label", $out);
+}
+
 sub run_tox_cmd {
     my ($self, $env) = @_;
     my $bci_marker = get_var('BCI_IMAGE_MARKER');
@@ -136,7 +142,7 @@ sub run {
     assert_script_run('source bci/bin/activate');
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
-    assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard $bci_tests_branch");
+    assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard $bci_tests_branch", timeout => 300);
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export TOX_SKIP_ENV=" . get_var('BCI_SKIP_ENVS', ''));
     assert_script_run("export CONTAINER_RUNTIME=$engine");
@@ -151,9 +157,13 @@ sub run {
     assert_script_run("export TARGET=$bci_target");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
 
+    record_disk_usage($engine, 'before tests');
+
     # Run environment specific tests
     for my $env (split(/,/, $test_envs)) {
         $self->run_tox_cmd($env);
+        record_disk_usage($engine, "after $env");
+        script_run("$engine system prune -a -f", timeout => 300);
     }
 
     assert_script_run('deactivate');
@@ -161,6 +171,8 @@ sub run {
     # Mark the job as failed if any of the tests failed
     die("$error_count tests failed.") if ($error_count > 0);
 }
+
+sub post_run_hook { }
 
 sub test_flags {
     return {fatal => 0, no_rollback => 1};

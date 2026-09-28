@@ -26,6 +26,7 @@ use hacluster qw(choose_node
 use utils qw(zypper_call exec_and_insert_password);
 use version_utils qw(is_sle);
 use Utils::Logging qw(record_avc_selinux_alerts);
+use package_utils qw(install_package);
 
 sub handle_diskless_sbd_scenario_cluster_node {
     my $cluster_name = get_cluster_name;
@@ -95,10 +96,13 @@ sub run {
     prepare_console_for_fencing;
 
     # iptables is not installed in SLE 16 by default
-    zypper_call 'in iptables' if is_sle('>=16');
+    if (is_sle('>=16')) {
+        my @trup_args = ((check_var('QDEVICE_TEST_ROLE', 'qnetd_server') ? 'trup_continue' : 'trup_reboot') => 1);
+        install_package('iptables', @trup_args);
+    }
 
     if (check_var('QDEVICE_TEST_ROLE', 'qnetd_server')) {
-        zypper_call 'in corosync-qnetd';
+        install_package('corosync-qnetd', trup_reboot => 1);
         barrier_wait("QNETD_SERVER_READY_$cluster_name");
     }
     else {
@@ -109,6 +113,9 @@ sub run {
     if (is_node(1)) {
         my $qnet_node_host = choose_node(3);
         my $qnet_node_ip = get_ip($qnet_node_host);
+
+        # Wait until pacemaker and resources are fully started and online (especially after reboot)
+        wait_until_resources_started;
 
         # Add a promotable resource to check if the current node is hosting
         # master instance of the resource. If so, this cluster partition
@@ -168,10 +175,10 @@ sub run {
         ensure_resource_running('promotable-1', ":[[:blank:]]*$node_01\[[:blank:]]*([Mm]aster|[Pp]romoted)\$");
     }
 
-    barrier_wait("SPLIT_BRAIN_TEST_DONE_$cluster_name");
-
     # Show cluster status before ending the test
     save_state if (is_node(1) || !(get_var('USE_DISKLESS_SBD') || check_var('QDEVICE_TEST_ROLE', 'qnetd_server')));
+
+    barrier_wait("SPLIT_BRAIN_TEST_DONE_$cluster_name");
 
     # Restart stonith. This should fence node 2
     assert_script_run qq|crm configure property $fencing_property="true"| if is_node(1);

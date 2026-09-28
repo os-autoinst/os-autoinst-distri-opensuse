@@ -18,7 +18,7 @@ use lockapi;
 use y2_module_guitest;
 use mm_network;
 use utils qw(systemctl zypper_call exec_and_insert_password script_retry);
-use version_utils 'is_sle';
+use version_utils qw(is_sle package_version_cmp);
 use Utils::Architectures;
 use network_utils 'iface';
 
@@ -53,6 +53,10 @@ sub run {
 
     # Remove unsupported configuration options on older SLE versions
     assert_script_run('sed -i "/^cipher/d; /^data-ciphers/d" static.conf') if (is_sle('<15-sp4'));
+
+    # openvpn 2.7 only starts a static key (non TLS) config with this opt-in, poo#205689
+    my $openvpn_version = script_output('rpm -q --qf "%{version}" openvpn');
+    assert_script_run('echo allow-deprecated-insecure-static-crypto >> static.conf') if (package_version_cmp($openvpn_version, '2.7') >= 0);
 
     # Start the client when also server is ready and test the connection
     systemctl('start openvpn@static');

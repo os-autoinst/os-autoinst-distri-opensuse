@@ -10,13 +10,15 @@ local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 local answers_lib = import 'lib/answers.libsonnet';
 
-function(bootloader=true,
+function(access_ssh_enabled=false,
+         access_webconsole_enabled=false,
+         bootloader=true,
          bootloader_timeout=false,
          bootloader_extra_kernel_params='',
          dasd=false,
          extra_repositories=false,
          files=false,
-         iscsi=false,
+         iscsi_target_address='',
          localization='',
          mode='',
          multipath_activate=false,
@@ -35,16 +37,20 @@ function(bootloader=true,
          scripts_post_partitioning='',
          scripts_post='',
          software_only_required=false,
+          // Only for 16.0 needed
+         ssh_public_key=false,
          ssl_certificates=false,
          storage='',
          decrypt_password='',
          user=true) (
+         
         base_lib.bootloader(bootloader, bootloader_timeout, bootloader_extra_kernel_params) +
         {
-          [if dasd == true then 'dasd']: dasd_lib.dasd(),
+          [if dasd == true then 'dasd']: if storage == 'lvm_2_disks_dasd' then dasd_lib['dasd_2_disks'] else dasd_lib['dasd'],
           [if files == true then 'files']: base_lib['files'],
-          [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
+          [if iscsi_target_address != '' then 'iscsi']: iscsi_lib.iscsi(iscsi_target_address),
           [if localization == true then 'localization']: base_lib['localization'],
+          [if access_ssh_enabled || access_webconsole_enabled then 'access']: base_lib.access(access_ssh_enabled, access_webconsole_enabled),
           [if patterns != '' || packages != '' || extra_repositories ||
             patterns_to_add != '' || patterns_to_remove != '' ||
             software_only_required then 'software']: std.prune({
@@ -65,7 +71,7 @@ function(bootloader=true,
             [if registration_code != '' then 'registrationCode']: registration_code,
             [if registration_url != '' then 'registrationUrl']: registration_url,
           },
-          root: base_lib.root(root_password),
+          [if root_password || ssh_public_key then 'root']: base_lib.root(root_password, ssh_public_key),
           [if ssl_certificates == true then 'security']: security_lib.sslCertificates(),
           [if scripts_pre != '' || scripts_post != '' || scripts_post_partitioning != '' then 'scripts']: {
             [if scripts_post != '' then 'post']: [ scripts_post_lib[x] for x in std.split(scripts_post, ',') ],

@@ -1,0 +1,22 @@
+---
+repos:
+  - name: SLE-Product-SLES-%VERSION%
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Build%BUILD%/
+    enabled: 'Yes'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%-Debug
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%-Debug
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Debug-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%-Source
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%-Source
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Source-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: agama-0
+    alias: agama-0
+    uri: http://openqa.suse.de/assets/repo/SLES-16.1-Full-s390x-Build%BUILD%.install/install/
+    enabled: 'Yes'
+    filter: alias

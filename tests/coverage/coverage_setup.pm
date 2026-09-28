@@ -4,13 +4,25 @@
 # Summary: setup coverage tooling
 # Maintainer: Andrea Manzini <andrea.manzini@suse.com>
 
-# test data section in the YAML schedule must contain an hash
-# of packages to install -> binary to instrument. For example
+# test_data in the YAML schedule must contain:
+#   coverage_targets: hash of package_name -> binary (scalar) or [list of binaries]
+#   helper_packages:  (optional) packages needed to make tests work, but NOT instrumented
 #
-# test_data:
-#   coverage_targets:
-#     unzip: /usr/bin/unzip
-#     nano: /usr/bin/nano
+# Example:
+#   test_data:
+#     helper_packages:
+#       - wget
+#     coverage_targets:
+#       curl: /usr/bin/curl
+#       net-snmp:
+#         - /usr/bin/snmpget
+#         - /usr/bin/snmpset
+#
+# BINARY_COVERAGE_GITREF: if set, build funkoverage from source on the SUT instead
+# of installing the packaged coverage-tools RPM. Value must be a full git clone URL
+# (any fork/branch works, e.g. a URL with a #branch suffix), not just a branch name.
+# Upstream reference: https://github.com/ilmanzo/BinaryCoverage
+# Example: BINARY_COVERAGE_GITREF=https://github.com/ilmanzo/BinaryCoverage#main
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
@@ -20,6 +32,21 @@ use serial_terminal 'select_serial_terminal';
 use scheduler 'get_test_suite_data';
 use repo_tools 'add_qa_head_repo';
 
+# postgres's initdb bootstrap makes tens of thousands of instrumented
+# function calls; under full eBPF tracing that consistently costs ~90s of
+# CPU time even though postgresql.service itself starts up fine, which on
+# slower/shared CI hardware exceeds systemd's default TimeoutStartSec and
+# fails the unit before postgres ever gets a chance to finish.
+# See https://github.com/ilmanzo/BinaryCoverage/issues/152
+#
+# Returns true on success, false (without dying) on failure, so this
+# best-effort enhancement can't abort the rest of coverage setup.
+sub raise_postgres_start_timeout {
+    return 0 if script_run('mkdir -p /etc/systemd/system/postgresql.service.d') != 0;
+    write_sut_file('/etc/systemd/system/postgresql.service.d/coverage_timeout.conf', "[Service]\nTimeoutStartSec=150\n");
+    return script_run('systemctl daemon-reload') == 0;
+}
+
 sub run {
     select_serial_terminal;
     # enable debug repos
@@ -27,10 +54,12 @@ sub run {
 
     # TODO maybe not the best way, but it works
     my $test_data = get_test_suite_data();
+    my $gitref = get_var('BINARY_COVERAGE_GITREF');
 
     my %repositories;    # an hash of repositories to add
 
     if (is_sle '>=15-SP4') {
+        # TODO adapt the check for Leap and SLE, as the debug repos are not in the same place
         add_qa_head_repo;
         # enable debug repos
         assert_script_run q(zypper mr -e $(zypper lr | awk '/Debug/ {print $1}'));
@@ -53,30 +82,92 @@ sub run {
             debug => 'http://download.opensuse.org/debug/tumbleweed/repo/oss/');
     }
     while (my ($name, $url) = each(%repositories)) {
-        assert_script_run "zypper ar -e -f $url $name";
+        # Priority 1: some HDD images already have a same-purpose debug repo (e.g. an
+        # openQA asset-mirror one) baked in at a lower priority (higher number) that
+        # only carries a curated package subset; ours must win so debuginfo actually
+        # resolves against a repo that has it, not just one that was registered first.
+        assert_script_run "zypper ar -e -f -p 1 $url $name";
     }
 
-    # install coverage tools and any extra packages + debug info
-    my @packages;
-    for (@{$test_data->{extra_packages}}) {
-        push @packages, $_;
-        push @packages, $_ . '-debuginfo';
+    # install coverage tools + debuginfo, and any helper packages
+    my (@packages, @binaries);
+    while (my ($pkg, $targets) = each(%{$test_data->{coverage_targets}})) {
+        push @packages, $pkg, $pkg . '-debuginfo';
+        my @pkg_bins = ref($targets) eq 'ARRAY' ? @$targets : ($targets);
+        push @binaries, @pkg_bins;
     }
-    push @packages, 'coverage-tools';
-    zypper_call '--gpg-auto-import-keys in ' . join ' ', @packages;
+    # keep a copy before the destructive splice loop below empties @binaries
+    my @all_binaries = @binaries;
+    for (@{$test_data->{helper_packages} // []}) {
+        push @packages, $_;
+    }
+    push @packages, 'elfutils';
+    push @packages, 'coverage-tools' unless $gitref;
+    # Split into batches of 20 to avoid serial console buffer overflow
+    my @pkg_chunks;
+    my @_pkgs = @packages;
+    while (@_pkgs) { push @pkg_chunks, [splice(@_pkgs, 0, 20)] }
+    for my $chunk (@pkg_chunks) {
+        my $cmd = '--gpg-auto-import-keys in ' . join(' ', @{$chunk});
+        my $ret = zypper_call($cmd, exitcode => [0, 8, 106]);
+        if ($ret != 0) {
+            record_info('Retry', "zypper returned $ret, retrying after ref");
+            zypper_call('--gpg-auto-import-keys ref', exitcode => [0, 106]);
+            zypper_call($cmd);
+        }
+    }
 
     # sets up the environment for coverage
-    assert_script_run 'export LOG_DIR=/var/coverage/data';
-    assert_script_run 'export PIN_ROOT=/usr/lib64/coverage-tools/pin';
+    my $log_dir = '/var/coverage/data';
 
-    # add the environment setup to .bashrc for future sessions (root and plain user)
-    assert_script_run 'echo "LOG_DIR=/var/coverage/data" > /etc/bash.bashrc.local';
-    assert_script_run 'echo "PIN_ROOT=/usr/lib64/coverage-tools/pin" >> /etc/bash.bashrc.local';
+    assert_script_run "mkdir -m 0777 -p $log_dir";
 
-    assert_script_run "mkdir -m 0777 -p \$LOG_DIR";
+    if ($gitref) {
+        # build funkoverage from source instead of using the packaged coverage-tools.
+        # $gitref is a full git URL (any fork), optionally with a '#branch' suffix.
+        zypper_call 'in go git libcap-progs elfutils';
+        my ($repo_url, $branch) = split /#/, $gitref, 2;
+        assert_script_run 'git clone --depth 1 ' . ($branch ? "--branch $branch " : '')
+          . "'$repo_url' /opt/BinaryCoverage", timeout => 300;
+        assert_script_run 'cd /opt/BinaryCoverage && ./build.sh', timeout => 600;
+        # build.sh's output path isn't pinned by contract; locate then install it.
+        # funkoverage-shim must sit alongside funkoverage: install runs 'funkoverage
+        # install' which shims target binaries and looks up the shim next to itself.
+        assert_script_run 'install -m 0755 '
+          . '"$(find /opt/BinaryCoverage -maxdepth 2 -type f -name funkoverage | head -1)" '
+          . '/usr/local/bin/funkoverage';
+        assert_script_run 'install -m 0755 '
+          . '"$(find /opt/BinaryCoverage -maxdepth 2 -type f -name funkoverage-shim | head -1)" '
+          . '/usr/local/bin/funkoverage-shim';
+    }
 
-    # wrap the binaries that will be instrumented for 'coverage'
-    assert_script_run "funkoverage wrap " . join ' ', @{$test_data->{coverage_targets}};
+    # set capabilities to run eBPF programs without root privileges
+    assert_script_run 'funkoverage setup';
+
+    # Wrap the binaries that will be instrumented for coverage.
+    # Split into batches to keep each command within the serial console
+    # input buffer. Some binaries may legitimately fail to shim (symlinks,
+    # already-shimmed, non-ELF); record failures visibly but continue.
+    my @bin_chunks;
+    my $failures = 0;
+    while (@binaries) { push @bin_chunks, [splice(@binaries, 0, 15)] }
+    for my $chunk (@bin_chunks) {
+        my $cmd = 'funkoverage install ' . join(' ', @{$chunk}) . ' 2>&1 >> /tmp/fv_install.log';
+        if (script_run($cmd, timeout => 300) != 0) {
+            $failures++;
+            record_info('shim warning', "funkoverage install returned non-zero for batch: @{$chunk}", result => 'softfail');
+        }
+    }
+    record_info('shim summary', "$failures of " . scalar(@bin_chunks) . " batches had failures") if $failures;
+
+    if (grep { /\/postgres$/ } @all_binaries) {
+        if (raise_postgres_start_timeout()) {
+            record_info('postgres timeout', 'Raised postgresql.service TimeoutStartSec to 150s to cover coverage instrumentation overhead (issue #152)');
+        }
+        else {
+            record_info('postgres timeout', 'Failed to raise postgresql.service TimeoutStartSec', result => 'softfail');
+        }
+    }
 }
 
 sub test_flags {

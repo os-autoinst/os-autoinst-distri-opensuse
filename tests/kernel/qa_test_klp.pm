@@ -18,6 +18,7 @@ use version_utils 'is_sle';
 use transactional;
 use package_utils;
 use kernel;
+use Kernel::utils qw(is_debugfs_mounted enable_debugfs);
 
 sub run {
     if (get_var('AZURE')) {
@@ -33,6 +34,8 @@ sub run {
 
     add_suseconnect_product("sle-sdk") if (is_sle('<12-SP5'));
     install_package('autoconf automake gcc git make');
+
+    enable_debugfs() unless is_debugfs_mounted();
 
     if (script_run('[ -d /lib/modules/$(uname -r)/build ]') != 0) {
         my $devel_pack = get_kernel_devel_flavor;

@@ -71,9 +71,22 @@ sub qesap_az_get_resource_group {
     my (%args) = @_;
     my $job_id = get_var('QESAP_DEPLOYMENT_IMPORT', get_current_job_id());
     die "Could not determine job ID to find the resource group" unless defined $job_id;
-    my $all_rg = az_group_name_get();
+
+    # Get the hash result from the new API
+    my $result = az_group_name_get();
+
+    # Optional: check if there's an error and record it before proceeding
+    if (exists $result->{err} && $result->{err} ne '') {
+        record_info('QESAP AZ ERROR', $result->{err});
+    }
+
+    # Extract the array from the hash
+    my $all_rg = $result->{data};
+
+    # Filter the array
     my @selected_rg = grep(/$job_id/, @$all_rg);
     @selected_rg = grep(/$args{substring}/, @selected_rg) if ($args{substring});
+
     record_info('QESAP RG', $selected_rg[0] ? "result:$selected_rg[0]" : 'result:EMPTY');
     return $selected_rg[0];
 }

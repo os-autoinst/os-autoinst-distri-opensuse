@@ -94,7 +94,7 @@ sub partition_num_by_start_end {
     my ($dev, $start, $end) = @_;
     my $output = parted_print(dev => $dev);
     my $match;
-    if ($output =~ /(\d+)\s+($start)MB\s+($end)MB\s+(\d+\.?\d*)MB/i) {
+    if ($output =~ /(\d+)\s+(\Q$start\E(?:\.\d*)?)MB\s+(\Q$end\E(?:\.\d*)?)MB\s+(\d+\.?\d*)MB/i) {
         $match = $1;
     }
     return $match;
@@ -220,12 +220,13 @@ sub create_partition {
     if ($space_size == 0) {
         die 'No space left in device!';
     }
+    # Align partition start to 1MB if it is less than 1MB (e.g., 0.02MiB on a clean GPT table).
+    # This avoids GNU parted error "Use a smaller unit instead of a value < 1"
+    $part_start = $space{start} < 1 ? 1 : $space{start};
     if ($size =~ /max/ || $part_type =~ /extended/) {
-        $part_start = $space{start};
         $part_end = $space{end};
     }
     else {
-        $part_start = $space{start};
         $part_end = int($space{start}) + $size;
     }
     my $cmd = "parted -s -a min $dev mkpart $part_type $part_start" . "MB $part_end" . "MB";

@@ -22,6 +22,7 @@ use Utils::Systemd;
 use Utils::Backends qw(get_serial_console);
 use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
+use Utils::Architectures qw(is_aarch64);
 use ipmi_backend_utils qw(set_grub_terminal_and_timeout);
 
 sub run {
@@ -91,6 +92,17 @@ sub prepare_packages {
 
 sub prepare_bootloader {
     my $self = shift;
+
+    # On aarch64, remove serial terminal config to avoid serial issues during host upgrade
+    if (is_aarch64()) {
+        my $has_serial_terminal = q{grep -Eq '^GRUB_SERIAL_COMMAND=|^GRUB_TERMINAL.*serial' /etc/default/grub || grep -Eq '^terminal.*serial|^[[:space:]]*serial([[:space:]]|$)' /boot/grub2/grub.cfg};
+        if (script_run($has_serial_terminal) == 0) {
+            set_grub_terminal_and_timeout(terminals => 'console');
+            assert_script_run(q{sed -i -r 's/^GRUB_SERIAL_COMMAND=/#GRUB_SERIAL_COMMAND=/g' /etc/default/grub});
+            assert_script_run(q{sed -i -r '/^[[:space:]]*serial([[:space:]]|$)/d' /boot/grub2/grub.cfg});
+            set_var('_NEEDS_REBOOTING', 1);
+        }
+    }
 
     my $serialconsole = get_serial_console();
     if (script_run("grep -E \"\\s+linux\\s+/boot/.*console=$serialconsole,115200\" /boot/grub2/grub.cfg") != 0) {

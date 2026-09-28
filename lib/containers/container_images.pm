@@ -25,14 +25,18 @@ our @EXPORT = qw(test_opensuse_based_image ensure_container_rpm_updates build_an
 
 =head2 build_and_run_image
 
- build_and_run_image($runtime, [$buildah], $dockerfile, $base);
+ build_and_run_image($runtime, [$buildah], $dockerfile, $base, $builder_image);
 
 Create a container using a C<dockerfile> and check if the container can be accessed
 via http queries. The container must be accessible on http://localhost:8888 and
 return the string "The test shall pass".
- C<base> can be used to setup base repo in the dockerfile in case that the file
-does not have a defined one. If not defined, the Dockerfile must contain a valid
-FROM statement.
+ C<base> is the image under test and is used as C<FROM> in the final stage; the
+base only needs to provide C<printenv> - no package manager, interpreter or
+particular glibc is required. A multi-stage build pulls a BCI C<golang> builder
+image (C<registry.opensuse.org/opensuse/bci/golang:stable> on openSUSE,
+C<registry.suse.com/bci/golang:stable> otherwise) to compile a statically linked
+Go HTTP server, which is then copied into the final image together with
+C<index.html>.
 
 The main container runtimes do not need C<buildah> variable in general, unless
 you want to build the image with buildah but run it with $<runtime>
@@ -45,6 +49,9 @@ sub build_and_run_image {
     my $builder = $args{builder} ? $args{builder} : $runtime;
     my $dockerfile = $args{dockerfile} // 'Dockerfile';
     my $base = $args{base};
+    my $builder_image = $args{builder_image}
+      // (is_opensuse ? 'registry.opensuse.org/opensuse/bci/golang:stable'
+        : 'registry.suse.com/bci/golang:stable');
 
     die "undefined runtime" unless $runtime;
     die "undefined dockerfile" unless $dockerfile;
@@ -55,13 +62,9 @@ sub build_and_run_image {
     record_info('Run image', "Base:       $base\nDockerfile: $dockerfile\nRuntime:    $runtime->{runtime}");
     assert_script_run("mkdir -p $dir/BuildTest");
     assert_script_run("curl -f -v " . data_url("containers/$dockerfile") . " -o $dir/BuildTest/Dockerfile");
-    if ($dockerfile eq 'Dockerfile.python3') {
-        # 'Dockerfile.python3' has additional requirements that need to be downloaded
-        assert_script_run("curl -fv " . data_url('containers/www.py') . " -o $dir/BuildTest/www.py");
-        assert_script_run("chmod 755 $dir/BuildTest/www.py");
-    } else {
-        assert_script_run("curl -fv " . data_url('containers/index.html') . " -o $dir/BuildTest/index.html");
-    }
+    assert_script_run("curl -fv " . data_url('containers/www.go') . " -o $dir/BuildTest/www.go");
+    assert_script_run("curl -fv " . data_url('containers/index.html') . " -o $dir/BuildTest/index.html");
+    file_content_replace("$dir/BuildTest/Dockerfile", builderimage_var => $builder_image);
     file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
 
     $builder->build($dir . "/BuildTest", "myapp", timeout => 1200);
@@ -76,7 +79,12 @@ sub build_and_run_image {
 
     # Test that we can execute programs in the container and test container's variables
     assert_script_run("$runtime run --rm --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
-    assert_script_run("$runtime run -d --name myapp -p 8888:80 myapp");
+    my $security_opt = '';
+    if (is_sle_micro('<6.0')) {
+        record_soft_failure('bsc#1277097 - SELinux container labeling prevents HTTP processing on SLE Micro 5.x');
+        $security_opt = '--security-opt label=disable';
+    }
+    assert_script_run("$runtime run -d --name myapp $security_opt -p 8888:80 myapp");
     validate_script_output_retry("$runtime ps -a", sub { m/myapp/ }, retry => 3, delay => 5, timeout => 300);
     assert_script_run("$runtime logs myapp");
 

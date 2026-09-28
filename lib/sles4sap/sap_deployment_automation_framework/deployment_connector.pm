@@ -48,6 +48,7 @@ our @EXPORT = qw(
   destroy_orphaned_resources
   destroy_orphaned_peerings
   no_cleanup_tag
+  get_deployment_tags
 );
 
 our $DEPLOYMENT_ID;
@@ -315,7 +316,7 @@ sub destroy_resources {
       ref($args{resource_cleanup_list}) eq 'ARRAY';
 
     $args{timeout} //= '800';
-    my $retries = 3;    # retry to delete 3x
+    my $retries = 15;    # retry to delete 15x
     my $deployer_resource_group = get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
 
     unless ($args{resource_cleanup_list}) {
@@ -330,7 +331,7 @@ sub destroy_resources {
 
         last unless az_resource_delete(ids => join(' ', @resource_cleanup_list),
             resource_group => $deployer_resource_group, verbose => 'yes', timeout => $args{timeout});
-        sleep 5;    # Just give things few secs to avoid command spamming.
+        sleep 30;    # Just give things few secs to avoid command spamming.
         die "Failed to clean up resources:\n" . join("\n", @resource_cleanup_list) if ($attempt == $retries);
     }
     record_info('Destroy resources', 'All resources destroyed');
@@ -474,6 +475,29 @@ This function ensures default value naming consistency across all modules, inste
 
 sub no_cleanup_tag {
     return get_var('SDAF_NO_CLEANUP_TAG', 'sdaf_cleanup_ignore');
+}
+
+
+=head2 get_deployment_tags
+
+    get_deployment_tags();
+
+Returns Hash of tag name and values to be applied on deployment resources.
+
+=cut
+
+sub get_deployment_tags {
+    my %tags = (
+        deployed_by => get_var('SDAF_DEPLOYMENT_OWNER', 'OpenQA-SDAF-automation'),
+        openqa_instance => get_var('WORKER_HOSTNAME', 'N/A'),
+        deployment_id => get_current_job_id(),
+        openqa_build => get_var('BUILD', 'N/A'),
+        deployment_scenario => get_var('SDAF_DEPLOYMENT_SCENARIO', 'N/A'),
+        openqa_created_date => Time::Piece->new->datetime()
+    );
+
+    $tags{no_cleanup_tag()} = '1' if get_var('SDAF_RETAIN_DEPLOYMENT');
+    return \%tags;
 }
 
 1;

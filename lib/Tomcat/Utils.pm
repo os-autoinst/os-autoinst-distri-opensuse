@@ -16,6 +16,7 @@ use utils;
 use version_utils 'is_sle';
 use registration;
 use serial_terminal;
+use package_utils 'install_package';
 
 # allow a 60 second timeout for asserting needles
 use constant TIMEOUT => 90;
@@ -35,19 +36,34 @@ sub browse_with_keyboard {
 
 # Install tomcat and set initial configuration
 sub tomcat_setup() {
-    # log in to root console
-    select_console('root-console');
+    my ($self, $version) = @_;
+    $version //= '';    # default version is tomcat9
+    select_console('root-console');    # log in to root console
 
     record_info('Initial Setup');
     # we need to disable packagekit because it can block zypper sometimes later
     quit_packagekit if is_sle;
 
-    zypper_call('in tomcat tomcat-webapps tomcat-admin-webapps', timeout => 300);
-    assert_script_run('rpm -q tomcat');
+    my $tomcat = 'tomcat' . $version;
+    install_package("$tomcat ${tomcat}-webapps ${tomcat}-admin-webapps", trup_reboot => 1);
+    # tomcat10/11 are compiled to use libtcnative-2-0
+    install_package('libtcnative-2-0', trup_reboot => 1) if (check_var('TOMCAT_VER', '10') || check_var('TOMCAT_VER', '11'));
+    assert_script_run("rpm -q $tomcat");
+    record_info("libtcnative installations", script_output('rpm -q libtcnative-1-0 libtcnative-2-0', proceed_on_failure => 1));
 
     # start the tomcat daemon and check that it is running
     systemctl('start tomcat');
     systemctl('status tomcat');
+
+    # https://jira.suse.com/browse/PED-16024
+    if (is_sle('>=15-sp4')) {
+        record_info('Verify bsc#1232390 bsc#1273043');
+        die('Older version Apache Tomcat Native library is installed') if script_run('journalctl -u tomcat.service |grep -i "older version"') == 0;
+        validate_script_output 'journalctl -u tomcat --no-pager', sub { $_ !~ /An incompatible version.*Tomcat Native/ };
+        validate_script_output 'journalctl -u tomcat --no-pager', sub { $_ !~ /SEVERE.*AprLifecycleListener/ };
+        # Verify APR loaded successfully
+        assert_script_run 'journalctl -u tomcat --no-pager | grep -E "Loaded Apache Tomcat Native library"';
+    }
 
     # check that tomcat is listening on port 8080
     assert_script_run('lsof -i :8080 | grep tomcat');
@@ -56,8 +72,24 @@ sub tomcat_setup() {
     assert_script_run('curl -v -o /etc/tomcat/tomcat-users.xml ' .
           data_url('lib/tomcat/tomcat-users.xml'));
 
-    # restart tomcat in order to take into account new role
-    systemctl('restart tomcat');
+    # set https connection for sle15sp4+
+    # https://jira.suse.com/browse/PED-16024
+    if (is_sle('>=15-sp4')) {
+        script_run('cp /etc/tomcat/server.xml /etc/tomcat/server.xml.bak');
+        assert_script_run('curl -v -o /etc/tomcat/server.xml ' .
+              data_url('lib/tomcat/server.xml'));
+        assert_script_run('openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/tomcat/localhost.key -out /etc/tomcat/localhost.crt -subj "/C=CN/ST=State/L=City/O=QE/CN=localhost"');
+        assert_script_run('chown tomcat:tomcat /etc/tomcat/localhost.key /etc/tomcat/localhost.crt');
+        assert_script_run('chmod 600 /etc/tomcat/localhost.key');
+        assert_script_run('chmod 644 /etc/tomcat/localhost.crt');
+        systemctl('restart tomcat');
+        # check that tomcat is listening on port 8443
+        assert_script_run('lsof -i :8443 | grep tomcat');
+    }
+    else {
+        # restart tomcat in order to take into account new role
+        systemctl('restart tomcat');
+    }
 }
 
 
@@ -72,8 +104,10 @@ sub tomcat_manager_test() {
     record_info('curl examples of Servelt, JSP and Websocket');
     # curl Servlet examples and login with authentification
     assert_script_run('curl --connect-timeout 20 --user admin:admin --output servelets 127.0.0.1:8080/examples/servlets', 90);
+    assert_script_run('curl -k --connect-timeout 20 --user admin:admin --output servelets https://localhost:8443/examples/servlets', 90) if is_sle('>=15-sp4');
     # curl examples of JSP and Websockets
     assert_script_run('curl --connect-timeout 20 --output jsp localhost:8080/examples/jsp --output websocket 127.0.0.1:8080/examples/websocket', 90);
+    assert_script_run('curl -k --connect-timeout 20 --output jsp https://localhost:8443/examples/jsp --output websocket https://127.0.0.1:8443/examples/websocket', 90) if is_sle('>=15-sp4');
 }
 
 # Switch to desktop

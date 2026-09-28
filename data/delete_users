@@ -3,10 +3,9 @@ set -eu
 
 n_users="$1"
 
-killall -u user1 || true
-sleep 1
-ps auxf|grep user1
-
 for i in `seq 1 $n_users` ; do
-	userdel -r "user${i}"
+	user="user${i}"
+	# Loop until pkill no longer finds matching processes.
+	while pkill -u "$user"; do sleep 1; done
+	userdel -r "$user"
 done

@@ -8,18 +8,32 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
-use network_utils qw(get_default_dns is_running_in_isolated_network set_resolv);
 use serial_terminal qw(select_serial_terminal);
+use package_utils qw(install_package);
 use transactional qw(trup_call);
 use Utils::Git;
 
 sub run {
-    my ($repo, $branch) = get_required_var('TEST_FRAMEWORK_REPO') =~ /(\S*)@(\S*)/;
     my $timeout = 1200;
 
+    # Extract test framework to use and set default branch if none is provided
+    my ($repo, $branch) = get_required_var('TEST_FRAMEWORK_REPO') =~ /(\S*)@(\S*)/;
+    $repo //= get_required_var('TEST_FRAMEWORK_REPO');
+    $branch //= 'main';
+
+    # This is a *dirty* workaround to fix this issue we encountered: https://bugzilla.suse.com/show_bug.cgi?id=1239721
+    # TODO: update the MicroOS image or - even better - try to use SLMicro instead (but Golang seems to be missing...)
+    trup_call('--no-selfupdate run zypper -n --gpg-auto-import-keys refresh --force');
+
     # Add git/go package(s)
-    trup_call('pkg install git go kubernetes-client-provider', timeout => $timeout);
-    trup_call('apply');
+    install_package(
+        'git go kubernetes-client-provider',
+        skip_trup => 0,
+        timeout => $timeout,
+        trup_apply => 1,
+        trup_continue => 1,
+        trup_extra => ''
+    );
 
     # Configure ssh options
     my $ssh_dir = '/root/.ssh';
@@ -38,7 +52,8 @@ sub run {
         single_branch => 1
     );
 
-    # Wait for configuration files to be generated on 1st node
+    # Wait for nodes to be ready and configuration files to be generated on 1st node
+    barrier_wait('WAIT_SYSTEMD_RUNNING');
     barrier_wait('FILES_READY');
 
     # Variables framework configuration
@@ -61,7 +76,6 @@ sub run {
     # Maybe like this: TESTS_TO_RUN=validatecluster|-selinux true,deployrancher
     my $rancher_url = 'https://releases.rancher.com/server-charts/stable';
     my $rancher_args = 'bootstrapPassword=rancherpassword,replicas=1';
-    my $certmanager_version = get_required_var('CERTMANAGER_VERSION');
     my $rancher_version = get_required_var('RANCHER_VERSION');
     assert_script_run("cd $distro_dir");
     foreach my $test (split(/,/, get_required_var('TESTS_TO_RUN'))) {
@@ -70,7 +84,7 @@ sub run {
         my $opts;
 
         # Rancher Manager options
-        $opts = "-tags=$test -certManagerVersion $certmanager_version -chartsVersion $rancher_version -chartsRepoName rancher -chartsRepoUrl $rancher_url -chartsArgs $rancher_args" if ($test eq 'deployrancher');
+        $opts = "-tags=$test -chartsVersion $rancher_version -chartsRepoName rancher -chartsRepoUrl $rancher_url -chartsArgs $rancher_args" if ($test eq 'deployrancher');
 
         # Add SELinux test in cluster validation
         # NOTE: disable for now, as ECM test framework needs to be adapted

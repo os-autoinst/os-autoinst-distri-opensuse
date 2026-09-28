@@ -21,28 +21,24 @@ sub run {
 
     select_serial_terminal;
 
-    # get os version
-    my ($version, $sp, $host_distri) = get_os_release;
-    my $sp_version = "$version.$sp";
-
     if (is_sle) {
         # beta1 has dependency issue will enable with beta2
-        if (is_sle('=16') || $sp_version == '16') {
+        if (is_sle('>=16')) {
             zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_16/ sensor");
         }
-        if (is_sle('=15-SP7') || $sp_version == '15.7') {
+        if (is_sle('=15-SP7')) {
             zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_15_SP7/ sensor");
         }
-        elsif (is_sle('=15-SP6') || $sp_version == '15.6') {
+        elsif (is_sle('=15-SP6')) {
             zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_15_SP6/ sensor");
         }
-        elsif (is_sle('=15-SP5') || $sp_version == '15.5') {
+        elsif (is_sle('=15-SP5')) {
             zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_15_SP5/ sensor");
         }
-        elsif (is_sle('=15-SP4') || $sp_version == '15.4') {
+        elsif (is_sle('=15-SP4')) {
             zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_15_SP4/ sensor");
         }
-        elsif (is_sle('=12-SP5') || $sp_version == '12.5') {
+        elsif (is_sle('=12-SP5')) {
             zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_12_SP5/ sensor");
         }
 

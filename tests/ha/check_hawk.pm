@@ -14,6 +14,7 @@ use hacluster qw(get_cluster_name is_node prepare_console_for_fencing);
 use utils qw(systemctl);
 use version_utils qw(is_sle);
 use List::Util qw(sum);
+use Utils::Backends qw(is_qemu);
 
 sub check_hawk_cpu {
     my %args = @_;
@@ -25,6 +26,10 @@ sub check_hawk_cpu {
     # Do not wait on barriers if checking CPU usage while HAWK is idle
     barrier_wait("HAWK_GUI_CPU_TEST_START_$cluster_name") unless $args{idle_check};
 
+    if (is_qemu && !check_var('VIRTIO_CONSOLE', 0)) {
+        # Physically isolate script_output from GRUB via root-virtio-terminal: TEAM-11389
+        select_console('root-virtio-terminal', await_console => 0);
+    }
     while ($args{idle_check} || !barrier_try_wait("HAWK_GUI_CPU_TEST_FINISH_$cluster_name")) {
         # Wrapping script_output in eval { } as node can be fenced by hawk test from client.
         # In fenced node, script_output will croak and kill the test. This prevents it
@@ -43,7 +48,8 @@ sub check_hawk_cpu {
                 enter_cmd 'echo b > /proc/sysrq-trigger';
             }
             else {
-                send_key 'esc' unless check_screen('grub2');
+                select_console('root-console', await_console => 0);
+                if (!check_screen('grub2', 6)) { send_key $_ for ('esc', 'home'); }
             }
             barrier_wait("HAWK_GUI_CPU_TEST_FINISH_$cluster_name") unless $args{idle_check};
             last;
@@ -52,6 +58,7 @@ sub check_hawk_cpu {
         sleep bmwqemu::scale_timeout(1);
         last if ($args{idle_check} && (--$idle_check_loops < 0));
     }
+    select_console('root-console', await_console => 0);
     die "No HAWK/PUMA CPU usage measurements found. Is it running?" unless (@cpu_usage);
     my $cpu_usage = sum(@cpu_usage) / @cpu_usage;
     my $msg = "HAWK/PUMA CPU usage was $cpu_usage";

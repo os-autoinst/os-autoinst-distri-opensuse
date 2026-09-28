@@ -19,22 +19,17 @@ use LTP::utils qw(get_ltproot prepare_whitelist_environment);
 use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies);
 use LTP::WhiteList;
 use publiccloud::utils;
+use publiccloud::zypper qw(pc_pkg_call pc_zypper_call pc_add_repo pc_available_packages);
 use publiccloud::ssh_interactive 'select_host_console';
 use JSON qw(decode_json);
 use Data::Dumper;
 use version_utils;
 use Utils::Architectures qw(is_aarch64);
 
-my $kirk_virtualenv = 'kirk-virtualenv';
 our $root_dir = '/root';
 our $ltp_timeout = get_var('LTP_TIMEOUT', 12600);
-
-my $EC2_CW_LOGS = [
-    {
-        log_group => '/ec2/logs/dmesg',
-        filename => 'ec2__logs__dmesg.txt',
-    }
-];
+our $kirk_report = '/tmp/kirk-results.json';
+our $kirk_console_log = '/tmp/kirk-console.log';
 
 sub should_fully_build_ltp_from_git {
     return get_var('PUBLIC_CLOUD_LTP_GIT_FULL_BUILD', 0);    # 1 if env var is set, otherwise 0
@@ -52,26 +47,15 @@ sub install_build_deps {
     # Remove kernel-default-devel from the list of dependencies since matching kernel version kernel-<flavor>-devel-<ver> package will be added.
     @deps = grep { $_ ne 'kernel-default-devel' } @deps;
 
-    # Sample value: kernel-default-devel-6.12.0-160000.27.1
-    my $kernel_devel_pkg = $instance->ssh_script_output(cmd => q{
-        rpm -qf /boot/config-$(uname -r) \
-        | sed -r 's/\.[^.]*$//' \
-        | cut -d- -f2- \
-        | awk -F- '{print "kernel-" $1 "-devel-" substr($0, index($0,$2))}'
-    });
+    my $kernel_devel_pkg = $instance->ssh_script_output(cmd => q{rpm -qf --qf '%{NAME}-devel-%{VERSION}-%{RELEASE}' /boot/config-$(uname -r)});
 
     push @deps, $kernel_devel_pkg;
 
-    if (is_transactional) {
-        $instance->ssh_assert_script_run(
-            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', join(' ', @deps)),
-            timeout => 300
-        );
-        $instance->softreboot();
-    } else {
-        $instance->zypper_call_remote(cmd => "install --no-recommends " . join(' ', @deps));
-    }
-
+    pc_pkg_call(
+        $instance,
+        'install --no-recommends ' . join(' ', @deps),
+        timeout => 300,
+    );
     install_optional_build_deps($instance);
 }
 
@@ -147,8 +131,18 @@ sub upload_ltp_logs
     my $log_file = Mojo::File::path('ulogs/results.json');
 
     record_info('LTP Logs', 'upload');
-    upload_logs("/tmp/kirk.\$USER/latest/results.json", log_name => $log_file->basename, failok => 1);
-    upload_logs("/tmp/kirk.\$USER/latest/debug.log", log_name => 'debug.txt', failok => 1);
+    # kirk only writes results.json when the session collected results. On an
+    # aborted run (e.g. an SSH drop mid-suite raising a KirkException, kirk exits
+    # 1) the file is never created, so a blind upload emits a confusing
+    # "curl: (26) Failed to open/read local data" line. Guard the upload and
+    # note the absence instead. See poo#203316.
+    if (script_run("test -e $kirk_report") == 0) {
+        upload_logs($kirk_report, log_name => $log_file->basename, failok => 1);
+    } else {
+        record_info('No results.json', 'kirk did not produce results.json (run likely aborted); skipping upload', result => 'softfail');
+    }
+    upload_logs($kirk_console_log, log_name => 'debug.txt', failok => 1)
+      if script_run("test -e $kirk_console_log") == 0;
 
     return unless -e $log_file->to_string;
 
@@ -198,263 +192,6 @@ sub dump_kernel_config
     record_info("ver_linux", $instance->ssh_script_output("/opt/ltp/ver_linux"));
 }
 
-sub disable_and_stop_ec2_cloudwatch_agent {
-    my ($instance) = @_;
-
-    my $enabled = $instance->ssh_script_output(
-        "sudo systemctl is-enabled amazon-cloudwatch-agent",
-        proceed_on_failure => 1
-    );
-    chomp($enabled);
-
-    $instance->ssh_assert_script_run(
-        "sudo systemctl disable --now amazon-cloudwatch-agent"
-    ) if ($enabled eq "enabled");
-
-    $instance->ssh_script_run("sudo systemctl stop amazon-cloudwatch-agent");
-
-    $instance->retry_ssh_command(
-        cmd => "! sudo systemctl is-active amazon-cloudwatch-agent",
-        timeout => 420,
-        retry => 6,
-        delay => 60
-    );
-
-    sleep 3 * 60;    # wait for CloudWatch agent to flush logs
-}
-sub download_ec2_cloudwatch_logs {
-    my ($instance) = @_;
-
-    my $instance_id = $instance->instance_id;
-
-    disable_and_stop_ec2_cloudwatch_agent($instance);
-
-    for my $entry (@$EC2_CW_LOGS) {
-
-        my $log_group = $entry->{log_group};
-        my $log_filename = $entry->{filename};
-        my $log_stream = $instance_id;
-
-        my $next_token;
-        my $prev_token = "";
-
-        my $describe_cmd =
-          "aws logs describe-log-streams " .
-          "--log-group-name '$log_group' " .
-          "--log-stream-name-prefix '$log_stream' " .
-          "--query 'logStreams[?logStreamName==`$log_stream`].logStreamName' " .
-          "--output text";
-        my $existing_log_stream = script_output($describe_cmd, timeout => 300, proceed_on_failure => 1);
-        chomp $existing_log_stream;
-        unless ($existing_log_stream && $existing_log_stream eq $log_stream) {
-            record_info("EC2 CloudWatch Logs", "Log stream '$log_stream' does not exist in log group '$log_group'. Skipping download for this log group.");
-            next;
-        }
-
-        assert_script_run(": > '$log_filename'");
-
-        my $end_time = int(time() * 1000);
-
-        while (1) {
-
-            my $cmd =
-              "aws logs get-log-events " .
-              "--log-group-name '$log_group' " .
-              "--log-stream-name '$log_stream' " .
-              "--start-from-head ";
-
-            $cmd .= "--next-token '$next_token' " if $next_token;
-
-            assert_script_run(
-                "$cmd "
-                  . "--end-time $end_time "
-                  . "--query 'events[*].[timestamp,message]' "
-                  . "--output text >> '$log_filename'",
-                timeout => 300
-            );
-
-            my $token_cmd =
-              "$cmd "
-              . "--end-time $end_time "
-              . "--query 'nextForwardToken' "
-              . "--output text";
-
-            my $new_token = script_output($token_cmd, timeout => 300);
-
-            last if !$new_token || $new_token eq $prev_token;
-
-            $prev_token = $new_token;
-            $next_token = $new_token;
-        }
-
-        upload_logs($log_filename);
-
-        assert_script_run(
-            "aws logs delete-log-stream " .
-              "--log-group-name '$log_group' " .
-              "--log-stream-name '$log_stream'"
-        );
-    }
-}
-
-# Write dmesg output to /var/log/dmesg so it can be collected as a file-based log source for centralized logging.
-sub install_dmesg_capture_to_log
-{
-    my ($instance) = @_;
-
-    my $svc_file = 'dmesg-capture.service';
-    my $svc_target = '/etc/systemd/system/' . $svc_file;
-    $instance->ssh_assert_script_run(
-        "sudo curl -sLo $svc_target " . pc_data_url("publiccloud/$svc_file") . " && " .
-          "sudo systemctl daemon-reload && " .
-          "sudo systemctl enable --now $svc_file"
-    );
-
-    my $logrotate_file = 'dmesg-capture-logrotate.conf';
-    my $logrotate_target = '/etc/logrotate.d/dmesg';
-    $instance->ssh_assert_script_run(
-        "sudo curl -sLo $logrotate_target " . pc_data_url("publiccloud/$logrotate_file") . " && " .
-          "sudo logrotate -d $logrotate_target"
-    );
-}
-
-sub install_ec2_cloudwatch_agent
-{
-    my ($instance) = @_;
-
-    install_dmesg_capture_to_log($instance);
-
-    $instance->ssh_assert_script_run(
-        "sudo mkdir -p /etc/systemd/journald.conf.d && " .
-          "echo -e '[Journal]\\nStorage=persistent' | sudo tee /etc/systemd/journald.conf.d/persistent.conf && " .
-          "sudo systemctl restart systemd-journald"
-    );
-
-    my $arch = is_aarch64() ? "arm64" : "amd64";
-
-    my $rpm_url = "https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm";
-    my $rpm_file = "amazon-cloudwatch-agent.rpm";
-
-    my $gpg_url = "https://amazoncloudwatch-agent.s3.amazonaws.com/assets/amazon-cloudwatch-agent.gpg";
-    my $gpg_file = "amazon-cloudwatch-agent.gpg";
-
-    my $fp_flat = "937616F3450B7D806CBD9725D58167303B789C72";
-
-    my $download_directory = "/root";
-
-    $instance->ssh_assert_script_run("sudo curl -sLo $download_directory/$gpg_file $gpg_url");
-
-    my $gpg_out = $instance->ssh_script_output(
-        "sudo gpg --batch --status-fd=1 --import $download_directory/$gpg_file 2>&1"
-    );
-
-    my ($fingerprint) =
-      $gpg_out =~ /^\[GNUPG:\]\s+IMPORT_OK\s+\d+\s+([0-9A-F]{40})/m
-      or die("Failed to extract fingerprint from gpg output: $gpg_out");
-
-    die("amazon-cloudwatch-agent.gpg key is outdated. Please update the key in the code.")
-      if uc($fingerprint) ne uc($fp_flat);
-
-    $instance->ssh_assert_script_run("sudo curl -sLo $download_directory/$rpm_file.sig $rpm_url.sig");
-    my $download_rpm_cmd = "curl -sLo $download_directory/$rpm_file $rpm_url";
-    $instance->ssh_assert_script_run("sudo $download_rpm_cmd");
-
-    my $verify_out = $instance->ssh_script_output("sudo gpg --verify $download_directory/$rpm_file.sig $download_directory/$rpm_file 2>&1");
-    die("RPM signature verification failed for $download_directory/$rpm_file: $verify_out")
-      if ($verify_out !~ /Good signature/);
-
-    if (is_transactional) {
-        $instance->softreboot();
-        $instance->ssh_assert_script_run(
-            cmd => "sudo transactional-update run sh -c 'rpm -Uvh --noscripts $download_directory/$rpm_file'",
-            timeout => 300
-        );
-        $instance->softreboot();
-    } else {
-        if (is_sle(">12-SP5")) {
-            $instance->zypper_call_remote(cmd => "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file");
-        } else {
-            $instance->ssh_assert_script_run("sudo rpm -Uvh $download_directory/$rpm_file");
-        }
-    }
-
-    $instance->ssh_assert_script_run("sudo rm -f $download_directory/$rpm_file $download_directory/$rpm_file.sig $download_directory/$gpg_file");
-
-    my $cfg_file = 'cloudwatch_config.json';
-    my $cfg_target = '/opt/aws/amazon-cloudwatch-agent/etc/' . $cfg_file;
-    $instance->ssh_assert_script_run(
-        "sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc && " .
-          "sudo curl -sLo $cfg_target " . pc_data_url("publiccloud/$cfg_file") . " && " .
-          (
-            "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl " .
-              "-a fetch-config " .
-              "-m ec2 " .
-              "-c file:$cfg_target " .
-              "-s" .
-              " && "
-          ) .
-          "sudo systemctl enable --now amazon-cloudwatch-agent && " .
-          "sudo systemctl is-active amazon-cloudwatch-agent"
-    );
-}
-
-
-sub run {
-    my ($self, $args) = @_;
-    my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
-    my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
-    my $ltp_pkg = get_var('LTP_PKG', 'ltp-stable');
-    my $ltp_repo_name = "ltp_repo";
-    my $ltp_repo_url = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
-    my $ltp_command = get_var('LTP_COMMAND_FILE', 'publiccloud');
-    $self->{ltp_command} = $ltp_command;
-    my @commands = split(/\s+/, $ltp_command);
-
-    select_host_console();
-
-    my $instance = $args->{my_instance};
-    my $provider = $args->{my_provider};
-
-    prepare_scripts();
-
-    my $ltp_dir = '/tmp/ltp';
-    my $ltp_prefix = '/opt/ltp';
-
-    install_ec2_cloudwatch_agent($instance) if (is_ec2());
-
-    if (should_fully_build_ltp_from_git()) {
-        fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
-    } else {
-        install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
-        partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git_modules_install();
-    }
-
-    $self->gen_ltp_env($instance, $ltp_pkg);
-
-    my $include_tests_pattern = get_var('LTP_COMMAND_PATTERN');
-    my $skip_tests = $self->prepare_skip_tests(\@commands);
-
-    prepare_kirk($instance);
-
-    printk_loglevel($instance);
-
-    my $reset_cmd = $root_dir . '/restart_instance.sh ' . instance_log_args($provider, $instance);
-
-    my $env = get_var('LTP_PC_RUNLTP_ENV');
-    my $log_start_cmd = $root_dir . '/log_instance.sh start ' . instance_log_args($provider, $instance);
-    prepare_logging($log_start_cmd);
-
-    my $cmd_run_ltp = prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $include_tests_pattern, $skip_tests, $env);
-
-    dump_kernel_config($instance);
-    record_info('LTP START', 'Command launch');
-    # $ltp_timeout is also used for --suite-timeout so we need give kirk some time to try to kill itself before trying to kill it
-    my $kirk_exit_code = script_run($cmd_run_ltp, timeout => $ltp_timeout + 60);
-    record_info('LTP END', 'krik finished with ' . $kirk_exit_code);
-    die('kirk failed') if ($kirk_exit_code);
-}
-
-
 sub prepare_scripts {
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
@@ -466,20 +203,12 @@ sub prepare_scripts {
 sub install_ltp {
     my ($instance, $ltp_repo_name, $ltp_repo_url, $ltp_package_name) = @_;
 
-    $instance->ssh_assert_script_run(
-        cmd => "sudo zypper -n addrepo -fG $ltp_repo_url $ltp_repo_name",
-        timeout => 600
+    pc_add_repo($instance, $ltp_repo_name, $ltp_repo_url);
+    pc_pkg_call(
+        $instance,
+        "install --no-recommends $ltp_package_name",
+        timeout => 300,
     );
-
-    if (is_transactional) {
-        $instance->ssh_assert_script_run(
-            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', $ltp_package_name),
-            timeout => 300
-        );
-        $instance->softreboot();
-    } else {
-        $instance->zypper_call_remote(cmd => "install --no-recommends " . $ltp_package_name);
-    }
 }
 
 sub prepare_skip_tests {
@@ -509,20 +238,25 @@ sub prepare_skip_tests {
     return $skip_tests;
 }
 
+sub kirk_repo_url {
+    return get_var('KIRK_RS_REPO') if get_var('KIRK_RS_REPO');
+    my $dir = script_output(
+        '. /etc/os-release; [ "$ID" = "opensuse-tumbleweed" ] && echo openSUSE_Tumbleweed || echo "$VERSION_ID"');
+    chomp $dir;
+    return "https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/QAC/$dir/";
+}
+
 sub prepare_kirk {
     my ($instance) = @_;
-    my $kirk_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/kirk.git");
-    my $kirk_branch = get_var("LTP_RUN_NG_BRANCH", "master");
-    record_info('LTP RUNNER REPO', "Repo: " . $kirk_repo . "\nBranch: " . $kirk_branch);
-    script_retry("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo", retry => 5, delay => 60, timeout => 300);
+    my $repo = kirk_repo_url();
+    record_info('KIRK REPO', $repo);
+    zypper_ar($repo, name => 'kirk_rs_repo');
+    zypper_call('in kirk-rs');
+    record_info('KIRK', script_output('kirk --version'));
+
     $instance->ssh_assert_script_run(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->ssh_script_output(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
-    assert_script_run("cd kirk");
-    my $ghash = script_output("git rev-parse HEAD", proceed_on_failure => 1);
-    set_var("LTP_RUN_NG_GIT_HASH", $ghash);
-    record_info("KIRK_GIT_HASH", "$ghash");
-    my $venv = install_in_venv($kirk_virtualenv, pip_packages => "asyncssh msgpack");
-    venv_activate($venv);
+    $instance->scan_ssh_host_key;
 }
 
 sub printk_loglevel {
@@ -552,8 +286,7 @@ sub prepare_ltp_cmd {
         $env_prefix = join(' ', @vars) . ' ';
     }
 
-    my $python_exec = get_python_exec();
-    my $cmd = "$env_prefix$python_exec kirk";
+    my $cmd = "${env_prefix}kirk";
     $cmd .= " --verbose";
     $cmd .= " --exec-timeout=$exec_timeout";
     $cmd .= " --suite-timeout=$ltp_timeout";
@@ -562,31 +295,9 @@ sub prepare_ltp_cmd {
     $cmd .= " --skip-tests '$skip_tests'" if $skip_tests;
     $cmd .= " --sut default:com=ssh";
     $cmd .= " --com=ssh$sut";
+    $cmd .= " --json-report $kirk_report";
     $cmd .= " ";
     return $cmd;
-}
-
-sub cleanup {
-    my ($self) = @_;
-
-    # Ensure that the ltp script gets killed
-    type_string('', terminate_with => 'ETX');
-    $self->upload_ltp_logs();
-
-    unless ($self->{run_args} && $self->{run_args}->{my_instance}) {
-        die('cleanup: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
-    }
-
-    download_ec2_cloudwatch_logs($self->{run_args}->{my_instance}) if (is_ec2());
-    if (script_run("test -f $root_dir/log_instance.sh") == 0) {
-        my $log_instance_stop_command = $root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance});
-        script_run($log_instance_stop_command, timeout => 600);
-
-        script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
-        upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
-    }
-
-    return 1;
 }
 
 sub gen_ltp_env {
@@ -605,91 +316,118 @@ sub gen_ltp_env {
     return $self->{ltp_env};
 }
 
-=head2 get_installed_packages_remote
-
-get_installed_packages_remote($instance, $packages_ref)
-
-This function checks which packages from the provided list are installed on the remote instance.
-It returns an array reference containing the names of the installed packages.
-
-=cut
-
-sub get_installed_packages_remote {
-    my ($instance, $packages_ref) = @_;
-
-    my $pkg_list = join(' ', @$packages_ref);
-    my $cmd = "rpm -q --qf '%{NAME}|' $pkg_list 2>/dev/null";
-
-    my $output = $instance->ssh_script_output(
-        cmd => $cmd,
-        proceed_on_failure => 1
-    );
-
-    my %installed;
-    for my $entry (split /\|/, $output) {
-        next if $entry =~ /is not installed/i;
-        $installed{$entry} = 1;
-    }
-
-    my @found = grep { $installed{$_} } @$packages_ref;
-    return \@found;
-}
-
-=head2 get_available_packages_remote
-
-get_available_packages_remote($instance, $packages_ref)
-
-This function checks which packages from the provided list are available for installation on the remote instance.
-It returns an array reference containing the names of the available packages.
-It uses `zypper -x info` to query the availability of packages.
-
-=cut
-
-sub get_available_packages_remote {
-    my ($instance, $packages_ref) = @_;
-    die "Expected arrayref" unless ref($packages_ref) eq 'ARRAY';
-
-    my %installed = map { $_ => 1 } @{get_installed_packages_remote($instance, $packages_ref)};
-    my @not_installed = grep { !$installed{$_} } @$packages_ref;
-
-    return '' unless @not_installed;
-
-    my $pkg_list = join(' ', @not_installed);
-    my $output = $instance->ssh_script_output(
-        cmd => "zypper -x info $pkg_list 2>/dev/null",
-        proceed_on_failure => 1
-    );
-
-    # Grep all "Name           : <pkg>" lines
-    my %available = map { $_ => 1 } ($output =~ /^Name\s*:\s*(\S+)/mg);
-
-    my @result = grep { $available{$_} } @not_installed;
-    return join(' ', @result);
-}
-
-=head2 zypper_install_available_remote
+=head2 install_optional_build_deps
 
 install_optional_build_deps($instance)
 
-This function checks which packages from the get_maybe_build_dependencies list are available for installation on the remote instance.
-If any packages are available, it installs them using zypper_call_remote.
+This function checks which packages from the get_maybe_build_dependencies list
+are available for installation on the remote instance. If any packages are
+available, it installs them via C<pc_pkg_call>.
 
 =cut
 
 sub install_optional_build_deps {
     my ($instance) = @_;
-    my $available = get_available_packages_remote($instance, [get_maybe_build_dependencies()]);
-    return unless ($available && $available =~ /\S/);
-    if (is_transactional) {
-        $instance->ssh_assert_script_run(
-            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', $available),
-            timeout => 300
-        );
-        $instance->softreboot();
-    } else {
-        $instance->zypper_call_remote("install --no-recommends " . $available);
-    }
+    my $available = pc_available_packages(
+        $instance, [get_maybe_build_dependencies()]
+    );
+    return unless @$available;
+    pc_pkg_call(
+        $instance,
+        'install --no-recommends ' . join(' ', @$available),
+        timeout => 300,
+    );
 }
+
+sub cleanup {
+    my ($self) = @_;
+
+    # Ensure that the ltp script gets killed
+    type_string('', terminate_with => 'ETX');
+    $self->upload_ltp_logs();
+
+    unless ($self->{run_args} && $self->{run_args}->{my_instance}) {
+        die('cleanup: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
+    }
+
+    # EC2-only: download & clean up the CloudWatch logs collected by
+    # setup_cloudwatch_agent(). Runs here so it still collects post-mortem
+    # dmesg logs, and never blocks the rest of cleanup, even if run() died.
+    if (is_ec2()) {
+        select_host_console(force => 1);
+        $self->{run_args}->{my_provider}->teardown_cloudwatch_agent($self->{run_args}->{my_instance});
+    }
+
+    if (script_run("test -f $root_dir/log_instance.sh") == 0) {
+        my $log_instance_stop_command = $root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance});
+        script_run($log_instance_stop_command, timeout => 600);
+
+        script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
+        upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
+    }
+
+    return 1;
+}
+
+sub run {
+    my ($self, $args) = @_;
+    my $ltp_pkg = get_var('LTP_PKG', 'ltp-stable');
+    my $ltp_repo_name = "ltp_repo";
+    my $ltp_repo_url = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
+    my $ltp_command = get_var('LTP_COMMAND_FILE', 'publiccloud');
+    $self->{ltp_command} = $ltp_command;
+    my @commands = split(/\s+/, $ltp_command);
+
+    select_host_console();
+
+    my $instance = $args->{my_instance};
+    my $provider = $args->{my_provider};
+
+    # EC2-only: install & start the CloudWatch agent for centralized dmesg
+    # logging, after check_cloudinit so it can't race cloud-init for the
+    # zypper lock (poo#205539).
+    $provider->setup_cloudwatch_agent($instance) if is_ec2();
+
+    prepare_scripts();
+
+    my $ltp_dir = '/tmp/ltp';
+    my $ltp_prefix = '/opt/ltp';
+
+    if (should_fully_build_ltp_from_git()) {
+        fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
+    } else {
+        install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
+        partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git_modules_install();
+    }
+
+    $self->gen_ltp_env($instance, $ltp_pkg);
+
+    my $include_tests_pattern = get_var('LTP_COMMAND_PATTERN');
+    my $skip_tests = $self->prepare_skip_tests(\@commands);
+
+    prepare_kirk($instance);
+
+    printk_loglevel($instance);
+
+    my $reset_cmd = $root_dir . '/restart_instance.sh ' . instance_log_args($provider, $instance);
+
+    my $env = get_var('LTP_PC_RUNLTP_ENV');
+    my $log_start_cmd = $root_dir . '/log_instance.sh start ' . instance_log_args($provider, $instance);
+    prepare_logging($log_start_cmd);
+
+    my $cmd_run_ltp = prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $include_tests_pattern, $skip_tests, $env);
+
+    dump_kernel_config($instance);
+    record_info('LTP START', 'Command launch');
+    script_run("rm -f $kirk_report");
+    # $ltp_timeout is also used for --suite-timeout so we need give kirk some time to try to kill itself before trying to kill it
+    my $kirk_exit_code = script_run(
+        "$cmd_run_ltp 2>&1 | tee $kirk_console_log; test \${PIPESTATUS[0]} -eq 0",
+        timeout => $ltp_timeout + 60);
+    record_info('LTP END', 'krik finished with ' . $kirk_exit_code);
+    die('kirk failed') if ($kirk_exit_code);
+}
+
 
 sub test_flags {
     return {fatal => 1};

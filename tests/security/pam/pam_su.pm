@@ -90,10 +90,6 @@ expect {
     assert_script_run "mv $sul_file_bak $sul_file";
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 sub post_fail_hook {
     select_console 'root-console';
     assert_script_run 'cp -pr /mnt/pam.d /etc';

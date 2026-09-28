@@ -28,8 +28,4 @@ sub run {
     $self->result($result);
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;

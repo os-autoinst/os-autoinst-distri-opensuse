@@ -21,7 +21,7 @@ local version = '{{VERSION}}';
   },
   software: {
     packages: ['openssh-server-config-rootlogin'],
-    patterns: ['base', 'minimal_base'],
+    patterns: ['base', 'minimal_base', 'selinux'],
     extraRepositories: [
       {
         alias: 'SLES::16.0::product',

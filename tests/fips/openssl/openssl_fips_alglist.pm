@@ -44,7 +44,9 @@ sub check_pk_algos {
     my ($openssl_binary) = @_;
 
     my @valid_algos = qw(RSA rsa DSA dsa EC DH HMAC CMAC);
-    push(@valid_algos, 'ED', 'ML') unless is_sle('<16');
+    # Ed25519/Ed448 and ML-DSA/ML-KEM became FIPS-approved starting with OpenSSL 3.5
+    # (FIPS 186-5, FIPS 203/204), so they get the "@ fips" tag only from then on.
+    push(@valid_algos, 'ED', 'ML') if get_openssl_x_y_version($openssl_binary) >= 3.5;
     push(@valid_algos, 'HKDF', 'TLS1-PRF') if has_default_openssl3;
     my %pattern = (
         fips => '\@ fips',

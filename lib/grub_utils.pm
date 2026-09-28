@@ -51,8 +51,8 @@ sub grub_test {
         # avoid timeout for booting to HDD
         send_key 'ret';
     }
-    # Avoid return key not received occasionally for hyperv-uefi guest at first boot
-    send_key 'ret' if (check_var('VIRSH_VMM_FAMILY', 'hyperv') && get_var('UEFI'));
+    # Avoid return key not received occasionally for hyperv-uefi and vmware-uefi guests at first boot
+    send_key 'ret' if ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('VIRSH_VMM_FAMILY', 'vmware')) && get_var('UEFI'));
 }
 
 =head2 handle_installer_medium_bootup
@@ -62,7 +62,7 @@ Due to pre-installation setup, qemu boot order is always booting from CD-ROM.
 
 sub handle_installer_medium_bootup {
     return unless (check_var("BOOTFROM", "d") || (get_var('UEFI') && get_var('USBBOOT')));
-    return if (check_var("BOOTFROM", "c") && !(is_sle || is_leap("<16.1")));
+    return if (check_var("BOOTFROM", "c") && !(is_sle || is_leap("<16.0")));
     assert_screen 'inst-bootmenu', 180;
 
     # Layout of live is different from installation media

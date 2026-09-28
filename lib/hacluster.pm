@@ -1251,7 +1251,7 @@ sub script_output_retry_check {
     }
 
     foreach (1 .. $retry) {
-        $result = script_output($cmd, %args);
+        $result = script_output($cmd, %args, proceed_on_failure => 1);
         return $result if $result =~ /$regex/;
         sleep $sleep;
         record_info('CMD RETRY', "Retry $_/$retry.\nScript output did not match pattern '$regex'\nOutput: $result");
@@ -2069,7 +2069,7 @@ sub parse_sbd_metadata {
     my @val = ();
     my $metadata = {};
     my $device_name = "";
-    foreach my $line (split(/\n/, script_output('crm sbd configure show disk_metadata'))) {
+    foreach my $line (split(/\n/, script_output('crm sbd configure show disk_metadata', proceed_on_failure => 1))) {
         if ($line =~ /^==Dumping header on disk (\S+)/) {
             $device_name = $1;
         } elsif ($line =~ /Timeout\s+\((\w+)\)\s+\:\s+(\d+)/) {
@@ -2185,9 +2185,15 @@ sub check_crm_nonroot {
 
     my $orig_prompt = serial_term_prompt() // '# ';
 
+    # The nested 'su -' shell has not PROMPT_COMMAND hook, so pretty
+    # serial markers would never be emited there. See poo#204471
+    # This command disables the pretty serial markers within the scope
+    # of this function
+    my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
+
     # Login as non-root user
     enter_cmd "su - $user";
-    wait_serial '> ', no_regex => 1, timeout => 2;
+    wait_serial '> ', no_regex => 1;
     set_serial_prompt '> ';
 
     # Unset all related PATH which belong to non-root user.
@@ -2203,7 +2209,7 @@ sub check_crm_nonroot {
     enter_cmd 'exit';
 
     $testapi::distri->{serial_term_prompt} = $orig_prompt;
-    wait_serial $orig_prompt, no_regex => 1, timeout => 2;
+    wait_serial $orig_prompt, no_regex => 1;
 
     select_serial_terminal();
 }

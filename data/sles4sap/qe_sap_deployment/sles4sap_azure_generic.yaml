@@ -9,6 +9,7 @@
 provider: 'azure'
 apiver: 4
 terraform:
+  bin: '%TERRAFORM_RUNNER%'
   variables:
     # GENERAL VARIABLES #
     az_region: '%PUBLIC_CLOUD_REGION%'

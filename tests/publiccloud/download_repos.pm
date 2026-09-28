@@ -92,9 +92,11 @@ sub run {
         }
 
         assert_script_run("echo 'Download completed' >> ~/repos/qem_download_status.txt");
-        upload_logs('/tmp/repos.list.txt');
-        upload_logs('qem_download_status.txt');
     }
+
+    # Upload the progress files once, after all repositories have been handled.
+    upload_logs('/tmp/repos.list.txt');
+    upload_logs('qem_download_status.txt');
 
     my $total_size = script_output("du -hs ~/repos");
     record_info("Repo size", "Total repositories size: $total_size");

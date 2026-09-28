@@ -23,6 +23,7 @@ our @EXPORT = qw(
   get_python3_binary
   remove_installed_pythons
   get_available_fullstack_pythons
+  get_current_python_version
 );
 
 =head2 get_system_python_version
@@ -112,6 +113,31 @@ sub get_available_fullstack_pythons {
 
     # Return the array of Python versions
     return @available_pythons;
+}
+
+=head2 get_current_python_version
+
+returns python3 version as example:
+"313" for Python 3.13.0
+"39" for Python 3.9.18
+=cut
+
+sub get_current_python_version {
+    # Helper function: returns (py_pkg_ver) for current python3
+    my $py_pkg_ver = "";
+    my $version_output = script_output('python3 --version 2>&1 || true');
+
+    # Expected format: "Python 3.13.0" or "Python 3.9.18"
+    if ($version_output =~ /Python\s+(\d+)\.(\d+)/) {
+        my $major = $1;
+        my $minor = $2;
+        $py_pkg_ver = "$major$minor";
+        return ($py_pkg_ver);
+    }
+    # Returns empty string if "python3 --version" has not correct output
+    else {
+        return ($py_pkg_ver);
+    }
 }
 
 1;

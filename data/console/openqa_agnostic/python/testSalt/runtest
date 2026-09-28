@@ -1,0 +1,46 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: salt master-minion integration
+# desc: >
+#   Functional integration tests for salt-master and salt-minion on
+#   localhost loopback. Tests package presence, salt-call local ops,
+#   master and minion service lifecycle, key acceptance, test.ping,
+#   remote command execution, grains retrieval, state application,
+#   pillar delivery, and clean service shutdown.
+#   Replaces the legacy openQA tests/console/salt.pm.
+# steps:
+#   - verify salt-master and salt-minion are installed
+#   - test salt-call --local operations (ping, grains, cmd.run)
+#   - start salt-master, configure and start salt-minion
+#   - wait for key, accept, verify key listing
+#   - ping minion, run commands, check grains via master
+#   - apply a test state, verify file creation
+#   - deliver pillar data, verify retrieval
+#   - stop both services cleanly
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 16+, SLE 15 SP4+
+# tags: console salt master minion integration service
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_salt.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+
+set +e
+pytest -v --tb=short test_salt.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc

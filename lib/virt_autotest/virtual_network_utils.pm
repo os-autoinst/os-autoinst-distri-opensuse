@@ -21,9 +21,9 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 use Carp;
-use utils 'script_retry';
+use utils qw(script_retry query_installed_packages);
 use upload_system_log 'upload_supportconfig_log';
-use version_utils qw(is_sle is_alp is_opensuse);
+use version_utils qw(is_sle is_alp is_opensuse is_transactional);
 use Utils::Architectures;
 use virt_autotest::utils;
 use virt_autotest::common;
@@ -106,8 +106,13 @@ sub create_host_bridge_nm {
     my $config_path = "/etc/NetworkManager/system-connections/$host_bridge.nmconnection";
 
     if (is_sle('16+') && !is_s390x && script_run("[[ -f $config_path ]]") != 0) {
-        # Install required packages python313-psutil and python313-dbus-python
-        zypper_call '-t in python313-psutil python313-dbus-python', exitcode => [0, 4, 102, 103, 106];
+        # Check or install required packages python313-psutil and python313-dbus-python
+        if (is_transactional) {
+            croak('Packages python313-psutil and python313-dbus-python need to be installed beforehand on immutable system') if (!query_installed_packages(packages => 'python313-psutil,python313-dbus-python'));
+        }
+        else {
+            zypper_call '-t in python313-psutil python313-dbus-python', exitcode => [0, 4, 102, 103, 106];
+        }
         my $wait_script = "180";
         my $script_name = "create_host_bridge.py";
         my $script_url = data_url("virt_autotest/$script_name");
@@ -117,9 +122,8 @@ sub create_host_bridge_nm {
         $execute_script .= ' ' . (get_var('EXCLUDED_BR_NICS', '') ? get_var('EXCLUDED_BR_NICS') : '""');
         script_output($execute_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         save_screenshot;
-        # Re-establish the SSH connection, poo#187197
-        reset_consoles;
-        select_console('root-ssh');
+        # Re-establish the backend console connection, poo#187197
+        select_backend_console(init => 0);
         # Set metric the lowest to make br0 always be the default route
         script_run("nmcli con modify br0 ipv4.route-metric 50");
         script_run("nmcli con up br0");

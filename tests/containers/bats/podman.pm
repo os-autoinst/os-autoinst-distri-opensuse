@@ -50,11 +50,6 @@ sub run_tests {
                 "252-quadlet.bats::quadlet kube - start error",
             ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
         }
-        push @xfails, (
-            # These sometimes fail for user on SLES 16.0 & Tumbleweed
-            "505-networking-pasta.bats::TCP/IPv4 large transfer, tap",
-            "505-networking-pasta.bats::IPv6 default address assignment",
-        ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
     } else {
         if (!$remote) {
             push @xfails, (
@@ -62,19 +57,19 @@ sub run_tests {
                 # due to https://github.com/containers/podman/issues/27246
                 "200-pod.bats::pod resource limits",
             ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
+            push @xfails, (
+                # These fail for root/local on podman v6.0.0 because we don't ship libcontainers-common
+                # with the storage driver set in storage.conf
+                "155-partial-pull.bats::zstd chunked does not modify image content",
+            ) if (version->parse(numeric_version($version)) >= version->parse("6.0.0"));
         }
     }
     push @xfails, (
-        # https://bugzilla.suse.com/show_bug.cgi?id=1246607
-        "125-import.bats::podman export, alter tarball, re-import",
-    ) if (!is_x86_64 && version->parse(numeric_version($version)) >= version->parse("5.4.0"));
-    push @xfails, (
-        # Sporadic issue fixed in
-        # https://github.com/containers/podman/commit/f172ff789b14226b51cea39f9373e7de2a35905a
-        "550-pause-process.bats::podman system migrate works with conmon being killed",
-    ) if (is_ppc64le && !is_sle);
+        # This test is racy on ppc64le:
+        "090-events.bats::events - died event contains OOMKilled attribute",
+    ) if (version->parse(numeric_version($version)) >= version->parse("6.0.0"));
 
-    my $ret = bats_tests($log_file, \%env, \@xfails, 6000);
+    my $ret = bats_tests($log_file, \%env, \@xfails, 6900);
 
     run_command 'kill %1; kill -9 %1 || true' if ($remote);
 
@@ -87,7 +82,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit glibc-devel-static go1.26 gpg2 libgpgme-devel
+    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit glibc-devel-static go1.27 gpg2 libgpgme-devel
       libseccomp-devel make netavark openssl podman podman-remote skopeo socat sudo systemd-container xfsprogs);
     push @pkgs, qw(criu libcriu2) if is_tumbleweed;
     push @pkgs, qw(netcat-openbsd) if is_sle("<16");

@@ -191,10 +191,6 @@ sub run {
         assert_script_run 'journalctl --flush' if (is_sle('15-sp4+') || is_leap('15.4+'));
         # test for installed rsyslog and for imuxsock existance
         # rsyslog must be there by design
-        if (is_sle('=15-sp1') && is_jeos) {
-            zypper_call 'in rsyslog';
-            systemctl 'enable --now rsyslog';
-        }
         assert_script_run 'rpm -q rsyslog';
         assert_script_run 'test -S /run/systemd/journal/syslog';
         upload_logs(${\SYSLOG});

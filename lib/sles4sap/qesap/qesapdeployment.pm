@@ -90,6 +90,7 @@ our @EXPORT = qw(
   qesap_terraform_ansible_deploy_retry
   qesap_create_cidr_from_ip
   qesap_ssh_intrusion_detection
+  qesap_gcp_delete_leftover_ncc_spokes
 );
 
 =head1 DESCRIPTION
@@ -2014,6 +2015,141 @@ sub qesap_ssh_intrusion_detection {
                 "Found $report{$host}{attempts} login attempts. Users: @{$report{$host}{users}}. IPs: @{$report{$host}{ips}}");
         }
     }
+}
+
+=head3 qesap_gcp_get_ncc_spokes
+
+    qesap_gcp_get_ncc_spokes( [hub => $hub], [name => $name] )
+
+    Queries GCP for Network Connectivity Center (NCC) spokes matching the given
+    hub or spoke name.
+    Return:
+     - Array ref of spoke HASH references
+     - Empty array ref on failure or if no spokes are found
+
+=over
+
+=item B<hub> - Optional NCC hub name to filter spokes by
+
+=item B<name> - Optional spoke name to filter by
+
+=back
+=cut
+
+sub qesap_gcp_get_ncc_spokes {
+    my (%args) = @_;
+    my $filter = '';
+    if ($args{name}) {
+        $filter = "--filter='name:$args{name}'";
+    }
+    elsif ($args{hub}) {
+        $filter = "--filter='hub:$args{hub}'";
+    }
+
+    my $cmd = join(' ', 'gcloud network-connectivity spokes list',
+        '--global',
+        $filter,
+        '--format=json');
+
+    my $output = script_output($cmd, proceed_on_failure => 1);
+    return [] unless $output;
+
+    my $spokes = eval { decode_json($output) };
+    return ref($spokes) eq 'ARRAY' ? $spokes : [];
+}
+
+
+=head3 qesap_gcp_delete_ncc_spoke
+
+    qesap_gcp_delete_ncc_spoke( name => $name, [wait => 1], [timeout => 300] )
+
+    Deletes a GCP NCC spoke by name and optionally waits until deletion completes.
+    Return:
+     - 1 if deletion succeeded or wait flag is 0
+     - 0 if wait timed out before deletion completed
+
+=over
+
+=item B<name> - Mandatory spoke name to delete
+
+=item B<wait> - Optional boolean flag to wait for deletion completion (default: 1)
+
+=item B<timeout> - Optional max seconds to wait in seconds (default: 300)
+
+=back
+=cut
+
+sub qesap_gcp_delete_ncc_spoke {
+    my (%args) = @_;
+    croak 'Must provide spoke name' unless $args{name};
+    $args{timeout} //= bmwqemu::scale_timeout(300);
+    $args{wait} = $args{wait} // 1;
+
+    my $cmd = join(' ', 'gcloud network-connectivity spokes delete', $args{name}, '--global', '--quiet');
+    script_run($cmd);
+
+    return 1 unless $args{wait};
+
+    my $duration;
+    my $start_time = time();
+    my $res;
+    while (($duration = time() - $start_time) < $args{timeout}) {
+        sleep 5;
+        $res = qesap_gcp_get_ncc_spokes(name => $args{name});
+        last unless ref($res) eq 'ARRAY' && @$res;
+    }
+    return $duration < $args{timeout} ? 1 : 0;
+}
+
+
+=head3 qesap_gcp_delete_leftover_ncc_spokes
+
+    qesap_gcp_delete_leftover_ncc_spokes( hub => $hub )
+
+    Scans GCP NCC spokes attached to the given hub, identifies edge spokes left over
+    from finished openQA jobs, and initiates deletion. Ignores the center spoke.
+    Return:
+     - 0 if mandatory arguments are missing
+     - 1 on successful scan and cleanup execution
+
+=over
+
+=item B<hub> - Mandatory NCC hub name to inspect
+
+=back
+=cut
+
+sub qesap_gcp_delete_leftover_ncc_spokes {
+    my (%args) = @_;
+    return 0 unless $args{hub};
+
+    my $available_spokes = qesap_gcp_get_ncc_spokes(hub => $args{hub});
+
+    return 1 unless ref($available_spokes) eq 'ARRAY' && @$available_spokes;
+    record_info('GCP PEERING CLEANUP', 'Starting leftover NCC spoke cleanup (GCP)');
+
+    foreach my $spoke (@$available_spokes) {
+        my $spoke_name = $spoke->{name} // next;
+        $spoke_name =~ s{.*/}{};
+
+        # Ignore non-edge spokes and the permanent center spoke
+        next if $spoke_name eq 'ibsm-center-spoke' || ($spoke->{group} // '') eq 'center';
+
+        # Extract job ID appended at the end of the spoke name (e.g. edge-hanasr24276142)
+        next unless $spoke_name =~ /(\d+)$/;
+        my $job_id = $1;
+
+        # Delete spoke if the associated job is finished
+        next unless qesap_is_job_finished(job_id => $job_id);
+
+        record_info('LEFTOVER GCP SPOKE', "Spoke ${spoke_name}'s job $job_id has finished, deleting");
+
+        qesap_gcp_delete_ncc_spoke(
+            name => $spoke_name,
+            wait => 0
+        );
+    }
+    return 1;
 }
 
 1;

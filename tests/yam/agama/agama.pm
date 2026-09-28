@@ -23,6 +23,7 @@ use testapi qw(
 );
 use Utils::Architectures qw(is_s390x is_ppc64le);
 use Utils::Backends qw(is_pvm is_svirt);
+use version_utils qw(is_vmware);
 use power_action_utils 'power_action';
 
 sub is_headless_installation {
@@ -47,6 +48,7 @@ sub run {
       " --agama-web-ui-package-version " . get_var('AGAMA_WEBUI_PACKAGE_VERSION') .
       " $test_options";
 
+    select_console 'install-shell';
     record_info("node cmd", $node_cmd);
     my $ret = script_run($node_cmd, timeout => 2400);
 
@@ -68,7 +70,7 @@ sub run {
         my $svirt = console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
     }
 
-    (is_s390x() || is_pvm() || is_headless_installation()) ?
+    (is_s390x() || is_pvm() || is_headless_installation()) || is_vmware() ?
       # reboot via console
       power_action('reboot', keepconsole => 1, first_reboot => 1) :
       # graphical reboot

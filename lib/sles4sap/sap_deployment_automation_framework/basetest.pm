@@ -69,8 +69,8 @@ sub full_cleanup {
     }
     my $sut_cleanup_message
       = $redirection_works
-      ? 'Console redirection to Deployer VM does not seem to work. Destroying SUT infrastructure is not possible.'
-      : 'Console redirection works, proceeding with SUT cleanup';
+      ? 'Console redirection works, proceeding with SUT cleanup'
+      : 'Console redirection to Deployer VM does not seem to work. Destroying SUT infrastructure is not possible.';
     record_info('SUT cleanup', $sut_cleanup_message);
 
     # Trigger SDAF remover script to destroy 'workload zone' and 'sap systems' resources
@@ -98,7 +98,6 @@ sub full_cleanup {
     # Clean up orphaned resources inside permanent deployer job group
     # Resource retention time can be controlled by OpenQA parameter: SDAF_DEPLOYER_VM_RETENTION_SEC
     record_info('Remove orphans', 'Cleaning up orphaned resources');
-    destroy_orphaned_resources();
     if (my $ret = destroy_orphaned_peerings()) {
         record_info('Retry', 'Delete orphaned peerings failed and retry');
         $ret = destroy_orphaned_peerings();
@@ -187,7 +186,7 @@ Returns B<HASHREF> with all data collected in following format:
 sub sdaf_ibsm_data_collect {
     my $ibsm_rg = get_required_var('IBSM_RG');
     my $ibsm_vnet_name = ${az_network_vnet_get(resource_group => $ibsm_rg)}[0];
-    my $workload_resource_group = get_workload_resource_group(deployment_id => find_deployment_id());
+    my $workload_resource_group = get_sdaf_resource_group(deployment_id => find_deployment_id(), resource_group_type => 'workload_zone');
     my $workload_vnet_name = ${az_network_vnet_get(resource_group => $workload_resource_group)}[0];
     my $ibsm_peering_name = get_ibsm_peering_name(source_vnet => $ibsm_vnet_name, target_vnet => $workload_vnet_name);
     my $workload_peering_name = get_ibsm_peering_name(source_vnet => $workload_vnet_name, target_vnet => $ibsm_vnet_name);
@@ -307,7 +306,7 @@ sub post_fail_hook {
 
         # Upload SUTs logs
         for my $instance_type (keys(%redirection_data)) {
-            next() unless grep /$instance_type/, qw(db_hana nw_ers nw_ascs);
+            next() unless grep /$instance_type/, qw(db_hana nw_ers nw_ascs nw_iscsi nw_pas nw_aas);
             for my $hostname (keys(%{$redirection_data{$instance_type}})) {
                 my %host_data = %{$redirection_data{$instance_type}{$hostname}};
                 connect_target_to_serial(

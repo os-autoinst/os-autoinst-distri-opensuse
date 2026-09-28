@@ -34,6 +34,10 @@ our @EXPORT_OK = qw(
   validate_ipsec_tcpdump
   validate_tcpdump
   capture_tcpdump
+  start_packet_capture
+  stop_packet_capture
+  count_capture_packets
+  capture_statistics
 );
 
 =head1 SYNOPSIS
@@ -425,6 +429,82 @@ sub capture_tcpdump {
         timeout => $timeout + 2,
         proceed_on_failure => 1
     );
+}
+
+=head2 start_packet_capture
+
+ start_packet_capture($dev, $pcap);
+ start_packet_capture($dev, $pcap, $filter);
+
+Start a background C<tcpdump> writing a pcap file, to capture traffic across a
+whole test sequence instead of a fixed duration. Use C<stop_packet_capture> to
+end it, C<count_capture_packets> and C<capture_statistics> to evaluate it.
+
+Arguments:
+  $dev    - Network interface to capture on (e.g. 'lo')
+  $pcap   - Path of the pcap file to write
+  $filter - Optional BPF filter (e.g. 'port 2049')
+
+The tcpdump diagnostics are kept in $pcap.log.
+
+Returns: the tcpdump pid
+
+=cut
+
+sub start_packet_capture {
+    my ($dev, $pcap, $filter) = @_;
+    $filter = $filter ? "'$filter'" : '';
+
+    return background_script_run("tcpdump -i $dev -U -w $pcap $filter > $pcap.log 2>&1");
+}
+
+=head2 stop_packet_capture
+
+ stop_packet_capture();
+
+Stop the capture started by C<start_packet_capture> and give tcpdump the time
+to flush the remaining packets to the pcap file.
+
+=cut
+
+sub stop_packet_capture {
+    script_run('pkill tcpdump; sleep 3');
+}
+
+=head2 count_capture_packets
+
+ count_capture_packets($pcap);
+ count_capture_packets($pcap, $filter);
+
+Count the packets of a pcap file with C<tshark> and return the number. Without
+a filter all packets are counted, a display filter restricts them to a
+protocol or even a single operation, e.g. C<count_capture_packets($pcap,
+'nfs.opcode == 38')> returns the number of NFSv4 WRITE operations.
+
+=cut
+
+sub count_capture_packets {
+    my ($pcap, $filter) = @_;
+    $filter = $filter ? "-Y '$filter'" : '';
+
+    my ($count) = script_output("tshark -nr $pcap $filter 2>/dev/null | wc -l", proceed_on_failure => 1) =~ /(\d+)/;
+    return $count;
+}
+
+=head2 capture_statistics
+
+ capture_statistics($pcap);
+
+Return the protocol hierarchy of a pcap file as reported by C<tshark>, listing
+the protocols seen with their frame and byte counts. Useful to record which
+flows a test actually produced.
+
+=cut
+
+sub capture_statistics {
+    my ($pcap) = @_;
+
+    return script_output("tshark -nr $pcap -q -z io,phs 2>/dev/null", proceed_on_failure => 1);
 }
 
 1;

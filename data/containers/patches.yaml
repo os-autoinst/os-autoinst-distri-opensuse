@@ -8,11 +8,11 @@ aardvark-dns:
   # https://github.com/containers/aardvark-dns/pull/581 is needed for PR#623
   # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
   519:
-    merged: "1.13.0"
+    max: "1.13.0"
   581:
-    merged: "1.15.0"
+    max: "1.15.0"
   623:
-    merged: "1.17.0"
+    max: "1.17.0"
 
 buildah:
   # https://github.com/containers/buildah/pull/5495 is needed to skip nixery.dev registry
@@ -22,17 +22,20 @@ buildah:
   # https://github.com/containers/buildah/pull/6701 is needed to test on arches other than amd64
   # https://github.com/containers/buildah/pull/6791 - CI: remove dependencies on online apt repositories
   5495:
-    merged: "1.36.0"
+    max: "1.36.0"
   6226:
-    merged: "1.41.0"
+    max: "1.41.0"
   6271:
-    merged: "1.41.0"
+    max: "1.41.0"
   6602:
     min: "1.43.0"
+    max: "1.44.0"
   6701:
     min: "1.43.0"
+    max: "1.44.0"
   6791:
     min: "1.39.5"
+    max: "1.44.0"
 
 buildx:
   # https://github.com/docker/buildx/pull/3475/ - test: Handle version not having the initial 'v'
@@ -42,14 +45,17 @@ buildx:
 compose:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
   # https://github.com/docker/compose/pull/13564 - test: fix pull failure assertion for Docker v29
+  # https://github.com/docker/compose/pull/14245 - test(e2e): fix TestPullFailure's daemon-specific error assertion
   13214:
-    merged: "2.39.4"
+    max: "2.39.4"
   13564:
+  14245:
+    min: "5.5.1"
 
 conmon:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
   579:
-    merged: "2.2.0"
+    max: "2.2.0"
 
 containerd:
   # https://github.com/containerd/containerd/pull/13149 - Skip TestExportAndImportMultiLayer on s390x
@@ -69,6 +75,8 @@ docker-py:
   # https://github.com/docker/docker-py/pull/3373 - test_create_with_ipv6_address: enable IPv6
   # https://github.com/docker/docker-py/pull/3380 - integration: Remove test_build_squash tests
   # https://github.com/docker/docker-py/pull/3393 - tests: Make stream assertions robust to chunk splitting
+  # https://github.com/docker/docker-py/pull/3407 - Fix integration tests on non-amd64 hosts
+  # https://github.com/docker/docker-py/pull/3431 - tests: isolate FromContextTest from ambient TLS env vars
   3261:
   3290:
   3354:
@@ -79,46 +87,31 @@ docker-py:
   3373:
   3380:
   3393:
+  3407:
+  3431:
+    min: "7.2.0"
 
 moby:
-  # https://github.com/moby/moby/pull/51219 - integration/container: Make tests runnable on SELinux enabled daemon
-  # https://github.com/moby/moby/pull/51263 - integration: Skip some tests as rootless
   # https://github.com/moby/moby/pull/51794 - integration: Support iputils ping
   # https://github.com/moby/moby/pull/51970 - Skip some tests as rootless when SELinux is enabled
   # https://github.com/moby/moby/pull/51972 - integration: Support containerd pull error message
-  # https://github.com/moby/moby/pull/52116 - integration/container: use page-aligned shm size to fix test on ppc64le
-  # https://github.com/moby/moby/pull/52117 - integration/capabilities: Switch to debian:trixie-slim
-  # https://github.com/moby/moby/pull/52119 - integration/image: pull ppc64le and s390x in TestSaveAndLoadPlatform
-  # https://github.com/moby/moby/pull/52197 - integration: ignore container Status field in DiskUsage test comparisons
   # https://github.com/moby/moby/pull/52199 - Fix testsuite when running directly as rootless
-  51219:
-    merged: "29.0.0"
-  # XXX not merged
-  51263:
-    merged: "29.0.0"
+  # https://github.com/moby/moby/pull/53661 - Fix testsuite when running directly as rootless
   51794:
   51970:
     min: "29.2.0"
   51972:
     min: "29.2.0"
-  52116:
-    min: "29.2.0"
-    merged: "29.3.0"
-  52117:
-    merged: "29.3.0"
-  52119:
-    min: "29.2.0"
-    merged: "29.3.0"
-  52197:
-    min: "29.2.0"
-    merged: "29.4.0"
   52199:
     min: "29.2.0"
+    max: "29.7.0"
+  53661:
+    min: "29.7.0"
 
 netavark:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
   1191:
-    merged: "1.15.0"
+    max: "1.15.0"
 
 podman:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
@@ -135,6 +128,7 @@ podman:
   # https://github.com/containers/podman/pull/27233 is needed for 130-kill
   # https://github.com/containers/podman/pull/27463 - test/system: Update test to handle new error message from runc 1.3.3
   # https://github.com/containers/podman/pull/27760 - test/system: remove apk from build
+  # https://github.com/containers/podman/pull/27813 - test: Fix --hostuser octal UID test flakiness
   # https://github.com/containers/podman/pull/28133 - test: Use yq for yaml2json instead of PyYAML
   # https://github.com/containers/podman/pull/28151 - test/system: fix pod inspect ordering test leak
   # https://github.com/containers/podman/pull/28266 - Fixes for running the e2e testsuite on architectures other than amd64
@@ -142,56 +136,81 @@ podman:
   # https://github.com/containers/podman/pull/28338 - test: relax rootless runc pid namespace assertion
   # https://github.com/containers/podman/pull/28448 - test/system: Fix 260-sdnotify being silently skipped
   # https://github.com/containers/podman/pull/28603 - test/system: quadlet - rootfs failure on kernel 7.1
+  # https://github.com/containers/podman/pull/28794 - Test fixes/skips for new CI system
+  # https://github.com/containers/podman/pull/28804 - More test fixes for new CI
+  # https://github.com/containers/podman/pull/29380 - test/e2e: accept RESTORE in checkpoint tcp error match
+  # https://github.com/containers/podman/pull/29381 - test/e2e/healthcheck: skip ignore-result test on non-amd64
+  # https://github.com/containers/podman/pull/29690 - test/system: Update test to handle new error message from runc 1.5.0
   21875:
-    merged: "5.0.0"
+    max: "5.0.0"
   24068:
-    merged: "5.3.0"
+    max: "5.3.0"
   25858:
-    merged: "5.5.0"
+    max: "5.5.0"
     min: "5.0.0"
   25918:
-    merged: "5.5.0"
+    max: "5.5.0"
     min: "5.0.0"
   25942:
-    merged: "5.6.0"
+    max: "5.6.0"
   26017:
-    merged: "5.6.0"
+    max: "5.6.0"
     min: "5.0.0"
   26022:
-    merged: "5.6.0"
+    max: "5.6.0"
     min: "5.4.0"
   26947:
-    merged: "5.7.0"
+    max: "5.7.0"
     min: "5.4.0"
   26920:
-    merged: "5.7.0"
+    max: "5.7.0"
   26921:
-    merged: "5.7.0"
+    max: "5.7.0"
   26934:
-    merged: "5.7.0"
+    max: "5.7.0"
   27230:
-    merged: "5.7.0"
+    max: "5.7.0"
   27233:
-    merged: "5.7.0"
+    max: "5.7.0"
   27463:
-    merged: "5.7.0"
+    max: "5.7.0"
   27760:
-    merged: "5.7.0"
+    max: "5.7.0"
+  27813:
+    max: "5.8.0"
   28133:
+    max: "6.0.0"
     min: "5.8.0"
   28151:
+    max: "6.0.0"
     min: "5.8.0"
   28266:
+    max: "6.0.0"
     min: "5.8.0"
   28281:
+    max: "6.0.0"
     min: "5.8.0"
   28338:
-    merged: "5.8.2"
+    max: "5.8.2"
     min: "5.4.0"
   28448:
     min: "5.7.1"
+    max: "6.0.0"
   28603:
+    max: "6.0.0"
     min: "5.4.2"
+  28794:
+    max: "6.0.0"
+    min: "5.4.2"
+  28804:
+    max: "6.0.0"
+    min: "5.4.2"
+  29380:
+    min: "6.0"
+  29381:
+    min: "6.0"
+  29690:
+    min: "6.0"
 
 podman-py:
   # https://github.com/containers/podman-py/pull/623 - Fix pytest flag for rootful test
@@ -203,26 +222,19 @@ podman-py:
 
 runc:
   # https://github.com/opencontainers/runc/pull/4842 - Update busybox:glibc in integration tests to latest builds
-  # https://github.com/opencontainers/runc/pull/5079 - integration: Skip test for new privileges if NoNewPrivs is set
-  # https://github.com/opencontainers/runc/pull/5124 - tests/int: Disable coredumps for SCMP_ACT_KILL tests
-  # https://github.com/opencontainers/runc/pull/5269 - tests/int: fix flake in "resources.unified override
   # https://github.com/opencontainers/runc/pull/5295 - Update busybox:glibc in integration tests to latest (1.38.0) builds
   # https://github.com/opencontainers/runc/pull/5307 - tests/integration: fix seccomp tests on big-endian architectures
   4842:
-    merged: "1.5.0"
+    max: "1.4.3"
     min: "1.3.4"
-  5079:
-    merged: "1.5.0"
-  5124:
-    merged: "1.4.1"
-  5269:
   5295:
+    max: "1.4.3"
   5307:
 
 skopeo:
   # https://github.com/containers/skopeo/pull/2834 - integration: Force amd64 on TestProxyMetadata
   2834:
     min: "1.22.0"
-    merged: "1.23.0"
+    max: "1.23.0"
 
 umoci:

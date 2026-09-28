@@ -99,7 +99,8 @@ sub login_to_console {
     }
 
     my @bootup_needles = is_ipxe_boot ? qw(grub2) : qw(grub2 grub1 prague-pxe-menu);
-    unless (get_var('UPGRADE_AFTER_REBOOT') or is_agama or is_tumbleweed or check_screen(\@bootup_needles, get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST") ? 1 : 180)) {
+    my $check_screen_timer = ((get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST")) or is_disk_image) ? 1 : 180;
+    unless (get_var('UPGRADE_AFTER_REBOOT') or is_agama or is_tumbleweed or check_screen(\@bootup_needles, $check_screen_timer)) {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
@@ -205,8 +206,7 @@ sub login_to_console {
     use_ssh_serial_console;
 
     # Check 64kb page size enabled.
-    if (get_var('KERNEL_64KB_PAGE_SIZE')) {
-        # Verify 64kb page size enabled.
+    if (get_var('KERNEL_64KB_PAGE_SIZE') || check_var('KERNEL_64KB', '1')) {
         record_info('Baremetal kernel cmdline', script_output('cat /proc/cmdline'));
         assert_script_run("dmesg | grep 'Linux version' | grep -- -64kb");
         record_info('INFO', '64kb page size enabled.');
@@ -214,9 +214,11 @@ sub login_to_console {
         # Swap needs to be reinitiated
         my $swap_partition = script_output("swapon | awk '/\\/dev/{print \$1; exit}'");
         record_info('Current swap partition is ', $swap_partition);
-        assert_script_run("swapoff $swap_partition");
-        assert_script_run('swapon --fixpgsz');
-        assert_script_run('getconf PAGESIZE');
+        if ($swap_partition) {
+            assert_script_run("swapoff $swap_partition");
+            assert_script_run('swapon --fixpgsz');
+        }
+        assert_script_run('getconf PAGESIZE | grep -qx 65536');
     }
 
     # double-check xen role for xen host

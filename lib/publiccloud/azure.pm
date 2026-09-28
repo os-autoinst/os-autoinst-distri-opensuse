@@ -15,6 +15,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use mmapi 'get_current_job_id';
 use utils qw(script_retry script_output_retry);
 use publiccloud::azure_client;
+use publiccloud::img_proof qw(run_img_proof);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 
@@ -489,14 +490,14 @@ sub img_proof {
 
     $args{credentials_file} = $credentials_file;
     $args{instance_type} //= 'Standard_A2';
-    $args{user} //= 'azureuser';
+    $args{user} //= $self->provider_client->username;
     $args{provider} //= 'azure';
 
     if (my $parsed_id = $self->parse_instance_id($args{instance})) {
         $args{running_instance_id} = $parsed_id->{vm_name};
     }
 
-    return $self->run_img_proof(%args);
+    return run_img_proof($self, %args);
 }
 
 sub terraform_apply {
@@ -504,8 +505,11 @@ sub terraform_apply {
     $args{vars} //= {};
     my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER");
     my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU");
+    # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
+    my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
     $args{vars}->{offer} = $offer if ($offer);
     $args{vars}->{sku} = $sku if ($sku);
+    $args{vars}->{'storage-account'} = $storage_account if ($storage_account);
 
     return $self->SUPER::terraform_apply(%args);
 }
@@ -518,6 +522,7 @@ sub on_terraform_apply_timeout {
 
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
+    $args{log_name} //= "console";
     my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
     $instance_id =~ s/.*\/(.*)/$1/;
     my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
@@ -535,7 +540,7 @@ sub upload_boot_diagnostics {
     # Wait until the bootlog blob is created
     script_retry("az vm boot-diagnostics get-boot-log-uris $names", delay => 15, retry => 12, die => 1);
 
-    my $asset_path = "/tmp/console.txt";
+    my $asset_path = "/tmp/" . $args{log_name} . ".txt";
     script_run("timeout 110 az vm boot-diagnostics get-boot-log $names | jq -Mr '.' > $asset_path", timeout => 120);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_info("EMPTY", "The console log is empty. `cat $asset_path`:\n" . script_output("cat $asset_path"));
@@ -544,15 +549,17 @@ sub upload_boot_diagnostics {
     }
 }
 
-sub on_terraform_destroy_timeout {
+sub on_terraform_destroy_failure {
     my ($self) = @_;
-    my $out = script_output('terraform state show azurerm_resource_group.openqa-group');
-    if ($out !~ /name\s+=\s+(openqa-[a-z0-9]+)/m) {
+    my $runner = get_var('PUBLIC_CLOUD_TERRAFORM_RUNNER', 'tofu');
+    my $out = script_output("$runner state show azurerm_resource_group.openqa-group");
+    if ($out !~ /name\s+=\s+"([^"]+)"/m) {
         record_info('ERROR', 'Unable to get resource-group:' . $/ . $out, result => 'fail');
-        return;
+        return 0;
     }
     my $resgroup = $1;
     assert_script_run("az group delete --yes --no-wait --name $resgroup");
+    return 1;
 }
 
 sub get_state_from_instance {
@@ -648,6 +655,18 @@ sub query_metadata {
 
     die("Failed to get interface IPs from metadata server") unless length($data);
     return $data;
+}
+
+sub initialize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-beginning");
+    record_info('Logging', 'Initializing logging for Azure instance');
+}
+
+sub finalize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-end");
+    record_info('Logging', 'Finalizing logging for Azure instance');
 }
 
 1;

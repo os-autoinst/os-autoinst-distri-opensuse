@@ -42,12 +42,8 @@ sub run {
         send_key "ctrl-f4";
         wait_still_screen(2);
         if (check_screen("libreoffice-test-$tag")) {
-            record_soft_failure("bsc#1209179 ctrl+f4 can't close libreoffice document");
+            record_info("bsc#1209179 ctrl+f4 can't close libreoffice document");
             assert_and_click("close-document");
-        }
-        if (check_screen('generic-desktop')) {
-            record_soft_failure 'bsc#1196648';
-            $self->libreoffice_start_program('libreoffice');
         }
         $i++;
     }

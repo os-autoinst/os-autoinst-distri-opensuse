@@ -18,21 +18,20 @@ use containers::bats;
 
 my $firewall_backend;
 my $version;
-my $port = 2375;
+my $port = 2376;
+# Note: Remove and assume true when Docker v29.7.x arrives on all SLES versions
+my $has_private_registries = 0;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(docker docker-buildx go1.26 openssl);
+    my @pkgs = qw(docker docker-buildx go1.27 openssl);
     push @pkgs, qw(docker-compose) unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
-    # On SLES 15-SP4 & 15-SP5, dockerd fails with:
-    # invalid TLS configuration: failed to append certificates from PEM file: "/etc/docker/ca.pem"
-    my $tls = is_sle("<15-SP6") ? 0 : 1;
-    $port++ if $tls;
-
-    configure_docker(selinux => 1, tls => $tls);
+    # privateregistry (e2e/compose-env.yaml) is plain HTTP, so the host
+    # dockerd needs to be told to treat it as insecure.
+    configure_docker(selinux => 1, tls => 1, insecure_registries => ["privateregistry:5001"]);
 
     run_command "docker run -d --name registry -p 5000:5000 registry.opensuse.org/opensuse/registry:2";
 
@@ -40,6 +39,8 @@ sub setup {
     run_command 'ln -s /usr /usr/local/go';
 
     run_command "echo 127.0.0.1 registry >> /etc/hosts";
+    run_command "echo 127.0.0.1 privateregistry >> /etc/hosts";
+    run_command "echo 127.0.0.1 tlsregistry >> /etc/hosts";
 
     $version = script_output "docker version --format '{{.Client.Version}}' 2>/dev/null", proceed_on_failure => 1;
     $version =~ s/-ce$//;
@@ -62,8 +63,35 @@ sub setup {
     # Init Docker Swarm
     my $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
     run_command "docker swarm init --advertise-addr $ip_addr" unless ($firewall_backend eq "nftables");
+
+    $has_private_registries = script_run("test -f e2e/testdata/registry/certs/gen-certs.sh") == 0;
+    record_info "private registries", $has_private_registries ? "present" : "not present in this cli checkout";
+
+    my $compose_files = "./e2e/compose-env.yaml";
+    my @compose_services = ("registry");
+
+    if ($has_private_registries) {
+        run_command "sh e2e/testdata/registry/certs/gen-certs.sh";
+
+        run_command "mkdir -p '/etc/docker/certs.d/tlsregistry:5003'";
+        run_command "cp e2e/testdata/registry/certs/ca.crt '/etc/docker/certs.d/tlsregistry:5003/ca.crt'";
+
+        write_sut_file("e2e/compose-env.override.yaml", <<'EOF');
+services:
+  privateregistry:
+    ports:
+      - "5001:5001"
+  tlsregistry:
+    ports:
+      - "5003:5003"
+EOF
+        $compose_files .= ":./e2e/compose-env.override.yaml";
+        push @compose_services, ("privateregistry", "tlsregistry");
+    }
+
     # Init Docker Compose
-    run_command "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose up --build -d registry";
+    run_command "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=$compose_files " .
+      "docker compose up --build -d @compose_services";
 }
 
 sub run {
@@ -85,26 +113,6 @@ sub run {
         "github.com/docker/cli/e2e/global::TestTLSVerify",
     );
     push @xfails, (
-        # NOTE: This list can be removed when we upgrade to Docker v29
-        # Expected failures from Docker Content Trust (notary is not supported)
-        "github.com/docker/cli/e2e/container::TestCreateWithContentTrust",
-        "github.com/docker/cli/e2e/container::TestRunWithContentTrust",
-        "github.com/docker/cli/e2e/container::TestTrustedCreateFromBadTrustServer",
-        "github.com/docker/cli/e2e/container::TestTrustedCreateFromUnreachableTrustServer",
-        "github.com/docker/cli/e2e/container::TestTrustedRunFromBadTrustServer",
-        "github.com/docker/cli/e2e/container::TestUntrustedRun",
-        "github.com/docker/cli/e2e/image::TestPullWithContentTrust",
-        "github.com/docker/cli/e2e/image::TestPullWithContentTrustUsesCacheWhenNotaryUnavailable",
-        "github.com/docker/cli/e2e/image::TestPushWithContentTrust",
-        "github.com/docker/cli/e2e/image::TestPushWithContentTrustExistingTag",
-        "github.com/docker/cli/e2e/image::TestPushWithContentTrustReleasesDelegationOnly",
-        "github.com/docker/cli/e2e/image::TestPushWithContentTrustSignsAllFirstLevelRolesWeHaveKeysFor",
-        "github.com/docker/cli/e2e/image::TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths",
-        "github.com/docker/cli/e2e/image::TestTrustedBuild",
-        "github.com/docker/cli/e2e/image::TestTrustedBuildUntrustedImage",
-        "github.com/docker/cli/e2e/plugin::TestInstallWithContentTrustUntrusted",
-    ) if (version->parse(numeric_version($version)) < version->parse("29.0.0"));
-    push @xfails, (
         # These tests fail on SLES 15-SP7 due to SUSE patch
         "github.com/docker/cli/e2e/image::TestBuildFromContextDirectoryWithTag",
     ) if (is_sle("<16"));
@@ -119,7 +127,7 @@ sub run {
     ) if ($firewall_backend eq "nftables");
 
     run_timeout_command "$env gotestsum --junitfile cli.xml ./e2e/... -- &> cli.txt", no_assert => 1, timeout => 3000;
-    upload_logs "cli.txt";
+    upload_logs "cli.txt", failok => 1;
     die "Testsuite failed" if script_run("test -s cli.xml");
     patch_junit "docker", $version, "cli.xml", @xfails;
     parse_extra_log(XUnit => "cli.xml", timeout => 180);
@@ -127,7 +135,9 @@ sub run {
 
 sub cleanup {
     script_run "docker rm -vf registry";
-    script_run "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose down -v --rmi all";
+    my $compose_files = "./e2e/compose-env.yaml";
+    $compose_files .= ":./e2e/compose-env.override.yaml" if $has_private_registries;
+    script_run "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=$compose_files docker compose down -v --rmi all";
     script_run "docker swarm leave -f" unless ($firewall_backend eq "nftables");
     cleanup_docker;
 }

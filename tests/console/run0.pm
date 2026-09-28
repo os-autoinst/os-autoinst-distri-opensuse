@@ -8,7 +8,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(systemctl zypper_call);
+use utils qw(systemctl zypper_call write_sut_file);
 
 sub run {
     select_serial_terminal;
@@ -47,14 +47,13 @@ sub run {
     # Privilege escalation
     zypper_call 'in sudo expect';
     my $polkit_config_path = '/etc/polkit-1/rules.d/90-run0-auth.rules';
-    my $polkit_config = <<'EOF';
-polkit.addRule(function(action, subject) {
+    my $polkit_config = 'polkit.addRule(function(action, subject) {
     if (action.id == "org.freedesktop.systemd1.manage-units") {
         return polkit.Result.AUTH_ADMIN_KEEP;
     }
 });
-EOF
-    assert_script_run("echo '$polkit_config' > $polkit_config_path");
+';
+    write_sut_file($polkit_config_path, $polkit_config);
     systemctl('restart polkit');
     select_console('user-console');
     validate_script_output(qq{expect -c 'spawn "run0 echo I_Am_Groot"; expect "Password:" {send "$testapi::password\\r"}; interact'}, sub { $_ =~ m/I_Am_Groot/ }, proceed_on_failure => 1);

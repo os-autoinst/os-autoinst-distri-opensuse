@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use Test::Warnings;
+use Test::MockModule;
 
 use testapi qw(check_var get_var set_var);
 
@@ -28,6 +29,39 @@ subtest 'check_version' => sub {
     ok !version_utils::check_version($_, '10.5.1'), "check $_, 10.5.1" for qw(=10.4.9 <10.5.0);
     ok version_utils::check_version('>=10.4', '10.10'), "check that poo#120918 doesn't happen";
     ok version_utils::check_version('>=10.4', '10.10-mariadb'), "check that poo#120918 doesn't happen";
+};
+
+subtest 'is_agama' => sub {
+    use version_utils 'is_agama';
+
+    ok !is_agama, "check !is_agama by default";
+
+    set_var('AGAMA', 1);
+    ok is_agama, "check is_agama with AGAMA=1";
+    set_var('AGAMA', undef);
+
+    set_var('INST_AUTO', 1);
+    ok is_agama, "check is_agama with INST_AUTO=1";
+    set_var('INST_AUTO', undef);
+
+    set_var('FLAVOR', 'agama');
+    ok is_agama, "check is_agama with FLAVOR=agama";
+
+    set_var('FLAVOR', 'agama-installer');
+    ok is_agama, "check is_agama with FLAVOR=agama-installer";
+
+    set_var('FLAVOR', 'online-installer');
+    ok !is_agama, "check !is_agama with FLAVOR=online-installer without opensuse";
+
+    set_var('DISTRI', 'opensuse');
+    ok is_agama, "check is_agama with FLAVOR=online-installer and DISTRI=opensuse";
+
+    set_var('FLAVOR', 'offline-install');
+    ok is_agama, "check is_agama with FLAVOR=offline-install and DISTRI=opensuse";
+
+    set_var('FLAVOR', 'Server-DVD');
+    ok !is_agama, "check !is_agama with FLAVOR=Server-DVD and DISTRI=opensuse";
+
 };
 
 subtest 'is_microos' => sub {
@@ -230,9 +264,9 @@ subtest 'bootloader_tests' => sub {
     ok get_default_bootloader eq 'systemd-boot', "Microos upgrades on UEFI is systemd-boot";
     set_var('UPGRADE', 0);
 
-    set_var('WSL_VERSION', '10');
+    set_var('FLAVOR', 'WSL');
     ok get_bootloader eq 'wsl', "WSL uses a custom bootloader";
-    set_var('WSL_VERSION', undef);
+    set_var('FLAVOR', 'Server-DVD');
 
     set_var('BOOTLOADER', 'does-not-exist');
     dies_ok { get_default_bootloader } "Bootloader variable set, non existant bootloader, causes failure";
@@ -249,6 +283,72 @@ subtest 'is_staging tests' => sub {
     ok is_staging, "foo is a staging project";
     isnt is_staging('bar'), 0, "bar is not this staging";
     is is_staging('foo'), 1, "foo is the current staging";
+};
+
+subtest 'is_ltss' => sub {
+    use version_utils 'is_ltss';
+    my $my_ver = Test::MockModule->new('version_utils', no_auto => 1);
+    my $my_fake_today;
+
+    $my_ver->redefine(strftime => sub { return $my_fake_today });
+
+    # Test 1: SLE 15-SP6 and older are always LTSS (regardless of date)
+    set_var('DISTRI', 'sle');
+    set_var('VERSION', '15-SP6');
+    $my_fake_today = '20260702';    # Today - way before LTSS
+    ok is_ltss(), "SLE 15-SP6 is LTSS even before lifecycle date";
+
+    set_var('VERSION', '15-SP5');
+    $my_fake_today = '20260702';
+    ok is_ltss(), "SLE 15-SP5 is LTSS";
+
+    set_var('VERSION', '12-SP5');
+    $my_fake_today = '20260702';
+    ok is_ltss(), "SLE 12-SP5 is LTSS";
+
+    # Test 2: Future versions before their lifecycle date
+    set_var('VERSION', '15-SP7');
+    $my_fake_today = '20310730';    # One day before 20310731
+    ok !is_ltss(), "SLE 15-SP7 is not yet LTSS (one day before)";
+
+    set_var('VERSION', '16.0');
+    $my_fake_today = '20271129';    # One day before 20271130
+    ok !is_ltss(), "SLE 16.0 is not yet LTSS (one day before)";
+
+    # Test 3: Future versions on their lifecycle date
+    set_var('VERSION', '15-SP7');
+    $my_fake_today = '20310731';    # Exactly on lifecycle date
+    ok is_ltss(), "SLE 15-SP7 is LTSS on lifecycle date";
+
+    set_var('VERSION', '16.0');
+    $my_fake_today = '20271130';    # Exactly on lifecycle date
+    ok is_ltss(), "SLE 16.0 is LTSS on lifecycle date";
+
+    # Test 4: Future versions after their lifecycle date
+    set_var('VERSION', '15-SP7');
+    $my_fake_today = '20310801';    # One day after 20310731
+    ok is_ltss(), "SLE 15-SP7 is LTSS (one day after)";
+
+    set_var('VERSION', '16.1');
+    $my_fake_today = '20321201';    # After 20281130
+    ok is_ltss(), "SLE 16.1 is LTSS (years after)";
+
+    # Test 5: Undefined SLE version should die
+    set_var('VERSION', '42.0');
+    dies_ok { is_ltss() } "SLE 42.0 (undefined version) should die";
+
+    # Test 6: openSUSE products return false (not LTSS)
+    set_var('DISTRI', 'opensuse');
+    set_var('VERSION', 'Tumbleweed');
+    ok !is_ltss(), "Tumbleweed is not LTSS";
+
+    set_var('DISTRI', 'microos');
+    set_var('VERSION', '6.0');
+    ok !is_ltss(), "MicroOS is not LTSS";
+
+    # Cleanup
+    set_var('DISTRI', undef);
+    set_var('VERSION', undef);
 };
 
 done_testing;

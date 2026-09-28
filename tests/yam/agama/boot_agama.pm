@@ -24,10 +24,13 @@ use bootloader_zkvm;
 use bootloader_pvm;
 
 sub prepare_boot_params {
-    my @params = ();
-
     # add mandatory boot params
-    push @params, 'console=tty', 'console=' . (is_x86_64 ? 'ttyS0' : (is_ppc64le ? 'hvc0' : 'ttyAMA0'));
+    my $serial_dev = get_var('SERIALDEV') // 'ttyS0';
+    my $has_net_config_tui = get_var('EXTRABOOTPARAMS', '') =~ /live\.net_config_tui=1/;
+
+    my @params = $has_net_config_tui
+      ? ("console=$serial_dev console=tty0")
+      : ('console=tty', "console=$serial_dev");
     push @params, 'kernel.softlockup_panic=1';
     push @params, "live.password=$testapi::password";
 
@@ -47,7 +50,8 @@ sub prepare_boot_params {
               expand_agama_profile($inst_auto);
         }
         set_var('INST_AUTO', $profile_url);
-        push @params, "inst.auto=\"$profile_url\"", 'inst.finish=stop';
+        push @params, "inst.auto=\"$profile_url\"";
+        push @params, map { "inst.finish=$_" } grep { $_ && !get_var('INST_FINISH_DISABLED') } (get_var('INST_FINISH') || 'stop');
     }
 
     # add register url
@@ -74,6 +78,25 @@ sub prepare_boot_params {
     push @params, split ' ', trim(parse_dud_parameter(get_var('INST_DUD'))) if get_var('INST_DUD');
 
     return @params;
+}
+
+sub validate_ntui_network_configuration {
+    my $ntui_current_network_configuration = $testapi::distri->get_ntui_current_network_configuration();
+    my $ntui_edit_a_connection = $testapi::distri->get_ntui_edit_a_connection();
+    my $ntui_http_proxy_address = $testapi::distri->get_ntui_http_proxy_address();
+    my $ntui_connection_test_result = $testapi::distri->get_ntui_connection_test_result();
+
+    $ntui_current_network_configuration->expect_is_shown();
+    $ntui_current_network_configuration->edit();
+    $ntui_edit_a_connection->expect_is_shown();
+    $ntui_edit_a_connection->quit();
+    $ntui_http_proxy_address->expect_is_shown();
+    $ntui_http_proxy_address->ok();
+    $ntui_current_network_configuration->test_connection();
+    $ntui_connection_test_result->expect_is_shown();
+    $ntui_connection_test_result->ok();
+    $ntui_current_network_configuration->expect_is_shown();
+    $ntui_current_network_configuration->continue();
 }
 
 sub run {
@@ -114,6 +137,9 @@ sub run {
     $grub_entry_edition->boot();
 
     return if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
+
+    validate_ntui_network_configuration if (get_var('EXTRABOOTPARAMS', '') =~ /live\.net_config_tui=1/);
+
     if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
         wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
         return;

@@ -6,13 +6,10 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
-use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
-
-    select_serial_terminal();
 
     record_info('Kernel Parameters', "Validate kernel parameters: '$krnlcmdline'");
     assert_script_run("grep -q '$krnlcmdline' /proc/cmdline");

@@ -38,6 +38,7 @@ schedule:
     - console/zypper_info
     - console/snapper_zypp
     - console/zypper_extend
+    - console/ds389_advanced_functional
     - console/pam
     - console/shar
     - console/update_alternatives
@@ -55,7 +56,7 @@ schedule:
     - console/gpg
     - console/rsync
     - console/shells
-    - console/sudo
+    - console/oqa_agnostic/sudo_agnostic
     - console/dstat
     - console/pciutils
     - console/mdadm
@@ -89,3 +90,5 @@ schedule:
     - console/systemd_rpm_macros
     - console/journalctl
     - console/tar
+    - console/sevenzip
+    - console/opencode

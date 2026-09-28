@@ -46,6 +46,7 @@ sub run {
 
         my $mail_subject = $self->tb_send_message('imap', $account);
         $self->tb_check_email($mail_subject);
+        $self->tb_delete_email;
 
         # exit Thunderbird
         send_key "ctrl-q";

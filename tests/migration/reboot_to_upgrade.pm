@@ -44,8 +44,9 @@ sub run {
     assert_script_run "sync", 300;
     power_action('reboot', textmode => 1, keepconsole => 1);
 
-    # After remove -f for reboot, we need wait more time for boot menu and avoid exception during reboot caused delay to boot up.
-    assert_screen('inst-bootmenu', 300) unless (is_s390x || is_pvm);
+    # openSUSE Agama based install media don't have a "Boot from Hard Disk", SLE 16 still does
+    my $tag = (is_opensuse && is_agama) ? get_default_bootloader() : 'inst-bootmenu';
+    assert_screen($tag, 300) unless (is_s390x || is_pvm);
 
     # we need to stop_grub_timeout after grub shows up or it will boot into HDD sometimes.
     # for x86_64 we need to make sure the start item is installation for needle matching.

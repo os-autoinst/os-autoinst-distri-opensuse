@@ -11,7 +11,7 @@ schedule:
   - console/unzip
   - console/rsync
   - console/shells
-  - console/sudo
+  - console/oqa_agnostic/sudo_agnostic
   - console/dstat
   - x11/evolution/evolution_prepare_servers
   - console/supportutils
@@ -51,6 +51,8 @@ conditional_schedule:
         - console/journald_fss
         - console/valgrind
         - console/valkey
+        - console/sevenzip
+        - console/ds389_advanced_functional
       15-SP7:
         - console/pkcon
         - '{{fwupd}}'
@@ -69,6 +71,8 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
         - console/valkey
+        - console/sevenzip
+        - console/ds389_advanced_functional
       15-SP6:
         - console/pkcon
         - '{{fwupd}}'
@@ -87,6 +91,8 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
         - console/valkey
+        - console/sevenzip
+        - console/ds389_advanced_functional
       15-SP5:
         - console/pkcon
         - '{{fwupd}}'
@@ -104,6 +110,8 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
+        - console/sevenzip
+        - console/ds389_advanced_functional
       15-SP4:
         - console/pkcon
         - '{{fwupd}}'
@@ -121,6 +129,7 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
+        - console/ds389_advanced_functional
       15-SP3:
         - console/curl_ipv6
         - console/wget_ipv6

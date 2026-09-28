@@ -52,14 +52,16 @@ sub run {
     my $chdir = qesap_get_terraform_dir(provider => $provider_setting);
     assert_script_run("terraform -chdir=$chdir output");
     my @remote_cmd = (
-        'pwd', 'uname -a',
-        'cat /etc/os-release',
-        'sudo SUSEConnect --status-text',
-        'zypper -n ref -s -f', 'zypper -n lr',
-        'zypper -n in -f -y vim',
-        'zypper -n in -y ClusterTools2'
+        ['pwd', 60],
+        ['uname -a', 60],
+        ['cat /etc/os-release', 60],
+        ['sudo SUSEConnect --status-text', 120],
+        ['zypper -n ref -s -f', 600],
+        ['zypper -n lr', 60],
+        ['zypper -n in -f -y vim', 300],
+        ['zypper -n in -y ClusterTools2', 300],
     );
-    qesap_ansible_cmd(cmd => $_, provider => $provider_setting, timeout => 300) for @remote_cmd;
+    qesap_ansible_cmd(cmd => $_->[0], provider => $provider_setting, timeout => $_->[1]) for @remote_cmd;
 }
 
 sub post_fail_hook {

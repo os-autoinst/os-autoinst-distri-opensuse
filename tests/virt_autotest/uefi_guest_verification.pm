@@ -28,6 +28,9 @@ sub run_test {
 
     $self->check_guest_bootloader($_) foreach (keys %virt_autotest::common::guests);
     $self->check_guest_bootcurrent($_) foreach (keys %virt_autotest::common::guests);
+    if (check_var('KERNEL_64KB', '1')) {
+        $self->check_guest_kernel_64kb($_) foreach (keys %virt_autotest::common::guests);
+    }
 
     # No machine type on aarch64 supports power management, or secure boot
     return $self if (is_aarch64);
@@ -48,6 +51,17 @@ sub run_test {
     else {
         record_info("SLES that is eariler than 15 does not support power management functionality with uefi", "Skip check_guest_pmsuspend_enabled");
     }
+    return $self;
+}
+
+sub check_guest_kernel_64kb {
+    my ($self, $guest_name) = @_;
+
+    record_info("Guest kernel-64kb verification", "Checking guest $guest_name");
+    execute_over_ssh(
+        address => $guest_name,
+        command => 'echo guest:; hostname; echo kernel:; uname -r; echo pagesize:; getconf PAGESIZE; rpm -q kernel-64kb && getconf PAGESIZE | grep -qx 65536',
+        timeout => 180);
     return $self;
 }
 
@@ -105,7 +119,14 @@ sub regen_efi_secret_key {
 sub check_guest_pmsuspend_enabled {
     my $self = shift;
 
+    # Function-level skip for all LTSS hosts to avoid bsc#1270215 deadlocks
+    if (is_sle('=15-SP4') || is_sle('=15-SP5') || is_sle('=15-SP6')) {
+        record_info("Skip PM Suspend", "Skipping dompmsuspend tests entirely on LTSS hosts (15-SP4/5/6) as per LTP updates and developer feedback.");
+        return $self;
+    }
+
     $self->do_guest_pmsuspend($_, 'mem') foreach (keys %virt_autotest::common::guests);
+
     if (is_kvm_host) {
         foreach (keys %virt_autotest::common::guests) {
             if ((is_sle('>=15') and $_ =~ /12-sp5/img) or is_transactional_guest(address => $_)) {

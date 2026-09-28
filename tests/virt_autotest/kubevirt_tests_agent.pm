@@ -95,6 +95,7 @@ kubelet-arg:
   - cpu-manager-policy=static
   - kube-reserved=cpu=500m
   - system-reserved=cpu=500m
+nonroot-devices: true
 __END
 (exit \$?)");
 

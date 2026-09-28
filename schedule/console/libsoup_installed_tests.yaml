@@ -1,0 +1,9 @@
+name: libsoup_installed_tests
+description: >
+  Run upstream installed tests for libsoup-3.0 via
+  gnome-desktop-testing-runner.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - console/oqa_agnostic/libsoup

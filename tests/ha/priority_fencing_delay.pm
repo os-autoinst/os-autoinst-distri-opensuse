@@ -11,9 +11,10 @@ use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;
-use utils qw(zypper_call reconnect_mgmt_console);
+use utils qw(reconnect_mgmt_console);
 use Utils::Backends qw(is_pvm);
 use version_utils qw(is_sle);
+use package_utils qw(install_package);
 
 sub stonith_iptables {
     my ($self, $count, $cluster) = @_;
@@ -52,7 +53,7 @@ sub run {
     prepare_console_for_fencing;
 
     # iptables is not installed in SLE 16 by default
-    zypper_call 'in iptables' if is_sle('>=16');
+    install_package('iptables', trup_apply => 1) if is_sle('>=16');
 
     # Configure a master resource on node1 for getting a heavier weight for the priority fencing feature
     if (is_node(1)) {

@@ -19,10 +19,11 @@ sub run {
 
     # Create all needed barrier
     barrier_create('BARRIER_K8S_VALIDATION', $barriers_number);
-    barrier_create('NETWORK_SETUP_DONE', $barriers_number);
-    barrier_create('NETWORK_CHECK_DONE', $barriers_number);
     barrier_create('FILES_READY', $barriers_number);
+    barrier_create('NETWORK_CHECK_DONE', $barriers_number);
+    barrier_create('NETWORK_SETUP_DONE', $barriers_number);
     barrier_create('TEST_FRAMEWORK_DONE', $barriers_number);
+    barrier_create('WAIT_SYSTEMD_RUNNING', $barriers_number);
 
     # Create a final mutex to signal all jobs that barriers are ready to use
     # Must be used with mutex_wait() before any barrier_wait() calls in the jobs

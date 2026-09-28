@@ -12,6 +12,9 @@ use publiccloud::instance;
 
 use sles4sap::crash;
 
+my $qesap_utils_mock = Test::MockModule->new('sles4sap::qesap::utils', no_auto => 1);
+$qesap_utils_mock->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+
 subtest '[crash_deploy_azure]' => sub {
     set_var('WORKER_ID', 1);
     my @calls;
@@ -20,6 +23,10 @@ subtest '[crash_deploy_azure]' => sub {
     $crash->redefine(az_vm_wait_running => sub { push @calls, 'az_vm_wait_running'; return; });
     my $azure = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azure->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azure->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azure->redefine(script_output => sub {
+            return 'out.json' if grep /az.json/, $_[0];
+            return '"Arlecchino"' if grep /out.json/, $_[0]; });
 
     crash_deploy_azure(
         region => 'AmanitaMuscaria',
@@ -31,6 +38,33 @@ subtest '[crash_deploy_azure]' => sub {
     ok((any { /az vm create/ } @calls), 'There is one VM create');
     ok((any { /az_vm_wait_running/ } @calls), 'az_vm_wait_running called');
     ok((all { !/--resource-group/ || /--resource-group crashRussulaEmetica/ } @calls), 'All az calls use correct resource group');
+};
+
+subtest '[crash_deploy_azure] with PUBLIC_CLOUD_TAGS' => sub {
+    set_var('WORKER_ID', 1);
+    my @calls;
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    $crash->redefine(az_vm_wait_running => sub { push @calls, 'az_vm_wait_running'; return; });
+    my $azure = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azure->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azure->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azure->redefine(script_output => sub {
+            return 'out.json' if grep /az.json/, $_[0];
+            return '"Arlecchino"' if grep /out.json/, $_[0]; });
+
+    set_var('PUBLIC_CLOUD_TAGS', 'key1=value2,key2=value2,key3,key4,openqa_var_job_id');
+    crash_deploy_azure(
+        region => 'AmanitaMuscaria',
+        os => 'CortinariusCinnabarinus',
+        address_range => '10.0.0.0/24',
+        subnet_range => '10.0.0.0/24');
+    set_var('PUBLIC_CLOUD_TAGS', undef);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az vm create/ } @calls), 'There is one VM create');
+    ok((any { /az_vm_wait_running/ } @calls), 'az_vm_wait_running called');
+    ok((any { /--tags key1=value2 key2=value2 key3=1 key4=1 openqa_var_job_id=RussulaEmetica/ } @calls), 'Tags are properly formatted and passed to az commands');
 };
 
 subtest '[crash_deploy_aws]' => sub {
@@ -308,7 +342,28 @@ subtest '[crash_system_ready]' => sub {
 subtest '[crash_softrestart]' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
     my $mock_pc = Test::MockObject->new();
-    $mock_pc->set_true('wait_for_ssh');
+    # 0 means the ssh port became unreachable, i.e. the instance went down as expected
+    $mock_pc->mock('wait_for_ssh_unreachable', sub { return 0; });
+    $mock_pc->mock('wait_for_ssh', sub { return; });
+    my @calls;
+    $mock_pc->mock('ssh_assert_script_run', sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return; });
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    crash_softrestart(instance => $mock_pc);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /shutdown.*\-r/ } @calls), 'Shutdown command');
+};
+
+subtest '[crash_softrestart] ssh never unreachable' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    my $mock_pc = Test::MockObject->new();
+    # non-zero means the ssh port is still reachable after the timeout, i.e. the instance never went down
+    $mock_pc->mock('wait_for_ssh_unreachable', sub { return 1; });
+    $mock_pc->mock('wait_for_ssh', sub { return; });
     my @calls;
     $mock_pc->mock('ssh_assert_script_run', sub {
             my ($self, %args) = @_;

@@ -1,4 +1,4 @@
-# Copyright 2019-2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test IMA appraisal using digital signatures
@@ -25,7 +25,16 @@ sub run {
     my $mok_priv = '/root/certs/key.asc';
     my $cert_der = '/root/certs/ima_cert.der';
 
-    add_grub_cmdline_settings("ima_appraise=fix", update_grub => 1);
+    my ($kver) = script_output('uname -r') =~ /(\d+\.\d+)\.\d+-*/;
+    record_info('Kernel version', $kver);
+    my $tcb_cmdline;
+    if ($kver lt 4.13) {
+        $tcb_cmdline = 'ima_appraise_tcb';
+    } else {
+        $tcb_cmdline = 'ima_policy=appraise_tcb';
+    }
+
+    add_grub_cmdline_settings("ima_appraise=fix $tcb_cmdline", update_grub => 1);
     power_action("reboot", textmode => 1);
     handle_secureboot($self, 'disable');
     select_serial_terminal;

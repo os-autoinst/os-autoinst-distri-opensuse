@@ -5,34 +5,70 @@
 # Maintainer: QE Security <none@suse.de>
 
 use Mojo::Base 'selinuxtest';
-use power_action_utils "power_action";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 
+sub fixfiles_restore_deliberate {
+    my ($self) = @_;
+
+    my $test_file = '/root/selinux_fixfiles_test';
+
+    # Create the test file directly in its final location so SELinux assigns
+    # the policy-correct context for /root immediately on creation.
+    assert_script_run("touch $test_file");
+
+    # Capture the correct context empirically; this is the ground truth the
+    # policy assigns to files in /root, whatever type name the active policy uses.
+    my $fcontext_post = script_output("stat -c %C $test_file");
+    my ($type_post) = $fcontext_post =~ m{:([^:]+):};
+    record_info('Correct context', "Policy-correct context for $test_file: $fcontext_post");
+
+    # Deliberately mislabel the file with a wrong type using chcon.
+    # tmp_t is a well-known type that is never correct for files in /root.
+    my $type_pre = 'tmp_t';
+    assert_script_run("chcon -t $type_pre $test_file");
+    record_info('Mislabeled', "Deliberately applied wrong SELinux type '$type_pre' to $test_file");
+
+    # Sanity check: confirm the file now carries the wrong context.
+    validate_script_output("stat -c %C $test_file", sub { m/:$type_pre:/ });
+
+    # Test `fixfiles restore`: relabel the file and verify the context transition
+    record_info('fixfiles restore', "Restoring context of $test_file from '$type_pre' to '$type_post'");
+    $self->fixfiles_restore($test_file, $type_pre, $type_post);
+
+    # Test `fixfiles verify/check`: confirm the file is no longer reported as mislabeled
+    for my $task (qw(verify check)) {
+        my $script_output = script_output("fixfiles $task $test_file", proceed_on_failure => 1);
+        record_info("fixfiles $task", $script_output || 'No mislabeled files reported');
+        die "fixfiles $task still reports $test_file as mislabeled: $script_output"
+          if ($script_output =~ m/\Q$test_file\E/);
+    }
+
+    assert_script_run("rm $test_file");
+}
+
+sub system_scan {
+    my ($self) = @_;
+
+    my $file_output = $selinuxtest::file_output;
+    assert_script_run("fixfiles check > $file_output 2>&1", timeout => 300);
+    my $mislabeled = script_output("grep -i 'Would relabel' $file_output || true");
+    if ($mislabeled) {
+        record_soft_failure("bsc#1270243 - Mislabeled system files detected:\n\n$mislabeled");
+    } else {
+        record_info('System scan', 'No mislabeled system files found');
+    }
+    assert_script_run("rm $file_output");
+}
+
 sub run {
     my ($self) = shift;
-    my $file_output = $selinuxtest::file_output;
 
     select_serial_terminal;
 
-    # `fixfiles check` prints any incorrect file context labels
-    assert_script_run("fixfiles check > $file_output 2>&1", timeout => 300);
-
-    # pick up a sample file to check the 'restore' feature
-    my $last_line = script_output("grep -i 'Would relabel' $file_output | tail -1");
-    my ($file_name, $fcontext_pre, $fcontext_post) = $last_line =~ m{^Would relabel\s+(.+?)\s+from\s+(\S+)\s+to\s+(\S+)$};
-
-    # test `fixfiles restore`: run fixfiles restore on the test file and check the results
-    $self->fixfiles_restore($file_name, $fcontext_pre, $fcontext_post);
-
-    # test `fixfiles verify/check`: to double confirm, there should be nothing to do with $file_name
-    for my $task (qw(verify check)) {
-        my $script_output = script_output("fixfiles $task $file_name", proceed_on_failure => 1);
-        die "$task $file_name, it is not well restored: $script_output" if ($script_output =~ m/$file_name/);
-    }
-    # cleanup
-    assert_script_run "rm $file_output";
+    $self->fixfiles_restore_deliberate();
+    $self->system_scan();
 }
 
 1;

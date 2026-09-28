@@ -1,0 +1,56 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: OQS Provider OpenSSL
+# desc: >
+#   Verifies that the OQS provider integrates with OpenSSL for post-quantum
+#   key generation, signing, and signature verification using at least one
+#   of the expected algorithms (mayo, frodo, bikel, falcon).
+# steps:
+#   - 1. Install an OpenSSL config file that activates the OQS provider.
+#   - 2. Verify that at least one expected algorithm is listed.
+#   - 3. Generate a keypair with the selected algorithm.
+#   - 4. Sign a test message and verify the signature.
+# requires: the openssl and oqs-provider packages must already be installed
+# author: <mmilian@suse.de>
+# maintainer: QE Security <none@suse.de>
+# expected: all OQS key operations succeed
+# platform: SLE15SP4+, SLE16+, Tumbleweed
+# tags: security oqs pqc post-quantum openssl
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_oqs_provider.py oqs-openssl.cnf)
+
+handle_args "$0" "$@"
+
+# Show what was actually downloaded into the test directory, so a missing or
+# truncated TEST_FILES entry is obvious in the serial log.
+echo "--- Test directory: $PWD ---"
+ls -l
+echo "----------------------------"
+
+# Installing openssl and oqs-provider is the caller's job: under openQA the wrapper module
+# tests/security/oqa_agnostic/oqs_provider_openssl.pm does it, a standalone run is expected
+# to have them in place already.
+# Install the OpenSSL config that loads the OQS provider alongside the default one.
+CONF_FILE='/etc/ssl/oqs-openssl.cnf'
+install -m 0644 oqs-openssl.cnf "$CONF_FILE"
+export OPENSSL_CONF="$CONF_FILE"
+
+echo "--- $CONF_FILE ---"
+cat "$CONF_FILE"
+echo "------------------"
+
+set +e
+pytest -v -s test_oqs_provider.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ]; then
+    exit 0
+fi
+exit $rc

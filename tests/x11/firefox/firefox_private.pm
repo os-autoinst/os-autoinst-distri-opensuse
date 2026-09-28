@@ -24,7 +24,7 @@ sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
 
-    wait_still_screen 1;
+    wait_still_screen 1, 2;
     send_key "ctrl-shift-p";
     assert_screen 'firefox-private-browsing';
     $self->firefox_open_url('facebook.com', assert_loaded_url => 'firefox-private-facebook');

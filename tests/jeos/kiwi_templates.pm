@@ -20,6 +20,9 @@ sub run {
         $rpm = 'kiwi-templates-SLES15-JeOS';
     } elsif (is_leap('<=15.4') || is_sle('<15-SP4')) {
         $rpm = 'kiwi-templates-JeOS';
+    } elsif (is_leap('=16.0')) {
+        record_soft_failure('boo#1268059: kiwi-templates-Minimal RPM not published in repos');
+        return;
     } else {
         $rpm = 'kiwi-templates-Minimal';
     }

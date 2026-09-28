@@ -146,8 +146,13 @@ sub process_reboot {
             }
             assert_screen 'grub2', 300;
             wait_screen_change { send_key 'ret' };
+            assert_screen 'linux-login', 400;
         }
-        assert_screen 'linux-login', 200;
+        else {
+            #Need to wait 3s to start tty6 service refer bsc#1269251
+            assert_screen 'linux-login', 400;
+            wait_still_screen(3);
+        }
 
         # Login & clear login needle
         select_console 'root-console';
@@ -156,7 +161,11 @@ sub process_reboot {
     }
 
     # Switch to the previous console
-    select_console $prev_console;
+    # Skip if already on root-console: after a soft reboot select_console 'root-console' was
+    # already called above (line 158) and calling it again triggers a race condition on aarch64
+    # where the tty is not yet fully initialised, causing a "no candidate needle" failure.
+    # See https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/25771 and poo#202980.
+    select_console $prev_console unless ($prev_console eq 'root-console');
 }
 
 # Reboot if there's a diff between the current FS and the new snapshot
@@ -174,6 +183,9 @@ sub check_reboot_changes {
     # If changes are expected check that default subvolume changed
     die "Error during diff" if $change_happened > 1;
     die "Change expected: $change_expected, happened: $change_happened" if $change_expected != $change_happened;
+
+    # https://progress.opensuse.org/issues/204552
+    assert_script_run 'time sync' if check_var('ENCRYPTED_IMAGE', 1);
 
     # Reboot into new snapshot
     process_reboot(trigger => 1) if $change_happened;

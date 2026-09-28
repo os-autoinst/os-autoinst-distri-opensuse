@@ -79,7 +79,7 @@ sub run {
     $instance->ssh_script_run(
         cmd => 'sudo su -c "echo b > /proc/sysrq-trigger &"',
         timeout => 10,
-        ignore_timeout_failure => 1,
+        apply_graceful_timeout => 1,
         ssh_opts => '-E /var/tmp/ssh_sut.log -fn -o ServerAliveInterval=2',
         username => $username);
 

@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_sle);
 use Utils::Backends 'has_ttys';
 use x11utils 'turn_off_gnome_suspend';
 
@@ -37,7 +38,8 @@ sub verify_default_keymap_textmode {
         select_console($tty{console});
     }
     else {
-        send_key('alt-f3');
+        # Check tty1, which is the initial console set up by kernel and initrd
+        send_key('alt-f1');
         # remote backends can not provide a "not logged in console" so we use
         # a cleared remote terminal instead
         assert_screen(has_ttys() ? 'linux-login' : 'cleared-console');

@@ -29,12 +29,8 @@ sub check_k3s {
     assert_script_run('uname -a');
     assert_script_run('test -e /etc/rancher/k3s/k3s.yaml');
     if (script_run('k3s check-config | tee /tmp/k3s-config.txt') != 0) {
-        if (script_run('test $(grep -cE "CONFIG_CGROUP_(CPUACCT|DEVICE|FREEZER).*missing \(fail\)" /tmp/k3s-config.txt) -eq 3') == 0) {
-            record_soft_failure("gh#k3s-io/k3s#11676", "k3s check-config fails on pure cgroups v2 systems without legacy controllers");
-        } else {
-            upload_logs('/tmp/k3s-config.txt');
-            die "k3s check-config failed";
-        }
+        upload_logs('/tmp/k3s-config.txt');
+        die "k3s check-config failed";
     }
     validate_script_output('k3s kubectl config get-clusters', qr/default/);
     validate_script_output('k3s kubectl config get-users', qr/default/);
@@ -112,7 +108,6 @@ sub install_k3s {
     if (get_var('K3S_INSTALL_UPSTREAM') || (is_sle || is_leap || is_sle_micro || is_leap_micro)) {
         if (is_tumbleweed && !is_microos) {
             zypper_call('in k3s-selinux');
-            record_soft_failure("gh#k3s-io/k3s#10876 - Support selinux on Tumbleweed");
         }
         my $curl_opts = "-sfL --retry 3 --retry-delay 60 --retry-max-time 180";
         assert_script_run("curl $curl_opts https://get.k3s.io -o install_k3s.sh");

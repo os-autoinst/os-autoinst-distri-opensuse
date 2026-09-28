@@ -21,8 +21,7 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.26 openssl rootlesskit selinux-tools skopeo);
-    push @pkgs, qw(nftables-devel) unless is_sle("<15-SP5");
+    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.27 nftables-devel openssl rootlesskit selinux-tools skopeo);
     # To test cross-platform builds
     push @pkgs, "qemu-linux-user" unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
@@ -37,8 +36,7 @@ sub setup {
 
     $version = script_output "docker version --format '{{.Client.Version}}' 2>/dev/null", proceed_on_failure => 1;
     $version =~ s/-ce$//;
-    # Docker v29 changed tag format
-    $version = ($version =~ /^2[1-8]/) ? "v$version" : "docker-v$version";
+    $version = "docker-v$version";
     record_info "docker version", $version;
 
     # Used by skopeo in containers/download-frozen-image.sh
@@ -81,13 +79,6 @@ sub setup {
     my $frozen_images = script_output q(grep -oE '[[:alnum:]./_-]+:[[:alnum:]._-]+@sha256:[0-9a-f]{64}' Dockerfile | xargs echo);
     assert_script_run "curl -o contrib/download-frozen-image-v2.sh " . data_url("containers/download-frozen-image.sh");
     run_command "contrib/download-frozen-image-v2.sh /var/tmp/docker-frozen-images $frozen_images", timeout => 300;
-
-    if (grep { $_ eq "integration-cli" } @test_dirs) {
-        # integration-cli tests need an older cli version
-        my $arch = get_var("ARCH");
-        my $cliversion = get_var("DOCKER_CLIVERSION", script_output q(sed -n '/DOCKERCLI_INTEGRATION_VERSION=/s/.*=v//p' Dockerfile));
-        run_command "curl -sSL https://download.docker.com/linux/static/stable/$arch/docker-$cliversion.tgz | tar zxvf - -C /var/tmp --strip-components 1 docker/docker";
-    }
 }
 
 sub run {
@@ -110,44 +101,43 @@ sub run {
         TZ => "UTC",
     );
 
-    my @xfails = ();
-    if (version->parse(numeric_version($version)) >= version->parse("29.0.0")) {
-        # These fail on Docker v29:
-        push @xfails, (
-            # We don't yet support CDI
-            "github.com/moby/moby/v2/integration/container::TestEtcCDI",
-            # Flaky tests:
-            "github.com/moby/moby/v2/integration/container::TestContainerRestartWithCancelledRequest",
-            "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
-            "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeoutCancel",
-            "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
-        );
-        # This may fail on SLES 15 due to older version of rootlesskit (1.1.1)
-        push @xfails, (
-            "github.com/moby/moby/v2/integration/container::TestNetworkLoopbackNat",
-        ) if (is_sle("<16") && get_var("ROOTLESS"));
-    } else {
-        # These fail on Docker v28:
-        push @xfails, (
-            "github.com/docker/docker/integration/container::TestCreateWithCustomMACs",
-            "github.com/docker/docker/integration/container::TestNetworkLocalhostTCPNat",
-            "github.com/docker/docker/integration/container::TestNetworkLoopbackNat",
-            "github.com/docker/docker/integration/container::TestStopContainerWithTimeoutCancel",
-            "github.com/docker/docker/integration/service::TestServicePlugin",
-        );
-    }
+    my @xfails = (
+        # We don't yet support CDI
+        "github.com/moby/moby/v2/integration/container::TestEtcCDI",
+        # Flaky tests:
+        "github.com/moby/moby/v2/integration/container::TestContainerRestartWithCancelledRequest",
+        "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
+        "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeoutCancel",
+        "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
+    );
     # Cross-platform builds only work on 15-SP6+
     push @xfails, (
-        "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",
-        # Same as above on Docker v29:
         "github.com/moby/moby/v2/integration/image::TestAPIImageHistoryCrossPlatform",
     ) if (is_sle("<16"));
+    # This may fail on SLES 15 due to older version of rootlesskit (1.1.1)
+    push @xfails, (
+        "github.com/moby/moby/v2/integration/container::TestNetworkLoopbackNat",
+    ) if (is_sle("<16") && get_var("ROOTLESS"));
+    # Fails with "assertion failed: error is not nil: fork/exec /lib64/ld-linux-x86-64.so.2: no such file or directory"
+    push @xfails, (
+        "github.com/moby/moby/v2/integration/container::TestStatsNetworkStats",
+    ) if (get_var("ROOTLESS"));
+    # These fail because Linux 7.2 deprecated AF_ALG sockets and
+    # https://bugzilla.opensuse.org/show_bug.cgi?id=1278193 - SELinux CIL files are not shipped in Docker
+    push @xfails, (
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied",
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80",
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80/AF_ALG",
+    ) unless (is_sle("<16"));
+    # This fails for unknown reason on SLES 16.1 Build74.1
+    push @xfails, (
+        "github.com/moby/moby/v2/integration/daemon/nri::TestNRIReload",
+    ) if (is_sle(">16"));
 
     my $tags = "apparmor selinux seccomp pkcs11";
 
     foreach my $dir (@test_dirs) {
         my $report = $dir =~ s|/|-|gr;
-        $env{TEST_CLIENT_BINARY} = "/var/tmp/docker" if ($dir eq "integration-cli");
         my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
         run_command "pushd $dir";
         run_timeout_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", no_assert => 1, timeout => 900;
@@ -155,13 +145,13 @@ sub run {
         parse_extra_log(XUnit => "$report.xml", timeout => 180);
         run_command "popd";
     }
-    upload_logs("/var/tmp/report.txt");
+    upload_logs "/var/tmp/report.txt", failok => 1;
 }
 
 sub cleanup {
     cleanup_rootless_docker if get_var("ROOTLESS");
     select_serial_terminal;
-    script_run "rm -f /usr/local/bin/{ctr,docker,ping} /var/tmp/docker";
+    script_run "rm -f /usr/local/bin/{ctr,docker,ping}";
     cleanup_docker;
 }
 

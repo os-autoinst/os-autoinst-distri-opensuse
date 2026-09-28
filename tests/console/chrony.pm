@@ -15,8 +15,12 @@ sub run {
     select_serial_terminal;
 
     assert_script_run 'timedatectl';
+
+    # check if package now installs files in /usr/etc
+    my $usr = !script_run("test -f /usr/etc/chrony.conf") ? "/usr" : "";
+
     # check if pool file exists
-    assert_script_run 'test -f /etc/chrony.d/pool.conf', fail_message => 'chrony-pool package is missing';
+    assert_script_run "test -f $usr/etc/chrony.d/pool.conf", fail_message => 'chrony-pool package is missing';
 
     if (is_sle() && !is_jeos) {
         systemctl 'enable chronyd';
@@ -45,7 +49,7 @@ sub run {
     systemctl 'status chronyd';
 
     # due to bsc#1214141, we need to remove and install again chrony and chrony-pool-suse (just reinstalling doesn't work)
-    if (is_sle() && script_run('cat /etc/chrony.d/pool.conf | grep -q ^pool') != 0) {
+    if (is_sle() && script_run("cat $usr/etc/chrony.d/pool.conf | grep -q ^pool") != 0) {
         record_info 'workaround for bsc#1214141';
         zypper_call 'rm chrony-pool-suse';
         zypper_call 'in chrony-pool-suse';

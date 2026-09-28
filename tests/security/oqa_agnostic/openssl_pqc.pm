@@ -9,7 +9,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use security::agnosticTestRunner;
+use agnosticTestRunner;
 use version_utils 'is_sle';
 use package_utils 'install_package';
 
@@ -21,23 +21,28 @@ sub run {
     }
     install_package("openssl", trup_continue => 1);
     record_info('openssl version:', script_output('rpm -q openssl'));
-    my $test = security::agnosticTestRunner->new({
+
+    # debug: list signature, kem and TLS algorithms enabled in openssl (default TLS version is 1.3)
+    #        list missing (not compiled in) features
+    script_run "echo '--- openssl signature algorithms: ---'; openssl list -signature-algorithms";
+    script_run "echo '--- openssl key exchange algorithms: ---'; openssl list -kem-algorithms";
+    script_run "echo '--- openssl TLS v1.3 groups: ---'; openssl list -tls-groups";
+    script_run "echo '--- openssl disabled features: ---'; openssl list -disabled";
+
+    my $test = agnosticTestRunner->new({
             language => 'python',
             name => 'testPostQuantumCrypto',
+            domain => 'security',
         }
     );
-    if (is_sle('=15-SP7')) {
+    if (is_sle('=15-SP7') || is_sle('=16.0')) {
         eval { $test->setup()->run_test()->parse_results()->cleanup() };
         if ($@) {
-            record_soft_failure("poo#200579 OpenSSL PQ not yet ready for SLE15-SP7: $@");
+            record_soft_failure("poo#200579, bsc#1266010: OpenSSL Post-quantum not yet ready for SLES 15-SP7/16.0: $@");
         }
     } else {
         $test->setup()->run_test()->parse_results()->cleanup();
     }
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;

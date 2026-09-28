@@ -17,6 +17,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_leap is_sle);
+use package_utils qw(install_package uninstall_package);
 
 my $reinstall_btrfsmaintenance = 0;
 
@@ -113,7 +114,7 @@ sub run {
     }
 
     # Check for crontab remnants of btrfsmaintenance after uninstall (see https://bugzilla.suse.com/show_bug.cgi?id=1159891)
-    zypper_call 'remove btrfsmaintenance';
+    uninstall_package('btrfsmaintenance', trup_continue => 1, trup_reboot => 1);
     $reinstall_btrfsmaintenance = 1;
     if (script_run("crontab -l") == 0 && script_run('crontab -l | grep btrfs') == 0) {
         record_soft_failure("bsc#1159891 btrfs remnants present in crontab");
@@ -126,12 +127,12 @@ sub run {
 
 sub post_run_hook {
     # Restore btrfsmaintenance
-    zypper_call 'in btrfsmaintenance' if ($reinstall_btrfsmaintenance);
+    install_package('btrfsmaintenance', trup_reboot => 1) if ($reinstall_btrfsmaintenance);
 }
 
 sub post_fail_hook {
     # Restore btrfsmaintenance
-    zypper_call 'in btrfsmaintenance' if ($reinstall_btrfsmaintenance);
+    install_package('btrfsmaintenance', trup_reboot => 1) if ($reinstall_btrfsmaintenance);
 }
 
 1;

@@ -101,11 +101,9 @@ sub run {
 
     select_console('user-console');
     assert_script_run('sudo sysctl -a');
-    enter_cmd('sudo -u tester_ssh -i');
-    assert_script_run('cat ~/.ssh/authorized_keys | grep rsa');
-    assert_script_run('cat ~/.ssh/authorized_keys | grep ecdsa');
-    assert_script_run('sudo sysctl -a');
-    enter_cmd('exit');
+    assert_script_run('sudo -u tester_ssh -i cat .ssh/authorized_keys | grep rsa');
+    assert_script_run('sudo -u tester_ssh -i cat .ssh/authorized_keys | grep ecdsa');
+    assert_script_run('sudo -u tester_ssh -i sudo sysctl -a');
 
     if (is_public_cloud) {
         select_host_console(force => 1);

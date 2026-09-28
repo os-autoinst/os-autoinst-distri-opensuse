@@ -51,5 +51,13 @@
         },
         "modes": ["transactional"],
         "type": "bug"
+    },
+    "bsc#1277435": {
+        "description": "QEMU raw backing image workaround",
+        "products": {
+            "sle": ["16.1"]
+        },
+        "modes": ["transactional"],
+        "type": "bug"
     }
 }

@@ -20,8 +20,4 @@ sub run {
     assert_script_run "SUSEConnect -s | grep 'Not Registered'";
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;

@@ -56,6 +56,9 @@ sub load_config_tests {
     loadtest 'transactional/enable_selinux' if (get_var('ENABLE_SELINUX') && is_image);
     loadtest 'console/suseconnect_scc' if (get_var('SCC_REGISTER') && !is_dvd);
     loadtest 'transactional/install_updates' if (is_sle_micro && is_released);
+    # Enable FIPS before installing k3s/helm so the container host HDD is FIPS-ready, see poo#206766
+    # Limited to sle-micro to avoid AutoYAST-installed systems, which already get FIPS via their own install-time flow
+    loadtest 'fips/fips_setup' if (get_var('CONTAINER_UPDATE_HOST') && get_var('FIPS_ENABLED') && is_sle_micro);
     loadtest 'containers/k3s_helm_install' if (get_var('CONTAINER_UPDATE_HOST') && is_sle_micro('6.0+') && (is_x86_64 || is_aarch64));
     loadtest 'containers/bci_prepare' if (get_var('CONTAINER_UPDATE_HOST') && get_var('BCI_PREPARE'));
     loadtest 'microos/services_enabled' if (is_transactional && !(check_var("FLAVOR", "Container-Image-Updates")));
@@ -244,7 +247,7 @@ sub load_common_tests {
     loadtest 'console/perl_bootloader' unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
     # Staging has no access to repos and the MicroOS-DVD does not contain ansible
     # Ansible test needs Packagehub in SLE and it can't be enabled in SLEM
-    loadtest 'console/ansible' unless (is_staging || is_sle_micro || is_leap_micro);
+    loadtest 'console/oqa_agnostic/ansible_agnostic' unless (is_staging || is_sle_micro || is_leap_micro);
     loadtest 'console/salt' unless (is_staging || is_sle_micro || (is_jeos && is_transactional));
     # On s390x zvm setups we need more time to wait for system to boot up.
     # Skip this test with sd-boot. The reason is not what you'd think though:
@@ -253,6 +256,7 @@ sub load_common_tests {
     # breaking most later modules.
     # Skip the test if setups don't support snapshot rollback due to bsc#1266277
     loadtest 'console/year_2038_detection' unless (is_s390x || is_bootloader_sdboot || get_var('QEMU_DISABLE_SNAPSHOTS'));
+    loadtest 'console/synce4l_gpsd' if (is_sle_micro('>=6.2'));
 }
 
 
@@ -343,29 +347,39 @@ sub load_slem_on_pc_tests {
     } elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/upload_image");
-        return;    # Do not continue as there is no instance to destroy
     } else {
         # SLEM basic test
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/prepare_instance", run_args => $args);
-        loadtest("publiccloud/registration", run_args => $args) unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
+        loadtest("publiccloud/registration", run_args => $args) unless (check_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED', 1));
+        loadtest("publiccloud/network_test", run_args => $args);
+        loadtest("publiccloud/check_boottime", run_args => $args);
+        loadtest("publiccloud/kdump", run_args => $args);
+        loadtest("publiccloud/check_cloudinit", run_args => $args);
         # 2 next modules of pubcloud needed for sle-micro incidents/repos verification
         if (get_var('PUBLIC_CLOUD_QAM', 0)) {
             loadtest("publiccloud/transfer_repos", run_args => $args) unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
             loadtest("publiccloud/patch_and_reboot", run_args => $args);
+            loadtest("publiccloud/check_cloudinit", run_args => $args);
         }
         if (get_var('PUBLIC_CLOUD_LTP', 0)) {
             loadtest 'publiccloud/run_ltp', run_args => $args;
         } elsif (get_var('PUBLIC_CLOUD_AISTACK')) {
             # AISTACK test verification
+            # slem_prepare must run before ssh_interactive_start (poo#207027/#206808): it
+            # allows the tunnel's port through SELinux before the tunnel exists, so any
+            # reboot it triggers takes softreboot()'s simple untunneled path.
+            loadtest("publiccloud/slem_prepare", run_args => $args);
             loadtest("publiccloud/ssh_interactive_start", run_args => $args);
             loadtest("publiccloud/create_aistack_env", run_args => $args);
             loadtest("publiccloud/aistack_rbac_run", run_args => $args);
             loadtest("publiccloud/aistack_sanity_run", run_args => $args);
         } elsif (is_container_test) {
-            loadtest("publiccloud/ssh_interactive_start", run_args => $args);
             loadtest("publiccloud/instance_overview", run_args => $args);
+            # slem_prepare must run before ssh_interactive_start (poo#207027/#206808): see
+            # comment in the AISTACK branch above.
             loadtest("publiccloud/slem_prepare", run_args => $args);
+            loadtest("publiccloud/ssh_interactive_start", run_args => $args);
             my $runtime = get_required_var('CONTAINER_RUNTIMES');
             for (split(',\s*', $runtime)) {
                 my $run_args = OpenQA::Test::RunArgs->new();
@@ -375,13 +389,12 @@ sub load_slem_on_pc_tests {
         } else {
             loadtest "publiccloud/check_services", run_args => $args;
             loadtest("publiccloud/slem_upgrade_next", run_args => $args) if (get_var('PUBLIC_CLOUD_MIGRATE_SLEM'));
-            if (get_var("TEST") =~ /img_proof/) {
+            if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
                 loadtest("publiccloud/img_proof", run_args => $args);
             } else {
                 loadtest("publiccloud/slem_basic", run_args => $args);
-                loadtest "publiccloud/ssh_interactive_start", run_args => $args;
-                loadtest "publiccloud/instance_overview", run_args => $args;
                 loadtest "publiccloud/systemd_detect_virt", run_args => $args;
+                loadtest "publiccloud/instance_overview", run_args => $args;
             }
         }
         loadtest("publiccloud/destroy", run_args => $args);

@@ -110,29 +110,23 @@ sub run {
     select_serial_terminal;
 
     my @runtimes = ();
-    if ($phase eq "standalone") {
-        @runtimes = split(/,/, get_var("CONTAINER_RUNTIMES", "docker,podman"));
-    } else {
+    if (get_var("TDUP")) {
         # The MicroOS image in the old2microosnext test doesn't come with docker pre-installed
         push @runtimes, "docker" if (script_run("which docker") == 0);
         push @runtimes, "podman" if (script_run("which podman") == 0);
-    }
-
-    if ($phase eq "standalone") {
-        my @packages = ();
-        push @packages, qw(docker docker-buildx docker-rootless-extras) if (grep { $_ eq "docker" } @runtimes);
-        push @packages, qw(podman) if (grep { $_ eq "podman" } @runtimes);
-        install_packages(@packages);
+    } else {
+        @runtimes = split(/,/, get_var("CONTAINER_RUNTIMES", "docker,podman"));
     }
 
     if ($phase ne "post") {
         my @packages = qw(jq);
-        if (is_sle("<16")) {
-            install_docker_compose;
-        } else {
-            push @packages, "docker-compose";
+        unless (get_var("TDUP")) {
+            push @packages, qw(docker docker-buildx docker-rootless-extras) if (grep { $_ eq "docker" } @runtimes);
+            push @packages, qw(podman) if (grep { $_ eq "podman" } @runtimes);
         }
+        push @packages, "docker-compose" unless is_sle("<16");
         install_packages(@packages);
+        install_docker_compose if is_sle("<16");
 
         for my $rootless (0, 1) {
             select_user_serial_terminal if $rootless;

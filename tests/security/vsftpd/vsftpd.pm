@@ -24,6 +24,10 @@ sub run {
     }
 
     enter_cmd("su - $user");
+    # The login shell of $user does not have the openQA prompt hook for
+    # PRETTY_SERIAL_MARKER in its ~/.bashrc yet, so force a re-install on the
+    # next command, same as become_root does. poo#205122
+    $testapi::distri->invalidate_serial_marker_hook();
 
     # Download/upload file using atomatic SSL method selection
     assert_script_run("curl -v -k --ssl ftp://$user:$pwd\@localhost/served/f1.txt -o $ftp_users_path/$user/$ftp_received_dir/f1.txt");

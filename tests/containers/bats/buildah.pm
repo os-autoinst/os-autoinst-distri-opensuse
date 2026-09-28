@@ -60,11 +60,6 @@ sub run_tests {
         "run.bats::Check if containers run with correct open files/processes limits",
     ) if (version->parse(numeric_version($version)) < version->parse("1.39.5") && !$rootless);
     push @xfails, (
-        "bud.bats::bud-multiple-platform-no-partial-manifest-list",
-        # Fails with cgroups v1
-        "namespaces.bats::use containers.conf namespace settings",
-    ) if (is_sle("<15-SP6"));
-    push @xfails, (
         "run.bats::run check /etc/resolv.conf",
     ) unless (is_aarch64 || is_x86_64);
     push @xfails, (
@@ -73,10 +68,14 @@ sub run_tests {
         "chroot.bats::chroot mount flags",
         "copy.bats::copy-preserving-extended-attributes",
     ) if (is_ppc64le);
+    # Test issue fixed in https://github.com/podman-container-tools/buildah/commit/363aa3ca4d0fb271913f5c1b6dd22a5c3e5b78e5
+    push @xfails, (
+        "bud.bats::bud-copy--parents-links",
+    ) if (is_tumbleweed && version->parse(numeric_version($version)) < version->parse("1.46.0"));
 
-    my $ret = bats_tests($log_file, \%env, \@xfails, 6000);
+    my $ret = bats_tests($log_file, \%env, \@xfails, 7500);
 
-    run_command "buildah prune -a -f";
+    run_command "STORAGE_DRIVER=$storage_driver buildah prune -a -f";
     cleanup_podman;
 
     return ($ret);
@@ -98,7 +97,7 @@ sub test_conformance {
     run_command 'cp /usr/bin/busybox-static tests/conformance/testdata/mount-targets/true';
     run_command 'docker rmi -f $(docker images -q) || true';
     run_timeout_command "TMPDIR=/var/tmp gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/... &> conformance.txt", no_assert => 1, timeout => 1200;
-    upload_logs "conformance.txt";
+    upload_logs "conformance.txt", failok => 1;
     die "Testsuite failed" if script_run("test -s conformance.xml");
     patch_junit "buildah", $version, "conformance.xml";
     parse_extra_log(XUnit => "conformance.xml");
@@ -108,8 +107,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.26 libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
-    push @pkgs, "qemu-linux-user" if (is_tumbleweed || is_sle('>=15-SP6'));
+    my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.27 libgpgme-devel libseccomp-devel make openssl podman qemu-linux-user selinux-tools);
     # Packages needed for conformance tests
     push @pkgs, "busybox-static docker-buildx libbtrfs-devel" unless is_sle;
 
@@ -146,11 +144,10 @@ sub run {
 
     $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
-    # Run conformance tests only on demand, when new buildah & docker packages are published
-    # You need to clone with BATS_IGNORE_USER=all BATS_IGNORE_ROOT=all RUN_TESTS=conformance
+    # Run conformance tests only on demand, or when new buildah packages are published.
+    # To run on demand, clone with BATS_IGNORE_USER=all BATS_IGNORE_ROOT=all RUN_TESTS=conformance
     test_conformance if (check_var("RUN_TESTS", "conformance") || (is_tumbleweed && is_x86_64 &&
-            (get_latest_version("buildah") < version->parse(numeric_version($version)) ||
-                get_latest_version("docker") < version->parse(numeric_version($docker_version)))));
+            get_latest_version("buildah") < version->parse(numeric_version($version))));
 
     die "buildah tests failed" if ($errors);
 }

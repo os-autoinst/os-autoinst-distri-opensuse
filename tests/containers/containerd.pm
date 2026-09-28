@@ -21,7 +21,7 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd containerd-ctr go1.26 make xfsprogs);
+    my @pkgs = qw(containerd containerd-ctr go1.27 make xfsprogs);
     push @pkgs, qw(cni-plugins cri-tools criu) unless is_sle;
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
@@ -71,7 +71,7 @@ sub critest {
     ) if (is_tumbleweed && is_aarch64);
 
     run_timeout_command "critest --ginkgo.junit-report critest.xml &> critest.txt", no_assert => 1, timeout => 300;
-    upload_logs "critest.txt";
+    upload_logs "critest.txt", failok => 1;
     die "Testsuite failed" if script_run("test -s critest.xml");
     patch_junit "containerd", $version, "critest.xml", @xfails;
     parse_extra_log(XUnit => "critest.xml", timeout => 180);
@@ -94,7 +94,7 @@ sub run {
     ) if (version->parse(numeric_version($version)) < version->parse("2.1.0"));
 
     run_timeout_command "$env gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root &> containerd.txt", no_assert => 1, timeout => 900;
-    upload_logs "containerd.txt";
+    upload_logs "containerd.txt", failok => 1;
     die "Testsuite failed" if script_run("test -s containerd.xml");
     patch_junit "containerd", $version, "containerd.xml", @xfails;
     parse_extra_log(XUnit => "containerd.xml", timeout => 180);

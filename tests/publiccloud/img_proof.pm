@@ -12,10 +12,11 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Path::Tiny;
 use Mojo::JSON;
-use publiccloud::utils qw(is_ondemand is_hardened);
+use publiccloud::utils qw(is_hardened is_ondemand);
 use publiccloud::ssh_interactive 'select_host_console';
 use File::Basename 'basename';
 use version_utils "is_sle";
+use utils;
 
 sub patch_json {
     my ($file) = @_;
@@ -27,10 +28,36 @@ sub patch_json {
             $data->{tests}[$i]{outcome} = 'passed';
             record_soft_failure(get_var('PUBLIC_CLOUD_SOFTFAIL_SCAP', "bsc#1220269 - scap-security-guide fails"));
             my $json = Mojo::JSON::encode_json($data);
-            assert_script_run "cat > $file <<EOF\n$json\nEOF";
+            write_sut_file($file, $json);
             return;
         }
     }
+}
+
+sub softfail_guestregister {
+    my ($file) = @_;
+    my $data = Mojo::JSON::decode_json(script_output("cat $file"));
+    my $patched = 0;
+
+    # When guestregister.service gets stuck re-registering after img-proof's internal
+    # hard-reboot, it cascades into these three unrelated-looking failures. Soft-fail
+    # them as a group instead of failing the whole job on a known registration hiccup.
+    # See https://bugzilla.suse.com/show_bug.cgi?id=1264275
+    my @REGISTRATION_TIMEOUT_TESTS = qw(test_sles_wait_on_registration test_sles_smt_reg test_sles_repos);
+
+    foreach my $t (@{$data->{tests}}) {
+        next unless ($t->{outcome} && $t->{outcome} eq 'failed');
+        my ($name) = $t->{nodeid} =~ /::([a-z_0-9]+)\[/;
+        next unless (defined($name) && grep { $_ eq $name } @REGISTRATION_TIMEOUT_TESTS);
+        $t->{outcome} = 'passed';
+        $patched++;
+    }
+    return 0 unless ($patched);
+
+    record_soft_failure('bsc#1264275 - guestregister.service fails to register the instance against the update infrastructure');
+    my $json = Mojo::JSON::encode_json($data);
+    write_sut_file($file, $json);
+    return $patched;
 }
 
 sub analyze_results {
@@ -85,11 +112,6 @@ sub run {
 
     select_host_console();
 
-    unless ($args->{my_provider} && $args->{my_instance}) {
-        $args->{my_provider} = $self->provider_factory();
-        $args->{my_instance} = $args->{my_provider}->create_instance();
-        $args->{my_instance}->wait_for_guestregister() if (is_ondemand);
-    }
     $instance = $args->{my_instance};
     $provider = $args->{my_provider};
 
@@ -107,13 +129,13 @@ sub run {
         $tests = "test_sles";
     }
 
-    if (get_var('IMG_PROOF_GIT_REPO')) {
-        my $repo = get_required_var('IMG_PROOF_GIT_REPO');
+    if (my $repo = get_var('IMG_PROOF_GIT_REPO')) {
         my $branch = get_required_var('IMG_PROOF_GIT_BRANCH');
-        zypper_call("rm -y python3-img-proof python3-img-proof-tests", exitcode => [0, 104]);
+
+        zypper_call("rm python3-img-proof python3-img-proof-tests", exitcode => [0, 104]);
         assert_script_run "git clone --depth 1 -q --branch $branch $repo";
         assert_script_run "cd img-proof";
-        assert_script_run "python3 setup.py install";
+        assert_script_run "python3.11 setup.py install", 300;
         assert_script_run "cp -r usr/* /usr";
     }
 
@@ -137,13 +159,19 @@ sub run {
         patch_json $img_proof->{results} if (get_var('PUBLIC_CLOUD_SOFTFAIL_SCAP'));
     }
 
+    if ($img_proof->{fail} > 0 && is_ondemand()) {
+        $img_proof->{fail} -= softfail_guestregister($img_proof->{results});
+    }
+
     my $log_prefix = 'img_proof_log';
     upload_logs($img_proof->{logfile}, log_name => sprintf('%s-%s.%s', $log_prefix, basename($img_proof->{logfile}), 'txt'));
     upload_logs($img_proof->{results}, log_name => sprintf('%s-%s.%s', $log_prefix, basename($img_proof->{results}), 'json'));
     parse_extra_log(IPA => $img_proof->{results});
 
-    $instance->ssh_script_run(cmd => 'sudo chmod a+r /var/tmp/report.html || true');
-    $instance->upload_log('/var/tmp/report.html', failok => 1);
+    if (is_hardened() && !check_var('SCAP_REPORT', 'skip')) {
+        $instance->ssh_script_run(cmd => 'sudo chmod a+r /var/tmp/report.html || true');
+        $instance->upload_log('/var/tmp/report.html', failok => 1);
+    }
 
     my $log = script_output('cat ' . $img_proof->{logfile});
     eval { analyze_results($log, $img_proof->{output}, $self->{extra_test_results}) };
@@ -165,6 +193,7 @@ sub run {
 
 sub cleanup {
     my ($self) = @_;
+    select_host_console();
     # upload logs on unexpected failure
     my $ret = script_run('test -d img_proof_results');
     if (defined($ret) && $ret == 0) {

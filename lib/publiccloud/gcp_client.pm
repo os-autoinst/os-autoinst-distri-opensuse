@@ -28,8 +28,11 @@ has availability_zone => sub { get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE'
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'susetest') };
 
 sub init {
-    my ($self) = @_;
-    my $data = get_credentials(url_suffix => 'gce.json', output_json => CREDENTIALS_FILE);
+    my ($self, %args) = @_;
+    # Namespace precedence:  1. *_GOOGLE_NAMESPACE, 2. *_NAMESPACE
+    my $namespace = get_var('PUBLIC_CLOUD_GOOGLE_NAMESPACE') // get_required_var('PUBLIC_CLOUD_NAMESPACE');
+
+    my $data = get_credentials(url_suffix => 'gce.json', namespace => $namespace, output_json => CREDENTIALS_FILE);
     $self->project_id($data->{project_id});
     $self->account($data->{client_id});
     assert_script_run('source ~/.bashrc');

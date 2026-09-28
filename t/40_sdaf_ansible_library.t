@@ -18,6 +18,7 @@ sub undef_variables {
 
 subtest '[sdaf_execute_playbook] Fail with missing mandatory arguments' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::ansible', no_auto => 1);
+    $ms_sdaf->noop(qw(record_soft_failure diag));
     my $croak_message;
     $ms_sdaf->redefine(croak => sub { $croak_message = $_[0]; die(); });
 
@@ -37,7 +38,7 @@ subtest '[sdaf_execute_playbook] Command execution' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::ansible', no_auto => 1);
     my @calls;
     $ms_sdaf->redefine(script_run => sub { push(@calls, $_[0]); return 0; });
-    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs deployment_dir));
+    $ms_sdaf->noop(qw(diag assert_script_run record_info log_dir upload_logs deployment_dir record_soft_failure));
     set_var('SAP_SID', 'QES');
     set_var('SDAF_ANSIBLE_VERBOSITY_LEVEL', undef);
 
@@ -57,10 +58,10 @@ subtest '[sdaf_execute_playbook] Command verbosity' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::ansible', no_auto => 1);
     my @calls;
 
-    $ms_sdaf->redefine(script_run => sub { return; });
+    $ms_sdaf->redefine(script_run => sub { return 0; });
     $ms_sdaf->redefine(deployment_dir => sub { return '/directory'; });
     $ms_sdaf->redefine(log_command_output => sub { push(@calls, $_[1]); return 0; });
-    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs));
+    $ms_sdaf->noop(qw(diag assert_script_run record_info record_soft_failure log_dir upload_logs));
     set_var('SAP_SID', 'QES');
 
     my %verbosity_levels = (
@@ -76,6 +77,18 @@ subtest '[sdaf_execute_playbook] Command verbosity' => sub {
         ok(grep(/$verbosity_levels{$level}/, @calls), "Append '$verbosity_levels{$level}' with verbosity parameter: '$level'");
     }
 
+    undef_variables();
+};
+
+subtest '[sdaf_execute_playbook] Retry execution' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::ansible', no_auto => 1);
+    my $executions = 0;
+    my $retries = 5;
+    $ms_sdaf->redefine(script_run => sub { $executions++; $executions == 6 ? 0 : 1; });
+    $ms_sdaf->noop(qw(diag assert_script_run record_info log_dir upload_logs deployment_dir record_soft_failure));
+    set_var('SAP_SID', 'QES');
+    sdaf_execute_playbook(playbook_filename => 'playbook_01_os_base_config.yaml', sdaf_config_root_dir => '/tmp/', retry => $retries);
+    is $executions, $retries + 1, "Playbook is retried $retries times";
     undef_variables();
 };
 

@@ -55,6 +55,7 @@ use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;
+use version_utils qw(package_version_cmp);
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -67,9 +68,13 @@ sub run {
     # Need to get the orignial values before changing metadata, so barrier_wait is needed here.
     barrier_wait("CLUSTER_BEFORE_CHANGE_METADATA_$cluster_name");
 
-
-    # Configure the metadata
-    assert_script_run("crm sbd configure " . join(" ", map { "$_-timeout=" . ($metadata_config->{$_} + $change_num) } keys %$metadata_config)) if (is_node(1));
+    my $crmsh_flag = (package_version_cmp(get_crmsh_version(), '5.1.0') >= 0);
+    if (is_node(1)) {
+        assert_script_run("crm resource stop base-clone") if $crmsh_flag;
+        # Configure the metadata
+        assert_script_run("crm sbd configure " . join(" ", map { "$_-timeout=" . ($metadata_config->{$_} * $change_num) } keys %$metadata_config));
+        assert_script_run("crm resource start base-clone") if $crmsh_flag;
+    }
 
     barrier_wait("CLUSTER_AFTER_CHANGE_METADATA_$cluster_name");
 
@@ -77,14 +82,16 @@ sub run {
     my @new_sbd_conf = parse_sbd_metadata();
     my $new_metadata_config = $new_sbd_conf[0]->{metadata};
     foreach my $key (keys %$new_metadata_config) {
-        my $expected_val = $metadata_config->{$key} + $change_num;
+        my $expected_val = $metadata_config->{$key} * $change_num;
         die "The metadata $key is not changed as expected" if ($new_metadata_config->{$key} ne $expected_val);
     }
 
     barrier_wait("CLUSTER_CHECK_CHANGE_METADATA_$cluster_name");
 
+    assert_script_run("crm resource stop base-clone") if $crmsh_flag;
     # Recover metadata configuration
     assert_script_run("crm sbd configure " . join(" ", map { "$_-timeout=" . $metadata_config->{$_} } keys %$metadata_config)) if (is_node(1));
+    assert_script_run("crm resource start base-clone") if $crmsh_flag;
 }
 
 1;

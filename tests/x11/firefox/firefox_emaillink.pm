@@ -62,10 +62,10 @@ sub run {
     elsif (match_has_tag('firefox-email_link-welcome')) {
         send_key $next_key;
 
-        wait_still_screen 3;
+        wait_still_screen 1, 2;
         send_key $next_key;
 
-        wait_still_screen 3;
+        wait_still_screen 1, 2;
         send_key "alt-a";
         type_string 'test@suse.com';
         send_key $next_key;
@@ -80,12 +80,12 @@ sub run {
         type_string "test";
         if (is_sle('12-SP2+')) {
             assert_and_click "evolution-option-next";
-            wait_still_screen 3;
+            wait_still_screen 1, 2;
             assert_and_click "evolution-option-next";
         }
         else {
             send_key $next_key;
-            wait_still_screen 3;
+            wait_still_screen 1, 2;
             send_key $next_key;
         }
 
@@ -96,7 +96,7 @@ sub run {
             send_key $next_key;
         };
 
-        wait_still_screen 3;
+        wait_still_screen 1, 2;
         if (is_sle('12-SP2+')) {
             assert_and_click "evolution-option-next";
         }
@@ -104,7 +104,7 @@ sub run {
             send_key $next_key;
         }
 
-        wait_still_screen 3;
+        wait_still_screen 1, 2;
         send_key "alt-a";
         assert_screen('firefox-email_link-send');
     }

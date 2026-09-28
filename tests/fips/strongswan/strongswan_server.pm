@@ -77,14 +77,23 @@ sub run {
     }
 
     # Create private CA key and self-signed certificate
+    # Note: $ipsec is empty for strongswan >= 6.0.0, so avoid interpolating it
+    # directly at the start of a command. A leading space in the typed command
+    # makes bash's HISTCONTROL (ignorespace/ignoreboth) skip recording it in
+    # history, which desyncs the os-autoinst serial marker (sut_marker() is
+    # matched against the SUT's PROMPT_COMMAND hook output derived from
+    # "history 1") and causes assert_script_run() to time out waiting for a
+    # marker that will never be printed, even though the command itself
+    # completes immediately (poo#205689).
+    my $ipsec_prefix = $ipsec ? "$ipsec " : '';
     assert_script_run("mkdir $test_dir && cd $test_dir");
     assert_script_run("pki --gen --type rsa --size 2048 --outform pem > $ca_pem");
-    assert_script_run("$ipsec pki --self --in $ca_pem --dn \"C=DE, O=SUSEQA, CN=CA\" --ca --outform pem > $ca_cert_pem");
+    assert_script_run("${ipsec_prefix}pki --self --in $ca_pem --dn \"C=DE, O=SUSEQA, CN=CA\" --ca --outform pem > $ca_cert_pem");
 
     # Generate key and certificate for the hosts
     for my $host (qw(host1 host2)) {
         assert_script_run("pki --gen --type rsa --size 2048 --outform pem > $host.pem");
-        assert_script_run("pki --pub --in $host.pem | $ipsec pki --issue --cacert $ca_cert_pem --cakey $ca_pem --dn \"C=DE, O=SUSEQA, CN=$host\" --outform pem > $host.cert.pem");
+        assert_script_run("pki --pub --in $host.pem | ${ipsec_prefix}pki --issue --cacert $ca_cert_pem --cakey $ca_pem --dn \"C=DE, O=SUSEQA, CN=$host\" --outform pem > $host.cert.pem");
     }
 
     # Copy the keys and certificates to specific directories

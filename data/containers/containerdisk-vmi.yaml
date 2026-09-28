@@ -1,0 +1,61 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata:
+  name: $vmi_name
+  labels:
+    app: containerdisk-smoke
+
+spec:
+  terminationGracePeriodSeconds: 0
+
+  domain:
+    resources:
+      requests:
+        memory: 512M
+
+    devices:
+      disks:
+        - name: containerdisk
+          disk:
+            bus: virtio
+
+        - name: cloudinitdisk
+          disk:
+            bus: virtio
+
+      interfaces:
+        - name: default
+          masquerade: {}
+          ports:
+            - name: ssh
+              port: 22
+              protocol: TCP
+
+  networks:
+    - name: default
+      pod: {}
+
+  volumes:
+    - name: containerdisk
+      containerDisk:
+        image: $image
+        imagePullPolicy: Always
+
+    - name: cloudinitdisk
+      cloudInitNoCloud:
+        userData: |
+          #cloud-config
+          users:
+            - name: $user
+              gecos: openQA test user
+              groups: users,wheel
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              shell: /bin/bash
+              ssh_authorized_keys:
+                - $pubkey
+
+          ssh_pwauth: false
+          disable_root: true
+
+          runcmd:
+            - echo 'OK' > /var/tmp/cloud-init-ok

@@ -6,20 +6,18 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
-use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;
 
-    select_serial_terminal();
-
     # Skip the test in multi-machine mode
-    if (get_var('PARALLEL_WITH')) {
+    if (get_var('PARALLEL_WITH', '')) {
         record_info('SKIP', 'Skip test - Network is not up at this stage');
         $self->result('skip');
         return;
     }
 
+    my $runtime = get_var('CONTAINER_RUNTIMES', 'podman');
     record_info('Toolbox Info', 'Verify toolbox script is installed');
 
     assert_script_run('which toolbox');
@@ -33,9 +31,10 @@ sub run {
         timeout => 240
     );
 
-    record_info('Podman Verify', 'Verify the toolbox image was stored on the host');
+    record_info('Image Verify',
+        'Verify that the toolbox image was stored on the host');
 
-    validate_script_output('podman images', sub { m/toolbox/i });
+    validate_script_output("$runtime images", sub { m/toolbox/i });
 }
 
 sub test_flags {

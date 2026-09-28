@@ -60,4 +60,8 @@ sub post_fail_hook {
     $self->cleanup();
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;

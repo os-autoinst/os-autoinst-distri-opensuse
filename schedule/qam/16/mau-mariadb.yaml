@@ -1,0 +1,8 @@
+---
+name: mau-mariadb
+description: Mariadb only tests
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/mariadb_srv
+  - console/mariadb_odbc

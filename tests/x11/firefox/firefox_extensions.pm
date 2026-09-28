@@ -29,7 +29,7 @@ sub run {
     $self->start_firefox_with_profile;
 
     assert_screen('firefox-extensions-no_flag', 90);
-    wait_still_screen 3;
+    wait_still_screen 1, 2;
     send_key "ctrl-shift-a";
     assert_screen('firefox-addons_manager', 90);
     assert_and_click "firefox-extensions";
@@ -37,7 +37,7 @@ sub run {
     enter_cmd "flagfox";
     wait_still_screen 2, 4;
     assert_and_click 'firefox-extensions-flagfox';
-    wait_still_screen 3;
+    wait_still_screen 1, 2;
     assert_screen [qw(firefox-extensions-add-to-firefox firefox-extensions-flagfox)], timeout => 120;
     if (match_has_tag('firefox-extensions-add-to-firefox')) {
         assert_and_click_until_screen_change('firefox-extensions-add-to-firefox', 5, 5);
@@ -45,10 +45,10 @@ sub run {
     else {
         send_key_until_needlematch 'firefox-extensions-flagfox', 'f5', 6, 5;
         assert_and_click 'firefox-extensions-flagfox', timeout => 60;
-        wait_still_screen 3;
+        wait_still_screen 1, 2;
         assert_and_click_until_screen_change('firefox-extensions-add-to-firefox', 5, 5);
     }
-    wait_still_screen 3;
+    wait_still_screen 1, 2;
     assert_and_click 'firefox-extensions-confirm-add', timeout => 60;
     assert_and_click 'firefox-extensions-added', timeout => 60;
     assert_and_click 'firefox-extensions-flagfox-tab', timeout => 60;

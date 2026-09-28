@@ -20,7 +20,7 @@ sub clean_up {
     assert_script_run("rm /etc/systemd/resolved.conf.d/dnssec.conf");
     assert_script_run("rm /etc/systemd/resolved.conf.d/dns_over_tls.conf");
     assert_script_run("mv /etc/resolv.conf{.bak,}");
-    assert_script_run("rm /etc/nsswitch.conf");
+    assert_script_run("mv /etc/nsswitch.conf{.bak,}");
     systemctl 'disable --now systemd-resolved', timeout => 30;
     zypper_call 'rm systemd-resolved nss-mdns';
     systemctl 'restart NetworkManager' if is_nm_used();
@@ -35,12 +35,12 @@ sub run {
     systemctl 'stop NetworkManager' if is_nm_used();
     systemctl 'stop wicked.service' if is_wicked_used();
     assert_script_run("mv /etc/resolv.conf{,.bak}");
+    assert_script_run("cp -a /etc/nsswitch.conf{,.bak}");
     # Add workaround for bsc#1248501
     my $file = '/usr/share/dbus-1/system.d/org.freedesktop.resolve1.conf';
-    assert_script_run("touch $file") if (!-f $file);
+    assert_script_run("touch $file") if script_run("test ! -f $file");
     systemctl 'enable --now systemd-resolved';
     assert_script_run 'ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf';
-    assert_script_run "cp /usr/etc/nsswitch.conf /etc/nsswitch.conf" if (!-f '/etc/nsswitch.conf');
     assert_script_run "sed -i 's/^hosts:.*files/hosts: files resolve [!UNAVAIL=return]/' /etc/nsswitch.conf";
     script_run 'cat /etc/nsswitch.conf';
     systemctl 'start NetworkManager' if (script_run('rpm -q NetworkManager') == 0);

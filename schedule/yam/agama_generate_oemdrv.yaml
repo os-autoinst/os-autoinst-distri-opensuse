@@ -1,0 +1,8 @@
+---
+name: agama_generate_oemdrv
+description: >
+  Generate OEMDRV volume from JSONNET template
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/generate_oemdrv

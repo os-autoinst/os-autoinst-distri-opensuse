@@ -18,7 +18,7 @@ sub run {
     select_serial_terminal;
 
     my $test_file = "$test_dir/test_file";
-    my $artifact = "test-artifact";
+    my $artifact = "localhost/test-artifact";
 
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "touch $test_file";
@@ -28,7 +28,8 @@ sub run {
     assert_script_run "! podman artifact add $artifact $test_file";
 
     # Test inspect
-    validate_script_output "podman artifact inspect $artifact", qr/"Name": "$artifact"/;
+    # Note: podman 6.0+ appends the "latest" tag to the artifact name
+    validate_script_output "podman artifact inspect $artifact", qr/"Name": "$artifact(:latest)?"/;
     assert_script_run "! podman artifact inspect noexist";
 
     # Test ls
@@ -58,4 +59,8 @@ sub post_run_hook {
     my ($self) = @_;
     cleanup;
     $self->SUPER::post_run_hook;
+}
+
+sub test_flags {
+    return {fatal => 0};
 }

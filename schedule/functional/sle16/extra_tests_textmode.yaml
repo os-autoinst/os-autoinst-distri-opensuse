@@ -22,6 +22,14 @@ conditional_schedule:
         ARCH:
             x86_64:
                 - console/wpa_supplicant
+    year_2038_detection:
+        ARCH:
+            aarch64:
+                - console/year_2038_detection
+            x86_64:
+                - console/year_2038_detection
+            ppc64le:
+                - console/year_2038_detection
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -65,7 +73,7 @@ schedule:
     - console/golang
     - console/sqlite3
     - console/sysctl
-    - console/sysstat
+    - console/oqa_agnostic/sysstat_agnostic
     - console/tuned
     - '{{fwupd}}'
     - '{{snmp}}'
@@ -77,13 +85,13 @@ schedule:
     - console/rsync
     - console/rust
     - console/shells
-    - console/sudo
+    - console/oqa_agnostic/sudo_agnostic
     - x11/evolution/evolution_prepare_servers
     - console/mutt
     - console/pciutils
     - console/supportutils
     - console/vsftpd
-    - console/year_2038_detection
+    - '{{year_2038_detection}}'
     - console/redis
     - console/mdadm
     - console/quota
@@ -101,6 +109,7 @@ schedule:
     - console/osinfo_db
     - console/journalctl
     - console/tar
+    - console/sevenzip
     - console/ruby
     - console/coredump_collect
     - console/valgrind

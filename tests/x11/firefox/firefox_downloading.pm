@@ -76,13 +76,13 @@ sub dl_cancel {
 sub dl_resume {
     dl_menu();
     send_key "r";
-    wait_still_screen 3, 6;
+    wait_still_screen 1, 2;
 }
 
 sub dl_menu {
     # sometimes menu does close due high load or some worker hickup, check & open menu again if not present
     for (1 .. 2) {
-        wait_still_screen 3, 6;
+        wait_still_screen 1, 2;
         send_key_until_needlematch 'firefox-downloading-menu', 'shift-f10', 4, 3;
     }
 }
@@ -128,7 +128,7 @@ sub run {
 
     # Close download library and wait a little time
     send_key "alt-f4";
-    wait_still_screen 3, 6;
+    wait_still_screen 1, 2;
 
     # Multiple files downloading
     dl_location_switch($self, "save");

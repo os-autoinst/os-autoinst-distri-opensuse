@@ -149,6 +149,7 @@ sub configure_docker {
     $args{experimental} //= get_var("DOCKER_EXPERIMENTAL", 0);
     $args{selinux} //= get_var("DOCKER_SELINUX", 0);
     $args{tls} //= get_var("DOCKER_TLS", 0);
+    $args{insecure_registries} //= [];
 
     # docker-compose is needed for tests but is not available on SLES 15
     install_docker_compose if (is_sle("<16") && script_run("test -f /usr/lib/docker/cli-plugins/docker-compose"));
@@ -156,6 +157,7 @@ sub configure_docker {
     run_command "export DOCKER_BUILDKIT=1" if is_sle("<16");
 
     my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000 --log-level warn --registry-mirror http://$registry";
+    $docker_opts .= " --insecure-registry $_" for @{$args{insecure_registries}};
     $docker_opts .= " --experimental" if $args{experimental};
     $docker_opts .= " --selinux-enabled" if $args{selinux};
     my $port = 2375;
@@ -173,12 +175,15 @@ sub configure_docker {
     }
     run_command "mv -f /etc/sysconfig/docker{,.bak} || true";
     run_command "mv -f /etc/docker/daemon.json{,.bak} || true";
-    if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
-        my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
-        run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > /etc/docker/daemon.json);
-    }
+    my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
+    run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > /etc/docker/daemon.json);
     run_command qq(echo 'DOCKER_OPTS="$docker_opts"' > /etc/sysconfig/docker);
     record_info "DOCKER_OPTS", $docker_opts;
+    # Configure the default buildkitd config so BuildKit workers that don't receive
+    # an explicit --buildkitd-config (e.g. custom builders in compose e2e tests) also
+    # pull through our mirror instead of hitting docker.io directly.
+    run_command "mkdir -p /etc/buildkit";
+    write_sut_file("/etc/buildkit/buildkitd.toml", qq([registry."docker.io"]\n  mirrors = ["http://$registry"]\n\n[registry."http://$registry"]\n  insecure = true\n));
     run_command "systemctl restart docker";
     run_command "export DOCKER_HOST=tcp://localhost:$port";
     if ($args{tls}) {
@@ -202,13 +207,10 @@ sub configure_rootless_docker {
     switch_to_user;
 
     run_command 'install -D -m 0600 <(echo {}) $HOME/.config/docker/daemon.json';
-    if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
-        # Docker v29 increased minimum API version from 1.24 to 1.44 which broke some tests and stuff like
-        # docker-compose & container_diff and also some tests.  Docker v29.3 lowered it from 1.44 to 1.40.
-        # Remove this when we no longer have Docker v29.2 in SLES 16.1.
-        my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
-        run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > \$HOME/.config/docker/daemon.json);
-    }
+    # Docker v29 increased minimum API version from 1.24 to 1.44 which broke some tests and stuff like
+    # docker-compose & container_diff and also some tests.  Docker v29.3 lowered it from 1.44 to 1.40.
+    my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
+    run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > \$HOME/.config/docker/daemon.json);
     run_command qq(DAEMON_JSON=\$(jq '.+{"registry-mirrors": ["http://$registry"]}' \$HOME/.config/docker/daemon.json));
     run_command q(tee $HOME/.config/docker/daemon.json <<< "$DAEMON_JSON");
 
@@ -320,16 +322,6 @@ sub go_arch {
     return $arch;
 }
 
-sub install_git {
-    # We need git 2.47.0+ to use `--ours` with `git apply -3`
-    return if (script_run("test -f /etc/zypp/repos.d/Kernel_tools.repo") == 0);
-    my $version = get_var("VERSION");
-    $version =~ s/-/_/;
-    $version = "SLE_$version";
-    run_command "zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
-    run_command "zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
-}
-
 sub install_gotestsum {
     # We need gotestsum to parse "go test" and create JUnit XML output
     return if (script_run("command -v gotestsum") == 0);
@@ -417,17 +409,9 @@ sub setup_pkgs {
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
         push @pkgs, $oci_runtime;
     }
-    push @pkgs, qw(jq xz);
+    push @pkgs, qw(git jq xz);
     @pkgs = uniq sort @pkgs;
-    push @pkgs, "git" unless is_sle("<16.0");
     run_command "zypper --gpg-auto-import-keys -n install --allow-vendor-change @pkgs", timeout => 1200;
-    install_git if is_sle("<16.0");
-
-    # Workaround for https://bugzilla.opensuse.org/show_bug.cgi?id=1259147
-    if (is_tumbleweed && is_x86_64 && !get_var("OCI_RUNTIME") && (check_var("BATS_PACKAGE", "buildah") || check_var("BATS_PACKAGE", "podman"))) {
-        assert_script_run "curl -o /tmp/libseccomp2.rpm " . data_url("containers/libseccomp2-2.6.0-2.2.x86_64.rpm");
-        assert_script_run "rpm -ivh --force /tmp/libseccomp2.rpm";
-    }
 
     configure_oci_runtime $oci_runtime;
 
@@ -571,14 +555,14 @@ sub bats_post_hook {
 
     my @logs = split /\s+/, script_output "ls";
     for my $log (@logs) {
-        upload_logs($log_dir . $log);
+        upload_logs($log_dir . $log, failok => 1);
     }
 
-    upload_logs('/proc/config.gz');
-    upload_logs('/var/log/audit/audit.log', log_name => "audit.txt");
+    upload_logs('/proc/config.gz', failok => 1);
+    upload_logs('/var/log/audit/audit.log', log_name => "audit.txt", failok => 1);
 
     write_sut_file('/tmp/commands.txt', join("\n", @commands));
-    upload_logs('/tmp/commands.txt');
+    upload_logs('/tmp/commands.txt', failok => 1);
 
     script_run('cd / ; rm -rf /tmp/logs');
 
@@ -628,7 +612,7 @@ sub bats_tests {
     my $ret = run_timeout_command($cmd, no_assert => 1, timeout => $timeout);
     script_run "mv report.xml $xmlfile";
 
-    upload_logs($tapfile);
+    upload_logs($tapfile, failok => 1);
     my @xfails = get_var("RUN_TESTS") ? () : @{$xfails};
     # Strip control chars from XML as they aren't quoted and we can't quote them as valid XML 1.1
     # because it's not supported in most XML libraries anyway. See https://bugs.python.org/issue43703
@@ -665,8 +649,8 @@ sub patch_sources {
     if (!@patches) {
         for my $pr (sort { $a <=> $b } keys %{$patches}) {
             my $def = $patches->{$pr} // {};
-            # Skip if already merged in this version
-            next if defined $def->{merged} && version->parse($version) >= version->parse("v$def->{merged}");
+            # Skip if already merged or invalid on this package version
+            next if defined $def->{max} && version->parse($version) >= version->parse("v$def->{max}");
             # Skip if below minimum required version
             next if defined $def->{min} && version->parse($version) < version->parse("v$def->{min}");
             push @patches, $pr;

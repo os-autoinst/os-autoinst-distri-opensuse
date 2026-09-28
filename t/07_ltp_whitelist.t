@@ -1,6 +1,6 @@
 use Mojo::Base -strict;
 
-use Mojo::File;
+use Mojo::File qw(tempfile);
 use Mojo::JSON;
 use Test::More;
 use Test::MockModule;
@@ -44,7 +44,8 @@ subtest 'whitelist_entry_match' => sub {
 
 
 subtest override_known_failures => sub {
-    set_var('LTP_KNOWN_ISSUES_LOCAL' => 'test_known_issues.json');
+    my $tmpfile = tempfile;
+    set_var('LTP_KNOWN_ISSUES_LOCAL' => "$tmpfile");
     my $self = Test::MockObject->new();
     my $msg;
     $self->{result} = 'not_set';
@@ -82,7 +83,7 @@ subtest override_known_failures => sub {
         }
     };
 
-    Mojo::File::path('test_known_issues.json')->spew(Mojo::JSON::encode_json($known_issues_json));
+    $tmpfile->spew(Mojo::JSON::encode_json($known_issues_json));
 
     my $env = {product => 'sle:15', retval => 0};
     my $whitelist = LTP::WhiteList->new();

@@ -19,7 +19,6 @@ use publiccloud::gke;
 use publiccloud::gcr;
 use publiccloud::acr;
 use publiccloud::aks;
-use publiccloud::noprovider;
 use Data::Dumper;
 use Storable qw(dclone);
 use strict;
@@ -33,10 +32,7 @@ sub provider_factory {
 
     $args{provider} //= get_required_var('PUBLIC_CLOUD_PROVIDER');
 
-    if (get_var('PUBLIC_CLOUD_INSTANCE_IP')) {
-        $provider = publiccloud::noprovider->new();
-    }
-    elsif ($args{provider} eq 'EC2') {
+    if ($args{provider} eq 'EC2') {
         $args{service} //= 'EC2';
 
         if ($args{service} eq 'ECR') {

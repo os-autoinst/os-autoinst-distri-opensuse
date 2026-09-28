@@ -82,7 +82,12 @@ use constant BLS_DEFAULT_FILE => "/etc/kernel/cmdline";
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
 # 'up' also works in textmode and UEFI menues.
 sub stop_grub_timeout {
-    send_key 'up';
+    # The bootloader uses USB polling, which can be slow, especially if storage is also
+    # attached over USB (e.g. USBBOOT=1). A plain send_key releases it too quickly,
+    # so hold the key for longer.
+    hold_key("up");
+    sleep(0.2);
+    release_key("up");
 }
 
 =head2 add_custom_grub_entries
@@ -366,7 +371,7 @@ sub select_bootmenu_option {
     assert_screen 'inst-bootmenu', $timeout;
 
     # Special handling for Agama
-    if (get_var('AGAMA')) {
+    if (is_agama) {
         send_key_until_needlematch 'boot-agama-installation', 'down', 11, 5;
         return 0;
     }
@@ -649,7 +654,7 @@ sub bootmenu_default_params {
         }
         push @params, "Y2DEBUG=1";
     }
-    elsif (get_var('AGAMA')) {
+    elsif (is_agama) {
         if (!$args{in_grub_edit}) {
             wait_screen_change { send_key "e" };
             send_key "down";
@@ -658,21 +663,6 @@ sub bootmenu_default_params {
             send_key "down";
             wait_screen_change { send_key "end" };
         }
-        # REPO_0 should be set everywhere where we rsync repo (aside from iso)
-        if (get_var('REPO_0')) {
-            my $host = get_var('OPENQA_HOST', 'https://openqa.opensuse.org');
-            my $repo = get_var('REPO_0');
-
-            # Split repodata functionality in Leap 16.0
-            # https://code.opensuse.org/leap/features/issue/193
-            if (get_var('SPLIT_REPODATA')) {
-                $repo .= "/\\\$basearch";
-            }
-
-            # inst.install_url supports comma separated list if more repos are needed ...
-            push @params, "inst.install_url=$host/assets/repo/$repo";
-        }
-        push @params, "live.password=$testapi::password";
     }
     else {
         # On JeOS and MicroOS we don't have YaST installer.
@@ -931,7 +921,8 @@ sub specific_bootmenu_params {
         push @params, "inst.auto=$url inst.finish=stop";
     }
 
-    if (my $agama_install_url = get_var('INST_INSTALL_URL')) {
+    my $agama_install_url = get_var('INST_INSTALL_URL');
+    if ($agama_install_url && is_agama) {
         if (get_var('SPLIT_REPODATA')) {
             $agama_install_url .= "/\\\$basearch";
         }
@@ -1157,7 +1148,10 @@ sub tianocore_enter_menu {
         sleep 0.1;
     }
     if (check_screen('tianocore-bootmenu')) {
-        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+        # The boot device list has one entry per boot option, so its length
+        # differs per machine. The menu wraps around, so walking it with the
+        # default step count is safe.
+        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down');
         send_key "ret";
     }
 }
@@ -1179,7 +1173,7 @@ sub tianocore_disable_secureboot {
     while (!check_screen('tianocore-mainmenu')) {
         wait_still_screen();
         if (check_screen('tianocore-bootmenu')) {
-            send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+            send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down');
             send_key "ret";
         }
     }
@@ -1318,7 +1312,7 @@ sub zkvm_add_disk {
                 $hdd_path or die "Unable to find image $basename in $hdd_dir";
                 diag("HDD path found: $hdd_path");
 
-                enter_cmd("# copying image ($basename)...");
+                record_info("copying image ($basename)...");
                 if (my $size = get_var("HDDSIZEGB_$di")) {
                     $size .= "G";
                     $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id, size => $size});

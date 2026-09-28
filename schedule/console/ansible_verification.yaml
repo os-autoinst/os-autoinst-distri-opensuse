@@ -1,0 +1,10 @@
+name: ansible_verification
+description: >
+  Side-by-side run of the original console/ansible module and the new
+  openQA-agnostic ansible test.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - console/ansible
+  - console/oqa_agnostic/ansible_agnostic

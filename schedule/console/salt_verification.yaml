@@ -1,0 +1,10 @@
+name: salt_verification
+description: >
+  Side-by-side run of the original salt.pm and the new
+  openqa-agnostic salt test for comparison.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - console/salt
+  - console/oqa_agnostic/salt_agnostic

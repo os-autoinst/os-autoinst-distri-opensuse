@@ -28,7 +28,7 @@ sub run {
 
     # Prepare Test
     record_info('Preparing', 'Downloading test files');
-    my $data_url = data_url('security/openqa_agnostic/goPostQuantum');
+    my $data_url = data_url('security/openqa_agnostic/go/goPostQuantum');
     my $test_dir = '~/go_post_quantum';
     assert_script_run "mkdir -p $test_dir";
     my @files = ('main.go', 'go.mod', 'runtest');
@@ -44,10 +44,6 @@ sub run {
     # Cleanup
     record_info('Cleaning', 'Cleaning');
     assert_script_run "cd .. && rm -rf $test_dir";
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;

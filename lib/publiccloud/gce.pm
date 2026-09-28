@@ -13,6 +13,7 @@ use Mojo::Util qw(trim);
 use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
+use publiccloud::img_proof qw(run_img_proof);
 use publiccloud::ssh_interactive 'select_host_console';
 
 sub init {
@@ -138,6 +139,17 @@ sub get_gcp_guest_os_features {
             'UEFI_COMPATIBLE',
             'VIRTIO_SCSI_MULTIQUEUE',
         ],
+        'SLES-SAP-16.1' => [
+            'GVNIC',
+            'IDPF',
+            'SEV_CAPABLE',
+            'SEV_LIVE_MIGRATABLE',
+            'SEV_LIVE_MIGRATABLE_V2',
+            'SEV_SNP_CAPABLE',
+            'TDX_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
     );
 
     my $os_version;
@@ -183,26 +195,28 @@ sub img_proof {
 
     $args{credentials_file} = $self->provider_client->get_credentials_file_name();
     $args{instance_type} //= 'n1-standard-2';
-    $args{user} //= 'susetest';
+    $args{user} //= $self->provider_client->username;
     $args{provider} //= 'gce';
 
-    return $self->run_img_proof(%args);
+    return run_img_proof($self, %args);
 }
 
 sub terraform_apply {
     my ($self, %args) = @_;
     $args{project} //= $self->provider_client->project_id;
-    $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
+    my $confidential_compute = get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM');
+    $args{vars}->{enable_confidential_vm} = 'true' if $confidential_compute;
+    my $stack_type = get_var('PUBLIC_CLOUD_GCE_STACK_TYPE', 'IPV4_ONLY');
+    $args{vars}->{stack_type} = $stack_type;
+    my $nic_type = get_var('PUBLIC_CLOUD_GCE_NIC_TYPE', '');
+    $args{vars}->{nic_type} = $nic_type if $nic_type;
+    $args{vars}->{availability_zone} = $self->provider_client->availability_zone;
+
     my @instances = $self->SUPER::terraform_apply(%args);
 
     my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
     # gce provides full serial log, so extended timeout
-    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
-        if ($instance_id !~ /$self->{resource_name}/) {
-            record_info("Warn", "instance_id " . ($instance_id) ? $instance_id : "empty", result => 'fail');
-        }
-    }
-
+    record_info("Warn", "instance_id:" . ($instance_id ? $instance_id : "empty"), result => 'fail') if (defined($instance_id) && $instance_id !~ /$self->{resource_name}/);
     return @instances;
 }
 
@@ -212,6 +226,7 @@ sub on_terraform_apply_timeout {
 
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
+    $args{log_name} //= "console";
     my $region = $self->get_terraform_output('.region.value');
     my $availability_zone = $self->get_terraform_output('.availability_zone.value');
     my $project = $self->get_terraform_output('.project.value');
@@ -221,7 +236,7 @@ sub upload_boot_diagnostics {
         record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on gce, undefined instance or region or availability zone');
         return;
     }
-    my $asset_path = "/tmp/console.txt";
+    my $asset_path = "/tmp/" . $args{log_name} . ".txt";
     # gce provides full serial log, so extended timeout
     script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region-$availability_zone --port=1 > $asset_path", timeout => 180);
     if (script_output("du $asset_path | cut -f1") < 8) {
@@ -328,6 +343,18 @@ sub query_metadata {
     my $data = $instance->ssh_script_output($query_meta_ipv4_cmd);
 
     return $data;
+}
+
+sub initialize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-beginning");
+    record_info('Logging', 'Initializing logging for GCE instance');
+}
+
+sub finalize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-end");
+    record_info('Logging', 'Finalizing logging for GCE instance');
 }
 
 1;

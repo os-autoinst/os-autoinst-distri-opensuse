@@ -18,26 +18,33 @@ sub run {
     # Set default root password
     $testapi::password = get_required_var('TEST_PASSWORD');
 
-    # 'install' command directly install the OS image without the installer step
-    unless (check_var('TESTED_CMD', 'install')) {
-        # Wait for OS installer boot
-        assert_screen('grub-unifiedcore_installer', timeout => 120);
-        wait_still_screen;
-    }
-
-    # This ISO image does not install anything
-    # It is just the basic container that should be used with 'customize' command
     if (check_var('TESTED_CMD', 'extract_iso')) {
-        # Just validate that the OS boot, no more
-        assert_screen('elemental3-tty1-selected', timeout => 120);
+        # This ISO image does not install anything, it is just the basic container
+        # that should be used with 'customize' command, validating the OS boot is enough
+        $self->wait_boot_past_bootloader(ready_time => 120, textmode => 1, nologin => 1);
         wait_still_screen;
         record_info('ISO', 'ISO image booted!');
         return;
-    }
+    } elsif (check_var('TESTED_CMD', 'install')) {
+        # 'install' command directly installed the OS image previously without
+        # the installer step
+        $self->wait_boot(bootloader_time => bmwqemu::scale_timeout(300), textmode => 1, nologin => 1);
+        wait_still_screen;
+    } else {
+        # Wait for OS installer boot
+        assert_screen('grub-unifiedcore_installer', timeout => 120);
+        wait_still_screen();
 
-    # OS installation is done automatically as well as the reboot after installation
-    # We just have to wait for the VM to reboot
-    $self->wait_grub(bootloader_time => bmwqemu::scale_timeout(300));
+        # Wait for the first automatic login screen
+        assert_screen('linux-login', timeout => 120);
+        wait_still_screen();
+
+        # OS installation is done automatically as well as the reboot after installation
+        # We just have to wait for the VM to reboot and a login screen to appear
+        wait_screen_change(undef, bmwqemu::scale_timeout(300));
+        assert_screen('linux-login', timeout => 120);
+        wait_still_screen();
+    }
 
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
@@ -69,7 +76,7 @@ sub run {
         delay => 60,
         die => 1,
         fail_message => 'systemd not in running state!'
-    ) unless (get_var('PARALLEL_WITH'));
+    ) unless (get_var('PARALLEL_WITH', ''));
 
     # Test reboot in recovery mode
     if (check_var('TESTED_CMD', 'customize_recovery')) {
@@ -88,7 +95,7 @@ sub run {
 
         # In recovery mode we have auto-login configured on tty1
         console('root-console')->set_tty(1);
-        select_console('root-console');
+        select_console('root-console', await_console => 0);
 
         # Check for recovery boot option
         assert_script_run('grep -q recovery /proc/cmdline');

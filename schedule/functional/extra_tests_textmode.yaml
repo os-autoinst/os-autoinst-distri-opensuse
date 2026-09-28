@@ -79,7 +79,7 @@ conditional_schedule:
                 - console/libqca2
                 - console/vmstat
                 - kernel/kdump
-                - console/ansible
+                - console/oqa_agnostic/ansible_agnostic
                 - console/libgit2
     validate_packages_and_patterns:
         DISTRI:
@@ -164,7 +164,7 @@ schedule:
     - console/golang
     - console/sqlite3
     - console/sysctl
-    - console/sysstat
+    - console/oqa_agnostic/sysstat_agnostic
     - console/tuned
     - '{{fwupd}}'
     - '{{snmp}}'
@@ -176,7 +176,7 @@ schedule:
     - console/rsync
     - console/rust
     - console/shells
-    - console/sudo
+    - console/oqa_agnostic/sudo_agnostic
     - console/run0
     - console/dstat
     - x11/evolution/evolution_prepare_servers

@@ -10,7 +10,7 @@
 use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(systemctl file_content_replace script_retry);
+use utils qw(systemctl script_retry);
 use hacluster;
 use lockapi;
 

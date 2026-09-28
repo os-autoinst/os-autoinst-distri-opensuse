@@ -34,7 +34,6 @@ tests/network/wireguard.pm @pdostal
 tests/network/openvpn_client.pm @pdostal
 tests/network/openvpn_server.pm @pdostal
 tests/network/setup_multimachine.pm @pdostal
-lib/Utils/Logging.pm @pdostal
 
 # HPC
 lib/hpc/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
@@ -57,15 +56,15 @@ tests/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @janko
 tests/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
 
 # Security
-data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-lib/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-lib/main_security.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-lib/eal4_test.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-lib/selinuxtest.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-schedule/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-test_data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-tests/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-tests/fips/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
+data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+lib/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+lib/main_security.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+lib/eal4_test.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+lib/selinuxtest.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+schedule/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+test_data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+tests/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+tests/fips/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
 
 # Kernel, xfstests, IPsec, NFS, btrfs-progs, rt, kdump, nvidia, kselftests, storage
 tests/kernel/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
@@ -103,3 +102,23 @@ schedule/yast @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
 test_data/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
 test_data/yast @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
 tests/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+
+# Elemental
+data/elemental @ldevulder
+schedule/elemental @ldevulder
+tests/elemental @ldevulder
+
+# Elemental3 (aka. UnifiedCore)
+data/elemental3 @ldevulder
+lib/elemental3.pm @ldevulder
+schedule/elemental3 @ldevulder
+t/42_elemental3.t @ldevulder
+tests/elemental3 @ldevulder
+
+# OSADO Maintainers is a special group
+CONTRIBUTING.md @os-autoinst/tests-maintainer
+README.md @os-autoinst/tests-maintainer
+AGENTS.md @os-autoinst/tests-maintainer
+CLAUDE.md @os-autoinst/tests-maintainer
+GEMINI.md @os-autoinst/tests-maintainer
+.github/copilot-instructions.md @os-autoinst/tests-maintainer

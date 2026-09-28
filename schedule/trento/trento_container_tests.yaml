@@ -1,0 +1,11 @@
+---
+name: trento_container_tests
+description: >
+  Maintainer: Trento team <trento-developers@suse.com>
+  Trento container rebuild validation on a pre-installed SLES for SAP 15 SP7
+  openQA VM. The test deploys Trento Server on K3s with the Helm chart,
+  injects the rebuilt container image under test, and validates Web, Wanda,
+  login, and MCP endpoints.
+schedule:
+  - boot/boot_to_desktop
+  - trento/trento

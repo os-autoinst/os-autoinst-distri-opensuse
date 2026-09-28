@@ -13,10 +13,11 @@ use Mojo::Base 'opensusebasetest';
 use lockapi qw(mutex_create mutex_wait);
 use testapi;
 use version_utils qw(is_wsl is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro
-  is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_grub2_bls has_selinux_by_default is_community_jeos is_sles4sap is_transactional);
+  is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_grub2_bls has_selinux_by_default is_community_jeos is_sles4sap is_transactional
+  is_selfinstall);
 use Utils::Architectures;
 use Utils::Backends;
-use jeos qw(expect_mount_by_uuid is_translations_preinstalled);
+use jeos qw(expect_mount_by_uuid is_translations_preinstalled check_jeos_on_serial_terminal);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions enter_cmd_slow);
 use serial_terminal 'prepare_serial_console';
 use Utils::Logging qw(record_avc_selinux_alerts);
@@ -88,11 +89,6 @@ sub verify_hypervisor {
         is_hyperv && $virt =~ /microsoft/ ||
         is_vmware && $virt =~ /vmware/ ||
         check_var("VIRSH_VMM_FAMILY", "xen") && $virt =~ /xen/);
-
-    if (is_qemu && is_riscv && $virt =~ /none/) {
-        record_soft_failure('boo#1218309');
-        return 0;
-    }
 
     die("Unknown hypervisor: $virt");
 }
@@ -241,6 +237,14 @@ sub run {
         $initial_screen_timeout = 420 if is_sle_micro;
     }
 
+    # Ensures the JeOS firstboot wizard is present on the serial terminal.
+    # In the selfinstall flow this check already happened earlier, in
+    # microos/selfinstall.pm, right before it waits for 'The initial
+    # configuration' on the same serial log. Doing it again here would
+    # always fail because that earlier wait_serial() call already consumed
+    # the 'JeOS Firstboot' line from the serial log (poo#204390).
+    check_jeos_on_serial_terminal() unless (is_sle("<15") || is_s390x || is_selfinstall || is_wsl || check_var('JEOS_CHECK_SERIAL', '0'));
+
     # https://github.com/openSUSE/jeos-firstboot/pull/82 welcome dialog is shown on all consoles
     # and configuration continues on console where *Start* has been pressed
     unless (is_sle('=12-sp5')) {
@@ -272,16 +276,13 @@ sub run {
     send_key 'ret';
 
     # Show license
-    # EULA license applies for sle products that are in GM(C) phase
-    my $license = 'jeos-license';
-    if ((is_sle || is_sle_micro) && !get_var('BETA')) {
-        $license = 'jeos-license-eula';
-    }
+    # EULA license applies for suse products only
+    my $license = is_opensuse ? 'jeos-license' : 'jeos-license-eula';
     assert_screen $license;
     send_key 'ret';
 
     # Accept EULA if required
-    if (is_sle || is_sle_micro) {
+    unless (is_opensuse) {
         assert_screen 'jeos-doyouaccept';
         send_key 'ret';
     }
@@ -324,7 +325,7 @@ sub run {
     }
 
     # Only execute this block on SLE Micro 6.0+ when using the encrypted image.
-    if (get_var('FLAVOR') =~ m/-encrypted/i) {
+    if (get_var('FLAVOR') =~ m/-encrypted/i || get_var('ENCRYPTED')) {
         # Select FDE with pass and tpm
         assert_screen "alp-fde-pass-tpm";
         # with the latest ALP 9.2/SLEM 3.4 build, this step takes more time than usual.
@@ -336,7 +337,7 @@ sub run {
         type_password;
         send_key "ret";
         # Disk encryption is gonna take time
-        assert_screen 're-encrypt-finished', 720 unless is_sle_micro('>=6.2') || is_sle('>=16');
+        assert_screen 're-encrypt-finished', 900 unless is_sle_micro('>=6.2') || is_sle('>=16');
     }
 
     unless (is_sle('<16') || is_sle_micro('<6.1') || is_leap('<16')) {

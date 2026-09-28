@@ -10,6 +10,23 @@
 #
 # Usage; test.sh path_of_resources
 
+function exit_handler {
+  local exit_code=$?
+  echo "OK: $count_ok, ERRORS: $count_ko, TOTAL: ${#tests[*]}"
+  case $exit_code in
+    0)
+      echo "All tests passed"
+      ;;
+    *)
+      echo "KO:" >&2
+      printf '%s\n' "${ko_list[@]}" >&2
+    ;;
+    esac
+  exit $exit_code;
+}
+
+trap exit_handler EXIT
+
 #####################
 # Download resorces
 #####################
@@ -78,6 +95,19 @@ gm convert white.png frame4.gif
 ##########################
 # Helpers
 ##########################
+
+
+## Check if the first version is equal or greater than the required version
+# e.g version_or_higher "1.3.33" "1.3.28" returns true
+function version_or_higher {
+  local version="${1:-0}"
+  local required="${2:-0}"
+
+  zypper vcmp "$version" "$required" >/dev/null 2>&1
+  local rc=$?
+
+  [ "$rc" -eq 0 ] || [ "$rc" -eq 11 ]
+}
 
 function compare {
   metric=$1
@@ -384,7 +414,7 @@ tests=(
   # Test 8. Composite images
 
   # a. Composite an image from two images
-  "gm composite blue.png quadrants500x500_transparent_blue.png __1.png;compare PAE __1.png quadrants500x500.png 0"
+  "gm composite blue.png quadrants500x500_transparent_blue.png PNG32:__1.png; compare PAE __1.png quadrants500x500.png 0"
 
   # b. Compute the difference between images:
   "gm composite -compose difference red.png blue.png __1.png;compare PAE __1.png magenta.png 0"
@@ -431,13 +461,17 @@ tests=(
   # b. bundle operations http://www.graphicsmagick.org/mogrify.html
   "special 6"
 
-  # Test 13. Test scripting
-  # http://www.graphicsmagick.org/conjure.html
-  "gm conjure -dimensions 10x10 script.html; perl check_size.pl script_test.png 10 10"
-
 )
 
-function special(){
+if ! version_or_higher "$(rpm -q GraphicsMagick --qf '%{VERSION}')" "1.3.47"; then
+  tests+=(
+    # Test 13. Test scripting - MSL scripting is disabled since 1.3.47: https://bugzilla.opensuse.org/show_bug.cgi?id=1269472
+    # http://www.graphicsmagick.org/conjure.html
+    "gm conjure -dimensions 10x10 script.html; perl check_size.pl script_test.png 10 10"
+  )
+fi
+
+function special {
   case $1 in
     0) gm convert -resize 500x250! -fill red -draw 'rectangle 250,0 500,250' blue.png $2 && compare PAE $2 quadrants_up_500x250.png 0;;
     1) gm convert -fill red -draw 'circle 125,125 125,0' white.png $2 && compare PAE $2 red_circle.png 0;;
@@ -480,8 +514,8 @@ do
 
       res=$($cmd)
       if [ $? -ne 0 ]; then
-        res="KO"
-        break;
+        res=$cmd
+        break
       fi
     done
 
@@ -489,13 +523,11 @@ do
       ok_list[$count_ok]=$index
       count_ok=$(( count_ok + 1 ))
     else
-      ko_list[$count_ko]=$index
+      ko_list[$count_ko]="test $index => $res"
       count_ko=$(( count_ko + 1 ))
     fi
 
     echo "$index - $res - $original_command"
 done
-
-echo "OK: $count_ok , ERRORS: $count_ko"
 
 exit $count_ko

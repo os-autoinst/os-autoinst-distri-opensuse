@@ -211,6 +211,17 @@ sub run {
         zypper_call("rr sle-module-packagehub-subpackages:${version}::pool sle-module-packagehub-subpackages:${version}::update");
     }
 
+    # Enable PackageHub repos in case dependent packages are required.
+    # Note: avoid enabling by default as it may introduce new dependency issues,
+    # especially when LTSS repos are present.
+    if (get_var('QAM_ENABLE_PHUB_REPO')) {
+        my $version = get_var('VERSION');
+        my $arch = get_var('ARCH');
+        zypper_ar("http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Packagehub-Subpackages/$version/$arch/product/",
+            name => "sle-module-packagehub-subpackages:${version}::pool");
+        zypper_ar("http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Packagehub-Subpackages/$version/$arch/update/",
+            name => "sle-module-packagehub-subpackages:${version}::update");
+    }
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);

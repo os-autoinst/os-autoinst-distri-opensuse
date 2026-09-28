@@ -18,7 +18,8 @@ sub run {
 
     # Initiate reboot
     type_string 'reboot';
-    assert_and_click 'gnome-shell-confirm-reboot-1';
+    assert_screen 'gnome-shell-confirm-reboot-1';
+    send_key 'ret';
     assert_and_click('gnome-shell-confirm-reboot-2', timeout => 60);
 
     # Input the encryption passphrase

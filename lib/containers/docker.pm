@@ -13,7 +13,7 @@ use Mojo::Base 'containers::engine';
 use testapi;
 use containers::utils qw(registry_url);
 use containers::common qw(install_docker_when_needed);
-use utils qw(systemctl file_content_replace);
+use utils qw(systemctl);
 has runtime => 'docker';
 
 sub init {

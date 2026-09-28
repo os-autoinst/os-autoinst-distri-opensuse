@@ -16,6 +16,12 @@ use LTP::WhiteList;
 use repo_tools 'add_qa_head_repo';
 use package_utils 'install_package';
 
+sub get_package_version {
+    my $pkg = shift;
+    my $out_ver = script_output("rpm -q --qf '%{Version}\n' $pkg | sort -nr | head -1");
+    return "liburing-$out_ver";
+}
+
 sub run {
     my $self = shift;
 
@@ -26,6 +32,7 @@ sub run {
     my $exclude = get_var('LIBURING_EXCLUDE', '');
     my $issues = get_var('LIBURING_KNOWN_ISSUES', '');
     my $whitelist = LTP::WhiteList->new($issues);
+    my $version = get_var('LIBURING_VERSION', '');
     my $test_dir;
     my $out;
 
@@ -33,7 +40,6 @@ sub run {
 
     if ($install =~ /git/i) {
         my $repository = get_var('LIBURING_REPO', 'https://github.com/axboe/liburing.git');
-        my $version = get_var('LIBURING_VERSION', '');
         my $pkgs = "git-core";
 
         $pkgs .= " liburing2" if script_run('rpm -q liburing2');
@@ -41,8 +47,7 @@ sub run {
         install_package($pkgs, trup_continue => 1, trup_apply => 1);
 
         if ($version eq '') {
-            $out = script_output('rpm -q --qf "%{Version}\n" liburing2 | sort -nr | head -1');
-            $version = "liburing-$out";
+            $version = get_package_version('liburing2');
         }
 
         assert_script_run("git clone --depth=1 --branch $version $repository");
@@ -50,7 +55,7 @@ sub run {
         record_info("test version", script_output("git log -1 --oneline"));
         assert_script_run("./configure");
         assert_script_run("make -C src");
-        assert_script_run("make -C test");
+        assert_script_run("make -C test", timeout => 300);
         $test_dir = 'liburing';
     } else {
         my $default_test_dir = '/usr/lib/liburing-tests';
@@ -61,6 +66,9 @@ sub run {
             $test_dir = '/tmp/liburing-tests';
         } else {
             $test_dir = $default_test_dir;
+        }
+        if ($version eq '') {
+            $version = get_package_version('liburing-tests');
         }
     }
 
@@ -74,6 +82,7 @@ sub run {
         libc => '',
         gcc => '',
         harness => 'SUSE OpenQA',
+        ltp_version => $version,
     };
 
     # run tests executables
@@ -81,10 +90,18 @@ sub run {
     my @skipped = $whitelist->list_skipped_tests($environment, 'liburing');
     if (@skipped) {
         push @skipped, $exclude if $exclude;
-        $test_exclude = join(' ', @skipped);
+        my @sorted = sort @skipped;
+        $test_exclude = join(' ', @sorted);
+        my $count = scalar @sorted;
+        my @details;
+        for my $test (@sorted) {
+            my $entry = $whitelist->find_whitelist_entry($environment, 'liburing', $test);
+            my $message = ($entry && $entry->{message}) ? $entry->{message} : '';
+            push @details, $message ? "$test: $message" : $test;
+        }
         record_info(
-            "Exclude",
-            "Excluding tests: $test_exclude",
+            "Exclude ($count)",
+            "Excluding tests ($count):\n" . join("\n", @details),
             result => 'softfail'
         );
     }
@@ -92,14 +109,14 @@ sub run {
     if ($install =~ /git/i) {
         assert_script_run("echo 'TEST_EXCLUDE=\"$test_exclude\"' > test/config.local") if $test_exclude;
         $out = script_output(
-            "make -C test runtests",
+            "TIMEOUT=300 make -C test runtests",
             timeout => $timeout,
             proceed_on_failure => 1
         );
     } else {
         my $env = $test_exclude ? "TEST_EXCLUDE=\"$test_exclude\" " : '';
         $out = script_output(
-            "cd $test_dir && ${env}./runtests.sh *.t",
+            "cd $test_dir && TIMEOUT=300 ${env}./runtests.sh *.t",
             timeout => $timeout,
             proceed_on_failure => 1
         );

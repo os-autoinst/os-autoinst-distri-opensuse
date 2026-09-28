@@ -96,10 +96,10 @@ sub run {
 
     if ($provider_type eq 'EC2') {
         my $instance_id = crash_deploy_aws(
-            region => get_var('PUBLIC_CLOUD_REGION'),
+            region => $provider->provider_client->region,
+            ssh_pub_key => $provider->ssh_key . ".pub",
             image_name => $provider->get_image_id(),
             image_owner => get_var('PUBLIC_CLOUD_EC2_ACCOUNT_ID', '679593333241'),
-            ssh_pub_key => $provider->ssh_key . ".pub",
             instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
             address_range => $range{main_address_range},
             subnet_range => $range{subnet_address_range});
@@ -113,20 +113,21 @@ sub run {
           $self->{provider}->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) :
           $provider->get_image_id();
         crash_deploy_azure(
-            os => $os_ver,
             region => $provider->provider_client->region,
+            ssh_pub_key => $provider->ssh_key . ".pub",
+            os => $os_ver,
             address_range => $range{main_address_range},
             subnet_range => $range{subnet_address_range});
     }
     elsif ($provider_type eq 'GCE') {
         crash_deploy_gcp(
-            region => get_required_var('PUBLIC_CLOUD_REGION'),
+            region => $provider->provider_client->region,
+            ssh_pub_key => $provider->ssh_key . '.pub',
             availability_zone => get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE'),
             project => get_required_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID'),
             image_name => $provider->get_image_id() =~ s/.*\///r,
             image_project => get_required_var('PUBLIC_CLOUD_IMAGE_PROJECT'),
             machine_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'n1-standard-2'),
-            ssh_pub_key => $provider->ssh_key . '.pub',
             subnet_range => $range{subnet_address_range});
     }
     else {

@@ -22,7 +22,7 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit docker glibc-devel-static go1.26 gpg2 jq libgpgme-devel
+    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit docker glibc-devel-static go1.27 gpg2 jq libgpgme-devel
       libseccomp-devel make netavark openssl podman podman-remote runc skopeo socat sudo systemd-container xfsprogs);
     push @pkgs, qw(criu crun libcriu2) unless is_sle;
     $oci_runtime = get_var("OCI_RUNTIME", "runc");
@@ -41,6 +41,8 @@ sub setup {
     # The tests expect an exact list of unqualified-search-registries containing "quay.io" and we ship:
     # unqualified-search-registries = ["registry.opensuse.org", "registry.suse.com", "docker.io"]
     run_command "rm -f /etc/containers/registries.conf.d/00-suse-registries.conf";
+    # Tests using --signature-policy /etc/containers/policy.json expect this file to exist
+    run_command "ln -sf /usr/share/containers/policy.json /etc/containers/policy.json" if script_run("test -f /etc/containers/policy.json");
 
     enable_docker;
 
@@ -80,12 +82,15 @@ sub run {
         PODMAN_REMOTE_BINARY => "/usr/bin/podman-remote",
         QUADLET_BINARY => "/usr/libexec/podman/quadlet",
         TESTFLAGS => "--junit-report=report.xml",
+        TMPDIR => "/var/tmp",
     );
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
+    $env{STORAGE_DRIVER} = "overlay" if (version->parse(numeric_version($version)) > version->parse("6.0.0"));
 
     my @xfails = (
         'Libpod Suite::[It] Podman pod create podman pod create --restart=on-failure',
         'Libpod Suite::[It] Podman run memory podman run memory test on oomkilled container',
+        'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     );
     push @xfails, (
         # Fixed in podman 5.6.1:
@@ -98,9 +103,6 @@ sub run {
         # Fails with "registry.access.redhat.com/*openshift*"
         'Libpod Suite::[It] Podman search podman search with wildcards',
     ) if (version->parse(numeric_version($version)) < version->parse("5.8.0"));
-    push @xfails, (
-        'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
-    ) if (get_var("ROOTLESS"));
     push @xfails, (
         # We can't backport https://github.com/containers/podman/pull/27775 and this test may fail with:
         # Command exited 125 as expected, but did not emit 'gateway 192.168.1.1 not in subnet 10.11.12.0/24'
@@ -119,7 +121,7 @@ sub run {
     my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
     foreach my $target (@targets) {
         run_timeout_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3000;
-        upload_logs "$target.txt";
+        upload_logs "$target.txt", failok => 1;
         assert_script_run "mv report.xml $target.xml";
         die "Testsuite failed" if script_run("test -s $target.xml");
         patch_junit "podman", $version, "$target.xml", @xfails;

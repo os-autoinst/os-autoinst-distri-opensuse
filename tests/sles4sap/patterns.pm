@@ -51,7 +51,7 @@ sub run {
         push(@sappatterns, 'sles_sap_HAAPP', 'sles_sap_HADB') if is_sle('16+');
     }
 
-    my $base_pattern = is_sle('15+') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
+    my $base_pattern = is_sle('15+') ? '(patterns-server-enterprise-sap_server|pattern:sap_server)' : 'patterns-sles-sap_server';
     $base_pattern = '(patterns-sap-base_sap_server|pattern:sles_sap_base_sap_server)' if (is_sle('16+'));
 
     zypper_enable_install_dvd;

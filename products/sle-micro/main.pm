@@ -59,7 +59,7 @@ $needle::cleanuphandler = sub {
 if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
     my %u_url;
-    $incidents{OS} = get_var('OS_TEST_REPOS', get_var('INCIDENT_REPO'));
+    $incidents{OS} = get_var('INCIDENT_REPO', get_var('OS_TEST_REPOS'));
 
     if (exists $incidents{OS} && !$incidents{OS}) {
         carp '"OS_TEST_REPOS" or "INCIDENT_REPO" variable is empty!';

@@ -28,7 +28,7 @@ use version_utils 'is_sle';
 sub run {
 
     my ($self) = @_;
-    my $changesaving_checktimestamp = "ll --time-style=full-iso .mozilla/firefox/*default*/prefs.js | cut -d' ' -f7";
+    my $changesaving_checktimestamp = "ll --time-style=full-iso \$(find  ~/.config/mozilla ~/.mozilla  -type f -name prefs.js | grep '/firefox/' | head -n1) | cut -d' ' -f7";
 
     $self->start_firefox_with_profile;
 
@@ -42,7 +42,7 @@ sub run {
 
     # Open a new tab to avoid the keyboard focus is misled by the homepage
     send_key 'ctrl-t';
-    wait_still_screen 3;
+    wait_still_screen 1, 2;
     $self->firefox_preferences;
     assert_and_click 'firefox-changesaving-showblankpage';
     wait_still_screen 2, 4;    #There might be a notification

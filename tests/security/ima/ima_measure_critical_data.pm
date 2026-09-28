@@ -1,4 +1,4 @@
-# Copyright 2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: With kernel 5.6+, apply ima_measure_critical_data patches,
@@ -32,8 +32,16 @@ sub run {
     add_grub_cmdline_settings('ima_policy=critical_data', update_grub => 1);
 
     # Reboot to make settings work
-    power_action('reboot', textmode => 1);
-    $self->wait_boot;
+    if (is_aarch64 && is_sle('>=16')) {
+        # On aarch64 UEFI, VNC stays blank and serial console buffer doesn't capture boot messages
+        # Use simple time-based approach: send reboot, wait for typical boot time, reconnect
+        enter_cmd('reboot');
+        sleep 150;
+        reset_consoles;
+    } else {
+        power_action('reboot', textmode => 1);
+        $self->wait_boot;
+    }
     select_serial_terminal;
 
     # Default template ima-buf should be used

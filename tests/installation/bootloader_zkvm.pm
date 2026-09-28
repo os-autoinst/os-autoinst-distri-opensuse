@@ -32,7 +32,7 @@ sub set_svirt_domain_elements {
         my $name = $svirt->name;
 
         my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
-        my $cmdline = get_var('VIRSH_CMDLINE') . $ntlm_p . " ";
+        my $cmdline = get_var('VIRSH_CMDLINE') . " " . $ntlm_p . " ";
         if (is_agama) {
             my $mirror_http = get_required_var('MIRROR_HTTP');
             $cmdline .= " root=live:$mirror_http/LiveOS/squashfs.img live.password=$testapi::password";
@@ -56,7 +56,7 @@ sub set_svirt_domain_elements {
         $cmdline .= ' ' . get_var("EXTRABOOTPARAMS") if get_var("EXTRABOOTPARAMS");
         # inst.auto and inst.install_url are defined in 'specific_bootmenu_params'
         $cmdline .= specific_bootmenu_params;
-        if (!(is_agama && check_var('FLAVOR', 'Full'))) {
+        if (check_var('AGAMA_FORCE_REGISTER', '1') || !(is_agama && get_var('FLAVOR') =~ /^(Full(-Immutable)?)$/)) {
             $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation') && !get_var('NTLM_AUTH_INSTALL');
         }
 
@@ -100,8 +100,18 @@ sub run {
     record_info('VM instance', get_var('VIRSH_INSTANCE'));
     record_info('Guest ip', get_var('VIRSH_GUEST'));
 
+    my $is_remote_disabled = get_var('EXTRABOOTPARAMS', '') =~ /inst\.remote=0/;
+
     if (is_agama) {
-        wait_serial('Connect to the Agama installer using these URLs', 300) || die "Agama installer didn't start";
+        my %expectations = (
+            pattern => $is_remote_disabled
+            ? 'Remote access to the Agama installer is disabled, it can be used only locally'
+            : 'Connect to the Agama installer using these URLs',
+            error => $is_remote_disabled
+            ? "Remote access to Agama installer was not disabled"
+            : "Agama installer didn't start",
+        );
+        wait_serial($expectations{pattern}, 300) or die $expectations{error};
         return;
     }
     if (!get_var("BOOT_HDD_IMAGE") or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {

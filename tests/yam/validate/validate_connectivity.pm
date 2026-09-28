@@ -19,4 +19,8 @@ sub run {
     validate_script_output("nmcli networking connectivity check", sub { m/\b$connectivity\b/ });
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;

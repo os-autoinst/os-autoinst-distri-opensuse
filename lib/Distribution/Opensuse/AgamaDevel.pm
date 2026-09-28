@@ -22,6 +22,10 @@ use Yam::Agama::Pom::EnterPassphraseBasePage;
 use Yam::Agama::Pom::EnterPassphraseForRootPage;
 use Yam::Agama::Pom::EnterPassphraseForSwapPage;
 use Yam::Agama::Pom::EnterPassphraseForHomePage;
+use Yam::Agama::Pom::NmtuiNetworkConfigurationPage;
+use Yam::Agama::Pom::NmtuiEditConnectionPage;
+use Yam::Agama::Pom::NmtuiHTTPProxyAddressPage;
+use Yam::Agama::Pom::NmtuiConnectionTestResultPage;
 
 use Utils::Architectures;
 
@@ -72,6 +76,22 @@ sub get_enter_passphrase_for_home {
     return Yam::Agama::Pom::EnterPassphraseForHomePage->new({
             enter_passphrase_base => Yam::Agama::Pom::EnterPassphraseBasePage->new()
     });
+}
+
+sub get_ntui_current_network_configuration {
+    return Yam::Agama::Pom::NmtuiNetworkConfigurationPage->new();
+}
+
+sub get_ntui_edit_a_connection {
+    return Yam::Agama::Pom::NmtuiEditConnectionPage->new();
+}
+
+sub get_ntui_http_proxy_address {
+    return Yam::Agama::Pom::NmtuiHTTPProxyAddressPage->new();
+}
+
+sub get_ntui_connection_test_result {
+    return Yam::Agama::Pom::NmtuiConnectionTestResultPage->new();
 }
 
 1;

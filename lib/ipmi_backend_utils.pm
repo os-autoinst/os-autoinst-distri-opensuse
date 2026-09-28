@@ -22,7 +22,7 @@ use Socket;
 use virt_autotest::utils;
 use Utils::Backends;
 
-our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken set_ipxe_bootscript set_floppy_boot set_disk_boot);
+our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken set_ipxe_bootscript set_floppy_boot set_disk_boot set_bootscript_hdd);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -550,6 +550,22 @@ sub reconnect_when_ssh_console_broken {
     script_run("uptime");
     script_run("ls -l /var/crash/");
     save_screenshot;
+}
+
+=head2 set_bootscript_hdd
+
+  set_bootscript_hdd()
+
+Call set_ipxe_bootscript to upload iPXE bootscript to exit network boot process.
+=cut
+
+sub set_bootscript_hdd {
+    my $bootscript = <<"END_BOOTSCRIPT";
+#!ipxe
+exit
+END_BOOTSCRIPT
+
+    set_ipxe_bootscript($bootscript);
 }
 
 =head2 set_ipxe_bootscript

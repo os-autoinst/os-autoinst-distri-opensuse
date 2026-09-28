@@ -63,6 +63,7 @@ conditional_schedule:
 schedule:
     - '{{bootloader}}'
     - '{{wizard}}'
+    - jeos/kernel_config
     - jeos/image_info
     - jeos/minimalvm_image_checks
     - jeos/record_machine_id

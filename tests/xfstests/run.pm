@@ -82,6 +82,21 @@ my $HB_DONE = '<d>';
 # - XFSTESTS_TIMEOUT: Set the sub-test timeout threshold
 my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
 
+# Sporadic debug: tests listed in DEBUG_SPORADIC_FAIL are looped in place (at
+# their scheduled position among the other tests) by run_subtest.pm instead of
+# running once. run.pm only builds the set and tags the affected subtests; the
+# loop, statistics and reporting all live in run_subtest.pm. Related variables
+# (DEBUG_SPORADIC_LOOP/MODE/MAX) are documented in variables.md.
+my $SPORADIC_TESTS = get_var('DEBUG_SPORADIC_FAIL', '');
+
+sub parse_sporadic_tests {
+    my ($sporadic_str, $fstype, $inst_dir) = @_;
+    return {} unless $sporadic_str;
+
+    my %sporadic_hash = map { $_ => 1 } generate_xfstests_list($sporadic_str, $fstype, $inst_dir);
+    return \%sporadic_hash;
+}
+
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
@@ -112,6 +127,10 @@ sub run {
     heartbeat_prepare($HB_INTVL) if $enable_heartbeat;
     assert_script_run("mkdir -p $KDUMP_DIR $LOG_DIR");
 
+    # Tests to loop for sporadic failure debugging; run_subtest.pm does the loop
+    my $sporadic_hash = parse_sporadic_tests($SPORADIC_TESTS, $FSTYPE, $INST_DIR);
+    record_info('Sporadic Debug', "Loop run enabled for: " . join(', ', sort keys %$sporadic_hash)) if %$sporadic_hash;
+
     # wait until nfs service is ready
     if (get_var('PARALLEL_WITH')) {
         mutex_wait('xfstests_nfs_server_ready');
@@ -140,12 +159,16 @@ sub run {
         if (exists($black_list{$test}) || ($whitelist && $whitelist->is_test_disabled($whitelist_env, $TEST_SUITE, $test))) {
             next;
         }
+        # Tag sporadic tests before the name is normalized (hash keys use "/")
+        my $is_sporadic = exists $sporadic_hash->{$test};
         my $targs = OpenQA::Test::RunArgs->new();
         # Change / to -, because openqa will see / as path and it'll fail to find run file in loadtest
         $test =~ s/\//-/;
         $targs->{name} = $test;
         $targs->{enable_heartbeat} = $enable_heartbeat;
         $targs->{last_one} = 0;
+        # run_subtest.pm loops this test in place instead of running it once
+        $targs->{sporadic} = 1 if $is_sporadic;
         $targs->{my_instance} = $args->{my_instance} if is_public_cloud;
         if ($index == $subtest_num - 1) {
             mutex_create 'last_subtest_run_finish';

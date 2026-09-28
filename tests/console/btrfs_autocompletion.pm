@@ -17,6 +17,7 @@ use Mojo::Base 'btrfs_test';
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_jeos is_sle is_leap);
+use package_utils 'install_package';
 
 # Btrfs understands short commands like "btrfs d st"
 # Compare autocompleted commands as strings
@@ -46,7 +47,7 @@ sub run {
 
     if (is_sle('>=16') || is_leap('>=16.0')) {
         # Split bash completion to sub package
-        zypper_call('in btrfsprogs-bash-completion');
+        install_package('btrfsprogs-bash-completion', trup_reboot => 1);
         # Execute bash to make sure changes work in running shell session
         enter_cmd('bash');
     }

@@ -33,7 +33,7 @@ conditional_schedule:
             15-SP7:
                 - console/libgcrypt
             15-SP6:
-                - security/libgcrypt_extended_test
+                - security/oqa_agnostic/libgcrypt_extended
             15-SP5:
                 - console/libgcrypt
             15-SP4:

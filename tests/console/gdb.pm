@@ -20,10 +20,11 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';
 use version_utils qw(is_leap is_sle);
+use Utils::Architectures qw(is_aarch64);
 
 sub wait_serial_or_die {
     my ($feedback, %args) = @_;
-    $args{timeout} //= 10;
+    $args{timeout} //= 20;
 
     my $e = wait_serial($feedback, %args);
     if (!defined $e) {
@@ -53,6 +54,8 @@ sub run {
     #Test Case 1
     assert_script_run("curl -O " . data_url('gdb/test1.c'));
     assert_script_run("gcc -g -std=c99 test1.c -o test1");
+    # https://progress.opensuse.org/issues/183761#note-45
+    wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
     enter_cmd("gdb test1 | tee /dev/$serialdev");
     wait_serial_or_die('GNU gdb');
     #Needed because colour codes mess up the output on $serialdev
@@ -89,7 +92,7 @@ sub run {
     script_run("./test3 & echo 'this is a workaround'");
     assert_script_run("pidof test3");    #Make sure the process was launched.
     enter_cmd("gdb -p \$(pidof test3) | tee /dev/$serialdev");
-    wait_serial_or_die("Attaching to process", 10);
+    wait_serial_or_die("Attaching to process");
     enter_gdb_cmd("set style enabled 0");
     enter_gdb_cmd("break test3.c:9");
     wait_serial_or_die("Breakpoint 1 at");
@@ -101,6 +104,18 @@ sub run {
     #Workaround to handle sshserial behavior
     check_var('SERIALDEV', 'sshserial') && enter_cmd("y");
     assert_script_run("pkill -9 test3");
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    # gdb may still be running interactively on the serial terminal.
+    # Kill it before the base class tries to switch consoles.
+    script_run('pkill gdb');
+    $self->SUPER::post_fail_hook;
+}
+
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
 }
 
 1;

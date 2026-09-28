@@ -13,7 +13,7 @@
 # - Disable mail notifications system-wide
 # - Enable pipefail system-wide
 # - Disable/stop packagekit service
-# - Check console font
+# - Source bashrc.local on the VGA root-console session
 # - Disable autovt@tty2 service for GNOME tests
 
 # Maintainer: QE Core <qe-core@suse.de>
@@ -22,7 +22,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_leap is_sle);
-use utils qw(check_console_font disable_serial_getty zypper_call);
+use utils 'disable_serial_getty';
 use Utils::Backends qw(has_ttys);
 use Utils::Systemd qw(disable_and_stop_service systemctl);
 use Utils::Logging 'export_logs';
@@ -67,11 +67,11 @@ sub run {
     script_run '. /etc/bash.bashrc.local';
     disable_and_stop_service('packagekit.service', mask_service => 1);
 
-    # switch to root console and print the current console font to stdout
-    # make a use of selected root-console in check_console_font to apply
-    # the same environment changes as to root-virtio
+    # Source bashrc.local on the VGA root-console session too.
+    # prepare_test_data created that session before bashrc.local existed,
+    # so it needs explicit sourcing.
     if (has_ttys()) {
-        check_console_font;
+        select_console('root-console', await_console => 0);
         script_run '. /etc/bash.bashrc.local';
     }
 

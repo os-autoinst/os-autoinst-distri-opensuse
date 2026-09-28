@@ -10,7 +10,9 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use power_action_utils 'power_action';
 use utils qw(zypper_call reconnect_mgmt_console upload_folders);
+use Utils::Backends qw(is_ipmi);
 use Utils::Architectures 'is_s390x';
+use Utils::Backends 'is_pvm';
 use registration;
 
 sub run {
@@ -18,16 +20,21 @@ sub run {
 
     select_console('root-console');
 
-    # Add repo for devel:DMS when using proxy
-    if ((get_var('SCC_URL', "") =~ /proxy/)) {
+    # Only for products in development, not maintenance
+    # Online FLAVOR is the only one running migrations for products in development
+    my $is_devel_dms_required = sub {
+        return get_var('FLAVOR', '') eq 'Online';
+    };
+
+    if ($is_devel_dms_required->()) {
         my $repo_server = "https://download.opensuse.org/repositories/devel:/DMS/";
         my $repo_url = $repo_server . "SLE_" . (get_var('VERSION_UPGRADE_FROM') =~ s/-/_/gr);
-        zypper_call("ar --refresh -p 90 '$repo_url' Migration");
+        zypper_call("ar --refresh -p 90 '$repo_url' devel_DMS");
     }
 
     # install the migration image and active it
     my $migration_tool = is_s390x ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
-    zypper_call("--gpg-auto-import-keys -n in $migration_tool");
+    record_info("installing DMS", script_output("zypper --gpg-auto-import-keys -n in $migration_tool"));
 
     # deactivate unwanted/unsupported extensions before doing migration
     if (get_var('SCC_SUBTRACTIONS')) {
@@ -38,9 +45,8 @@ sub run {
         }
     }
 
-    # clean repos before migration
-    if ((get_var('SCC_URL', "") =~ /proxy/)) {
-        zypper_call("rr Migration");
+    if ($is_devel_dms_required->()) {
+        zypper_call("rr devel_DMS");
     }
     my $repo_num = script_output(q(zypper lr -u | awk -F '|' '/(cd|ftp):/ {printf $1}'));
     zypper_call("rr $repo_num") if $repo_num;
@@ -51,8 +57,11 @@ sub run {
         zypper_call("ar --refresh $repo_increment Increment_repo");
     }
 
-    # list repos before migration
+    # list repos and check network before migration
     record_info('list repos', script_output('zypper lr -u'));
+    record_info('network', script_output('ip a s'));
+    record_info('wicked', script_output('wicked ifstatus all'));
+    record_info('config', script_output('for i in $(find /etc/sysconfig/network -name ifcfg*); do echo "XXXXXXXXXX $i"; cat $i; done'));
 
     # upload logs to know system state before migration
     upload_logs("/boot/grub2/grub.cfg", failok => 1);
@@ -67,10 +76,11 @@ sub run {
         assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
         assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
-        assert_screen('grub-menu-migration', 120);
+        reconnect_mgmt_console(timeout => 600) if (is_ipmi | is_pvm),;
+        assert_screen('grub-menu-migration', is_ipmi ? 600 : 120);
         send_key 'ret';
-        assert_screen('migration-running', 60);
-        assert_screen('grub2', 1000);
+        assert_screen('migration-running', 60) unless (is_pvm);
+        assert_screen('grub2', 1200);
     }
 }
 

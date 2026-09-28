@@ -5,7 +5,7 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use Mojo::Base 'Yam::Agama::patch_agama_base';
-use testapi qw(assert_script_run data_url get_required_var set_var get_var check_var select_console script_run);
+use testapi qw(assert_script_run data_url get_required_var set_var get_var check_var select_console script_run record_soft_failure);
 use autoyast qw(expand_agama_profile generate_json_profile);
 use version_utils qw(is_sle);
 

@@ -10,7 +10,8 @@
 # are defined
 # - If system is vmware, set resolution to 1024x768 (and write to grub)
 # - Stop and disable packagekit
-# Maintainer: Rodion Iafarov <riafarov@suse.com>
+# - Configure env for ZYPP_MEDIANETWORK=1 if needed [poo#206961]
+# Maintainer: QE Core <qe-core@suse.de>
 
 use Mojo::Base 'consoletest';
 use testapi;
@@ -123,6 +124,13 @@ sub run {
     }
 
     assert_script_run 'rpm -q systemd-coredump || zypper -n in systemd-coredump || true', timeout => 200 if get_var('COLLECT_COREDUMPS');
+
+    # ZYPP_MEDIANETWORK was introduced in libzypp 17.28.x as an experimental multi-threaded/asynchronous
+    # network backend feature which supports sle15+ and openSUSE Tumbleweed
+    if (get_var('ZYPP_MEDIANETWORK')) {
+        assert_script_run qq(echo -e '[env]\nZYPP_MEDIANETWORK=1' > /etc/zypp/zypp.conf.d/medianetwork.conf);
+        record_info('ZYPP_MEDIANETWORK config', script_output('cat /etc/zypp/zypp.conf.d/medianetwork.conf'));
+    }
 
     # stop and disable PackageKit
     quit_packagekit;

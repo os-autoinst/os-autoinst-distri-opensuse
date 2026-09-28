@@ -9,8 +9,11 @@
 
 use Mojo::Base 'x11test';
 use testapi;
+use serial_terminal qw(select_serial_terminal);
 use utils 'zypper_call';
 use x11utils qw(default_gui_terminal close_gui_terminal);
+
+my $workdir;
 
 sub run {
     my $self = shift;
@@ -22,13 +25,14 @@ sub run {
     select_console "x11";
     x11_start_program(default_gui_terminal);
 
-    my $tmp = script_output 'mktemp -d';
-    assert_script_run("pushd $tmp");
+    $workdir = script_output 'mktemp -d';
+    assert_script_run("pushd $workdir");
 
     record_info("INFO", "Step 1. Runs command line tests");
     assert_script_run "wget --quiet " . data_url('graphicsmagick/test.sh') . " -O test.sh";
     assert_script_run "chmod +x test.sh";
-    assert_script_run("./test.sh " . data_url('graphicsmagick'), 3 * 60);
+    my $command = "./test.sh " . data_url('graphicsmagick') . " |& tee run.log";
+    assert_script_run("$command", 3 * 60);
 
     record_info("INFO", "Step 2. Runs visual tests");
 
@@ -53,11 +57,18 @@ sub run {
     enter_cmd "gm convert noise_blur_10.png HISTOGRAM:- | gm display -";
     assert_screen('open_an_image_histogram', 90);
     send_key 'alt-f4';
-
+    upload_logs("run.log");
     assert_script_run("popd");
-    assert_script_run("rm -rf $tmp");
+    assert_script_run("rm -rf $workdir");
 
     close_gui_terminal;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    select_serial_terminal;
+    upload_logs("${workdir}/run.log");
+    $self->SUPER::post_fail_hook();
 }
 
 1;

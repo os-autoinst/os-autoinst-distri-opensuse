@@ -41,4 +41,5 @@ schedule:
     - toolchain/gcc_compilation
     - toolchain/gcc_fortran_compilation
     - console/orphaned_packages_check
+    - console/coredump_collect
     - console/consoletest_finish

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Continously read the serial console from a given publiccloud instance
-# Usage: ./log_instance.sh (start|stop) (EC2|AZURE|GCE) <instance_id> <host> [zone]
+# Usage: ./log_instance.sh (start|stop) (AZURE|GCE) <instance_id> <host> [zone]
 
 COMMAND=$1
 PROVIDER=$2
@@ -12,30 +12,6 @@ LOCK=${OUTPUT_DIR}/.lock
 CNT_FILE=${OUTPUT_DIR}/.cnt
 PID_FILE=${OUTPUT_DIR}/pid
 SSH_OPTS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR"
-
-ec2_start_log()
-{
-    inc_unique_counter
-    set +e
-    aws ec2 get-console-output --instance-id "$INSTANCE_ID" --output text > "${OUTPUT_DIR}/${CNT}_get_console_output_start.log"
-    set -e
-    # shellcheck disable=2086
-    nohup ssh $SSH_OPTS "ec2-user@${HOST}" -- sudo dmesg -c -w > "${OUTPUT_DIR}/${CNT}_dmesg.log" 2>&1 &
-    echo $! > "$PID_FILE"
-}
-
-ec2_stop_log()
-{
-    read_unique_counter
-    set +e
-    aws ec2 get-console-output --instance-id "$INSTANCE_ID" --output text > "${OUTPUT_DIR}/${CNT}_get_console_output_stop.log"
-    set -e
-    if [ -f "$PID_FILE" ]; then
-      kill -9 "$(< "$PID_FILE")" || echo "Process already stopped"
-      rm "$PID_FILE"
-    fi
-}
-
 
 gce_read_serial()
 {
@@ -88,11 +64,17 @@ gce_start_log()
 
 gce_stop_log()
 {
-    # Use flock to wait max 60s that gce_read_serial() is ready. And kill during
-    # the 30s sleep afterwards. If flock fail, just kill the bg process.
-    (flock -w 60 -e 9 || exit 1
-        gce_is_running && kill -9 "$(< "$PID_FILE" )"
-        rm "$PID_FILE"
+    # Use flock to wait max 60s that gce_read_serial() is ready, then kill
+    # during the 30s sleep afterwards. Serial logging is best-effort
+    # diagnostics: if the lock cannot be acquired in time, warn and kill the
+    # logger without it rather than failing the caller's VM reset.
+    (
+        flock -w 60 -e 9 ||
+            echo "WARNING: timed out waiting for serial log lock (${LOCK}), killing logger without it" >&2
+        if gce_is_running; then
+            kill -9 "$(< "$PID_FILE")" || true
+        fi
+        rm -f "$PID_FILE"
     ) 9> "${LOCK}"
 }
 
@@ -152,14 +134,14 @@ trap 'error ${LINENO}' ERR
 set -e
 
 if [ $# -lt 4 ]; then
-    echo  "$0 (start|stop) (EC2|AZURE|GCE) <instance_id> <host> [zone]"
+    echo  "$0 (start|stop) (AZURE|GCE) <instance_id> <host> [zone]"
     exit 2;
 fi
 mkdir -p "$OUTPUT_DIR"
 
 case $PROVIDER in
     EC2)
-        ec2_"${COMMAND}"_log
+        echo "EC2 provider is not supported anymore for logging instance. Left as stub until other CSPs are fully migrated and script is removed";
         ;;
     AZURE|Azure)
         azure_"${COMMAND}"_log

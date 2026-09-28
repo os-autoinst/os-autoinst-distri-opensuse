@@ -1,0 +1,27 @@
+name: execve trace - binary execution discovery
+description: >
+    Discovers which binaries a test schedule executes using
+    the kernel ftrace sched_process_exec tracepoint.
+    Place execve_trace_start early and execve_trace_report
+    at the end. Add test modules between them as needed.
+    Maintainer: balogh
+schedule:
+    - autoyast/prepare_profile
+    - installation/isosize
+    - installation/bootloader_uefi
+    - autoyast/installation
+    - autoyast/console
+    - autoyast/login
+    - autoyast/autoyast_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - console/system_prepare
+    - coverage/execve_trace_start
+    - coverage/execve_trace_report
+test_data:
+    helper_packages:
+        - gzip
+        - iputils
+        - systemd
+        - wget
+    coverage_targets: {}

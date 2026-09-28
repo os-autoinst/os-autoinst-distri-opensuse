@@ -1,24 +1,14 @@
-# baseimage_var is a placeholder of your base image
-# use base variable when you call test_containered_app
+# Stage 1 builds a statically linked test server (CGO_ENABLED=0), so the final
+# image needs no package manager, no interpreter and no particular glibc.
+FROM builderimage_var AS build
+ENV GOTOOLCHAIN=local
+WORKDIR /src
+COPY www.go .
+RUN go mod init testapp && CGO_ENABLED=0 go build -o /www www.go
+
 FROM baseimage_var
-
-RUN zypper --gpg-auto-import-keys ref
-RUN zypper -n in apache2 && zypper clean -a
-RUN echo 'ServerName AppacheInContainer' >> /etc/apache2/httpd.conf
-# apache fails to start without its log folder --> bsc#1264186
-RUN mkdir -p /var/log/apache2
-
-# set a directory for the app
-WORKDIR /srv/www/htdocs/
-
-# copy all the files to the container
-COPY index.html .
-
-# tell the port number the container should expose
-EXPOSE 5000
-
-# Set experimental variable
+COPY --from=build /www /www
+COPY index.html /srv/www/htdocs/index.html
+EXPOSE 80
 ENV WORLD_VAR Arda
-
-# run the command
-ENTRYPOINT ["/usr/sbin/start_apache2", "-DFOREGROUND", "-k", "start"]
+ENTRYPOINT ["/www"]

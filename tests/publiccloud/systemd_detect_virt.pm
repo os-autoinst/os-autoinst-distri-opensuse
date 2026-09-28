@@ -8,7 +8,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::utils;
 use version_utils;
 use utils;
@@ -88,14 +88,14 @@ sub assert_systemd_detect_virt_virtual {
 }
 
 sub assert_systemd_detect_virt {
-    my ($self) = @_;
+    my ($self, $instance) = @_;
 
-    my $rc = int(script_run('systemd-detect-virt'));
-    my $output = script_output('systemd-detect-virt', proceed_on_failure => 1);
+    my $rc = int($instance->ssh_script_run('systemd-detect-virt'));
+    my $output = $instance->ssh_script_output('systemd-detect-virt', proceed_on_failure => 1);
 
     record_info('systemd-detect-virt', "rc: $rc; output: $output");
 
-    my $systemd_version = script_output('rpm -q systemd');
+    my $systemd_version = $instance->ssh_script_output('rpm -q systemd');
 
     record_info('systemd version', $systemd_version);
 
@@ -109,9 +109,9 @@ sub assert_systemd_detect_virt {
 sub run {
     my ($self, $args) = @_;
 
-    select_serial_terminal;
+    select_host_console();
 
-    $self->assert_systemd_detect_virt;
+    $self->assert_systemd_detect_virt($args->{my_instance});
 }
 
 1;

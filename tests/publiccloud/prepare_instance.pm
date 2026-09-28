@@ -35,21 +35,20 @@ sub run {
 
     # Create public cloud instance
     my %instance_args;
-    $instance_args{check_connectivity} = 0;    # Don't run wait_for_ssh() inside create_instance()
     $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
 
     $args->{my_provider} = $self->provider_factory();
     $args->{my_instance} = $args->{my_provider}->create_instance(%instance_args);
     my $provider = $self->{my_provider} = $args->{my_provider};
     my $instance = $args->{my_instance};
-    # check needed when not-executed in create_instance
-    $instance->wait_for_ssh(scan_ssh_host_key => 1) if ($instance_args{check_connectivity} == 0);
-    $instance->check_system_boottime();
-    $instance->wait_for_guestregister() if (is_ondemand);
+    $instance->wait_for_ssh(scan_ssh_host_key => 1);
 
-    $instance->network_speed_test();
-    $instance->check_cloudinit() if (is_cloudinit_supported);
-    $instance->enable_kdump() if (get_var('PUBLIC_CLOUD_ENABLE_KDUMP'));
+    # sshd can be reachable before first-boot provisioning granted the user sudo
+    $instance->wait_for_sudo();
+
+    $provider->initialize_logging($instance);
+    # Add additional authorized_keys for human users
+    add_additional_authorized_keys($instance);
 
     # ssh-tunnel settings
     prepare_ssh_tunnel($instance) if (is_tunneled());

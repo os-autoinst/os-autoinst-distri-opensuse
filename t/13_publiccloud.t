@@ -1,14 +1,18 @@
 use strict;
 use warnings;
+
+
 use Test::More;
 use Test::MockObject;
 use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
+use Test::Mock::Time;
+use List::Util qw(any);
 use testapi 'set_var';
 
 use publiccloud::azure;
-use publiccloud::utils;
+use publiccloud::instance;
 
 sub _unset { for my $k (@_) { set_var($k, undef) } }
 
@@ -20,7 +24,7 @@ subtest '[get_blob_name]' => sub {
     my $res = $provider->get_blob_name('SOMETHING.vhdfixed.xz');
     is $res, 'SOMETHING.vhd', "The image name is properly composed";
 
-    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+    _unset('PUBLIC_CLOUD_AZURE_SKU');
 };
 
 subtest '[get_blob_name] without .xz' => sub {
@@ -31,7 +35,7 @@ subtest '[get_blob_name] without .xz' => sub {
     my $res = $provider->get_blob_name('SOMETHING.vhdfixed');
     is $res, 'SOMETHING.vhd', "The image name is properly composed";
 
-    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+    _unset('PUBLIC_CLOUD_AZURE_SKU');
 };
 
 subtest '[get_blob_name] with URL' => sub {
@@ -42,7 +46,7 @@ subtest '[get_blob_name] with URL' => sub {
     my $res = $provider->get_blob_name('https://download.somewhere.org/SUSE:/SLE-15-SP5:/Update:/PubClouds/images/SOMETHING.vhdfixed.xz');
     is $res, 'SOMETHING.vhd', "The image name is properly composed";
 
-    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+    _unset('PUBLIC_CLOUD_AZURE_SKU');
 };
 
 subtest '[get_blob_name] file name too short' => sub {
@@ -54,7 +58,7 @@ subtest '[get_blob_name] file name too short' => sub {
     eval { $res = $provider->get_blob_name('.xz') };
     is $res, undef, "The image name is too short.";
 
-    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+    _unset('PUBLIC_CLOUD_AZURE_SKU');
 };
 
 subtest '[get_blob_uri]' => sub {
@@ -66,8 +70,7 @@ subtest '[get_blob_uri]' => sub {
     my $res = $provider->get_blob_uri('SOMETHING.vhdfixed.xz');
     is $res, 'https://SOMEWHERE.blob.core.windows.net/sle-images/SOMETHING.vhd', "The image uri is properly composed";
 
-    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
-    set_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', undef);
+    _unset(qw/PUBLIC_CLOUD_AZURE_SKU PUBLIC_CLOUD_STORAGE_ACCOUNT/);
 };
 
 subtest '[generate_basename]' => sub {
@@ -94,12 +97,7 @@ subtest '[generate_basename]' => sub {
     $res = $provider->generate_basename();
     is $res, 'AAA-BBB-CCC-x86_64';
 
-    set_var('PUBLIC_CLOUD_ARCH', undef);
-    set_var('PUBLIC_CLOUD', undef);
-    set_var('DISTRI', undef);
-    set_var('VERSION', undef);
-    set_var('FLAVOR', undef);
-    set_var('ARCH', undef);
+    _unset(qw/PUBLIC_CLOUD_ARCH PUBLIC_CLOUD DISTRI VERSION FLAVOR ARCH/);
 };
 
 subtest '[generate_azure_image_definition]' => sub {
@@ -249,221 +247,166 @@ subtest '[find_img] - image version not found' => sub {
     is $res, 0, 'The image version has not been found.';
 };
 
-subtest '[wait_quit_zypper_pc] uses defaults and expected command' => sub {
+# --- publiccloud::azure pure functions ----------------------------------------
+
+subtest '[decode_azure_json] strips color codes and decodes' => sub {
+    my $colored = "\e[32m{\"name\": \"foo\", \"n\": 7}\e[0m";
+    my $obj = publiccloud::azure::decode_azure_json($colored);
+    is(ref $obj, 'HASH', 'returns decoded hashref');
+    is($obj->{name}, 'foo', 'string value decoded after colorstrip');
+    is($obj->{n}, 7, 'numeric value decoded');
+};
+
+subtest '[parse_instance_id] azure resource id parsing' => sub {
+    my $provider = publiccloud::azure->new();
+
+    my $id = '/subscriptions/SUB-123/resourceGroups/RG-456/providers/Microsoft.Compute/virtualMachines/my-vm';
+    my $inst = Test::MockObject->new;
+    $inst->mock(instance_id => sub { $id });
+    my $res = $provider->parse_instance_id($inst);
+    is($res->{subscription}, 'SUB-123', 'subscription parsed');
+    is($res->{resource_group}, 'RG-456', 'resource_group parsed');
+    is($res->{vm_name}, 'my-vm', 'vm_name parsed');
+
+    my $bad = Test::MockObject->new;
+    $bad->mock(instance_id => sub { 'i-0123456789abcdef0' });
+    is($provider->parse_instance_id($bad), undef, 'non-azure id returns undef');
+};
+
+subtest '[generate_image_tags] tag composition' => sub {
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    $azure->redefine(get_current_job_id => sub { 4242 });
+    set_var('OPENQA_URL', 'https://openqa.example.com/');
+    set_var('PUBLIC_CLOUD_KEEP_IMG', undef);
+
+    my $tags = publiccloud::azure::generate_image_tags();
+    like($tags, qr{openqa_created_by=openqa\.example\.com/t4242}, 'created_by tag composed and url trimmed');
+    like($tags, qr{openqa_var_job_id=4242}, 'job id tag present');
+    unlike($tags, qr{pcw_ignore}, 'no pcw_ignore tag without KEEP_IMG');
+
+    set_var('PUBLIC_CLOUD_KEEP_IMG', '1');
+    my $tags2 = publiccloud::azure::generate_image_tags();
+    like($tags2, qr{pcw_ignore=1}, 'pcw_ignore tag added when KEEP_IMG=1');
+
+    _unset(qw/OPENQA_URL OPENQA_HOSTNAME PUBLIC_CLOUD_KEEP_IMG/);
+};
+
+subtest '[get_image_definition] finds matching definition' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    $azure->redefine(generate_azure_image_definition => sub { 'MY-DEF' });
+    $azure->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    $azure->redefine(script_output => sub { '[{"name":"OTHER"},{"name":"MY-DEF"}]' });
+    is($provider->get_image_definition('rg', 'gal'), 'MY-DEF', 'returns matching definition name');
+
+    $azure->redefine(script_output => sub { '[{"name":"OTHER"}]' });
+    is($provider->get_image_definition('rg', 'gal'), undef, 'undef when no match');
+
+    $azure->redefine(script_output => sub { '' });
+    is($provider->get_image_definition('rg', 'gal'), undef, 'undef on empty output');
+};
+
+# --- publiccloud::azure mockable instance methods -----------------------------
+
+subtest '[get_state_from_instance] parses PowerState' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    $azure->redefine(script_output => sub { '{"code":"PowerState/running","displayStatus":"VM running"}' });
+
+    my $inst = Test::MockObject->new;
+    $inst->mock(instance_id => sub { '/subscriptions/x/resourceGroups/y/providers/Microsoft.Compute/virtualMachines/z' });
+    is($provider->get_state_from_instance($inst), 'running', 'extracts state after PowerState/');
+
+    $azure->redefine(script_output => sub { '{"code":"ProvisioningState/succeeded"}' });
+    throws_ok { $provider->get_state_from_instance($inst) }
+    qr/Expect PowerState/, 'dies when not a PowerState code';
+};
+
+subtest '[query_metadata] returns metadata server data' => sub {
+    my $provider = publiccloud::azure->new();
     my $inst = Test::MockObject->new;
     my @calls;
+    $inst->mock(ssh_script_output => sub { my ($s, $c) = @_; push @calls, $c; return '10.1.2.3' });
 
-    $inst->mock('ssh_script_retry', sub {
-            my ($self, %args) = @_;
-            push @calls, {%args};
-            return 1;
-    });
+    my $data = $provider->query_metadata($inst, ifNum => 0, addrCount => 0);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($data, '10.1.2.3', 'returns metadata payload');
+    ok((any { /169\.254\.169\.254/ } @calls), 'queries the cloud metadata IP');
+    ok((any { m{network/interface/0/ipv4/ipAddress/0/privateIpAddress} } @calls), 'composes metadata path');
 
-    publiccloud::utils::wait_quit_zypper_pc($inst);
-
-    is scalar(@calls), 1, 'one call to ssh_script_retry';
-    is $calls[0]->{cmd},
-      q{! pgrep -a "zypper|packagekit|purge-kernels|rpm"},
-      'expected pgrep/false/true command';
-    is $calls[0]->{timeout}, 20, 'default timeout=20';
-    is $calls[0]->{delay}, 10, 'default delay=10';
-    is $calls[0]->{retry}, 120, 'default retry=120';
+    $inst->mock(ssh_script_output => sub { '' });
+    throws_ok { $provider->query_metadata($inst, ifNum => 0, addrCount => 0) }
+    qr/Failed to get interface IPs/, 'dies on empty metadata response';
 };
 
-subtest '[wait_quit_zypper_pc] honors custom timeout/delay/retry' => sub {
+subtest '[start_instance] starts a stopped instance' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    my @asr;
+    $azure->redefine(assert_script_run => sub { push @asr, $_[0]; return 0 });
+    $azure->redefine(get_state_from_instance => sub { 'stopped' });
+    $azure->redefine(get_public_ip => sub { '203.0.113.9' });
+
+    my $newip;
     my $inst = Test::MockObject->new;
-    my $seen;
+    $inst->mock(instance_id => sub { 'vm-id' });
+    $inst->mock(resource_group => sub { 'rg' });
+    $inst->mock(public_ip => sub { $newip = $_[1] if @_ > 1; return $newip });
 
-    $inst->mock('ssh_script_retry', sub {
-            my ($self, %args) = @_;
-            $seen = {%args};
-            return 1;
-    });
+    $provider->start_instance($inst);
+    note("\n  -->  " . join("\n  -->  ", @asr));
+    ok((any { /az vm start --ids 'vm-id'/ } @asr), 'issues az vm start');
+    is($newip, '203.0.113.9', 'updates instance public_ip after start');
 
-    publiccloud::utils::wait_quit_zypper_pc($inst,
-        timeout => 5, delay => 2, retry => 3);
-
-    is $seen->{cmd},
-      q{! pgrep -a "zypper|packagekit|purge-kernels|rpm"},
-      'same command with custom args';
-    is $seen->{timeout}, 5, 'custom timeout applied';
-    is $seen->{delay}, 2, 'custom delay applied';
-    is $seen->{retry}, 3, 'custom retry applied';
+    $azure->redefine(get_state_from_instance => sub { 'running' });
+    throws_ok { $provider->start_instance($inst) }
+    qr/start a running instance/, 'refuses to start a running instance';
 };
 
-subtest '[wait_quit_zypper_pc] succeeds on 5th attempt (4 fail + 1 success)' => sub {
-    my $expected_cmd = q{! pgrep -a "zypper|packagekit|purge-kernels|rpm"};
-
-    my $inst = Test::MockObject->new;
-    my $calls = 0;
-    my %seen;
-
-    $inst->mock('ssh_script_retry', sub {
-            my ($self, %args) = @_;
-            %seen = %args;
-
-            while ($calls < $args{retry}) {
-                $calls++;
-                last if $calls == 5;
-            }
-            return 1;
-    });
-
-    my $rc = publiccloud::utils::wait_quit_zypper_pc($inst, retry => 5, delay => 0, timeout => 1);
-
-    ok($rc, 'returned success');
-    is($calls, 5, 'performed 5 attempts (4 fail + 1 success)');
-    is($seen{cmd}, $expected_cmd, 'used expected pgrep command');
-    is($seen{retry}, 5, 'retry=5 passed');
-    is($seen{delay}, 0, 'delay=0 passed');
-    is($seen{timeout}, 1, 'timeout=1 passed');
-};
-
-subtest '[wait_quit_zypper_pc] times out after 5 failures' => sub {
-    my $expected_cmd = q{! pgrep -a "zypper|packagekit|purge-kernels|rpm"};
+subtest '[stop_instance] stops a running instance' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    my @asr;
+    $azure->redefine(assert_script_run => sub { push @asr, $_[0]; return 0 });
+    $azure->redefine(get_public_ip => sub { '203.0.113.9' });
+    # first call: running, second: stopped (loop exits)
+    my @states = ('running', 'stopped');
+    $azure->redefine(get_state_from_instance => sub { shift @states // 'stopped' });
 
     my $inst = Test::MockObject->new;
-    my $calls = 0;
-    my %seen;
+    $inst->mock(instance_id => sub { 'vm-id' });
+    $inst->mock(resource_group => sub { 'rg' });
+    $inst->mock(public_ip => sub { '203.0.113.9' });
 
-    $inst->mock('ssh_script_retry', sub {
-            my ($self, %args) = @_;
-            %seen = %args;
-
-            while ($calls < $args{retry}) {
-                $calls++;
-            }
-            die "retries exhausted after $args{retry} attempts\n";
-    });
-
-    my $err;
-    eval {
-        publiccloud::utils::wait_quit_zypper_pc($inst, retry => 5, delay => 0, timeout => 1);
-        1;
-    } or $err = $@;
-
-    like($err, qr/retries exhausted after 5 attempts/, 'died with timeout message');
-    is($calls, 5, 'performed 5 failing attempts');
-    is($seen{cmd}, $expected_cmd, 'used expected pgrep command');
-    is($seen{retry}, 5, 'retry=5 passed');
-    is($seen{delay}, 0, 'delay=0 passed');
-    is($seen{timeout}, 1, 'timeout=1 passed');
+    $provider->stop_instance($inst);
+    note("\n  -->  " . join("\n  -->  ", @asr));
+    ok((any { /az vm stop --ids 'vm-id'/ } @asr), 'issues az vm stop');
 };
 
-subtest '[is_byos] via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
+subtest '[stop_instance] dies on outdated instance object' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    $azure->redefine(get_public_ip => sub { '203.0.113.9' });
 
-    set_var('FLAVOR', 'SLES-15-SP6-BYOS');
-    ok publiccloud::utils::is_byos(), 'BYOS detected (upper)';
+    my $inst = Test::MockObject->new;
+    $inst->mock(instance_id => sub { 'vm-id' });
+    $inst->mock(resource_group => sub { 'rg' });
+    $inst->mock(public_ip => sub { '198.51.100.1' });    # mismatch
 
-    set_var('FLAVOR', 'sles-something-byos');
-    ok publiccloud::utils::is_byos(), 'BYOS detected (lower, /byos/i)';
-
-    set_var('FLAVOR', 'SLES-15-SP6-On-Demand');
-    ok !publiccloud::utils::is_byos(), 'not BYOS when FLAVOR lacks token';
-
-    set_var('PUBLIC_CLOUD', 0);
-    ok !publiccloud::utils::is_byos(), 'not BYOS outside public cloud';
-
-    _unset(qw/PUBLIC_CLOUD FLAVOR/);
+    throws_ok { $provider->stop_instance($inst) }
+    qr/Outdated instance object/, 'dies when cached IP differs from live IP';
 };
 
-subtest '[is_ondemand] via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
+subtest '[resource_group_exist] boolean from az output' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
 
-    set_var('FLAVOR', 'On-Demand-ish');
-    ok publiccloud::utils::is_ondemand(), 'on-demand when not BYOS';
+    $azure->redefine(script_output_retry => sub { '{"name":"openqa-upload"}' });
+    is($provider->resource_group_exist(), 1, 'non-empty output => exists');
 
-    set_var('FLAVOR', 'BYOS');
-    ok !publiccloud::utils::is_ondemand(), 'not on-demand when BYOS';
-
-    set_var('PUBLIC_CLOUD', 0);
-    ok !publiccloud::utils::is_ondemand(), 'not on-demand outside public cloud';
-
-    _unset(qw/PUBLIC_CLOUD FLAVOR/);
-};
-
-subtest '[provider checks] via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-    ok publiccloud::utils::is_ec2(), 'EC2 true';
-    ok !publiccloud::utils::is_azure(), 'AZURE false';
-    ok !publiccloud::utils::is_gce(), 'GCE false';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok publiccloud::utils::is_azure(), 'AZURE true';
-    ok !publiccloud::utils::is_ec2(), 'EC2 false';
-    ok !publiccloud::utils::is_gce(), 'GCE false';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
-    ok publiccloud::utils::is_gce(), 'GCE true';
-    ok !publiccloud::utils::is_ec2(), 'EC2 false';
-    ok !publiccloud::utils::is_azure(), 'AZURE false';
-
-    set_var('PUBLIC_CLOUD', 0);
-    ok !publiccloud::utils::is_ec2(), 'EC2 false when not public cloud';
-    ok !publiccloud::utils::is_azure(), 'AZURE false when not public cloud';
-    ok !publiccloud::utils::is_gce(), 'GCE false when not public cloud';
-
-    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER/);
-};
-
-subtest '[flavor flags] CHOST & Hardened via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-
-    set_var('FLAVOR', 'SLE-CHOST-15-SP6');
-    ok publiccloud::utils::is_container_host(), 'CHOST detected';
-
-    set_var('FLAVOR', 'SLE-Hardened-15-SP6');
-    ok publiccloud::utils::is_hardened(), 'Hardened detected';
-
-    set_var('FLAVOR', 'SLE-Whatever');
-    ok !publiccloud::utils::is_container_host(), 'CHOST not detected';
-    ok !publiccloud::utils::is_hardened(), 'Hardened not detected';
-
-    set_var('PUBLIC_CLOUD', 0);
-    set_var('FLAVOR', 'SLE-CHOST-15-SP6');
-    ok !publiccloud::utils::is_container_host(), 'CHOST requires public cloud';
-    set_var('FLAVOR', 'SLE-Hardened-15-SP6');
-    ok !publiccloud::utils::is_hardened(), 'Hardened requires public cloud';
-
-    _unset(qw/PUBLIC_CLOUD FLAVOR/);
-};
-
-
-subtest '[is_cloudinit_supported] via set_var only' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-    set_var('DISTRI', 'sle');
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok publiccloud::utils::is_cloudinit_supported(),
-      'AZURE + sle => supported';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-    ok publiccloud::utils::is_cloudinit_supported(),
-      'EC2 + sle => supported';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'GCE + sle => not supported';
-
-    set_var('DISTRI', 'sle-micro');
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'AZURE + sle-micro => NOT supported';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'EC2 + sle-micro => NOT supported';
-
-    set_var('PUBLIC_CLOUD', 0);
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'not public cloud => NOT supported';
-
-    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER DISTRI/);
+    $azure->redefine(script_output_retry => sub { '[]' });
+    is($provider->resource_group_exist(), 0, 'empty array output => not exists');
 };
 
 done_testing;

@@ -598,6 +598,7 @@ sub start_clean_firefox {
     mouse_hide(1);
 
     x11_start_program(default_gui_terminal());
+    my $version = script_output q(firefox --version|awk -F "[ .]" '{print $3}');
     # Clean and Start Firefox
     enter_cmd "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox /home >firefox.log 2>&1 &";
     wait_still_screen 3;
@@ -615,9 +616,15 @@ sub start_clean_firefox {
     send_key "a";
     assert_screen('firefox-help', 30);
     send_key "esc";
+    wait_still_screen(1);
 
     # restart firefox to trigger default browser pop-up and store .mozilla configuration as default without pop-ups
-    $self->restart_firefox('sync && cp -rp .mozilla .mozilla_first_run', 'opensuse.org');
+    if ($version >= 153) {
+        $self->restart_firefox('sync && cp -rp .config/mozilla .config/mozilla_first_run', 'opensuse.org');
+    }
+    else {
+        $self->restart_firefox('sync && cp -rp .mozilla .mozilla_first_run', 'opensuse.org');
+    }
 }
 
 sub start_firefox_with_profile {
@@ -627,7 +634,17 @@ sub start_firefox_with_profile {
 
     x11_start_program(default_gui_terminal());
     # use mozilla configuration stored with start_clean_firefox
-    enter_cmd "killall -9 firefox;rm -rf .mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .mozilla_first_run .mozilla";
+    send_key 'alt-tab';
+    wait_still_screen 1;
+    my $version = script_output q(firefox --version|awk -F "[ .]" '{print $3}');
+    send_key 'alt-tab';
+    wait_still_screen 1;
+    if ($version >= 153) {
+        enter_cmd "killall -9 firefox;rm -rf .config/mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .config/mozilla_first_run .config/mozilla";
+    }
+    else {
+        enter_cmd "killall -9 firefox;rm -rf .mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .mozilla_first_run .mozilla";
+    }
     # Start Firefox
     enter_cmd "firefox $url >firefox.log 2>&1 &";
     wait_still_screen 2, 4;
@@ -769,10 +786,13 @@ sub unlock_user_settings {
     type_string "users";
     assert_screen "settings-users-selected";
     send_key "ret";
+    wait_still_screen(1, 2);
     assert_screen "users-settings";
     assert_and_click "Unlock-user-settings";
     assert_screen "authentication-required-user-settings";
+    wait_still_screen(1, 2);
     type_password;
+    wait_still_screen(1, 2);
     assert_and_click "authenticate";
 }
 

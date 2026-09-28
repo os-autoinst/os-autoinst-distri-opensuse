@@ -30,7 +30,7 @@ sub run_test {
 
     establish_connection();
 
-    wait_screen_change { send_key 'ctrl-q'; };
+    quit_virtmanager();
 }
 
 sub test_flags {

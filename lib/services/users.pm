@@ -57,14 +57,14 @@ sub change_pwd {
     assert_and_click "users-password";
     assert_and_click "current-password";
     type_password;
-    wait_still_screen;
+    wait_still_screen(1, 2);
     assert_and_click "new-password";
-    wait_still_screen;
-    type_string $newpwd;
-    wait_still_screen;
+    wait_still_screen(1, 2);
+    type_password $newpwd;
+    wait_still_screen(1, 2);
     assert_and_click "confirm-new-password";
-    wait_still_screen;
-    type_string $newpwd;
+    wait_still_screen(1, 2);
+    type_password $newpwd;
     assert_and_click "actived-change-password";
     assert_screen "users-settings", 60;
 }

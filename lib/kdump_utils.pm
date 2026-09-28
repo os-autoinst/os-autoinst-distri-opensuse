@@ -297,9 +297,7 @@ sub activate_kdump_cli {
 # Deactivate kdump using command line tools
 sub deactivate_kdump_cli {
     if (is_sle('16+')) {
-        my $ret = script_run('kdumptool commandline -d');
-        record_info('hardcoded return 2', 'https://bugzilla.suse.com/show_bug.cgi?id=1257471') if $ret == 2;
-        die "'kdumptool commandline -d' unexpected retrun: $ret" if $ret != 2 || $ret != 0;
+        assert_script_run('kdumptool commandline -d');
     } else {
         # Solution to poo113351. Avoid to use needles to solve this case.
         zypper_call("--gpg-auto-import-keys ref");

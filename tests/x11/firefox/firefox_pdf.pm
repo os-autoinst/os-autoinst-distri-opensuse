@@ -18,14 +18,23 @@
 
 use Mojo::Base 'x11test';
 use testapi;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
-    $self->firefox_open_url('http://www.gnupg.org/gph/en/manual.pdf', assert_loaded_url => 'firefox-pdf-load');
+
+    send_key 'alt-tab';
+    wait_still_screen 1, 2;
+    my $version = script_output q(firefox --version|awk -F "[ .]" '{print $3}');
+    send_key 'alt-tab';
+    wait_still_screen 1, 2;
+
+    $self->firefox_open_url('https://www.gnupg.org/documentation/manuals/gnupg.pdf', assert_loaded_url => 'firefox-pdf-load');
 
     sleep 1;
-    for my $i (1 .. 2) { assert_and_click 'firefox-pdf-zoom_out_button'; }
+    my $zoom_out = is_sle('<15') && $version >= 153 ? '5' : '2';
+    for my $i (1 .. $zoom_out) { assert_and_click 'firefox-pdf-zoom_out_button'; }
     assert_screen('firefox-pdf-zoom_out');
 
     send_key "tab";

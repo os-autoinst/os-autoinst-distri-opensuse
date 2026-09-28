@@ -73,11 +73,14 @@ sub install_package {
 C<packages> defines packages to install for both zypper and trup call,
 keyword parameters are identical to C<install_package()>.
 C<trup_continue> will be enabled by default.
+C<repo> restricts both the availability check and the installation to the
+given repository alias.
 
 =cut
 
 sub install_available_packages {
     my ($packlist, %args) = @_;
+    my $repo = defined($args{repo}) ? "-r $args{repo} " : '';
 
     if (is_transactional) {
         $packlist .= ' ' . ($args{trup_extra} // '');
@@ -86,14 +89,15 @@ sub install_available_packages {
         $packlist .= ' ' . ($args{zypper_extra} // '');
     }
 
-    my $result = zypper_search("-t package --match-exact $packlist");
+    my $result = zypper_search("-t package --match-exact $repo$packlist");
     my @foundpacks = map { $_->{name} } @$result;
 
     return 0 unless @foundpacks;
     $args{trup_continue} //= 1;
     delete $args{trup_extra};
     delete $args{zypper_extra};
-    return install_package(join(' ', @foundpacks), %args);
+    delete $args{repo};
+    return install_package($repo . join(' ', @foundpacks), %args);
 }
 
 =head2 uninstall_package

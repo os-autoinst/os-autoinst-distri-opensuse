@@ -13,7 +13,7 @@ use Mojo::Base -base;
 use testapi;
 use Carp 'croak';
 use Test::Assert 'assert_equals';
-use utils qw(systemctl file_content_replace script_retry);
+use utils qw(systemctl script_retry);
 use version_utils qw(package_version_cmp);
 use overload
   '""' => sub { return shift->runtime },

@@ -9,6 +9,7 @@
 provider: 'azure'
 apiver: 4
 terraform:
+  bin: '%TERRAFORM_RUNNER%'
   variables:
     # GENERAL VARIABLES
     vnet_address_range: '%MAIN_ADDRESS_RANGE%'

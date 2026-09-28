@@ -22,7 +22,6 @@ use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
 use x11utils qw(handle_login ensure_unlocked_desktop handle_additional_polkit_windows);
-use publiccloud::ssh_interactive 'select_host_console';
 use Utils::Logging qw(save_and_upload_log tar_and_upload_log export_healthcheck_basic select_log_console upload_coredumps export_logs);
 
 # Base class for all openSUSE tests
@@ -514,7 +513,10 @@ sub wait_grub_to_boot_on_local_disk {
         assert_screen(\@tags, 15);
     }
     if (match_has_tag('tianocore-bootmenu')) {
-        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+        # The boot device list has one entry per boot option, so its length
+        # differs per machine. The menu wraps around, so walking it with the
+        # default step count is safe.
+        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down');
         send_key "ret";
         assert_screen(\@tags, 90);
     }
@@ -919,7 +921,8 @@ sub wait_boot {
     # for powerVM, it need switch console, it need wait longer time to
     # get grub page. After we get grub page, the workflow will be same
     # as others
-    $self->wait_grub(bootloader_time => $bootloader_time) if is_pvm;
+    select_console('powerhmc-ssh', await_console => 0) if (is_pvm_hmc);
+    $self->wait_grub(bootloader_time => $bootloader_time) if (is_pvm);
 
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
@@ -1076,14 +1079,6 @@ sub post_fail_hook {
     }
 
     export_logs;
-
-    if (is_public_cloud() && $self->{run_args}->{my_provider}) {
-        select_host_console(force => 1);
-
-        # Destroy the public cloud instance in case of fatal test failure
-        my $flags = $self->test_flags();
-        $self->{run_args}->{my_provider}->finalize() if ($flags->{fatal});
-    }
 }
 
 sub test_flags {

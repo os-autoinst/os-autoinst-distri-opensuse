@@ -14,7 +14,7 @@ use serial_terminal 'select_serial_terminal';
 use power_action_utils 'power_action';
 use bootloader_setup 'add_grub_cmdline_settings';
 use Utils::Architectures;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_tumbleweed);
 
 sub boot {
     my $self = shift;
@@ -28,13 +28,19 @@ sub boot {
     }
 }
 
+sub select_test_console {
+    my $self = shift;
+    return get_var('PSI') && is_s390x() ? select_console('root-console') : $self->boot;
+}
+
 sub run {
     my $self = shift;
 
-    $self->boot;
+    $self->select_test_console;
 
-    if (is_sle('>=16.1')) {
-        # Starting with SLE-16.1, CONFIG_PSI_DEFAULT_DISABLED is no longer enabled,
+    if (is_sle('>=16.1') || is_tumbleweed()) {
+        # Starting with SLE-16.1 along with Tumbleweed (jsc#PED-15418),
+        # CONFIG_PSI_DEFAULT_DISABLED is no longer enabled,
         # so PSI files are present by default.
         assert_script_run('cd /proc/pressure');
         assert_script_run('cat cpu memory io');

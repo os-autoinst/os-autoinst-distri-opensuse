@@ -71,4 +71,8 @@ sub tcsh_extra_tests {
     script_run 'userdel tcsh_user';
 }
 
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;

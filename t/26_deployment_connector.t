@@ -9,12 +9,16 @@ use testapi;
 use Data::Dumper;
 use Scalar::Util qw(reftype);
 use List::Util qw(any none);
+use Time::Piece;
 use sles4sap::sap_deployment_automation_framework::deployment_connector;
 
 sub undef_variables {
     my @openqa_variables = qw(
       SDAF_DEPLOYER_RESOURCE_GROUP
       SDAF_DEPLOYER_VNET_CODE
+      WORKER_HOSTNAME
+      SDAF_RETAIN_DEPLOYMENT
+      SDAF_DEPLOYMENT_OWNER
     );
     set_var($_, '') foreach @openqa_variables;
 }
@@ -288,7 +292,8 @@ subtest '[destroy_orphaned_peerings]' => sub {
     $mock_function->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $mock_function->redefine(az_network_peering_delete => sub { return; });
     $mock_function->redefine(az_network_vnet_get => sub { return ['Zabi-VNET']; });
-    $mock_function->redefine(az_group_exists => sub { return 'true' if grep /^existing$/, @_; return 'false' });
+    $mock_function->redefine(az_group_exists => sub { return $JSON::PP::true if grep /^existing$/, @_;
+            return $JSON::PP::false });
     $mock_function->redefine(az_network_peering_list => sub { return [
                 {"workload_resource_group" => "existing", "peering_name" => "Iron_blooded_orphans"},
                 {"workload_resource_group" => "existing", "peering_name" => "EarthFederation"}];
@@ -304,6 +309,22 @@ subtest '[destroy_orphaned_peerings]' => sub {
     });
     ok(!destroy_orphaned_peerings(), 'Delete orphaned peering');
 
+    undef_variables;
+};
+
+subtest '[get_deployment_tags] Check returned value' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    $mock_function->redefine(get_current_job_id => sub { '42' });
+    set_var('SDAF_RETAIN_DEPLOYMENT', 'yes');
+    set_var('WORKER_HOSTNAME', 'OSD');
+    set_var('SDAF_DEPLOYMENT_OWNER', 'Unit test');
+
+    my %result = %{get_deployment_tags()};
+    is $result{deployed_by}, 'Unit test', 'Apply "deployed_by" tag';
+    is $result{openqa_instance}, 'OSD', 'Apply "openqa_instance" tag.';
+    is $result{deployment_id}, '42', 'Apply "deployment_id" tag.';
+    ok(Time::Piece->strptime($result{openqa_created_date}, "%Y-%m-%dT%H:%M:%S"),
+        "Check date format in tag 'openqa_created_date: $result{openqa_created_date}'.");
     undef_variables;
 };
 

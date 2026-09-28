@@ -22,20 +22,22 @@ our @EXPORT = qw(load_publiccloud_tests load_publiccloud_download_repos);
 sub load_maintenance_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
 
-    # Avoid running jobs for ARM-only packages on x86_64. poo#201303
-    return if (is_x86_64 && get_var("BUILD") =~ /:\d+:dtb-(?:aarch64|armv7l)/);
-    # Avoid testing kernel-ec2 on Azure & GCE
-    return if (!is_ec2() && get_var("BUILD") =~ /:\d+:kernel-ec2/);
-
     loadtest "publiccloud/download_repos" unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/prepare_instance", run_args => $args;
+    loadtest "publiccloud/network_test", run_args => $args;
+    loadtest "publiccloud/check_boottime", run_args => $args;
+    loadtest "publiccloud/check_services", run_args => $args;
+    loadtest "publiccloud/kdump", run_args => $args;
+    loadtest "publiccloud/check_cloudinit", run_args => $args;
     if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest("publiccloud/registercloudguest", run_args => $args);
+        loadtest("publiccloud/registration_lifecycle", run_args => $args);
     } else {
-        loadtest("publiccloud/registration", run_args => $args);
+        loadtest "publiccloud/registration", run_args => $args;
     }
     loadtest "publiccloud/transfer_repos", run_args => $args unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/patch_and_reboot", run_args => $args;
+    loadtest "publiccloud/check_boottime", run_args => $args;
+    loadtest "publiccloud/check_cloudinit", run_args => $args;
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest "publiccloud/check_services", run_args => $args;
         loadtest("publiccloud/img_proof", run_args => $args);
@@ -48,20 +50,33 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest 'publiccloud/run_ltp', run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
+        loadtest "publiccloud/check_services", run_args => $args;
+        loadtest('publiccloud/metadata', run_args => $args);
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
         loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
+        loadtest('publiccloud/aws_efs', run_args => $args) if (is_ec2() && !is_sle('=12-SP5'));
     } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
         loadtest('publiccloud/ahb', run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
         loadtest("publiccloud/bsc_1205002", run_args => $args);
+    } elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
+        loadtest "publiccloud/azure_aitl", run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest("publiccloud/registercloudguest", run_args => $args, name => "re-registration");
+        loadtest("publiccloud/registration_lifecycle", run_args => $args, name => "re-registration");
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_EC2_ENCLAVE_TESTS')) {
         loadtest "publiccloud/aws_enclave", run_args => $args;
     } else {
-        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
+        my $smoketest = get_var('PUBLIC_CLOUD_SMOKETEST')
+          && !get_var('PUBLIC_CLOUD_CONSOLE_TESTS')
+          && !get_var('PUBLIC_CLOUD_BTRFS')
+          && !get_var('PUBLIC_CLOUD_CONTAINERS')
+          && !get_var('PUBLIC_CLOUD_XFS');
+        loadtest("publiccloud/check_services", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
+        loadtest("publiccloud/systemd_detect_virt", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
+        loadtest("publiccloud/smoketest", run_args => $args) if ($smoketest);
         loadtest "publiccloud/instance_overview", run_args => $args;
+        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests($args);
         } elsif (get_var('PUBLIC_CLOUD_BTRFS')) {
@@ -74,12 +89,10 @@ sub load_maintenance_publiccloud_tests {
             loadtest "publiccloud/xfsprepare", run_args => $args;
             loadtest "xfstests/run", run_args => $args;
             return;
-        } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
-            loadtest "publiccloud/smoketest";
+        } elsif ($smoketest) {
             # flavor_check is concentrated on checking things which make sense only for image which is registered
             # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
-            loadtest "publiccloud/flavor_check" if (is_ec2() && !check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
-            loadtest "publiccloud/systemd_detect_virt", run_args => $args;
+            loadtest "publiccloud/flavor_check" if (!check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
             loadtest "publiccloud/sev" if (get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM'));
             loadtest "publiccloud/xen" if (get_var('PUBLIC_CLOUD_XEN'));
             loadtest "publiccloud/hardened" if is_hardened;
@@ -99,20 +112,9 @@ sub load_maintenance_publiccloud_tests {
 sub load_publiccloud_consoletests {
     my ($run_args) = @_;
     # Please pass the $run_args to fatal test modules
-    loadtest 'console/cleanup_qam_testrepos' if get_var('PUBLIC_CLOUD_QAM');
-    loadtest 'console/openvswitch';
-    loadtest 'console/rpm';
-    loadtest 'console/openssl_alpn';
     loadtest 'console/check_default_network_manager';
-    loadtest 'console/sysctl';
-    loadtest 'console/sysstat';
-    loadtest 'console/gpg';
     loadtest 'console/sudo';
     loadtest 'console/supportutils';
-    loadtest 'console/journalctl';
-    loadtest 'console/procps';
-    loadtest 'console/suse_module_tools';
-    loadtest 'console/libgcrypt' unless check_var('BETA', '1') && !get_var('PUBLIC_CLOUD_QAM');
 }
 
 sub load_latest_publiccloud_tests {
@@ -125,34 +127,57 @@ sub load_latest_publiccloud_tests {
 
     if (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest "publiccloud/prepare_instance", run_args => $args;
-        loadtest("publiccloud/registration", run_args => $args);
+        loadtest "publiccloud/registration", run_args => $args;
+        loadtest "publiccloud/network_test", run_args => $args;
+        loadtest "publiccloud/check_boottime", run_args => $args;
+        loadtest "publiccloud/kdump", run_args => $args;
+        loadtest "publiccloud/check_cloudinit", run_args => $args;
         loadtest 'publiccloud/run_ltp', run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
         loadtest 'publiccloud/az_accelerated_net', run_args => $args;
     }
-    elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest "publiccloud/registercloudguest", run_args => $args;
-    }
     elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
         loadtest "publiccloud/azure_aitl", run_args => $args;
+        return;    # Do not continue as there is no instance to destroy
+    }
+    elsif (get_var('PUBLIC_CLOUD_CIT')) {
+        loadtest "publiccloud/run_cit", run_args => $args;
+        return;
     } else {    # All test cases below require prepare_instance
         loadtest "publiccloud/prepare_instance", run_args => $args;
-        if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
-            loadtest "publiccloud/img_proof", run_args => $args;
+        loadtest "publiccloud/network_test", run_args => $args;
+        loadtest "publiccloud/check_boottime", run_args => $args;
+        loadtest "publiccloud/kdump", run_args => $args;
+        loadtest "publiccloud/check_cloudinit", run_args => $args;
+        if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
+            loadtest "publiccloud/registration_lifecycle", run_args => $args;
+        }
+        elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+            loadtest "publiccloud/check_services", run_args => $args;
         } else {    # All test cases below require registration
             loadtest("publiccloud/registration", run_args => $args);
             if (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
+                loadtest "publiccloud/check_services", run_args => $args;
+                loadtest('publiccloud/metadata', run_args => $args);
                 loadtest('publiccloud/cloud_netconfig', run_args => $args);
                 loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
+                loadtest('publiccloud/aws_efs', run_args => $args) if (is_ec2() && !is_sle('=12-SP5'));
             } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
                 loadtest('publiccloud/ahb', run_args => $args);
             } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
                 loadtest("publiccloud/bsc_1205002", run_args => $args);
             } else {    # All test cases below excluding check_service require tunelled environment
+                my $smoketest = get_var('PUBLIC_CLOUD_SMOKETEST')
+                  && !get_var('PUBLIC_CLOUD_CONSOLE_TESTS')
+                  && !get_var('PUBLIC_CLOUD_BTRFS')
+                  && !check_var('PUBLIC_CLOUD_NVIDIA', 1)
+                  && !get_var('PUBLIC_CLOUD_CONTAINERS');
                 loadtest("publiccloud/check_services", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
-                loadtest "publiccloud/ssh_interactive_start", run_args => $args;
+                loadtest("publiccloud/systemd_detect_virt", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
+                loadtest("publiccloud/smoketest", run_args => $args) if ($smoketest);
                 loadtest "publiccloud/instance_overview", run_args => $args;
+                loadtest "publiccloud/ssh_interactive_start", run_args => $args;
                 if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
                     load_publiccloud_consoletests($args);
                 } elsif (get_var('PUBLIC_CLOUD_BTRFS')) {
@@ -165,12 +190,10 @@ sub load_latest_publiccloud_tests {
                 }
                 elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
                     load_container_tests();
-                } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
-                    loadtest "publiccloud/smoketest", run_args => $args;
+                } elsif ($smoketest) {
                     # flavor_check is concentrated on checking things which make sense only for image which is registered
                     # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
-                    loadtest "publiccloud/flavor_check", run_args => $args if (is_ec2() && !check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
-                    loadtest "publiccloud/systemd_detect_virt", run_args => $args;
+                    loadtest "publiccloud/flavor_check", run_args => $args if (!check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
                     loadtest "publiccloud/sev", run_args => $args if (get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM'));
                     loadtest "publiccloud/xen", run_args => $args if (get_var('PUBLIC_CLOUD_XEN'));
                 } elsif (get_var('PUBLIC_CLOUD_XFS')) {
@@ -202,13 +225,14 @@ sub load_create_publiccloud_tools_image {
 
 # Test CLI tools for each provider
 sub load_publiccloud_cli_tools {
+    my $args = OpenQA::Test::RunArgs->new();
     loadtest 'installation/bootloader_zkvm' if (is_s390x);
     loadtest 'boot/boot_to_desktop';
-    if (get_var('PUBLIC_CLOUD_AZURE_CLI_TEST')) {
-        loadtest 'publiccloud/azure_more_cli';
-    } else {
-        loadtest 'publiccloud/azure_cli' if (is_azure());
-        loadtest 'publiccloud/aws_cli' if (is_ec2());
+    if (is_azure()) {
+        loadtest 'publiccloud/azure_cli';
+    } elsif (is_ec2()) {
+        loadtest 'publiccloud/aws_cli';
+        loadtest 'publiccloud/s3', run_args => $args, name => 'aws_s3';
     }
 }
 
@@ -221,7 +245,11 @@ sub load_publiccloud_appimg_tests {
     my $args = OpenQA::Test::RunArgs->new();
     my $publiccloud_app_img = get_var('PUBLIC_CLOUD_APP_IMG');
     loadtest "publiccloud/prepare_instance", run_args => $args;
-    loadtest("publiccloud/registration", run_args => $args);
+    loadtest "publiccloud/registration", run_args => $args;
+    loadtest "publiccloud/network_test", run_args => $args;
+    loadtest "publiccloud/check_boottime", run_args => $args;
+    loadtest "publiccloud/kdump", run_args => $args;
+    loadtest "publiccloud/check_cloudinit", run_args => $args;
     loadtest "publiccloud/instance_overview", run_args => $args;
 
     # This can be improved in the future with a hash like:
@@ -255,6 +283,7 @@ The rest of the scheduling is divided into two separate subroutines C<load_maint
 =cut
 
 sub load_publiccloud_tests {
+    my $args = OpenQA::Test::RunArgs->new();
     if (check_var('PUBLIC_CLOUD_PREPARE_TOOLS', 1)) {
         load_create_publiccloud_tools_image();
     }

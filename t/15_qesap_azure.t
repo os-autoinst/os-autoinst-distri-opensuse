@@ -16,7 +16,7 @@ set_var('QESAP_CONFIG_FILE', 'MARLIN');
 subtest '[qesap_az_get_resource_group] match job_id' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my $az_call = 0;
-    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return ['BOAT1234'] });
+    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return {data => ['BOAT1234']} });
     $qesap->redefine(get_current_job_id => sub { return '1234'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -29,7 +29,7 @@ subtest '[qesap_az_get_resource_group] match job_id' => sub {
 subtest '[qesap_az_get_resource_group] substring' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my $az_call = 0;
-    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return ['BOAT1234', 'CRAB1234'] });
+    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return {data => ['BOAT1234', 'CRAB1234']} });
     $qesap->redefine(get_current_job_id => sub { return '1234'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -42,7 +42,7 @@ subtest '[qesap_az_get_resource_group] substring' => sub {
 subtest '[qesap_az_get_resource_group] not match job_id' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my $az_call = 0;
-    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return ['BOAT1234'] });
+    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return {data => ['BOAT1234']} });
     $qesap->redefine(get_current_job_id => sub { return '3456'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -55,7 +55,7 @@ subtest '[qesap_az_get_resource_group] not match job_id' => sub {
 subtest '[qesap_az_get_resource_group] match QESAP_DEPLOYMENT_IMPORT' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my $az_call = 0;
-    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return ['BOAT1234'] });
+    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return {data => ['BOAT1234']} });
     $qesap->redefine(get_current_job_id => sub { return '3456'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -87,7 +87,7 @@ subtest '[qesap_az_get_resource_group] az integrate' => sub {
 
 subtest '[qesap_az_get_resource_group] die when job_id is undef' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
-    $qesap->redefine(az_group_name_get => sub { return ['BOAT1234']; });
+    $qesap->redefine(az_group_name_get => sub { return {data => ['BOAT1234']}; });
     # Mock get_current_job_id to return undef
     $qesap->redefine(get_current_job_id => sub { return undef; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -205,17 +205,18 @@ subtest '[qesap_az_clean_old_peerings] integrate test' => sub {
             push @calls, $_[0];
             return 0;
     });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azcli->redefine(script_output => sub {
             push @calls, $_[0];
-            if ($_[0] =~ /az network vnet peering list.*/) {
-                return '["COCCO100001", "COCCO100002", "COCCO100003"]'; }
-            return 'INVALID'; });
+            return 'out.json' if grep /az.json/, $_[0];
+            return '["COCCO100001", "COCCO100002", "COCCO100003"]' if grep /out.json/, $_[0]; });
 
     qesap_az_clean_old_peerings(rg => 'myresourcegroup', vnet => 'myvnetname');
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /az network vnet peering delete --name COCCO100001/ } @calls), "Peering1 was deleted");
-    ok((none { /az network vnet peering delete --name COCCO100002/ } @calls), "Peering2 was not deleted");
-    ok((any { /az network vnet peering delete --name COCCO100003/ } @calls), "Peering3 was deleted");
+    ok((any { /network vnet peering delete --name COCCO100001/ } @calls), "Peering1 was deleted");
+    ok((none { /network vnet peering delete --name COCCO100002/ } @calls), "Peering2 was not deleted");
+    ok((any { /network vnet peering delete --name COCCO100003/ } @calls), "Peering3 was deleted");
 };
 
 subtest '[qesap_az_create_sas_token] mandatory arguments' => sub {
@@ -342,12 +343,12 @@ subtest '[qesap_az_diagnostic_log] no VMs integration test' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     # Configure vm list to return no VMs
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '[]'; });
+    $azcli->redefine(az_vm_list => sub { push @calls, $_[1]; return (); });
 
     my @log_files = qesap_az_diagnostic_log();
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /az vm list.*DENTIST.*/ } @calls), 'List all VMs in the resource group');
+    ok((any { /.*DENTIST.*/ } @calls), 'List all VMs in the resource group');
     ok((scalar @log_files == 0), 'No returned logs');
 };
 
@@ -371,9 +372,8 @@ subtest '[qesap_az_diagnostic_log] one VMs integration test' => sub {
 
     $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     # Configure vm list to return one VM
-    $azcli->redefine(script_output => sub {
-            push @calls, $_[0];
-            return '[{"name":"NEMO", "id":"MARLIN"}]';
+    $azcli->redefine(az_vm_list => sub {
+            return [{name => 'NEMO', id => 'MARLIN'}];
     });
     $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -394,7 +394,6 @@ subtest '[qesap_az_diagnostic_log] three VMs' => sub {
 
     # Configure vm list to return three VMs
     $qesap->redefine(az_vm_list => sub {
-            push @calls, {@_};
             return [
                 {name => "DORY", id => "BLUE_TANG"},
                 {name => "BRUCE", id => "GREAT_WHITE"},
@@ -415,9 +414,12 @@ subtest '[qesap_az_diagnostic_log] three VMs integration test' => sub {
 
     $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     # Configure vm list to return 3 VMs
-    $azcli->redefine(script_output => sub {
-            push @calls, $_[0];
-            return '[{"name":"DORY", "id":"BLUE_TANG"},{"name":"BRUCE", "id":"GREAT_WHITE"},{"name":"CRUSH", "id":"SEA_TURTLE"}]';
+    $azcli->redefine(az_vm_list => sub {
+            return [
+                {name => 'DORY', id => 'BLUE_TANG'},
+                {name => 'BRUCE', id => 'GREAT_WHITE'},
+                {name => 'CRUSH', 'id' => 'SEA_TURTLE'}
+            ];
     });
     $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 

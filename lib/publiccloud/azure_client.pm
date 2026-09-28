@@ -43,9 +43,13 @@ sub init {
           . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
           . '}');
     if (is_sle(">=16")) {
-        my $rc = script_run("PILOT_DEBUG=1 az %silent --help");
-        die("bsc#1263669 - openQA test fails in azure_cli") if ($rc && check_var("CONTAINER_RUNTIMES", "helm"));
+        my $debug = "az-cli-debug.txt";
+        script_run("PILOT_DEBUG=1 bash -c 'time -p az --help' &> $debug");
+        record_info("az cli time", script_output("tail -n 3 $debug", proceed_on_failure => 1));
+        upload_logs($debug, failok => 1);
+        script_run("rpm -qi az-cli-cmd");
     }
+    record_info("az version", script_output("az version"));
 
     $self->az_login();
     assert_script_run("az account set --subscription \$ARM_SUBSCRIPTION_ID");
@@ -53,6 +57,8 @@ sub init {
 
 sub az_login {
     my ($self) = @_;
+    # Remove survey and telemetry messages which can mangle JSON outputs.
+    assert_script_run('az config set core.survey_message=false core.collect_telemetry=no --only-show-errors --output json', timeout => 240);
     my $login_cmd = "while ! az login --service-principal -u \$ARM_CLIENT_ID -p \$ARM_CLIENT_SECRET -t \$ARM_TENANT_ID -o none 1>/dev/null 2>&1; do sleep 10; done";
 
     assert_script_run($login_cmd, timeout => 5 * 60);

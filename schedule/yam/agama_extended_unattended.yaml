@@ -15,3 +15,4 @@ schedule:
   - yam/validate/validate_bootloader_timeout
   - console/validate_repos
   - yam/validate/validate_extra_kernel_params
+  - yam/validate/validate_ntp

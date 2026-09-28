@@ -1,0 +1,9 @@
+name: evolution_data_server_installed_tests
+description: >
+  Run upstream installed tests for evolution-data-server via
+  gnome-desktop-testing-runner.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - console/oqa_agnostic/evolution_data_server

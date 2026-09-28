@@ -1,0 +1,26 @@
+From e421a366f5647362ec84b18a5896c289e8f3d3c2 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Mon, 3 Aug 2026 15:10:35 +0200
+Subject: [PATCH] test/e2e/healthcheck: skip ignore-result test on non-amd64
+
+The badhealthcheck image is available only on amd64.
+
+Skip the test on non-amd64 hosts.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/e2e/healthcheck_run_test.go | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/test/e2e/healthcheck_run_test.go b/test/e2e/healthcheck_run_test.go
+index 673998cce98..9eb2975b4a2 100644
+--- a/test/e2e/healthcheck_run_test.go
++++ b/test/e2e/healthcheck_run_test.go
+@@ -169,6 +169,7 @@ var _ = Describe("Podman healthcheck run", func() {
+ 	})
+ 
+ 	It("podman healthcheck --ignore-result exits 0 on failing healthcheck", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28269
+ 		session := podmanTest.Podman([]string{"run", "-q", "-dt", "--name", "hc", "quay.io/libpod/badhealthcheck:latest"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())

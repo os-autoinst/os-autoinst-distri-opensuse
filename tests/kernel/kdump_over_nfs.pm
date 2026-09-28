@@ -4,11 +4,6 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Configure and run kdump over NFS.
-# The test is configuring - on the nfs client side - the kdump with
-# KDUMP_SAVEDIR set to NFS share. Then the actual crash is triggered,
-# still on the NFS client side and once the reboot happens, the nfs share,
-# set as the target in the KDUMP_SAVEDIR, is mounted and the crash files
-# are checked
 #
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
@@ -58,3 +53,45 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Description
+
+On the B<NFS server> node the module exports C</var/lib/nfs-tests/shared_nfs3>
+to the C<10.0.2.0/24> subnet with C<rw>, C<sync>, C<no_subtree_check> and
+C<no_root_squash> options.
+
+On the B<NFS client> node the module mounts the NFS share under C</var/crash>
+via C</etc/fstab> using NFSv3 with C<x-systemd.automount>, then calls
+C<configure_service> and C<check_function> from L<kdump_utils> to configure
+kdump, trigger a kernel crash, and verify the dump files are present on the
+NFS share after reboot.
+
+=head1 Configuration
+
+=head2 ROLE
+
+Required. Set to C<nfs_server> or C<nfs_client> to select the node's role
+in the multi-machine scenario.
+
+=head2 KDUMP_SAVEDIR
+
+Required. NFS path used as the kdump crash dump destination,
+e.g. C<nfs://server-node00/var/lib/nfs-tests/shared_nfs3>.
+
+=head2 NFS_SERVER
+
+Hostname or IP of the NFS server as seen from the client.
+Defaults to C<server-node00>.
+
+=head1 Barriers
+
+=head2 KDUMP_WICKED_TEMP
+
+Synchronises all nodes after the NFS export is in place, working around a
+wicked connection-tracking issue on SLE 15.
+
+=head2 KDUMP_MULTIMACHINE
+
+Final barrier; all nodes must reach it before the test is considered complete.
+
+=cut

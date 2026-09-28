@@ -135,6 +135,16 @@ sub init_main {
         my $errors = verify_checksum();
         set_var('CHECKSUM_FAILED', $errors) if $errors;
     }
+    # allow scheduling jobs with e.g. `VERSION=16.0:git-1234` instead of just `VERSION=16.0`
+    # note: This is useful because then jobs for individual submissions are not wrongly considered
+    #       to be for consecutive builds and e.g. wrong bugref carry over is avoided.
+    if (my $version = get_var('VERSION')) {
+        my $simplified_version = $version =~ s/:(?:(git|smelt|PR)[-:])\d+$//rgi;
+        if ($version ne $simplified_version) {
+            set_var('VERSION_ORIGINAL', $version);
+            set_var('VERSION', $simplified_version);
+        }
+    }
 }
 
 sub loadtest {
@@ -252,9 +262,8 @@ sub kdestep_is_applicable {
 
 sub opensuse_welcome_applicable {
     my $desktop = shift // get_var('DESKTOP', '');
-    # No libqt5-qtwebengine on ppc64/ppc64le and s390 on anything older than Tumbleweed
-    # Tumbleweed has switched to a gnome-tour/gtk based implementation
-    return 0 if !is_tumbleweed && get_var('ARCH', '') =~ /ppc64|s390/;
+    # Tumbleweed and Leap 16.1 has switched to a gnome-tour/gtk based implementation
+    return 0 if !is_tumbleweed && get_var('ARCH', '') =~ /s390/;
     # openSUSE-welcome is expected to show up on openSUSE Tumbleweed and Leap 15.2 XFCE only
     # starting with Leap 15.3 opensuse-welcome is enabled on supported DEs not just XFCE
     return 0 unless is_tumbleweed || is_leap(">=15.3");
@@ -293,7 +302,8 @@ sub is_kernel_test {
         || get_var('TRINITY')
         || get_var('NUMA_IRQBALANCE')
         || get_var('TUNED')
-        || get_var('KDUMP'));
+        || get_var('KDUMP')
+        || get_var('PSI'));
 }
 
 sub is_systemd_test {
@@ -642,7 +652,20 @@ sub load_jeos_tests {
         loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
     }
 
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    if (is_updates_tests) {
+        if (get_var('CONTAINER_VALIDATE_UPGRADE')) {
+            my $run_args = OpenQA::Test::RunArgs->new();
+            $run_args->{phase} = "pre";
+            loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
+        }
+        loadtest 'qa_automation/patch_and_reboot';
+        if (get_var('CONTAINER_VALIDATE_UPGRADE')) {
+            my $run_args = OpenQA::Test::RunArgs->new();
+            $run_args->{phase} = "post";
+            loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
+            return;
+        }
+    }
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
     # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
@@ -1189,7 +1212,8 @@ sub load_consoletests {
             loadtest "console/installation_snapshots";
         }
     }
-    loadtest "console/opensuse_repos" if is_opensuse && !(is_staging || is_updates_tests);
+    # This module only works if openQA supplies its own repos and thus openSUSE-repos is *not* used.
+    loadtest "console/opensuse_repos" if is_opensuse && get_var('REPO_0');
     loadtest "console/zypper_lr";
     # Enable installation repo from the usb, unless we boot from USB, but don't use it
     # for the installation, like in case of LiveCDs and when using http/smb/ftp mirror
@@ -1235,7 +1259,7 @@ sub load_consoletests {
     # SLES but not SLED. Don't run it on live media, not really useful there.
     if (!get_var("LIVETEST") && is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && is_sle('<16.0') && !is_desktop)) {
         loadtest "console/salt";
-        loadtest "console/ansible" if (is_sle('=15-SP7'));
+        loadtest "console/oqa_agnostic/ansible_agnostic" if (is_sle('=15-SP7'));
     }
     if (!is_staging && (is_x86_64
             || is_i686
@@ -1723,7 +1747,7 @@ sub load_extra_tests_console {
     loadtest "console/gdb";
     loadtest "console/perf" unless is_sle;
     loadtest "console/sysctl";
-    loadtest "console/sysstat";
+    loadtest "console/oqa_agnostic/sysstat_agnostic";
     loadtest "console/curl_ipv6" unless is_public_cloud();
     loadtest "console/wget_ipv6";
     loadtest "console/ca_certificates_mozilla";
@@ -1733,7 +1757,7 @@ sub load_extra_tests_console {
     loadtest "console/rsync";
     loadtest "console/clamav" unless is_arm;
     loadtest "console/shells";
-    loadtest 'console/sudo';
+    loadtest 'console/oqa_agnostic/sudo_agnostic';
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
     # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
@@ -2317,7 +2341,6 @@ sub load_system_prepare_tests {
     }
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest 'console/hostname' unless is_bridged_networking;
-    loadtest 'kernel/install_kernel_flavor' if get_var('KERNEL_FLAVOR');
     loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     # Check SELinux failures if SELinux is enabled
@@ -2466,7 +2489,14 @@ sub load_host_installation_modules {
 sub set_mu_virt_vars {
     # Set UPDATE_PACKAGE based on BUILD(format example, BUILD=:33310:dtb-armv7l or BUILD=:smelt:33310:dtb-armv7l)
     my $BUILD = get_required_var('BUILD');
-    $BUILD =~ /:(\d+):([^:]+)$/im;
+    $BUILD =~ /:(\d+):([^:]+?)(?::[^:]+)?$/im;
+    die "BUILD value is $BUILD, but does not match required format." unless $2;
+    # thre expresion works:
+    # :(\d+): Captures the digits (e.g., 1234) into $1.
+    # ([^:]+?): Captures the main component name immediately following the digits (e.g., kernel-source or java) into $2.
+    # (?::[^:]+)?$: An optional non-capturing group (?: ... ?) at the end of the string. If an extra colon-separated
+    # suffix exists (like git:1234:kernel-source:kernel-rt), it matches and safely ignores/discards it.
+    # Old string to reference $BUILD =~ /:(\d+):([^:]+)$/im;
 
     die "BUILD value is $BUILD, but does not match required format." if (!$2);
     my $_pkg = $2;
@@ -2474,10 +2504,12 @@ sub set_mu_virt_vars {
     # If $_pkg contains none, it is for ease of functional testing when no incidents are coming.
     if ($_pkg =~ /none/) {
         $_update_package = '';
-    } elsif ($_pkg =~ /qemu|xen|virt-manager|libguestfs|libslirp|open-vm-tools|dnsmasq|sevctl/) {
+    } elsif ($_pkg =~ /qemu|xen|virt-manager|libguestfs|open-vm-tools|dnsmasq|sevctl|snpguest|snphost/) {
         $_update_package = $_pkg;
     } elsif ($_pkg =~ /libvirt/) {
         $_update_package = 'libvirt-client';
+    } elsif ($_pkg =~ /libslirp/) {
+        $_update_package = 'libslirp0';
     } else {
         $_update_package = 'kernel-default';
     }
@@ -2594,7 +2626,7 @@ sub set_sles16_mu_virt_vars {
         if ($_pkg =~ /none/) {
             # 'none' is for ease of functional testing when no package update is needed
             $_update_package = '';
-        } elsif ($_pkg =~ /qemu|virt-manager|libguestfs|libslirp|open-vm-tools|snphost|dnsmasq/) {
+        } elsif ($_pkg =~ /qemu|virt-manager|libguestfs|open-vm-tools|snphost|dnsmasq/) {
             # Direct package name usage (SLES16 currently supports KVM/QEMU only)
             $_update_package = $_pkg;
         } elsif ($_pkg =~ /snpguest/) {
@@ -2604,6 +2636,9 @@ sub set_sles16_mu_virt_vars {
         } elsif ($_pkg =~ /libvirt/) {
             # Special case: libvirt maps to libvirt-client
             $_update_package = 'libvirt-client';
+        } elsif ($_pkg =~ /libslirp/) {
+            # Special case: libslirp maps to libslirp0
+            $_update_package = 'libslirp0';
         } elsif ($_pkg =~ /xen/) {
             # Xen support will return in SLES16.2
             die "Xen testing is not supported in SLES16 (will return in SLES16.2)";
@@ -2625,7 +2660,7 @@ sub set_sles16_mu_virt_vars {
     set_var('SLES16_MU_INSTALL_TYPE', $install_type);
 
     set_var('ENABLE_HOST_INSTALLATION', '1') unless get_var('ENABLE_HOST_INSTALLATION');
-    set_var('ENABLE_VM_INSTALL', '1') unless get_var('ENABLE_VM_INSTALL');
+    set_var('ENABLE_VM_INSTALL', '1') unless (check_var('ENABLE_VM_INSTALL', 0));
 
     diag("SLES16 MU variables configured: test_mode=staging, install_type=$install_type, host_install=" .
           get_var('ENABLE_HOST_INSTALLATION') . ", vm_install=" . get_var('ENABLE_VM_INSTALL'));
@@ -2636,6 +2671,7 @@ sub set_sles16_mu_virt_vars {
 
 sub load_hypervisor_tests {
     return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
+    die "SNP testing is supported only on SLE >= 15-SP7" if (get_var('UPDATE_PACKAGE') =~ /snphost|snpguest/ && is_sle('<15-SP7'));
 
     if (check_var('ENABLE_HOST_INSTALLATION', 1)) {
         if (get_var('AUTOYAST')) {
@@ -2661,7 +2697,7 @@ sub load_hypervisor_tests {
         }
         if (check_var('PATCH_WITH_ZYPPER', 1)) {
             loadtest "virtualization/universal/patch_and_reboot";
-            if (check_var('UPDATE_PACKAGE', 'kernel-default')) {
+            if (check_var('UPDATE_PACKAGE', 'kernel-default') || check_var("UPDATE_PACKAGE", "snpguest")) {
                 loadtest "virt_autotest/login_console";
                 loadtest "virtualization/universal/list_guests";
                 loadtest "virtualization/universal/patch_guests";
@@ -2670,7 +2706,7 @@ sub load_hypervisor_tests {
                 loadtest "virtualization/universal/list_guests" unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1'));
             }
         }
-        loadtest "virtualization/universal/kernel";
+        loadtest "virtualization/universal/kernel" unless (check_var("UPDATE_PACKAGE", "snpguest") || check_var("UPDATE_PACKAGE", "snphost"));
         loadtest "virtualization/universal/finish";
     }
 
@@ -2728,7 +2764,7 @@ sub load_sles16_mu_virt_tests {
         loadtest "virtualization/universal/install_update_package";
 
         #Feature test specific preparation steps on host before vm installation
-        if (check_var('ENABLE_SNAPSHOTS', '1')) {
+        if (check_var('ENABLE_SNAPSHOTS', '1') && is_sle('=16.0')) {
             loadtest "virt_autotest/prepare_nvram_for_snapshot";
         }
     }
@@ -2836,6 +2872,7 @@ sub load_extra_tests_kernel {
 
     # keep it on the latest place as it taints kernel
     loadtest "kernel/module_build";
+    loadtest "kernel/sysrq_test";
 }
 
 # Scheduling set for validation of specific installation

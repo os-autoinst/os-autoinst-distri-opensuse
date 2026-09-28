@@ -151,7 +151,8 @@ sub run_client() {
         'echo "[libdefaults]" > /etc/krb5.conf',
         'echo "    default_realm = ' . REALM . '" >> /etc/krb5.conf',
         'echo "    dns_lookup_realm = false" >> /etc/krb5.conf',
-        'echo "    dns_lookup_kdc = true" >> /etc/krb5.conf'
+        'echo "    dns_lookup_kdc = true" >> /etc/krb5.conf',
+        'echo "    rdns = false" >> /etc/krb5.conf'
     );
     assert_script_run($_) for @krb5_conf_setup;
 

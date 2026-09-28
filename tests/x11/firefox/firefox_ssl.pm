@@ -26,6 +26,12 @@ sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
 
+    send_key 'alt-tab';
+    wait_still_screen 1, 2;
+    my $version = script_output q(firefox --version|awk -F "[ .]" '{print $3}');
+    send_key 'alt-tab';
+    wait_still_screen 1, 2;
+
     $self->firefox_open_url('https://build.suse.de', assert_loaded_url => 'firefox-ssl-untrusted');
 
     # go to advanced button and press it
@@ -40,8 +46,17 @@ sub run {
     assert_screen('firefox-ssl-loadpage', 60);
     $self->firefox_preferences;
     assert_and_click('firefox-preferences-search');
-    enter_cmd "cert";
-    assert_and_click('firefox-ssl-preference-view-certificate');
+    wait_still_screen 1, 2;
+    enter_cmd "certif";
+    wait_still_screen 1, 2;
+    if ($version >= 153) {
+        assert_and_click('firefox-ssl-preference-advanced-settings');
+        send_key 'end';
+        assert_and_click('firefox-ssl-manage-certificates');
+    }
+    else {
+        assert_and_click('firefox-ssl-preference-view-certificate');
+    }
 
     sleep 1;
     assert_and_click('firefox-ssl-certificate_table');

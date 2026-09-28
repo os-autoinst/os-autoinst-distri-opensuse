@@ -22,7 +22,6 @@ use List::MoreUtils qw(uniq);
 use Carp qw(croak);
 use YAML::PP;
 use testapi;
-use utils qw(file_content_replace);
 use serial_terminal qw(serial_term_prompt);
 use version_utils qw(check_version is_sle);
 use hacluster;
@@ -64,8 +63,8 @@ our @EXPORT = qw(
   list_cluster_nodes
   deployment_cleanup
   is_hana_database_online
-  get_hana_database_status
   is_primary_node_online
+  record_takeover_diagnostics
   get_online_string
   saphanasr_showAttr_version
   get_hana_site_names
@@ -169,11 +168,19 @@ sub run_cmd_retry {
     my $timeout = delete $args{timeout} // 60;
     my $retry = delete $args{retry} // 3;
     my $delay = delete $args{delay} // 10;
-    delete($args{proceed_on_failure});
+    my $proceed_on_failure = delete $args{proceed_on_failure} // 0;
+    my $ret = 0;
 
     for (1 .. $retry) {
-        my $ret = eval { $self->run_cmd(timeout => $timeout, ignore_timeout_failure => 1, proceed_on_failure => 0, %args); };
-        return $ret if (defined $ret);
+        $ret = eval { $self->run_cmd(timeout => $timeout, apply_graceful_timeout => 1, %args); };
+        # If we want return code, then retry until the command succeeds,
+        # if we want output, then retry until we can get the output.
+        if ($args{rc_only}) {
+            return $ret if (defined($ret) && $ret == 0);
+        }
+        else {
+            return $ret if (defined $ret);
+        }
 
         # Unblock console in case the previous command hung and timed out
         type_string('', terminate_with => 'ETX') if $args{ssh_keepalive};
@@ -181,6 +188,7 @@ sub run_cmd_retry {
         sleep $delay;
         record_soft_failure('jsc#TEAM-10485 SSH timeout or failure, retrying');
     }
+    return $ret if $proceed_on_failure;
     die('Maximum number of SSH retry attempts exceeded');
 }
 
@@ -191,7 +199,8 @@ sub run_cmd_retry {
 =cut
 
 sub get_promoted_hostname {
-    my ($self) = @_;
+    my ($self, %args) = @_;
+    my $proceed_on_failure = $args{proceed_on_failure} // 0;
     my $master_resource_type = get_var('USE_SAP_HANA_SR_ANGI') ? 'mst' : 'msl';
     my $hana_resource = join('_',
         $master_resource_type,
@@ -199,10 +208,15 @@ sub get_promoted_hostname {
         get_required_var('INSTANCE_SID'),
         'HDB' . get_required_var('INSTANCE_ID'));
 
-    my $resource_output = $self->run_cmd(cmd => 'crm resource status ' . $hana_resource, quiet => 1);
+    my $resource_output = eval { $self->run_cmd(cmd => 'crm resource status ' . $hana_resource, quiet => 1, proceed_on_failure => $proceed_on_failure) };
+    if ($@) {
+        return undef if $proceed_on_failure;
+        die $@;
+    }
     record_info('crm out', $resource_output);
     my @master = $resource_output =~ /:\s(\S+)\s(?:Master|Promoted)/g;
     if (scalar @master != 1) {
+        return undef if $proceed_on_failure;
         diag("Master database not found or command returned abnormal output.\n
         Check 'crm resource status' command output below:\n");
         diag($resource_output);
@@ -430,7 +444,7 @@ sub wait_hana_node_up {
             my $failed_service = $instance->ssh_script_output(cmd => 'sudo systemctl --failed', timeout => 600, proceed_on_failure => 1);
             if ($out =~ /degraded/ && $failed_service =~ /guestregister/) {
                 record_soft_failure('bsc#1238152 - Restart guestregister service');
-                $instance->ssh_script_run(cmd => 'sudo systemctl restart guestregister.service', timeout => 600, ignore_timeout_failure => 1);
+                $instance->ssh_script_run(cmd => 'sudo systemctl restart guestregister.service', timeout => 600, apply_graceful_timeout => 1);
             }
         }
         record_info('WAIT_FOR_SYSTEM', "System state: $out");
@@ -529,7 +543,7 @@ sub stop_hana {
         my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
         $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $timeout);
         $self->{my_instance}->update_instance_ip();
-        $self->{my_instance}->wait_for_ssh(username => 'cloudadmin', scan_ssh_host_key => 1);
+        $self->{my_instance}->wait_for_ssh(timeout => $timeout, username => 'cloudadmin', scan_ssh_host_key => 1);
     }
 }
 
@@ -588,21 +602,73 @@ sub cleanup_resource {
     record_info('Cluster status after cleanup resource', $self->run_cmd(cmd => $crm_mon_cmd));
 }
 
+=head2 record_takeover_diagnostics
+    record_takeover_diagnostics();
+
+    Collect cluster and HANA system replication diagnostics for takeover failures.
+=cut
+
+sub record_takeover_diagnostics {
+    my ($self) = @_;
+    my $crm_status = eval { $self->run_cmd(cmd => 'crm status', proceed_on_failure => 1) } // $@;
+    record_info('crm status', $crm_status);
+    my $crm_mon = eval { $self->run_cmd(cmd => 'crm_mon -1 -r -f', proceed_on_failure => 1) } // $@;
+    record_info('crm_mon', $crm_mon);
+    my $show_attr = eval { $self->run_cmd(cmd => 'SAPHanaSR-showAttr', proceed_on_failure => 1) } // $@;
+    record_info('SAPHanaSR-showAttr', $show_attr);
+    my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
+    my $sr_status = eval {
+        $self->run_cmd(
+            cmd => 'python exe/python_support/systemReplicationStatus.py',
+            runas => $sapadmin,
+            proceed_on_failure => 1);
+    } // $@;
+    record_info('systemReplicationStatus', $sr_status);
+}
+
+=head2 is_local_primary_recovery_aborting_takeover
+
+    Returns 1 when the cluster appears to have restarted HANA as primary on the
+    local node while takeover to the peer has not completed yet.
+
+    Requires the database to be online again. During a normal slow takeover the
+    local node can stay Promoted with SR mode PRIMARY while the database is still
+    offline; that state must not be treated as recovery.
+=cut
+
+sub is_local_primary_recovery_aborting_takeover {
+    my ($self) = @_;
+    my $hostname = $self->{my_instance}->{instance_id};
+    # During takeover there may be zero Promoted nodes; treat lookup failures as
+    # "not a confirmed local recovery" so the wait loop can continue.
+    my $promoted = $self->get_promoted_hostname(proceed_on_failure => 1);
+    return 0 unless defined $promoted && $promoted eq $hostname;
+    return 0 unless $self->is_primary_node_online(timeout => 0);
+    my $password_db = get_required_var('_HANA_MASTER_PW');
+    my $instance_id = get_required_var('INSTANCE_ID');
+    return get_hana_database_status($self, password_db => $password_db, instance_id => $instance_id);
+}
+
 =head2 check_takeover
     check_takeover();
 
     Checks takeover status and waits for finish until successful or reaches timeout.
+    Waits for cluster topology to show takeover first, then verifies local system
+    replication left PRIMARY mode. Dies with diagnostics on failure.
 =cut
 
 sub check_takeover {
     my ($self) = @_;
     my $hostname = $self->{my_instance}->{instance_id};    # local hostname
     die("check_takeover [ERROR] Database on the fenced node '$hostname' isn't offline") if ($self->is_hana_database_online);
-    die("check_takeover [ERROR] System replication '$hostname' isn't offline") if ($self->is_primary_node_online);
     my $retry_count = 0;    # counter of retries
+    my $local_recovery_hits = 0;    # consecutive polls with DB online on a recovered local primary
     my $vhost;    # hostname from 'vhost' value of 'Host' key of SAPHanaSR-showAttr topology
     my $sync_state;    # status of the sync from 'srPoll' value of 'Site' key of SAPHanaSR-showAttr topology
 
+    # Cluster-first: wait until a remote site reports PRIM before requiring local SR offline.
+    # Out-of-band stop/kill/crash can briefly leave local HANA restarting as PRIMARY while
+    # pacemaker decides whether to promote the peer or recover the local site.
   TAKEOVER_LOOP: while (1) {
         my $topology = $self->get_hana_topology();
         $retry_count++;
@@ -624,8 +690,41 @@ sub check_takeover {
                 last TAKEOVER_LOOP;
             }
         }
-        die('check_takeover [ERROR] Test failed: takeover failed to complete.') if ($retry_count > 40);
+
+        # Peer promotion in progress: wait for topology PRIM instead of local recovery.
+        # get_promoted_hostname dies when no single Promoted node exists yet; ignore that.
+        my $promoted = $self->get_promoted_hostname(proceed_on_failure => 1);
+        if (defined $promoted && $promoted ne $hostname) {
+            $local_recovery_hits = 0;
+            record_info('Takeover info', "Peer '$promoted' is Promoted, waiting for topology PRIM");
+        }
+        # Detect stable local primary recovery that aborts takeover.
+        elsif ($self->is_local_primary_recovery_aborting_takeover()) {
+            $local_recovery_hits++;
+            record_info('Takeover warn',
+                join("\n",
+                    "Local node '$hostname' recovered as Promoted primary with DB online",
+                    "hit $local_recovery_hits"));
+        }
+        else {
+            $local_recovery_hits = 0;
+        }
+        if ($local_recovery_hits >= 3) {
+            $self->record_takeover_diagnostics();
+            die("check_takeover [ERROR] Takeover aborted by local primary recovery on '$hostname'");
+        }
+
+        if ($retry_count > 40) {
+            $self->record_takeover_diagnostics();
+            die('check_takeover [ERROR] Test failed: takeover failed to complete.');
+        }
         sleep 30;
+    }
+
+    # After cluster reports takeover, local node must leave PRIMARY SR mode.
+    if ($self->is_primary_node_online()) {
+        $self->record_takeover_diagnostics();
+        die("check_takeover [ERROR] System replication '$hostname' isn't offline");
     }
 
     return 1;
@@ -811,18 +910,46 @@ sub wait_for_pacemaker {
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my $start_time = time;
-    my $systemd_cmd = 'systemctl --no-pager is-active pacemaker';
+    my $systemd_pm_cmd = 'systemctl --no-pager is-active pacemaker';
+    my $systemd_cs_cmd = 'systemctl --no-pager is-active corosync';
     my $pacemaker_state = '';
+    my $corosync_state = '';
 
-    while ($pacemaker_state ne 'active') {
+    while (time - $start_time < $timeout) {
         sleep 15;
-        $pacemaker_state = $self->run_cmd(cmd => $systemd_cmd, proceed_on_failure => 1);
-        if (time - $start_time > $timeout) {
-            record_info('Pacemaker status', $self->run_cmd(cmd => 'systemctl --no-pager status pacemaker'));
-            die('wait_for_pacemaker [ERROR] Pacemaker did not start within defined timeout');
+
+        $pacemaker_state = eval { $self->run_cmd(cmd => $systemd_pm_cmd, proceed_on_failure => 1, quiet => 1, timeout => 30) } // '';
+        $corosync_state = eval { $self->run_cmd(cmd => $systemd_cs_cmd, proceed_on_failure => 1, quiet => 1, timeout => 30) } // '';
+        record_info('WAIT CLUSTER', "pacemaker=$pacemaker_state corosync=$corosync_state elapsed=" . (time - $start_time));
+        if ($pacemaker_state eq 'active' && $corosync_state eq 'active') {
+            my $cib_ready = eval { $self->run_cmd(cmd => $crm_mon_cmd, rc_only => 1, quiet => 1, timeout => 30) == 0 } // 0;
+            if ($cib_ready) {
+                record_info('Cluster Ready', 'Both Pacemaker and Corosync API are fully up and running.');
+                return 1;
+            }
+            record_info('Cluster Boot', 'Systemd services are active, but waiting for Corosync Ring/cmap initialization...');
+        }
+        elsif ($corosync_state eq 'failed' or $pacemaker_state eq 'failed') {
+            last;
         }
     }
-    return 1;
+
+    my $systemd_pm_st = 'systemctl --no-pager status pacemaker';
+    my $systemd_cs_st = 'systemctl --no-pager status corosync';
+    my $systemd_cs_log = 'journalctl -u corosync -n 80 --no-pager';
+    record_info('Pacemaker status',
+        eval { $self->run_cmd(cmd => $systemd_pm_st, proceed_on_failure => 1, quiet => 1) } // 'node unreachable',
+        result => 'fail'
+    );
+    record_info('Corosync status',
+        eval { $self->run_cmd(cmd => $systemd_cs_st, proceed_on_failure => 1, quiet => 1) } // 'node unreachable',
+        result => 'fail'
+    );
+    record_info('Corosync Info',
+        eval { $self->run_cmd(cmd => $systemd_cs_log, proceed_on_failure => 1, quiet => 1) } // 'node unreachable',
+        result => 'fail'
+    );
+    die('wait_for_pacemaker [ERROR] Cluster services failed to fully initialize within timeout');
 }
 
 =head2 change_sbd_service_timeout
@@ -1076,6 +1203,15 @@ sub create_playbook_section_list {
         push @reg_args, "-e reg_code=$args{scc_code} -e email_address=''";
         push @reg_args, '-e use_suseconnect=true' if ($args{registration} eq 'suseconnect');
         push @reg_args, qesap_ansible_reg_module(reg => $args{ltss}) if ($args{ltss});
+
+        if (get_var('SLES4SAP_FORCE_FLAVOR')) {
+            # FLAVOR is something like 'Hansr-Gcp-Byos' or 'Hanasr-Aws-Payg',
+            # but is_flavor expects exactly 'BYOS' or 'PAYG'. Extract it from
+            # anywhere in the string; a FLAVOR containing both is ambiguous and invalid.
+            my @is_flavor = uc(get_required_var('FLAVOR')) =~ /(BYOS|PAYG)/g;
+            die "FLAVOR '" . get_var('FLAVOR') . "' must contain exactly one of BYOS or PAYG" unless (scalar(@is_flavor) == 1);
+            push @reg_args, "-e is_flavor=$is_flavor[0]";
+        }
         # Add registration module as first element
         push @playbook_list, join(' ', @reg_args);
     }
@@ -1296,7 +1432,7 @@ sub list_cluster_nodes {
 sub get_hana_database_status {
     my ($self, %args) = @_;
     foreach (qw(password_db instance_id)) { croak("Argument < $_ > missing") unless $args{$_}; }
-    my $hdb_cmd = "hdbsql -u SYSTEM -p $args{password_db} -i $args{instance_id} 'SELECT * FROM SYS.M_DATABASES;'";
+    my $hdb_cmd = qq|hdbsql -u SYSTEM -p $args{password_db} -i $args{instance_id} "SELECT * FROM SYS.M_DATABASES;"|;
     my $output_cmd = $self->run_cmd(cmd => $hdb_cmd, runas => get_required_var('SAP_SIDADM'), proceed_on_failure => 1);
 
     if ($output_cmd =~ /Connection failed/) {
@@ -1309,6 +1445,7 @@ sub get_hana_database_status {
 =head2 is_hana_database_online
 
     Setup a timeout and check the hana database status is offline and there is not connection.
+    Requires several consecutive offline readings before treating the database as offline.
     If the connection still is online run a wait and try again to get the status.
     Returns 1 if the output of the hana database is online, 0 means that hana database is offline
 
@@ -1316,7 +1453,7 @@ sub get_hana_database_status {
 
 =item B<timeout> - default 900
 
-=item B<total_consecutive_passes> - default 5
+=item B<total_consecutive_passes> - consecutive offline polls required - default 5
 
 =back
 =cut
@@ -1328,24 +1465,31 @@ sub is_hana_database_online {
     my $instance_id = get_required_var('INSTANCE_ID');
 
     my $db_status = -1;
-    my $consecutive_passes = 0;
+    my $consecutive_offline = 0;
+    my $consecutive_online = 0;
     my $password_db = get_required_var('_HANA_MASTER_PW');
     my $start_time = time;
-    my $hdb_cmd = "hdbsql -u SYSTEM -p $password_db -i $instance_id 'SELECT * FROM SYS.M_DATABASES;'";
+    my $hdb_cmd = qq|hdbsql -u SYSTEM -p $password_db -i $instance_id "SELECT * FROM SYS.M_DATABASES;"|;
 
-    while ($consecutive_passes < $args{total_consecutive_passes}) {
-        $db_status = $self->get_hana_database_status(password_db => $password_db, instance_id => $instance_id);
+    while (1) {
+        $db_status = get_hana_database_status($self, password_db => $password_db, instance_id => $instance_id);
         if (time - $start_time > $timeout) {
             record_info('HANA database after timeout', $self->run_cmd(cmd => $hdb_cmd));
             die('HANA database is still online');
         }
         if ($db_status == 0) {
-            last;
+            $consecutive_offline++;
+            $consecutive_online = 0;
+            return 0 if ($consecutive_offline >= $args{total_consecutive_passes});
+        }
+        else {
+            $consecutive_online++;
+            $consecutive_offline = 0;
+            # Preserve previous behaviour: several consecutive online readings mean still online.
+            return 1 if ($consecutive_online >= $args{total_consecutive_passes});
         }
         sleep 30;
-        ++$consecutive_passes;
     }
-    return $db_status;
 }
 
 =head2 is_primary_node_online
@@ -1355,32 +1499,36 @@ sub is_hana_database_online {
 
 =over
 
-=item B<timeout> - default 300
+=item B<timeout> - wait time for PRIMARY mode to disappear, default 600
+
+=item B<cmd_timeout> - timeout for each systemReplicationStatus.py call, default 300
 
 =back
 =cut
 
 sub is_primary_node_online {
     my ($self, %args) = @_;
-    my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
 
-    # Wait by default for 5 minutes
-    my $time_to_wait = 300;
-    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    # Wait by default for 15 minutes: local RA start/promote races on public cloud
+    # can keep mode PRIMARY longer than the previous 5 minute default.
+    my $time_to_wait = bmwqemu::scale_timeout($args{timeout} // 600);
+    my $cmd_timeout = bmwqemu::scale_timeout($args{cmd_timeout} // 300);
     my $cmd = 'python exe/python_support/systemReplicationStatus.py';
+    my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
     my $output = '';
 
-    # Loop until is not primary the vm01 or timeout is reached
-    while ($time_to_wait > 0) {
-        $output = $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $timeout, proceed_on_failure => 1);
+    # Ensure we run at least once, even if timeout is 0
+    do {
+        $output = $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $cmd_timeout, proceed_on_failure => 1);
         if ($output !~ /mode:[\r\n\s]+PRIMARY/) {
-            record_info('SYSTEM REPLICATION STATUS', "System replication status in primary node.\n$@");
+            record_info('SYSTEM REPLICATION STATUS', "System replication is no longer PRIMARY.\n$output");
             return 0;
         }
         $time_to_wait -= 10;
-        sleep 10;
-    }
-    record_info('SYSTEM REPLICATION STATUS', "System replication status in primary node.\n$output");
+        sleep 10 if $time_to_wait > 0;
+    } while ($time_to_wait > 0);
+
+    record_info('SYSTEM REPLICATION STATUS', "System replication is still PRIMARY after timeout.\n$output");
     return 1;
 }
 
@@ -1545,7 +1693,7 @@ sub wait_for_zypper {
     while ($retry < $args{max_retries}) {
         my $ret = $args{instance}->ssh_script_run(cmd => 'sudo zypper ref',
             username => $args{runas},
-            ignore_timeout_failure => 1,
+            apply_graceful_timeout => 1,
             quiet => 1,
             timeout => $args{timeout});
         if ($ret == 7) {
@@ -1582,7 +1730,7 @@ sub check_zypper_ref {
 
     my $ret = $self->{my_instance}->ssh_script_run(cmd => 'sudo zypper ref',
         username => $args{runas},
-        ignore_timeout_failure => 1,
+        apply_graceful_timeout => 1,
         quiet => 1,
         timeout => $args{timeout});
     if ($ret == 4) {
@@ -1612,14 +1760,14 @@ sub wait_for_idle {
     my ($self, %args) = @_;
     my $timeout = $args{timeout} // 60;
 
-    my $rc = $self->run_cmd_retry(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout, rc_only => 1);
+    my $rc = $self->run_cmd_retry(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout, rc_only => 1, proceed_on_failure => 1);
     if ($rc == 124) {
         record_info('WARN cs_wait_for_idle', "cs_wait_for_idle timed out after $timeout. Gathering info and retrying");
         $self->run_cmd(cmd => 'cs_clusterstate', proceed_on_failure => 1);
         $self->run_cmd(cmd => 'crm_mon -r -R -n -N -1', proceed_on_failure => 1);
         $self->run_cmd(cmd => 'SAPHanaSR-showAttr', proceed_on_failure => 1);
         # Run again, but allow to fail this time
-        $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout);
+        $self->run_cmd_retry(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout, retry => 3, proceed_on_failure => 1);
     } elsif ($rc != 0) {
         die "Command 'cs_wait_for_idle --sleep 5' failed with return code $rc";
     }

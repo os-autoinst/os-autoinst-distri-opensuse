@@ -9,6 +9,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use utils 'upload_folders';
+use Utils::Architectures;
 
 sub run {
     select_console 'root-console';

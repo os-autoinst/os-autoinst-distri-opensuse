@@ -712,8 +712,8 @@ sub expand_variables {
     # Expand other variables
     my @vars = qw(VERSION VERSION_TO_INSTALL SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC
       SCC_REGCODE_LTSS SCC_REGCODE_WE SCC_REGCODE_SLES4SAP SCC_URL ARCH LOADER_TYPE NTP_SERVER_ADDRESS
-      AGAMA_PRODUCT_ID TRANSACTIONAL OSDISK SUT_NETDEVICE INSTALL_DISK_WWN
-      REPO_SLE_MODULE_DEVELOPMENT_TOOLS SCC_REGCODE_LIVE MIRROR_HTTP);
+      AGAMA_PRODUCT_ID TRANSACTIONAL OSDISK SUT_NETDEVICE INSTALL_DISK_WWN KERNEL_64KB
+      REPO_SLE_MODULE_DEVELOPMENT_TOOLS SCC_REGCODE_LIVE MIRROR_HTTP WORKER_IP DESKTOP);
     if (is_agama && get_var('STAGING', '')) {
         # For sle16+ MU tests, we use dynamic agama file to fit different repos
         # see poo#188319
@@ -794,6 +794,27 @@ sub expand_agama_profile {
     return $profile_url;
 }
 
+=head2 generate_calculated_variables
+
+ generate_calculated_variables($profile);
+
+ Return the profile with its variables calculated via some function or library
+
+=cut
+
+sub generate_calculated_variables {
+    my ($profile) = @_;
+
+    my %generators = (
+        WORKER_IP => sub { inet_ntoa(inet_aton(get_var('WORKER_HOSTNAME'))) },
+    );
+
+    # Dynamically replace any matches found in the %generators hash
+    $profile =~ s/%(WORKER_IP)%/$generators{uc($1)}->()/gie;
+
+    return $profile;
+}
+
 =head2 generate_json_profile
 
  generate_json_profile();
@@ -813,6 +834,8 @@ sub generate_json_profile {
     record_info("JSONNET Command", "jsonnet @profile_options $profile_path");
     my $profile_content = `jsonnet @profile_options $profile_path`;
     die "Error generating jsonnet profile" if ($? != 0);
+
+    $profile_content = generate_calculated_variables($profile_content);
     record_info("Profile", $profile_content);
 
     save_tmp_file($profile_name, $profile_content);

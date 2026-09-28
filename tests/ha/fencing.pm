@@ -34,6 +34,8 @@ sub run {
     # Check cluster state *before* fencing
     barrier_wait("CHECK_BEFORE_FENCING_BEGIN_${cluster_name}_NODE${node_index}");
     check_cluster_state;
+    # Clear the screen, make it ready for the 'cleared-console' check bellow
+    assert_script_run "clear";
     barrier_wait("CHECK_BEFORE_FENCING_END_${cluster_name}_NODE${node_index}");
 
     # Give time for HANA to replicate the database
@@ -51,7 +53,6 @@ sub run {
 
     # Fence a node with sysrq, crm node fence or by killing corosync
     # Sysrq fencing is more a real crash simulation
-    enter_cmd "clear";
     if (get_var('USE_SYSRQ_FENCING') || get_var('USE_PKILL_COROSYNC_FENCING')) {
         my $cmd = 'echo b > /proc/sysrq-trigger';
         $cmd = 'pkill -9 corosync' if (get_var('USE_PKILL_COROSYNC_FENCING'));
@@ -68,6 +69,7 @@ sub run {
         }
     }
 
+    save_screenshot;
     # Wait for server to restart on $node_to_fence or on the master node if no node is specified
     # This loop waits for 'cleared-console' to disappear, then 'boot_to_desktop' (or something similar) will take care of the boot
     if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence")) {

@@ -1,4 +1,4 @@
-# Copyright 2019 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup environmnet for IMA & EVM testing - import MOK cert,
@@ -35,8 +35,16 @@ sub run {
     zypper_call('in evmctl dracut-ima');
 
     # Reboot to make settings work
-    power_action('reboot', textmode => 1);
-    $self->wait_boot;
+    if (is_aarch64 && is_sle('>=16')) {
+        # On aarch64 UEFI, VNC stays blank and serial console buffer doesn't capture boot messages
+        # Use simple time-based approach: send reboot, wait for typical boot time, reconnect
+        enter_cmd('reboot');
+        sleep 150;
+        reset_consoles;
+    } else {
+        power_action('reboot', textmode => 1);
+        $self->wait_boot;
+    }
     select_serial_terminal;
 }
 

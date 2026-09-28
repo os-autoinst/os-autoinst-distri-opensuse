@@ -45,8 +45,4 @@ sub run {
     validate_script_output('touch /run/test 2>&1', sub { m/Permission denied/ }, proceed_on_failure => 1);
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;

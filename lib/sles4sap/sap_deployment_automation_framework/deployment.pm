@@ -54,6 +54,7 @@ our @EXPORT = qw(
   validate_components
   get_fencing_mechanism
   sdaf_upload_logs
+  collect_guestregister_logs
   get_sdaf_resource_group
   apply_no_cleanup_tag
 );
@@ -503,7 +504,7 @@ sub sdaf_ssh_key_from_keyvault {
     $args{target_file} //= homedir() . '/.ssh/id_rsa';
     my ($target_filename, $target_path) = fileparse($args{target_file});
     my @secret_ids = @{az_keyvault_secret_list(
-            vault_name => $args{key_vault}, query => "\"[?ends_with(name, \'$args{query}\')].id\"")};
+            vault_name => $args{key_vault}, query => "[?ends_with(name, \'$args{query}\')].id")};
 
     croak "Multiple or no secrets found: \n" . join("\n", @secret_ids) unless @secret_ids == 1;
 
@@ -769,28 +770,6 @@ sub prepare_sdaf_project {
     assert_script_run("mkdir -p $_") foreach @create_workspace_dirs;
 }
 
-=head2 resource_group_exists
-
-    resource_group_exists($resource_group);
-
-Checks if resource group exists. Function accepts only full resource name.
-Croaks if command does not return true/false value.
-
-=over
-
-=item * B<$resource_group>: Resource group name to check
-
-=back
-=cut
-
-sub resource_group_exists {
-    my ($resource_group) = @_;
-    croak 'Mandatory positional argument "$resource_group" not defined.' unless $resource_group;
-
-    my $cmd_out = script_output("az group exists -n $resource_group $SDAF_Azure_podman_flake_filter");
-    die "Command 'az group exists -n $resource_group' failed.\nCommand returned: $cmd_out" unless grep /false|true/, $cmd_out;
-    return ($cmd_out eq 'true');
-}
 
 =head2 sdaf_execute_remover
 
@@ -875,8 +854,8 @@ sub sdaf_cleanup {
     my %result;
     # Sap system needs to be destroyed before workload zone so order matters here.
     for my $deployment_type ('sap_system', 'workload_zone') {
-        my $resource_group = resource_group_exists(generate_resource_group_name(deployment_type => $deployment_type));
-        unless ($resource_group) {
+        my $group_exists = az_group_exists(name => generate_resource_group_name(deployment_type => $deployment_type));
+        unless ($group_exists) {
             record_info('Cleanup skip', "Resource group for deployment type '$deployment_type' does not exist. Skipping cleanup");
             next;
         }
@@ -1070,10 +1049,46 @@ sub get_sdaf_resource_group {
     croak 'Missing mandatory argument "$args{deployment_id}"' unless $args{deployment_id};
     croak 'Missing mandatory argument "$args{resource_group_type}"' unless $args{resource_group_type};
 
-    my $query = "[?contains(name, '$args{resource_group_type}') && contains(name, '$args{deployment_id}')].name";
-    my $groups = az_group_name_get(query => $query);
+    # Capture the full hash returned by the new az_group_name_get
+    my $result = az_group_name_get(
+        query => "[?contains(name, '$args{resource_group_type}') && contains(name, '$args{deployment_id}')].name");
+
+    # Apply the filter: remove known noisy warnings
+    if (exists $result->{err}) {
+        # Define the filter regex based on the branch
+        $result->{err} =~ s/.*(FutureWarning|Launching flake|self.).*//g;
+        # Remove empty lines left behind by the filtering
+        $result->{err} =~ s/^\s*\n//gm;
+        record_info('AZ ERROR', "Error while fetching resource groups: $result->{err}") if ($result->{err} =~ /\S+/);
+    }
+
+    my $groups = $result->{data};
     die "Zero or more than one resource groups found:\n" . join("\n", @$groups) unless (@$groups == 1);
     return $groups->[0];
+}
+
+=head3 collect_guestregister_logs
+
+    collect_guestregister_logs()
+
+    Collect and upload SDAF logs related to registercloudguest service.
+
+=cut
+
+sub collect_guestregister_logs {
+    my @commands = (
+        'systemctl status guestregister.service',
+        'journalctl -u guestregister.service --no-pager',
+        'grep -E "ERROR:|WARNING:|401|422|failed" /var/log/cloudregister || true',
+        'zypper lr -u || true'
+    );
+    my @output;
+    for my $cmd (@commands) {
+        push(@output, "\n### COMMAND: $cmd ###\n");
+        push(@output, script_output("sudo $cmd", proceed_on_failure => 1));
+        push(@output, "\n#####################\n");
+    }
+    record_info('REGISTER OUT', join("\n", @output));
 }
 
 =head3 sdaf_upload_logs
@@ -1108,6 +1123,10 @@ sub sdaf_upload_logs {
     record_info('crm configure show', 'Failed to run "crm configure show"', result => 'fail') if (script_run("sudo crm configure show > $crm_cfg_log", timeout => 120));
     upload_logs("$crm_cfg_log", failok => 1);
 
+    # Upload registercloudguest log
+    collect_guestregister_logs();
+    upload_logs('/var/log/cloudregister', log_name => "$autotest::current_test->{name}-${hostname}_cloudregister.log", failok => 1);
+
     # Upload zypper log
     upload_logs('/var/log/zypper.log', log_name => "$autotest::current_test->{name}-${hostname}_zypper.log", failok => 1);
 
@@ -1121,10 +1140,11 @@ sub sdaf_upload_logs {
 
     # Uploading NW install logs
     record_info('Uploading NW ERS/SCS install logs');
-    my $nw_log = script_run("ls /var/tmp/$sap_sid | grep $sap_sid");
-    if (!script_run("ls /var/tmp/$sap_sid | grep $sap_sid")) {
-        my $nw_log = script_output("ls /var/tmp/$sap_sid | grep $sap_sid | grep 'zip'");
-        upload_logs("/var/tmp/$sap_sid/$nw_log", failok => 1);
+    my $nw_logs = script_output("ls /var/tmp/$sap_sid | grep ${sap_sid}.*zip", proceed_on_failure => 1);
+    if ($nw_logs =~ /\Q$sap_sid\E/ && $nw_logs =~ /zip/) {
+        foreach my $file (split /\n/, $nw_logs) {
+            upload_logs("/var/tmp/$sap_sid/$file", log_name => "$autotest::current_test->{name}-${hostname}_${file}", failok => 1);
+        }
     }
 
     # Uploading supportconfig log (it is time consuming so it is conditional)

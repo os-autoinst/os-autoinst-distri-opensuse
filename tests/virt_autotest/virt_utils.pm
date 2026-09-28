@@ -37,6 +37,7 @@ our @EXPORT = qw(
   handle_sp_in_settings_with_sp0
   clean_up_red_disks
   lpar_cmd
+  lpar_upload_logs
   generate_guest_asset_name
   get_guest_disk_name_from_guest_xml
   compress_single_qcow2_disk
@@ -132,10 +133,17 @@ sub repl_repo_in_sourcefile {
     if (get_var("REPO_0")) {
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . locate_sourcefile;
         my $newrepo = get_repo_0_prefix . get_var("REPO_0");
+        my $guest_full = get_var('GUEST_FLAVOR', '') =~ /full/i;
         # for sles15sp2+, install host with Online installer, while install guest with Full installer
-        $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i);
+        $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i || $guest_full);
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#^$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
+        # a guest pinned by GUEST_PATTERN to another version than $veritem keeps its own entry,
+        # virt-install.sh reads the agama install mode from it, so flip its keyword to Full too
+        (my $guestver = lc(get_var('GUEST_PATTERN', ''))) =~ s/\./-/g;
+        (my $guestitem = $veritem) =~ s/source\.http\..*/source.http.$guestver/;
+        $shell_cmd .= ";sed -i \"/^$guestitem=/s#-Online-#-Full-#\" $soucefile;grep \"^$guestitem=.*Full\" $soucefile"
+          if ($guest_full && $guestver && $guestitem ne $veritem);
         if (is_s390x) {
             lpar_cmd("$shell_cmd");
             lpar_cmd("grep \"$veritem\" $soucefile");
@@ -178,7 +186,7 @@ sub repl_module_in_sourcefile {
     if (is_s390x) {
         lpar_cmd("$command");
         lpar_cmd("grep Module $source_file -r");
-        upload_asset "/usr/share/qa/virtautolib/data/sources.de", 1, 1;
+        lpar_upload_logs("/usr/share/qa/virtautolib/data/sources.de");
     }
     else {
         assert_script_run($command, timeout => 120);
@@ -355,6 +363,33 @@ sub lpar_cmd {
 
     # Return context-aware results: list of (RC, output) or just RC
     return wantarray ? ($ret, $output) : $ret;
+}
+
+=head2 lpar_upload_logs
+
+  lpar_upload_logs($file_path, [$custom_upname])
+
+Upload a log file directly from the s390x LPAR host to the openQA web UI.
+This helper subroutine executes a native C<curl> command via C<lpar_cmd()>,
+bypassing the standard C<upload_logs()> to avoid fragile C<wait_serial> timeouts
+caused by console context mismatches. It takes the absolute C<$file_path> on the host,
+and an optional C<$custom_upname> for the openQA Assets tab (defaults to the file's base name).
+
+=cut
+
+sub lpar_upload_logs {
+    my ($file_path, $custom_upname) = @_;
+
+    my ($filename) = $file_path =~ m|([^/]+)$|;
+    my $upname = $custom_upname || $filename;
+    my $upload_url = autoinst_url("/uploadlog/$filename");
+
+    my $curl_cmd = "curl -s --form upload=\@$file_path " .
+      "--form upname=$upname " .
+      "--max-time 90 $upload_url";
+
+    record_info('Upload Log', "Uploading $file_path directly from LPAR");
+    lpar_cmd($curl_cmd);
 }
 
 # Guest xml will be uploaded with name format [generated_name_by_this_func].xml
@@ -669,34 +704,60 @@ sub perform_guest_restart {
     }
 }
 
-#This subroutine collects desired logs from host and guest, and place them into folder /tmp/virt_logs_residence on host then compress it to /tmp/virt_logs_all.tar.gz
-#Please refer to virt_logs_collector.sh and fetch_logs_from_guest.sh in data/virt_autotest for their detailed functionality, implementation and usage
+# This subroutine collects desired logs from host and guest, and place them into
+# folder /tmp/virt_logs_residence on host then compress it to /tmp/virt_logs_all.tar.gz
+# Please refer to virt_logs_collector.sh and fetch_logs_from_guest.sh in data/virt_autotest
+# for their detailed functionality, implementation and usage.
+# Arguments explanation:
+# guest: only collect and fetch logs from specified guests which are separated
+# by space.
+# guest_password: password to establish ssh or console connection to guest.
+# extra_host_log: extra logs to be collected from host separated by space.
+# extra_guest_log: extra logs to be collected from guest separated by space.
+# full_supportconfig: whether use supportconfig with -A option to activate all
+# features (1 or 0).
+# excluded_supportconfig_features: features to be excluded from supportconfig
+# separated by space.
+# token: label to appended at the end to form the final uploaded log name.
+# keep: whether remove uploaded logs at the last (true or false).
+# timeout: time out value for logs collecting and fetching. Default to 3600.
 sub collect_host_and_guest_logs {
-    my ($guest_wanted, $host_extra_logs, $guest_extra_logs, $log_token) = @_;
-    $guest_wanted //= '';
-    $host_extra_logs //= '';
-    $guest_extra_logs //= '';
-    $log_token //= '';
+    my %args = @_;
+    $args{guest} //= '';
+    $args{guest_password} //= get_var('_SECRET_GUEST_PASSWORD', $testapi::password);
+    $args{extra_host_log} //= get_var('EXTRA_HOST_LOG', '/var/log');
+    $args{extra_guest_log} //= get_var('EXTRA_GUEST_LOG', '/var/log');
+    $args{full_supportconfig} //= get_var('FULL_SUPPORTCONFIG', 1);
+    $args{excluded_supportconfig_features} //= get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX');
+    $args{token} //= '';
+    $args{keep} //= 'false';
+    $args{timeout} //= 3600;
 
+    $args{full_supportconfig} = ($args{full_supportconfig} ? 'true' : 'false');
     my $logs_collector_script_url = data_url("virt_autotest/virt_logs_collector.sh");
-    script_output("curl -s -o ~/virt_logs_collector.sh $logs_collector_script_url", 180, type_command => 0, proceed_on_failure => 0);
+    script_output("curl -s -o ~/virt_logs_collector.sh $logs_collector_script_url", timeout => 180, type_command => 0, proceed_on_failure => 0);
     save_screenshot;
-    script_output("chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$host_extra_logs\" -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 3600 / get_var('TIMEOUT_SCALE', 1), type_command => 1, proceed_on_failure => 1);
+    script_output(
+"chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$args{extra_host_log}\" -g \"$args{guest}\" -p \"$args{guest_password}\" -e \"$args{extra_guest_log}\" -a \"$args{full_supportconfig}\" -x \"$args{excluded_supportconfig_features}\"",
+        timeout => $args{timeout},
+        type_command => 1,
+        proceed_on_failure => 1
+    );
     save_screenshot;
 
     send_key("ret");
     my $logs_fetching_script_url = data_url("virt_autotest/fetch_logs_from_guest.sh");
     script_output("curl -s -o ~/fetch_logs_from_guest.sh $logs_fetching_script_url", 180, type_command => 0, proceed_on_failure => 0);
     save_screenshot;
-    script_output("chmod +x ~/fetch_logs_from_guest.sh && ~/fetch_logs_from_guest.sh -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 1800, type_command => 1, proceed_on_failure => 1);
+    script_output("chmod +x ~/fetch_logs_from_guest.sh && ~/fetch_logs_from_guest.sh -g \"$args{guest}\" -p \"$args{guest_password}\" -e \"$args{extra_guest_log}\"", timeout => $args{timeout}, type_command => 1, proceed_on_failure => 1);
     save_screenshot;
 
     send_key("ret");
-    upload_logs("/tmp/virt_logs_all.tar.gz", log_name => "virt_logs_all$log_token.tar.gz", timeout => 600);
-    upload_logs("/var/log/virt_logs_collector.log", log_name => "virt_logs_collector$log_token.log");
-    upload_logs("/var/log/fetch_logs_from_guest.log", log_name => "fetch_logs_from_guest$log_token.log");
+    upload_logs("/tmp/virt_logs_all.tar.gz", log_name => "virt_logs_all$args{token}.tar.gz", timeout => 600);
+    upload_logs("/var/log/virt_logs_collector.log", log_name => "virt_logs_collector$args{token}.log");
+    upload_logs("/var/log/fetch_logs_from_guest.log", log_name => "fetch_logs_from_guest$args{token}.log");
     save_screenshot;
-    script_run("rm -f -r /tmp/virt_logs_all.tar.gz /var/log/virt_logs_collector.log /var/log/fetch_logs_from_guest.log");
+    script_run("rm -f -r /tmp/virt_logs_all.tar.gz /var/log/virt_logs_collector.log /var/log/fetch_logs_from_guest.log") if ($args{keep} eq 'false');
     save_screenshot;
 }
 

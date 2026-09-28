@@ -1,0 +1,45 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: hostname functional tests
+# desc: >
+#   Functional tests for hostname utilities (hostname command, hostnamectl).
+#   Tests cover hostname get/set operations, hostnamectl integration,
+#   /etc/hostname file handling, hostname validation (RFC 952/1123),
+#   static vs transient hostname, cross-tool consistency, and shipped
+#   configuration validation. Requires root for set operations.
+#   Inspired by GNU inetutils tests/hostname.sh and systemd TEST-71-HOSTNAME.sh.
+# steps:
+#   - verify hostname command returns consistent output across query methods
+#   - verify hostname set operations update kernel, uname, /etc/hostname
+#   - verify hostnamectl set-hostname updates static and transient hostname
+#   - verify hostnamectl handles valid and invalid hostnames gracefully
+#   - verify /etc/hostname parsing handles edge cases
+#   - verify shipped configuration (permissions, nsswitch, localhost resolution)
+#   - restore original hostname after all tests
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 16+, SLE 15 SP4+
+# tags: console hostname hostnamectl systemd network
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_hostname.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+
+set +e
+pytest -v --tb=short test_hostname.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc

@@ -20,17 +20,6 @@ This module is typically scheduled by another test module (e.g., C<hana_sr_sched
 and receives its parameters through the C<$run_args> hashref. The C<action> and C<site_name>
 parameters, which define the test's behavior, are passed within the C<$run_args->{hana_test_definitions}{$test_name}> hashref.
 
-=head1 SETTINGS
-
-=over
-
-=item B<PUBLIC_CLOUD_PROVIDER>
-
-If set to 'EC2' and the takeover action is 'stop', a specific SBD (STONITH Block Device)
-delay is configured to prevent timing issues during the test.
-
-=back
-
 =head1 MAINTAINER
 
 QE-SAP <qe-sap@suse.de>
@@ -76,13 +65,10 @@ sub run {
         join(' ', ucfirst($takeover_action) . 'DB on', ucfirst($site_name), "('", $target_site->{instance_id}, "')")
     );
 
-    # SBD delay related setup in case of crash OS to prevent cluster starting too quickly after reboot
-    $self->setup_sbd_delay_publiccloud() if $takeover_action eq 'crash';
-    # Calculate SBD delay sleep time
-    $sbd_delay = $self->sbd_delay_formula if $takeover_action eq 'crash';
-
-    # SBD delay related setup for 'stop' to fix sporadic 'takeover failed to complete' issue on EC2
-    if ($takeover_action eq 'stop' and check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+    # For crash: configure SBD delay so the node does not rejoin too quickly after reboot.
+    # For stop: reuse the SBD delay formula as a public-cloud stabilization wait (same approach
+    # as EC2 stop). The sleep below is what buys time for peer promote; stop does not reboot.
+    if ($takeover_action eq 'crash' || $takeover_action eq 'stop') {
         $self->setup_sbd_delay_publiccloud();
         $sbd_delay = $self->sbd_delay_formula();
     }
@@ -93,13 +79,10 @@ sub run {
     # Stop/kill/crash HANA DB and wait till SSH is again available with pacemaker running.
     $self->stop_hana(method => $takeover_action, online_string => $online_string);
 
-    # SBD delay is active only after reboot
     if ($takeover_action eq 'crash' || $takeover_action eq 'stop') {
-        # Add SBD delay for to fix sporadic 'takeover failed to complete' issue on EC2
-        # Also fix sporadic issues (ssh timed out) mentioned in TEAM-9601
-        record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
-        # test needs to wait a little more than sbd delay
-        sleep($sbd_delay + 30);
+        my $wait_time = $sbd_delay + 60;
+        record_info('SBD SLEEP', "Waiting $wait_time sec for takeover stabilization (sbd_delay=$sbd_delay + 60).");
+        sleep($wait_time);
         $self->wait_for_pacemaker();
     }
 

@@ -1,3 +1,10 @@
+# Note on Test::MockObject vs Test::MockModule:
+# Test::MockModule mocks package/module subroutines and supports noop().
+# Test::MockObject mocks object instances and does NOT provide noop().
+# Calling ->noop() on a Test::MockObject invokes AUTOLOAD and fails with
+# "Un-mocked method 'noop()' called", leaving the target method un-mocked.
+# For Test::MockObject instances, use set_true() or mock() instead of noop().
+
 use strict;
 use warnings;
 use Test::MockModule;
@@ -23,6 +30,7 @@ subtest "[run_cmd]" => sub {
 
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
     my @calls;
     $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
@@ -216,8 +224,8 @@ subtest "[deployment_cleanup] SUPPORTCONFIG=0 => never collect, even on FAIL" =>
 
     my $ret = $self->deployment_cleanup();
 
-    set_var('SUPPORTCONFIG', undef);
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
+    set_var('SUPPORTCONFIG', undef);
 
     ok($ret eq 0, "Cleanup returns 0");
     is($support_calls, 0, "supportconfig logs NOT collected when SUPPORTCONFIG=0 even on FAIL");
@@ -245,8 +253,8 @@ subtest "[deployment_cleanup] SUPPORTCONFIG=1 => always collect (PASS case)" => 
 
     my $ret = $self->deployment_cleanup();
 
-    set_var('SUPPORTCONFIG', undef);
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
+    set_var('SUPPORTCONFIG', undef);
 
     ok($ret eq 0, "Cleanup returns 0");
     is($support_calls, 1, "supportconfig logs collected when SUPPORTCONFIG=1 (PASS case)");
@@ -336,6 +344,7 @@ subtest "[stop_hana]" => sub {
     my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
     $self->{my_instance} = $mock_pc;
 
     set_var('INSTANCE_SID', 'INSTANCE_SIDTEST');
@@ -360,6 +369,9 @@ subtest "[stop_hana] crash" => sub {
     my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
+    $mock_pc->set_true('ssh_assert_script_run');
+    $mock_pc->set_true('ssh_script_run');
     $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
@@ -388,6 +400,9 @@ subtest "[stop_hana] crash wait_hana_node_up running" => sub {
     my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
+    $mock_pc->set_true('ssh_assert_script_run');
+    $mock_pc->set_true('ssh_script_run');
     $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
@@ -418,6 +433,9 @@ subtest "[stop_hana] crash wait_hana_node_up degradated" => sub {
     my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
+    $mock_pc->set_true('ssh_assert_script_run');
+    $mock_pc->set_true('ssh_script_run');
     $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
@@ -619,13 +637,21 @@ subtest '[list_cluster_nodes] failure' => sub {
 subtest '[is_hana_database_online]' => sub {
     my $self = sles4sap::publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
-    $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 0; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 'Connection failed'; }
+    );
+
     set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
     set_var('INSTANCE_ID', 'INSTANCE_IDTEST');
     set_var('_HANA_MASTER_PW', '1234');
 
     my $res = $self->is_hana_database_online();
+
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     set_var('SAP_SIDADM', undef);
     set_var('INSTANCE_ID', undef);
     set_var('_HANA_MASTER_PW', undef);
@@ -633,20 +659,66 @@ subtest '[is_hana_database_online]' => sub {
 };
 
 
+subtest '[is_hana_database_online] ignores single offline blip' => sub {
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            # First poll is an offline blip; subsequent polls return online.
+            return (scalar @calls == 1) ? 'Connection failed' : 'OK'; }
+    );
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
+    set_var('INSTANCE_ID', 'INSTANCE_IDTEST');
+    set_var('_HANA_MASTER_PW', '1234');
+
+    my $res = $self->is_hana_database_online(total_consecutive_passes => 3);
+
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
+    set_var('SAP_SIDADM', undef);
+    set_var('INSTANCE_ID', undef);
+    set_var('_HANA_MASTER_PW', undef);
+    is $res, 1, "Single offline reading does not mark database offline";
+    ok scalar @calls >= 4, "Continued polling after offline blip";
+};
+
+
 subtest '[is_hana_database_online] with status online' => sub {
     my $self = sles4sap::publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
-    $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 1; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 1; }
+    );
     set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
     set_var('INSTANCE_ID', 'INSTANCE_IDTEST');
     set_var('_HANA_MASTER_PW', '1234');
 
     my $res = $self->is_hana_database_online();
+
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     set_var('SAP_SIDADM', undef);
     set_var('INSTANCE_ID', undef);
     set_var('_HANA_MASTER_PW', undef);
     is $res, 1, "Hana database is online";
+};
+
+
+subtest '[is_primary_node_online] with timeout 0 (single poll)' => sub {
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return "mode: PRIMARY\nsite id: 1"; });
+    $sles4sap_publiccloud->redefine(record_info => sub { return; });
+    set_var('INSTANCE_SID', 'HA0');
+    is $self->is_primary_node_online(timeout => 0), 1, 'Detects PRIMARY mode on single poll';
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return "mode: sync\nsite id: 2"; });
+    is $self->is_primary_node_online(timeout => 0), 0, 'Detects non-PRIMARY mode on single poll';
+    set_var('INSTANCE_SID', undef);
 };
 
 
@@ -824,6 +896,7 @@ subtest '[check_takeover]' => sub {
     $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
@@ -849,6 +922,8 @@ subtest '[check_takeover] fail in showAttr' => sub {
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
+    $sles4sap_publiccloud->redefine(record_takeover_diagnostics => sub { return; });
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
@@ -872,6 +947,8 @@ subtest '[check_takeover] missing fields in SAPHanaSR-showAttr' => sub {
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana02' });
+    $sles4sap_publiccloud->redefine(record_takeover_diagnostics => sub { return; });
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     my $showAttr;
     $sles4sap_publiccloud->redefine(run_cmd => sub {
@@ -918,10 +995,173 @@ subtest '[check_takeover] fail if primary online' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     my @calls;
+    my %test_topology = (
+        Host => {
+            vmhana02 => {
+                vhost => 'vmhana02',
+                site => 'site_b'
+            },
+            vmhana01 => {
+                site => 'site_a',
+                vhost => 'vmhana01',
+            }
+        },
+        Site => {
+            site_b => {
+                lss => '4',
+                mns => 'vmhana02',
+                srPoll => 'SOK',
+            },
+            site_a => {
+                lss => '4',
+                mns => 'vmhana01',
+                srPoll => 'PRIM',
+            }
+        }
+    );
+    $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 1 });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
+    $sles4sap_publiccloud->redefine(record_takeover_diagnostics => sub { return; });
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return "Output does no matter as calculate_hana_topology is redefined.";
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     dies_ok { $self->check_takeover() } "Takeover failed if is_primary_node_online return 1";
+};
+
+
+subtest '[is_local_primary_recovery_aborting_takeover]' => sub {
+    my $self = sles4sap::publiccloud->new();
+    my $mock_pc = Test::MockObject->new();
+    $mock_pc->set_true('update_instance_ip');
+    $self->{my_instance} = $mock_pc;
+    $self->{my_instance}->{instance_id} = 'vmhana01';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    set_var('INSTANCE_ID', '00');
+    set_var('_HANA_MASTER_PW', '1234');
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    my $cmd_output = 'bubblefish';
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return $cmd_output; }
+    );
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 1 });
+
+
+    is $self->is_local_primary_recovery_aborting_takeover(), 1,
+      'Recovered local primary with DB online is detected';
+
+    $cmd_output = 'Connection failed';
+    is $self->is_local_primary_recovery_aborting_takeover(), 0,
+      'Promoted PRIMARY with DB offline is not treated as recovery';
+
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana02' });
+    is $self->is_local_primary_recovery_aborting_takeover(), 0,
+      'Peer promotion is not treated as local recovery';
+
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub {
+            my ($self, %args) = @_;
+            return undef if $args{proceed_on_failure};
+            die 'Master database was not found';
+    });
+    is $self->is_local_primary_recovery_aborting_takeover(), 0,
+      'Missing Promoted node during takeover is not treated as local recovery';
+    set_var('INSTANCE_ID', undef);
+    set_var('_HANA_MASTER_PW', undef);
+    set_var('SAP_SIDADM', undef);
+};
+
+
+subtest '[check_takeover] tolerates missing promoted hostname' => sub {
+    my $self = sles4sap::publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'vmhana01';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my $loops = 0;
+    my %pending_topology = (
+        Host => {
+            vmhana02 => {vhost => 'vmhana02', site => 'site_b'},
+            vmhana01 => {vhost => 'vmhana01', site => 'site_a'}
+        },
+        Site => {
+            site_b => {lss => '4', mns => 'vmhana02', srPoll => 'SOK'},
+            site_a => {lss => '4', mns => 'vmhana01', srPoll => 'PRIM'}
+        }
+    );
+    my %done_topology = (
+        Host => {
+            vmhana02 => {vhost => 'vmhana02', site => 'site_b'},
+            vmhana01 => {vhost => 'vmhana01', site => 'site_a'}
+        },
+        Site => {
+            site_b => {lss => '4', mns => 'vmhana02', srPoll => 'PRIM'},
+            site_a => {lss => '4', mns => 'vmhana01', srPoll => 'SFAIL'}
+        }
+    );
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_local_primary_recovery_aborting_takeover => sub { return 0 });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub {
+            my ($self, %args) = @_;
+            return undef if $args{proceed_on_failure};
+            die 'Master database was not found';
+    });
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub {
+            $loops++;
+            return $loops == 1 ? \%pending_topology : \%done_topology;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    ok $self->check_takeover(), 'Continues waiting when promoted hostname lookup fails mid-takeover';
+};
+
+
+subtest '[check_takeover] fail on local primary recovery' => sub {
+    my $self = sles4sap::publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'vmhana01';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my %test_topology = (
+        Host => {
+            vmhana02 => {
+                vhost => 'vmhana02',
+                site => 'site_b'
+            },
+            vmhana01 => {
+                site => 'site_a',
+                vhost => 'vmhana01',
+            }
+        },
+        Site => {
+            site_b => {
+                lss => '4',
+                mns => 'vmhana02',
+                srPoll => 'SOK',
+            },
+            site_a => {
+                lss => '4',
+                mns => 'vmhana01',
+                srPoll => 'PRIM',
+            }
+        }
+    );
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub { return \%test_topology; });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_local_primary_recovery_aborting_takeover => sub { return 1 });
+    $sles4sap_publiccloud->redefine(record_takeover_diagnostics => sub { return; });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    throws_ok { $self->check_takeover() }
+    qr/Takeover aborted by local primary recovery/,
+      'Detects local primary recovery aborting takeover';
 };
 
 
@@ -942,6 +1182,25 @@ subtest '[create_playbook_section_list] scc_code' => sub {
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
     ok((any { /.*registration\.yaml.*reg_code=Magellano/ } @$ansible_playbooks), 'registration playbook is called with reg code from scc_code');
     ok((any { /.*sap-hana-preconfigure\.yaml.*use_sapconf=Colombo/ } @$ansible_playbooks), 'pre-cluster playbook is called with use_sapconf from USE_SAPCONF');
+};
+
+
+subtest '[create_playbook_section_list] is_flavor' => sub {
+    set_var('SLES4SAP_FORCE_FLAVOR', '1');
+    set_var('FLAVOR', 'Hanasr-Gcp-Byos');
+    my $ansible_playbooks = create_playbook_section_list(scc_code => 'Magellano');
+    set_var('SLES4SAP_FORCE_FLAVOR', undef);
+    set_var('FLAVOR', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((any { /.*registration\.yaml.*is_flavor=BYOS/ } @$ansible_playbooks), 'registration playbook is called with is_flavor extracted from FLAVOR');
+};
+
+subtest '[create_playbook_section_list] is_flavor ambiguous FLAVOR dies' => sub {
+    set_var('SLES4SAP_FORCE_FLAVOR', '1');
+    set_var('FLAVOR', 'Hanasr-Byos-Payg');
+    dies_ok { create_playbook_section_list(scc_code => 'Magellano') } 'FLAVOR with both BYOS and PAYG is invalid';
+    set_var('SLES4SAP_FORCE_FLAVOR', undef);
+    set_var('FLAVOR', undef);
 };
 
 
@@ -1209,6 +1468,9 @@ subtest '[wait_for_idle] command fails with rc 124, passes at second try' => sub
     });
     $sles4sap_publiccloud->redefine(record_info => sub {
             note(join(' ', 'RECORD_INFO -->', @_));
+    });
+    $sles4sap_publiccloud->redefine(record_soft_failure => sub {
+            note(join(' ', 'SOFT_FAILURE -->', @_));
     });
 
     lives_ok { $self->wait_for_idle() } 'Cluster was not idle the first time but succeeded the second';

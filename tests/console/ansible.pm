@@ -124,7 +124,7 @@ sub run {
 
     # Install config_manager role from ansible-network
     # https://galaxy.ansible.com/ansible-network/config_manager
-    assert_script_run 'ansible-galaxy install ansible-network.config_manager', timeout => 300;
+    assert_script_run 'ansible-galaxy install ansible-network.config_manager', timeout => 700;
 
     # Verify that the config_manager is installed
     my $galaxy_installed = script_output 'ansible-galaxy list';

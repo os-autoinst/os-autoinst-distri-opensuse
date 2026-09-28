@@ -32,6 +32,11 @@ sub sudo_with_pw {
     if ($command =~ /sudo -i|sudo -s|sudo su/) {
         enter_cmd "expect -c 'spawn $command;expect \"password for*:\" {send \"$password\\r\";interact} default {exit 1}'";
         assert_screen $args{expected_screen} // 'root-console';
+        # The spawned (login) shell can belong to another user whose ~/.bashrc
+        # does not have the openQA prompt hook for PRETTY_SERIAL_MARKER yet, so
+        # force a re-install on the next command, same as become_root does.
+        # poo#205122
+        $testapi::distri->invalidate_serial_marker_hook();
     }
     else {
         assert_script_run("expect -c '${env}spawn $command;expect \"password for*:\" {send \"$password\\r\";interact} default {exit 1}'$grep", timeout => $args{timeout});

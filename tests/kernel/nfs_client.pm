@@ -3,11 +3,7 @@
 # Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: NFS Client
-#    This module provisions the NFS client and then runs some basic
-#    sanity tests. Detailed description of the tests can be found in:
-#    tests/kernel/nfs_server.pm
-
+# Summary: Provision NFS client, mount NFSv3/NFSv4 shares and write test data.
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
@@ -121,3 +117,82 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Description
+
+Provisions the NFS client node of the coordinated multi-machine NFS test.
+This module is designed to execute in lockstep with L<tests/kernel/nfs_server.pm>,
+synchronised at runtime via shared barriers.
+
+Installs C<nfs-client>, mounts the exports provided by the server (NFSv3 and
+NFSv4, sync and async variants, subject to kernel support), creates a 10 MiB
+test file with C<dd>, computes its md5 checksum, then copies it to every mount
+using C<cp> and C<dd> with C<direct>, C<dsync>, and C<sync> flags.
+
+=head1 Configuration
+
+=head2 SERVER_NODE
+
+Hostname or IP of the NFS server.
+Defaults to C<server-node00>.
+
+=head2 NFS_MOUNT_NFS3
+
+Server-side export path for the NFSv3 synchronous mount.
+Defaults to C</var/lib/nfs-tests/shared_nfs3>.
+
+=head2 NFS_MOUNT_NFS3_ASYNC
+
+Server-side export path for the NFSv3 asynchronous mount.
+Defaults to C</var/lib/nfs-tests/shared_nfs3_async>.
+
+=head2 NFS_MOUNT_NFS4
+
+Server-side export path for the NFSv4 synchronous mount.
+Defaults to C</var/lib/nfs-tests/shared_nfs4>.
+
+=head2 NFS_MOUNT_NFS4_ASYNC
+
+Server-side export path for the NFSv4 asynchronous mount.
+Defaults to C</var/lib/nfs-tests/shared_nfs4_async>.
+
+=head2 NFS_LOCAL_NFS3
+
+Local mountpoint for the NFSv3 synchronous export.
+Defaults to C</var/lib/nfs-tests/localNFS3>.
+
+=head2 NFS_LOCAL_NFS3_ASYNC
+
+Local mountpoint for the NFSv3 asynchronous export.
+Defaults to C</var/lib/nfs-tests/localNFS3async>.
+
+=head2 NFS_LOCAL_NFS4
+
+Local mountpoint for the NFSv4 synchronous export.
+Defaults to C</var/lib/nfs-tests/localNFS4>.
+
+=head2 NFS_LOCAL_NFS4_ASYNC
+
+Local mountpoint for the NFSv4 asynchronous export.
+Defaults to C</var/lib/nfs-tests/localNFS4async>.
+
+=head2 NFS_MULTIPATH
+
+When set to C<1>, enables multipath for NFS mounts.
+Defaults to C<0>.
+
+=head1 Barriers
+
+=head2 NFS_SERVER_ENABLED
+
+Waits for the server to be ready before mounting the exports.
+
+=head2 NFS_CLIENT_ENABLED
+
+Signals that all NFS exports are mounted; test data is written after this point.
+
+=head2 NFS_SERVER_CHECK
+
+Signals that the client has finished writing test data; the server proceeds to verify checksums after this point.
+
+=cut

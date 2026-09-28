@@ -33,7 +33,7 @@ sub print_snapper_list {
 
 sub reboot_instance {
     my ($self, $instance) = @_;
-    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    $instance->softreboot();
 }
 
 sub snapper_last_id {

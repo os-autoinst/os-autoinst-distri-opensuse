@@ -6,6 +6,10 @@
       <email/>
       <reg_code>{{SCC_REGCODE}}</reg_code>
       <reg_server>{{SCC_URL}}</reg_server>
+      % if ( ($get_var->('SCC_URL') // '') =~ /https.*rmt/i ) {
+      <reg_server_cert_fingerprint_type>SHA1</reg_server_cert_fingerprint_type>
+      <reg_server_cert_fingerprint>F6:7A:ED:BB:BC:94:CF:55:9D:B3:BA:74:7A:87:05:EF:67:4E:C2:DB</reg_server_cert_fingerprint>
+      % }
       <install_updates config:type="boolean">true</install_updates>
       <addons config:type="list">
         <addon>

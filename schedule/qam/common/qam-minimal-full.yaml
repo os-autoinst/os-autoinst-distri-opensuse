@@ -70,7 +70,9 @@ schedule:
 - x11/gnome_control_center
 - x11/gnome_terminal
 - x11/gedit
-- x11/firefox
+  # https://bugzilla.suse.com/show_bug.cgi?id=1269226
+  # Remove it temporarily
+  # - x11/firefox
 - x11/yast2_snapper
 - x11/glxgears
 - x11/nautilus
