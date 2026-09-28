@@ -10,6 +10,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
+use x11utils qw(update_x11_vt);
 
 sub run {
     my ($self) = @_;
@@ -19,6 +20,7 @@ sub run {
     save_screenshot;
     send_key "ret";    # confirm
     $self->wait_boot;
+    update_x11_vt;
 }
 
 sub test_flags {
@@ -26,4 +28,3 @@ sub test_flags {
 }
 
 1;
-

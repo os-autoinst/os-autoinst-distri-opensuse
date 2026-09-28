@@ -30,8 +30,9 @@ sub run {
         }
     }
 
-    if (check_var('DESKTOP', 'kde')) {
-        turn_off_plasma_tooltips;
+    turn_off_plasma_tooltips if check_var('DESKTOP', 'kde');
+
+    if (check_var('DESKTOP', 'kde') || check_var('DESKTOP', 'xfce')) {
         update_x11_vt;
     }
 }
