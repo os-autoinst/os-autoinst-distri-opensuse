@@ -1,19 +1,21 @@
 [general]
 ignore=body-min-length,body-is-missing
 regex-style-search=True
-contrib = contrib-title-conventional-commits
 
 [title-max-length]
 line-length=72
 
 [ignore-by-title]
-regex=^Revert
-ignore=title-max-length
+# "git subrepo" and dependency updates create automatic, non-conventional commits we need to ignore.
+# We also ignore Revert commits.
+# https://progress.opensuse.org/issues/198254
+regex=^(Revert|(git subrepo pull|(chore|build)\(deps(-dev)?\): bump))
+ignore=all
 
 [title-match-regex]
-# 1. Subject beginning: ^([A-Z]|\S+:|git subrepo (clone|pull))
-# 2. Subject ending: Must not end with a dot (^.+(?<!\.))
-regex=^([A-Z]|\S+:|git subrepo (clone|pull)).*(?<!\.)$
+# Kernel-style commit subjects: "<scope>: <subject>" (e.g. "Kernel::hba:", "blktests:")
+# or "git subrepo clone|pull". Subject must not end with a dot.
+regex=^(\S+:|git subrepo (clone|pull)).*(?<!\.)$
 
 [body-has-blank-line]
 # Corresponds to: ^.*(\n\n|$)
@@ -22,4 +24,3 @@ regex=^([A-Z]|\S+:|git subrepo (clone|pull)).*(?<!\.)$
 [ignore-body-lines]
 # Accept lines stating only a long unwrappable URL
 regex=^https?:\/\/\S+$
-
