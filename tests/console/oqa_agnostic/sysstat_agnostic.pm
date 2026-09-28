@@ -14,7 +14,7 @@ use agnosticTestRunner;
 
 sub run {
     select_serial_terminal;
-    install_package('sysstat', trup_continue => 1);
+    install_package('sysstat', trup_reboot => 1);
 
     my $test = agnosticTestRunner->new({
             language => 'python',
