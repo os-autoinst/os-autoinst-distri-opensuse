@@ -1,0 +1,14 @@
+---
+name: publiccloud_ltp_latest
+description: |
+  Run LTP on a Public Cloud instance created from the latest image.
+  Minimal skeleton, see poo#206889.
+vars:
+  TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+  PUBLIC_CLOUD_LTP: '1'
+schedule:
+  - boot/boot_to_desktop
+  - publiccloud/prepare_instance
+  - publiccloud/registration
+  - publiccloud/run_ltp
+  - publiccloud/destroy

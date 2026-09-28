@@ -47,8 +47,6 @@ sub load_maintenance_publiccloud_tests {
         } else {
             die('Currently supported versions to migrate from are SLE12 SP5 and SLE15 SP7.');
         }
-    } elsif (get_var('PUBLIC_CLOUD_LTP')) {
-        loadtest 'publiccloud/run_ltp', run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
         loadtest "publiccloud/check_services", run_args => $args;
         loadtest('publiccloud/metadata', run_args => $args);
@@ -125,16 +123,7 @@ sub load_latest_publiccloud_tests {
         return;    # Do not continue as there is no instance to destroy
     }
 
-    if (get_var('PUBLIC_CLOUD_LTP')) {
-        loadtest "publiccloud/prepare_instance", run_args => $args;
-        loadtest "publiccloud/registration", run_args => $args;
-        loadtest "publiccloud/network_test", run_args => $args;
-        loadtest "publiccloud/check_boottime", run_args => $args;
-        loadtest "publiccloud/kdump", run_args => $args;
-        loadtest "publiccloud/check_cloudinit", run_args => $args;
-        loadtest 'publiccloud/run_ltp', run_args => $args;
-    }
-    elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
+    if (get_var('PUBLIC_CLOUD_ACCNET')) {
         loadtest 'publiccloud/az_accelerated_net', run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {

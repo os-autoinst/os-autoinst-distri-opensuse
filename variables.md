@@ -380,7 +380,7 @@ PUBLIC_CLOUD_IMG_PROOF_TESTS | string | "test-sles" | Tests run by img-proof.
 PUBLIC_CLOUD_INSTANCE_TYPE | string | "" | Specify the instance type. Which instance types exists depends on the CSP. (default-azure: Standard_A2, default-ec2: t3a.large )
 PUBLIC_CLOUD_K8S_CLUSTER | string | "" | Name for the kubernetes cluster.
 PUBLIC_CLOUD_KEEP_IMG | boolean | false | If set, the uploaded image will be tagged with `pcw_ignore=1`
-PUBLIC_CLOUD_LTP | boolean | false | If set, the run_ltp test module is added to the job.
+PUBLIC_CLOUD_LTP | boolean | false | Marks a public cloud LTP job (e.g. selects the rsa ssh key). Modules are scheduled via YAML_SCHEDULE=schedule/publiccloud/ltp_latest.yaml or ltp_maintenance.yaml.
 PUBLIC_CLOUD_LTP_GIT_FULL_BUILD | boolean | false | If set, ltp is built from github source rather than ltp repo installation
 PUBLIC_CLOUD_LTP_BUILD_MODULES | boolean | false | If set, ltp is built partially from github source on top of ltp repo installation through modules-install
 PUBLIC_CLOUD_MAX_INSTANCES | integer | 1 | Allows the test to call "create_instance" subroutine within lib/publiccloud/provider.md a limited amount of times. If set to 0 or undef, it allows an unlimited amount of calls.
