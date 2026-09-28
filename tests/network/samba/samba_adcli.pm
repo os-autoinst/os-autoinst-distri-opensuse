@@ -82,7 +82,7 @@ sub samba_sssd_install {
 
 sub join_domain {
     # Join the Active Directory via `kinit`
-    script_retry("expect kinit.exp", retry => 3, timeout => 120, die => 1);
+    script_retry('expect $HOME/kinit.exp', retry => 3, timeout => 120, die => 1);
     validate_script_output("klist", qr/$AD_domain/, fail_message => "Kerberos ticket for domain not listed");
 
     # Retrying the adcli join is needed, due to https://bugs.freedesktop.org/show_bug.cgi?id=55487
