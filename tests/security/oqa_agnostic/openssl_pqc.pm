@@ -21,6 +21,14 @@ sub run {
     }
     install_package("openssl", trup_continue => 1);
     record_info('openssl version:', script_output('rpm -q openssl'));
+
+    # debug: list signature, kem and TLS algorithms enabled in openssl (default TLS version is 1.3)
+    #        list missing (not compiled in) features
+    script_run "echo '--- openssl signature algorithms: ---'; openssl list -signature-algorithms";
+    script_run "echo '--- openssl key exchange algorithms: ---'; openssl list -kem-algorithms";
+    script_run "echo '--- openssl TLS v1.3 groups: ---'; openssl list -tls-groups";
+    script_run "echo '--- openssl disabled features: ---'; openssl list -disabled";
+
     my $test = agnosticTestRunner->new({
             language => 'python',
             name => 'testPostQuantumCrypto',
