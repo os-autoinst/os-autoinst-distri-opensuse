@@ -22,6 +22,7 @@ use File::Copy 'copy';
 use File::Path 'make_path';
 use virt_autotest::utils qw(is_sles16_mu_virt_test);
 use autoyast qw(expand_agama_secrets);
+use LWP::Simple 'head';
 
 sub create_agama_profile {
     my ($vm_name, $arch, $mac, $ip) = @_;
@@ -173,10 +174,60 @@ sub gen_osinfo {
     return "$info_op $info_val";
 }
 
+# Pre-flight URL validation using worker-side HTTP HEAD requests.
+# Validates installation sources and patch repos before virt-install.
+# Uses LWP::Simple::head() which runs on the worker (millisecond-level),
+# consistent with existing patterns in virt_autotest::utils (download_vm_import_disks,
+# download_installation_iso).
+sub validate_guest_urls {
+    my @errors;
+
+    # 1. Validate guest installation URLs
+    for my $g (values %virt_autotest::common::guests) {
+        for my $key (qw(location iso_url install_url)) {
+            my $url = $g->{$key} or next;
+            unless (head($url)) {
+                push @errors, "$g->{name}.$key: $url";
+            }
+        }
+    }
+
+    # 2. Validate INCIDENT_REPO (MU test patch repositories)
+    if (my $repos = get_var('INCIDENT_REPO')) {
+        for my $repo (split /,/, $repos) {
+            next unless $repo;
+            unless (head($repo)) {
+                push @errors, "INCIDENT_REPO: $repo";
+            }
+        }
+    }
+
+    if (@errors) {
+        my $msg = "Unreachable URLs:\n  " . join("\n  ", @errors);
+        record_info("URL FAIL", $msg, result => 'fail');
+        die "URL validation failed:\n$msg";
+    }
+
+    # 3. SUT-side smoke test: verify SUT can actually reach the download network
+    #    head() above runs on the worker; SUT may have different network access.
+    #    One representative URL is enough to confirm the network path.
+    my ($sample_url) = grep { defined } map { $_->{location} // $_->{iso_url} // $_->{install_url} } values %virt_autotest::common::guests;
+    if ($sample_url && script_run("curl -ILskf --connect-timeout 10 --max-time 15 '$sample_url' >/dev/null 2>&1", 20) != 0) {
+        record_info("SUT Net FAIL", "SUT cannot reach: $sample_url (worker can)", result => 'fail');
+        die "SUT network check failed: $sample_url reachable from worker but not from SUT";
+    }
+
+    record_info("URL OK", scalar(keys %virt_autotest::common::guests) . " guests validated");
+}
+
 sub run {
     # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
     #    select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     select_console('root-console');
+
+    # Pre-flight check: validate all installation URLs before virt-install
+    validate_guest_urls();
+
     # Note: TBD for modular libvirt. See poo#129086 for detail.
     restart_libvirtd;
     assert_script_run('for i in $(virsh list --name|grep -v Domain-0);do virsh destroy $i;done');
