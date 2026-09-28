@@ -9,11 +9,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     # zypper-log is recommended by zypper (but that doesn't count on livesystems and on jeos)
     if (is_jeos || is_livecd) {

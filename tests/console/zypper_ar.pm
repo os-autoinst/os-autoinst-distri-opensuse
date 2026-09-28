@@ -12,11 +12,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use version_utils 'is_staging';
 use utils 'zypper_call';
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     # Trying to switch to more scalable solution with updated rsync.pl
     if (my $urlprefix = get_var('MIRROR_PREFIX')) {
         my @repos_to_add = qw(OSS NON_OSS OSS_DEBUG LEAP_MICRO);
