@@ -651,7 +651,7 @@ sub handle_welcome_screen {
 =head2 start_root_shell_in_xterm
 
     start_root_shell_in_xterm()
-    
+
 Start a root shell in xterm.
 
 =cut
