@@ -272,6 +272,45 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro => 'SLE_16',
             location => 'http://download.suse.de/install/SLP/SLES-16.0-Full-LATEST/x86_64/DVD1/',    # Network location for live OS
             launch_security => 'tdx',
+        },
+        sles16sp1efi_online => {
+            name => 'sles16sp1efi_online',
+            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            distro => 'SLE_16',
+            iso_url => 'http://openqa.suse.de/assets/iso/fixed/SLES-16.1-Online-x86_64-GM.install.iso',    # ISO download URL
+            boot_firmware => 'efi',    # SLES16 only supports EFI guests, no BIOS support
+        },
+        sles16sp1efi_full => {
+            name => 'sles16sp1efi_full',
+            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            distro => 'SLE_16',
+            location => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.1-Full-x86_64-GM.install/',    # Network location for live OS
+            install_url => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.1-x86_64-GM/',    # Install repository URL
+            boot_firmware => 'efi',    # SLES16 only supports EFI guests, no BIOS support
+        },
+        sles16sp1efi_full_snapshot => {
+            name => 'sles16sp1efi_full_snapshot',
+            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            distro => 'SLE_16',
+            location => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.1-Full-x86_64-GM.install/',    # Network location for live OS
+            install_url => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.1-x86_64-GM/',    # Install repository URL
+            boot_firmware => 'efi-with-qcow2-based-nvram',    # For efi vm snapshot test
+        },
+        'sles16sp1efi_full-sev-es' => {
+            name => 'sles16sp1efi_full-sev-es',
+            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            distro => 'SLE_16',
+            location => 'http://download.suse.de/install/SLP/SLES-16.1-Full-LATEST/x86_64/DVD1/',    # Network location for live OS
+            boot_firmware => 'efi_sev_es',    # sev_es
+            launch_security => 'sev,policy=0x06',    # sev_es
+            memory_backing => 'locked=on',    # sev_es
+        },
+        'sles16sp1efi_full-tdx' => {
+            name => 'sles16sp1efi_full-tdx',
+            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            distro => 'SLE_16',
+            location => 'http://download.suse.de/install/SLP/SLES-16.1-Full-LATEST/x86_64/DVD1/',    # Network location for live OS
+            launch_security => 'tdx',
         }
     );
     # Filter out guests not allowed for the detected SLE version
@@ -319,6 +358,24 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         }
         if (check_var('ENABLE_SEV_ES', '1')) {
             @allowed_guests = qw(sles15sp6-efi-sev-es sles15sp7-efi-sev-es);
+        }
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=16.1')) {
+        # SLES16.1 host supports both SLES15 SP7 and SLES16.1 guests
+        # SLES16.1 guests only support EFI boot (no BIOS), with online and full installation types
+        my @allowed_guests = qw(sles15sp7 sles15sp7efi sles16sp1efi_online sles16sp1efi_full);
+        if (check_var('ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH', '1')) {
+            @allowed_guests = qw(sles15sp7efi sles16sp1efi_online);
+        } elsif (check_var('ENABLE_SEV_SNP', '1')) {
+            @allowed_guests = qw(sles15sp7efi sles16sp1efi_full);
+        } elsif (check_var('ENABLE_SEV_ES', '1')) {
+            @allowed_guests = qw(sles15sp7-efi-sev-es sles16sp1efi_full-sev-es);
+        } elsif (check_var('ENABLE_TDX', '1')) {
+            @allowed_guests = qw(sles16sp1efi_full-tdx);
+        } elsif (check_var('ENABLE_SNAPSHOTS', '1')) {
+            @allowed_guests = qw(sles15sp7efi-snapshot sles16sp1efi_full_snapshot);
         }
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
@@ -380,6 +437,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         'sles16.0' => {
             name => 'sles16.0',
         },
+        'sles16.1' => {
+            name => 'sles16.1',
+        },
     );
     %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
 
@@ -414,6 +474,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         'sles16.0' => {
             vm_name => 'sles-16.0_openQA-virtualization-maintenance',
+        },
+        'sles16.1' => {
+            vm_name => 'sles-16.1_openQA-virtualization-maintenance',
         },
     );
     %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
