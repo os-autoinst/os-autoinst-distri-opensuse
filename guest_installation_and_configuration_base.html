@@ -33,7 +33,7 @@
       <li><a href="#config_guest_numa">config_guest_numa</a></li>
       <li><a href="#config_guest_virtualization">config_guest_virtualization</a></li>
       <li><a href="#config_guest_platform">config_guest_platform</a></li>
-      <li><a href="#config_guest_os_variant">config_guest_os_variant</a></li>
+      <li><a href="#config_guest_osinfo">config_guest_osinfo</a></li>
       <li><a href="#config_guest_graphics_and_video">config_guest_graphics_and_video</a></li>
       <li><a href="#config_guest_channels">config_guest_channels</a></li>
       <li><a href="#config_guest_consoles">config_guest_consoles</a></li>
@@ -232,11 +232,11 @@
 
 <p>Configure [guest_platform_options].User can still change [guest_arch] and [guest_machine_type] by passing non-empty arguments using hash.</p>
 
-<h2 id="config_guest_os_variant">config_guest_os_variant</h2>
+<h2 id="config_guest_osinfo">config_guest_osinfo</h2>
 
-<pre><code>config_guest_os_variant($self[, guest_os_variant =&gt; &#39;os&#39;])</code></pre>
+<pre><code>config_guest_osinfo($self[, guest_osinfo =&gt; &#39;os&#39;])</code></pre>
 
-<p>Configure [guest_os_variant_options]. User can still change [guest_os_variant] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_os_variant] using already modified [guest_os_variant_options].</p>
+<p>Configure [guest_osinfo_options]. User can still change [guest_osinfo] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_osinfo] using already modified [guest_osinfo_options].</p>
 
 <h2 id="config_guest_graphics_and_video">config_guest_graphics_and_video</h2>
 
