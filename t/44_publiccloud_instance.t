@@ -261,72 +261,6 @@ subtest '[wait_for_ssh_unreachable]' => sub {
     like($calls[0], qr/nc.*10\.0\.0\.1.*22/, 'nc command composed with the instance public ip');
 };
 
-subtest '[wait_for_ssh_reachable] default delay and probe count' => sub {
-    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
-    my @call_args;
-    $instmod->redefine(script_retry => sub {
-            my $cmd = shift;
-            my (%args) = @_;
-            push @call_args, \%args;
-            return 0; });
-    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', provider => Test::MockObject->new);
-
-    $inst->wait_for_ssh_reachable();
-    is($call_args[-1]->{delay}, 10, 'probe delay defaults to 10 s');
-    is($call_args[-1]->{retry}, 300 / 10, 'retry scales with the default timeout (30)');
-
-    # An explicit delay propagates and drives retry = timeout / delay
-    $inst->wait_for_ssh_reachable(delay => 5);
-    is($call_args[-1]->{delay}, 5, 'custom delay forwarded');
-    is($call_args[-1]->{retry}, 300 / 5, 'retry scales with a custom delay (60)');
-};
-
-subtest '[wait_for_ssh_login]' => sub {
-    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
-    my @calls;
-    my @call_args;
-    $instmod->redefine(ssh_script_retry => sub {
-            my $self = shift;
-            my $cmd = shift;
-            my (%args) = @_;
-            push @calls, $cmd;
-            push @call_args, \%args;
-            return 0; });
-    my $provider = Test::MockObject->new;
-    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', provider => $provider);
-
-    $inst->wait_for_ssh_login();
-
-    is(scalar @calls, 1, 'ssh_script_retry called exactly once');
-    is($calls[0], 'true', 'runs the "true" command to verify login');
-    like($call_args[0]->{ssh_opts}, qr/ControlPath=none/, 'ssh_opts includes ControlPath=none');
-    like($call_args[0]->{ssh_opts}, qr/ConnectTimeout=10/, 'ssh_opts includes ConnectTimeout=10');
-    like($call_args[0]->{ssh_opts}, qr/strictHostKeyChecking=no/, 'ssh_opts includes strictHostKeyChecking=no');
-};
-
-subtest '[wait_for_ssh_login] timeout/delay/retry argument propagation' => sub {
-    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
-    my @call_args;
-    $instmod->redefine(ssh_script_retry => sub {
-            my $self = shift;
-            my $cmd = shift;
-            my (%args) = @_;
-            push @call_args, \%args;
-            return 0; });
-    my $provider = Test::MockObject->new;
-    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', provider => $provider);
-
-    # Explicit timeout propagates and drives retry = timeout/delay
-    $inst->wait_for_ssh_login(timeout => 600);
-    is($call_args[-1]->{delay}, 10, 'delay defaults to 10');
-    is($call_args[-1]->{retry}, 600 / 10, 'retry scales with custom timeout (60)');
-    like($call_args[-1]->{fail_message}, qr/60 attempts in 600 seconds/, 'fail_message reflects custom timeout');
-
-    # Explicit delay propagates and drives retry = timeout/delay
-    $inst->wait_for_ssh_login(delay => 5);
-    is($call_args[-1]->{delay}, 5, 'custom delay forwarded');
-};
-
 subtest '[wait_for_sudo] probes sudo over a non-multiplexed connection' => sub {
     my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
     my ($cmd, %args);
@@ -338,6 +272,155 @@ subtest '[wait_for_sudo] probes sudo over a non-multiplexed connection' => sub {
     # group membership is resolved at login, so a ControlMaster opened before
     # the sudoers group was added would never see it
     like($args{ssh_opts}, qr/ControlPath=none/, 'does not reuse an existing ssh master connection');
+};
+
+# Mock the three steps of wait_for_ssh and record, in call order, what each one
+# received. Returns the list of recorded calls and keeps the mock alive in $mod.
+sub mock_wait_for_ssh_steps {
+    my ($mod, $calls) = @_;
+    $mod->redefine(script_retry => sub { my ($cmd, %a) = @_; push @$calls, {step => 'nc', cmd => $cmd, args => \%a}; return 0; });
+    $mod->redefine(ssh_script_retry => sub { my ($self, $cmd, %a) = @_; push @$calls, {step => 'ssh', cmd => $cmd, args => \%a}; return 0; });
+}
+
+subtest '[wait_for_ssh] timeout, delay and retry for argument and PUBLIC_CLOUD_SSH_TIMEOUT combinations' => sub {
+    # Each case is made of:
+    #   name  -- label used in the assert messages
+    # inputs:
+    #   var   -- value of PUBLIC_CLOUD_SSH_TIMEOUT (unset when not given)
+    #   args  -- arguments passed to wait_for_ssh (may contain timeout and delay)
+    # expected values, asserted on both the nc and the ssh step:
+    #   delay -- expected delay (not to be confused with the args{delay} input)
+    #   retry -- expected retry
+    my @cases = (
+        {name => 'all defaults', args => {}, delay => 10, retry => 30},
+        {name => 'PUBLIC_CLOUD_SSH_TIMEOUT used without timeout argument', var => 600, args => {}, delay => 10, retry => 60},
+        {name => 'timeout argument without PUBLIC_CLOUD_SSH_TIMEOUT', args => {timeout => 90}, delay => 10, retry => 9},
+        {name => 'timeout argument wins over PUBLIC_CLOUD_SSH_TIMEOUT', var => 600, args => {timeout => 120}, delay => 10, retry => 12},
+        {name => 'delay argument with default timeout', args => {delay => 10}, delay => 10, retry => 30},
+        {name => 'delay argument with PUBLIC_CLOUD_SSH_TIMEOUT', var => 400, args => {delay => 20}, delay => 20, retry => 20},
+        {name => 'timeout and delay arguments', var => 600, args => {timeout => 60, delay => 5}, delay => 5, retry => 12},
+    );
+
+    foreach my $case (@cases) {
+        my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+        my @calls;
+        mock_wait_for_ssh_steps($instmod, \@calls);
+        set_var('PUBLIC_CLOUD_SSH_TIMEOUT', $case->{var});
+        my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+
+        $inst->wait_for_ssh(%{$case->{args}});
+        set_var('PUBLIC_CLOUD_SSH_TIMEOUT', undef);
+
+        is(scalar @calls, 2, "$case->{name}: only the nc and ssh steps run, expected 2 calls, got " . scalar @calls);
+        my ($nc, $ssh) = @calls;
+        is($nc->{step}, 'nc', "$case->{name}: port is probed first, expected step 'nc', got '$nc->{step}'");
+        is($ssh->{step}, 'ssh', "$case->{name}: ssh login is probed second, expected step 'ssh', got '$ssh->{step}'");
+        for my $step ($nc, $ssh) {
+            is($step->{args}{delay}, $case->{delay}, "$case->{name}: $step->{step} delay expected $case->{delay}, got $step->{args}{delay}");
+            is($step->{args}{retry}, $case->{retry}, "$case->{name}: $step->{step} retry expected $case->{retry}, got $step->{args}{retry}");
+        }
+    }
+};
+
+subtest '[wait_for_ssh] probed commands and port' => sub {
+    my @cases = (
+        {name => 'default port', args => {}, port => 22},
+        {name => 'custom port', args => {port => 2222}, port => 2222},
+    );
+
+    foreach my $case (@cases) {
+        my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+        my @calls;
+        mock_wait_for_ssh_steps($instmod, \@calls);
+        my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+
+        $inst->wait_for_ssh(%{$case->{args}});
+
+        like($calls[0]{cmd}, qr/^nc -vz -w 1 10\.0\.0\.1 $case->{port}$/, "$case->{name}: nc probes the instance ip on port $case->{port}");
+        is($calls[1]{cmd}, 'true', "$case->{name}: ssh login runs 'true'");
+    }
+};
+
+subtest '[wait_for_ssh] ssh login uses ssh_opts without modifying it' => sub {
+    my @cases = (
+        {name => 'empty ssh_opts', ssh_opts => ''},
+        {name => 'custom ssh_opts', ssh_opts => '-i /root/.ssh/id_rsa -o LogLevel=ERROR'},
+    );
+
+    foreach my $case (@cases) {
+        my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+        my @calls;
+        mock_wait_for_ssh_steps($instmod, \@calls);
+        my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', ssh_opts => $case->{ssh_opts});
+
+        $inst->wait_for_ssh();
+
+        my $opts = $calls[1]{args}{ssh_opts};
+        note("ssh_opts --> $opts");
+        like($opts, qr/^\Q$case->{ssh_opts}\E/, "$case->{name}: starts with the instance ssh_opts");
+        like($opts, qr/-o ControlPath=none/, "$case->{name}: does not reuse an existing ssh master connection");
+        like($opts, qr/-o strictHostKeyChecking=no/, "$case->{name}: host key checking is relaxed");
+        like($opts, qr/-o UserKnownHostsFile=\/dev\/null/, "$case->{name}: known_hosts is not used");
+        is($inst->ssh_opts, $case->{ssh_opts}, "$case->{name}: instance ssh_opts is unchanged");
+    }
+};
+
+subtest '[wait_for_ssh] scan_ssh_host_key' => sub {
+    # Only the behavior visible to the wait_for_ssh caller is checked, not how the
+    # scan is implemented: when requested, the instance host key is scanned into
+    # known_hosts, and only after the ssh login check succeeded.
+    # Each case is made of:
+    #   name -- label used in the assert messages
+    # input:
+    #   args -- arguments passed to wait_for_ssh
+    # expected value:
+    #   scan -- 1 if the host key is expected to be scanned, 0 otherwise
+    my @cases = (
+        {name => 'not requested', args => {}, scan => 0},
+        {name => 'requested', args => {scan_ssh_host_key => 1}, scan => 1},
+    );
+
+    foreach my $case (@cases) {
+        my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+        my @calls;
+        mock_wait_for_ssh_steps($instmod, \@calls);
+        $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+        # script_run goes in the same ordered list, so the scan is found whatever runner it uses
+        $instmod->redefine(script_run => sub { push @calls, {step => 'run', cmd => $_[0]}; return 0; });
+        local $testapi::username = 'me';
+        my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+
+        $inst->wait_for_ssh(%{$case->{args}});
+
+        note("\n  -->  " . join("\n  -->  ", map { $_->{cmd} } @calls));
+        my @scan_idx = grep { $calls[$_]{cmd} =~ /ssh-keyscan/ } 0 .. $#calls;
+        my $scanned = @scan_idx ? 1 : 0;
+        is($scanned, $case->{scan}, "$case->{name}: host key scan expected $case->{scan}, got $scanned");
+        next unless $case->{scan};
+        my ($ssh_idx) = grep { $calls[$_]{step} eq 'ssh' } 0 .. $#calls;
+        ok($scan_idx[0] > $ssh_idx, "$case->{name}: host key scan expected after the ssh login (call $ssh_idx), got at call $scan_idx[0]");
+        my $scan_cmd = $calls[$scan_idx[0]]{cmd};
+        like($scan_cmd, qr/\b10\.0\.0\.1\b/, "$case->{name}: host key scan expected on 10.0.0.1, got '$scan_cmd'");
+        like($scan_cmd, qr/known_hosts/, "$case->{name}: host key expected to be stored in known_hosts, got '$scan_cmd'");
+    }
+};
+
+subtest '[wait_for_ssh] stops when a step fails' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my @calls;
+    mock_wait_for_ssh_steps($instmod, \@calls);
+    $instmod->redefine(script_retry => sub { push @calls, {step => 'nc'}; die "ssh port unreachable\n"; });
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+
+    throws_ok { $inst->wait_for_ssh(scan_ssh_host_key => 1) } qr/ssh port unreachable/, 'dies when the port never opens';
+    is_deeply([map { $_->{step} } @calls], ['nc'], 'no ssh login or host key scan after the port check fails');
+
+    @calls = ();
+    mock_wait_for_ssh_steps($instmod, \@calls);
+    $instmod->redefine(ssh_script_retry => sub { push @calls, {step => 'ssh'}; die "ssh connection failed\n"; });
+
+    throws_ok { $inst->wait_for_ssh(scan_ssh_host_key => 1) } qr/ssh connection failed/, 'dies when ssh login never succeeds';
+    is_deeply([map { $_->{step} } @calls], ['nc', 'ssh'], 'no host key scan after the ssh login fails');
 };
 
 subtest '[softreboot] tolerates a hung ssh -O check during tunneled cleanup (poo#207027)' => sub {
