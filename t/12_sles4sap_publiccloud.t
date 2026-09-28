@@ -1,3 +1,10 @@
+# Note on Test::MockObject vs Test::MockModule:
+# Test::MockModule mocks package/module subroutines and supports noop().
+# Test::MockObject mocks object instances and does NOT provide noop().
+# Calling ->noop() on a Test::MockObject invokes AUTOLOAD and fails with
+# "Un-mocked method 'noop()' called", leaving the target method un-mocked.
+# For Test::MockObject instances, use set_true() or mock() instead of noop().
+
 use strict;
 use warnings;
 use Test::MockModule;
@@ -630,13 +637,21 @@ subtest '[list_cluster_nodes] failure' => sub {
 subtest '[is_hana_database_online]' => sub {
     my $self = sles4sap::publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
-    $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 0; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 'Connection failed'; }
+    );
+
     set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
     set_var('INSTANCE_ID', 'INSTANCE_IDTEST');
     set_var('_HANA_MASTER_PW', '1234');
 
     my $res = $self->is_hana_database_online();
+
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     set_var('SAP_SIDADM', undef);
     set_var('INSTANCE_ID', undef);
     set_var('_HANA_MASTER_PW', undef);
@@ -647,36 +662,46 @@ subtest '[is_hana_database_online]' => sub {
 subtest '[is_hana_database_online] ignores single offline blip' => sub {
     my $self = sles4sap::publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
-    my $calls = 0;
-    $sles4sap_publiccloud->redefine(get_hana_database_status => sub {
-            $calls++;
-            # First poll offline, then online for the remaining consecutive checks.
-            return ($calls == 1) ? 0 : 1;
-    });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            # First poll is an offline blip; subsequent polls return online.
+            return (scalar @calls == 1) ? 'Connection failed' : 'OK'; }
+    );
     set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
     set_var('INSTANCE_ID', 'INSTANCE_IDTEST');
     set_var('_HANA_MASTER_PW', '1234');
 
     my $res = $self->is_hana_database_online(total_consecutive_passes => 3);
+
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     set_var('SAP_SIDADM', undef);
     set_var('INSTANCE_ID', undef);
     set_var('_HANA_MASTER_PW', undef);
     is $res, 1, "Single offline reading does not mark database offline";
-    ok $calls >= 4, "Continued polling after offline blip";
+    ok scalar @calls >= 4, "Continued polling after offline blip";
 };
 
 
 subtest '[is_hana_database_online] with status online' => sub {
     my $self = sles4sap::publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
-    $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 1; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return 1; }
+    );
     set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
     set_var('INSTANCE_ID', 'INSTANCE_IDTEST');
     set_var('_HANA_MASTER_PW', '1234');
 
     my $res = $self->is_hana_database_online();
+
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
     set_var('SAP_SIDADM', undef);
     set_var('INSTANCE_ID', undef);
     set_var('_HANA_MASTER_PW', undef);
@@ -1012,17 +1037,30 @@ subtest '[check_takeover] fail if primary online' => sub {
 
 subtest '[is_local_primary_recovery_aborting_takeover]' => sub {
     my $self = sles4sap::publiccloud->new();
+    my $mock_pc = Test::MockObject->new();
+    $mock_pc->set_true('update_instance_ip');
+    $self->{my_instance} = $mock_pc;
     $self->{my_instance}->{instance_id} = 'vmhana01';
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     set_var('INSTANCE_ID', '00');
     set_var('_HANA_MASTER_PW', '1234');
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    my $cmd_output = 'bubblefish';
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return $cmd_output; }
+    );
     $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 1 });
-    $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 1 });
+
+
     is $self->is_local_primary_recovery_aborting_takeover(), 1,
       'Recovered local primary with DB online is detected';
 
-    $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 0 });
+    $cmd_output = 'Connection failed';
     is $self->is_local_primary_recovery_aborting_takeover(), 0,
       'Promoted PRIMARY with DB offline is not treated as recovery';
 
@@ -1039,6 +1077,7 @@ subtest '[is_local_primary_recovery_aborting_takeover]' => sub {
       'Missing Promoted node during takeover is not treated as local recovery';
     set_var('INSTANCE_ID', undef);
     set_var('_HANA_MASTER_PW', undef);
+    set_var('SAP_SIDADM', undef);
 };
 
 
