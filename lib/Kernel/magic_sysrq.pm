@@ -35,7 +35,7 @@ returns C<0> otherwise.
 
 sub sysrq_display_help {
     send_key 'alt-sysrq-a';
-    my $out = script_output('journalctl -k -n3 | grep -Pzo "sysrq:.*HELP\s:.*\)"', proceed_on_failure => 1);
+    my $out = script_output('journalctl -k -n3 | grep -Poiz "sysrq:.*HELP\s:.*\)"', proceed_on_failure => 1);
 
     return 0 unless ($out =~ /loglevel\(0-9\)\s.*\)/);
     return 1;
@@ -54,7 +54,7 @@ Returns C<1> if pattern is found else C<0>.
 
 sub sysrq_dump_all_cpu_backtrace {
     send_key 'alt-sysrq-l';
-    my $out = script_output('journalctl -k -n100 | grep -Pzo "(?is)sysrq:.*CPUs(.*?(?:r15|r31|x29|x31|kr15|pstate|psw)[^\n:]*:\s*[0-9a-f]+)"',
+    my $out = script_output('journalctl -k -n100 | grep -Poiz "sysrq:.*CPUs(.*?[\s\S]*Call\sTrace)[\s\S]*0x[0-9a-fA-F]{1,4}"',
         proceed_on_failure => 1);
 
     return 0 unless ($out =~ /\b(0[xX])[0-9a-fA-F]+\b/);
@@ -74,7 +74,7 @@ otherwise C<0>.
 
 sub sysrq_show_memory {
     send_key 'alt-sysrq-m';
-    my $out = script_output('journalctl -k -n25 | grep -Pzo "sysrq:.*Show\sMemory.*[\s\S]*.Mem-Info:.*[\s\S]*.Total\sswap\s=\s[0-9]*?kB"',
+    my $out = script_output('journalctl -k -n25 | grep -Poiz "sysrq:.*Show\sMemory.*[\s\S]*.Mem-Info:.*[\s\S]*.Total\sswap\s=\s[0-9]*?kB"',
         proceed_on_failure => 1);
 
     return 0 unless ($out =~ /Free\sswap.*=\s[0-9].*kB/);
@@ -95,9 +95,9 @@ found in the logs, or C<0> if the expected output is missing.
 
 sub sysrq_dump_curr_regs_flags {
     send_key 'alt-sysrq-p';
-    my $out = script_output('journalctl -k -n1000 | grep -Pzo "sysrq:.*Show\sRegs[\s\S]*.gen-PMC[0-9]\s\w.*:"', proceed_on_failure => 1);
+    my $out = script_output('journalctl -k -n1000 | grep -Poiz "sysrq:.*Show\sRegs[\s\S]*.\S[0-9a-fA-F]{1,16}"', proceed_on_failure => 1);
 
-    return 0 unless ($out =~ /CPU\#[0-9]{1,4}:\s?.*[0-9a-fA-F]/);
+    return 0 unless ($out =~ /:\s*(0[xX])?[0-9a-fA-F]{1,32}/);
     return 1;
 }
 
@@ -116,7 +116,7 @@ in the logs, or C<0> if the expected output is missing.
 
 sub sysrq_dump_curr_tasks {
     send_key 'alt-sysrq-t';
-    my $out = script_output('journalctl -k -n10000 | grep -Pzo "sysrq:.*Show\sState[\s\S]*.worker\spools:"', timeout => 180, proceed_on_failure => 1);
+    my $out = script_output('journalctl -k -n10000 | grep -Poiz "sysrq:.*Show\sState[\s\S]*.worker\spools:"', timeout => 180, proceed_on_failure => 1);
 
     return 0 unless ($out =~ /runnable\stasks:/);
     return 1;
