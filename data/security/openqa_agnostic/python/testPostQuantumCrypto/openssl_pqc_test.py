@@ -46,16 +46,19 @@ class OpenSSLDriver:
         else:
             cmd_args = args
         cmd = [self.binary] + cmd_args
+        # 'capture_output' and 'text' in subprocess.run are Python 3.7+ only, but SLE 15 ships
+        # Python 3.6, so spell out the equivalent stdout/stderr pipes instead.
+        pipe = subprocess.PIPE if capture_output else None
         result = subprocess.run(
             cmd,
             cwd=cwd,
             check=False,
-            capture_output=capture_output,
-            text=False,
+            stdout=pipe,
+            stderr=pipe,
             input=input
         )
         if check and result.returncode != 0:
-            stderr_str = result.stderr.decode('utf-8', errors='replace')
+            stderr_str = (result.stderr or b"").decode('utf-8', errors='replace')
             raise RuntimeError(
                 f"OpenSSL command failed: {' '.join(cmd)}\n"
                 f"Return Code: {result.returncode}\n"
