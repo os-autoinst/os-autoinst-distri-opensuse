@@ -2144,5 +2144,14 @@
             ]
         },
         "type": "bug"
+    },
+    "bsc#1282969": {
+        "description": "hostname: couldn't set the system hostname to '.*' using hostnamed: GDBus\\.Error:org\\.freedesktop\\.DBus\\.Error\\.ServiceUnknown: The name is not activatable",
+        "products": {
+            "sle": [
+                "16.1"
+            ]
+        },
+        "type": "bug"
     }
 }
