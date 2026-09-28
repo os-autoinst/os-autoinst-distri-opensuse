@@ -140,15 +140,7 @@ sub get_slurm_logs {
 
 sub switch_user {
     my ($self, $username) = @_;
-
-    # poo#183761 nested user switches are not supported by the pretty_serial feature.
-    # We use pretty_serial_marker_guard(0) to temporarily fall back to classic markers,
-    # ensuring terminal synchronization remains reliable during the user transition.
-    my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
-    enter_cmd("su - $username");
-    type_string(qq/PS1="# "\n/);
-    wait_serial(qr/PS1="# "/);
-    assert_script_run("whoami|grep $username");
+    become_user($username);
 }
 
 =head2 master_node_names

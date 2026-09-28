@@ -283,12 +283,7 @@ sub test_pgsql {
     assert_script_run 'echo "postgres ALL=(root) NOPASSWD: ALL" >/etc/sudoers.d/postgres';
     assert_script_run "gpasswd -a postgres \$(stat -c %G /dev/$serialdev)";
     assert_script_run 'sudo chsh postgres -s /bin/bash';
-    enter_cmd "su - postgres", wait_still_screen => 1;
-    enter_cmd "PS1='# '", wait_still_screen => 1;
-    # The login shell of $user does not have the openQA prompt hook for
-    # PRETTY_SERIAL_MARKER in its ~/.bashrc yet, so force a re-install on the
-    # next command, same as become_root does. poo#205122
-    $testapi::distri->invalidate_serial_marker_hook();
+    become_user('postgres');
     # upgrade db from oldest version to latest version
     if (script_run('test $(sudo update-alternatives --list postgresql|wc -l) -gt 1') == 0) {
         assert_script_run 'for v in $(sudo update-alternatives --list postgresql); do rpm -q ${v##*/};done';
