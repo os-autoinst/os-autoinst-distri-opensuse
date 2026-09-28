@@ -1,0 +1,101 @@
+name: extratests_cli_devel
+description: >
+  Maintainer: qe-core.
+  Extra CLI tests, part 3 of 3: languages, libraries, debug tools and application services.
+  One schedule for maintenance, functional and openSUSE. Do not make product copies.
+  Add a conditional entry only if the package is not available on a product.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/git
+  - console/java
+  - console/ruby
+  - console/sqlite3
+  - console/gdb
+  - console/perf
+  - console/gd
+  - console/libvorbis
+  - '{{sle_common}}'
+  - '{{sle_15}}'
+  - '{{sle_15sp6}}'
+  - '{{opensuse}}'
+  - console/coredump_collect
+conditional_schedule:
+  sle_common:
+    VERSION:
+      12-SP5: &sle_common
+        - console/openssl_nodejs
+        - console/libgcrypt
+        - console/zziplib
+        - console/valgrind
+        - '{{sound}}'
+        - '{{systemtap}}'
+      15-SP4: *sle_common
+      15-SP5: *sle_common
+      15-SP6: *sle_common
+      15-SP7: *sle_common
+      '16.0': *sle_common
+      '16.1': *sle_common
+      Tumbleweed: *sle_common
+  systemtap:
+    VERSION:
+      12-SP5:
+        - '{{systemtap_arch}}'
+  systemtap_arch:
+    ARCH:
+      x86_64:
+        - console/systemtap
+      s390x:
+        - console/systemtap
+  sle_15:
+    VERSION:
+      15-SP4: &sle_15
+        - console/golang
+        - console/rust
+        - console/gcc
+        - console/redis
+        - console/rabbitmq
+        - console/nginx
+        - console/libxslt
+        - console/shar
+        - console/oqa_agnostic/ansible_agnostic
+        - console/ds389_advanced_functional
+      15-SP5: *sle_15
+      15-SP6: *sle_15
+      15-SP7: *sle_15
+      '16.0': *sle_15
+      '16.1': *sle_15
+      Tumbleweed: *sle_15
+  sle_15sp6:
+    VERSION:
+      15-SP6: &sle_15sp6
+        - console/valkey
+      15-SP7: *sle_15sp6
+      '16.0': *sle_15sp6
+      '16.1': *sle_15sp6
+      Tumbleweed: *sle_15sp6
+  sound:
+    ARCH:
+      x86_64:
+        - console/aplay
+        - console/wavpack
+  opensuse:
+    DISTRI:
+      opensuse:
+        - console/libgit2
+        - console/apache2_php_fpm
+        - console/libjpeg_turbo
+        - console/libqca2
+        - console/libgpiod
+        - appgeo/gdal
+        - console/openqa_review
+        - console/opencode
+        - kernel/kdump
+        - '{{soundtouch}}'
+  soundtouch:
+    ARCH:
+      x86_64:
+        - console/soundtouch

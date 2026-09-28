@@ -18,9 +18,10 @@ use version_utils qw(is_sle is_public_cloud is_opensuse is_leap);
 sub run {
     select_serial_terminal;
 
-    # Ensuring ntp-wait is done syncing to avoid cron starting issue bsc#1207042
-    if ((is_sle("<15")) && (!is_public_cloud)) {
-        script_retry("systemctl is-active ntp-wait.service | grep -vq 'activating'", retry => 10, delay => 60, fail_message => "ntp-wait did not finish syncing");
+    # Ensuring ntp-wait/chrony-wait is done syncing to avoid cron starting issue bsc#1207042
+    unless (is_public_cloud) {
+        my $wait_service = is_sle('<15') ? 'ntp-wait' : 'chrony-wait';
+        script_retry("systemctl is-active $wait_service.service | grep -vq 'activating'", retry => 10, delay => 60, fail_message => "$wait_service did not finish syncing");
     }
     # cronie is only installed by default on sle/leap < 16
     unless (is_sle('<16') || is_leap('<16')) {
@@ -31,7 +32,7 @@ sub run {
     # check if cronie is installed, enabled and running
     assert_script_run 'rpm -q cronie';
     systemctl 'is-enabled cron';
-    script_retry 'systemctl is-active cron', retry => 3, delay => 10;
+    script_retry 'systemctl is-active cron', retry => 6, delay => 10;
     systemctl 'status cron';
 }
 
