@@ -8,8 +8,9 @@
 # (see lib/publiccloud/provider.pm) and has access to a persistent EFS
 # ("tf-efs", one mount target per AZ in tf-subnet, NFS ingress on tf-sg).
 # This test installs and inspects the aws-efs-utils package (helper binaries, the mount.efs
-# Python interpreter ABI and its man page), then mounts the existing EFS into a job-private
+# as Python script and its man page), then mounts the existing EFS into a job-private
 # subdirectory, runs basic read/write checks and finally unmounts and removes that subdirectory.
+#
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
@@ -62,6 +63,14 @@ sub run {
     # Man page shipped by the package
     $self->{my_instance}->ssh_assert_script_run('test -f /usr/share/man/man8/mount.efs.8.gz');
 
+    # Configure logging in /etc/amazon/efs/efs-utils.conf for troubleshooting
+    if (get_var('PUBLIC_CLOUD_AWSEFS_DEBUG')) {
+        $self->{my_instance}->ssh_script_run(
+            'sudo sed -i -e "s/^[#[:space:]]*logging_level[[:space:]]*=.*/logging_level = DEBUG/"' .
+              ' -e "s/^[#[:space:]]*stunnel_debug_enabled[[:space:]]*=.*/stunnel_debug_enabled = true/" /etc/amazon/efs/efs-utils.conf'
+        );
+    }
+
     # Discover the persistent EFS provisioned by the infra terraform
     my $fs_id = efs_file_system_id($region);
     my $efs_dns = "$fs_id.efs.$region.amazonaws.com";
@@ -95,6 +104,41 @@ sub run {
     $self->{my_instance}->ssh_assert_script_run("sudo grep -q 'openqa-efs-test-$job_id' $job_dir/test.txt");
     $self->{my_instance}->ssh_assert_script_run("sudo df -h " . EFS_MOUNT_DIR);
     $self->{my_instance}->ssh_assert_script_run("sudo ls -la $job_dir/");
+}
+
+sub collect_efs_logs {
+    my ($self) = @_;
+    return unless $self->{my_instance};
+
+    # Show mount helper log in openQA details
+    my $mount_log = $self->{my_instance}->ssh_script_output('sudo cat /var/log/amazon/efs/mount.log 2>/dev/null', proceed_on_failure => 1);
+    record_info('mount.log', $mount_log) if ($mount_log && $mount_log =~ /\S/);
+
+    # Show watchdog log in openQA details if present
+    my $watchdog_log = $self->{my_instance}->ssh_script_output('sudo cat /var/log/amazon/efs/mount-watchdog.log 2>/dev/null', proceed_on_failure => 1);
+    record_info('watchdog.log', $watchdog_log) if ($watchdog_log && $watchdog_log =~ /\S/);
+
+    # Show active efs-utils configuration
+    my $efs_conf = $self->{my_instance}->ssh_script_output('sudo cat /etc/amazon/efs/efs-utils.conf 2>/dev/null', proceed_on_failure => 1);
+    record_info('efs-utils.conf', $efs_conf) if ($efs_conf && $efs_conf =~ /\S/);
+
+    # Show watchdog systemd service status/journal if relevant
+    my $journal = $self->{my_instance}->ssh_script_output('sudo journalctl -n 50 -u amazon-efs-mount-watchdog --no-pager 2>/dev/null', proceed_on_failure => 1);
+    record_info('watchdog journal', $journal) if ($journal && $journal =~ /\S/);
+
+    # Upload all efs logs and configuration as a tarball asset
+    my $files = $self->{my_instance}->ssh_script_output('sudo ls -d /var/log/amazon/efs/* 2>/dev/null', proceed_on_failure => 1);
+    my @logs = grep { /\S/ } split(/\s+/, $files // '');
+    push @logs, '/etc/amazon/efs/efs-utils.conf';
+    $self->{my_instance}->upload_check_logs_tar(@logs) if (@logs);
+    $self->{my_instance}->upload_log('/var/log/amazon/efs/mount.log', failok => 1);
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    select_serial_terminal;
+    eval { $self->collect_efs_logs(); };
+    $self->SUPER::post_fail_hook;
 }
 
 # Remove the job-private directory and unmount the EFS. Never delete any AWS resource:
