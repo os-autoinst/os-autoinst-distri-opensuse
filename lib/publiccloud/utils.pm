@@ -48,6 +48,7 @@ our @EXPORT = qw(
   is_container_host
   is_hardened
   is_cloudinit_supported
+  check_dns
   registercloudguest
   register_addon
   register_addons_in_pc
@@ -242,6 +243,45 @@ sub registercloudguest {
     if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {
         assert_script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
     }
+}
+
+=head2 check_dns
+
+    check_dns($instance);
+
+Check name resolution on the instance before it registers (poo#207630):
+C</etc/resolv.conf> must name a nameserver, and C<scc.suse.com>, or the host in
+C<PUBLIC_CLOUD_DNS_CHECK_HOST>, must resolve; each check gets about a minute.
+A resolution that needed retries is recorded with the time it took. On failure
+the resolver and network state is recorded, then the test dies.
+=cut
+
+sub check_dns {
+    my ($instance) = @_;
+    my $host = get_var('PUBLIC_CLOUD_DNS_CHECK_HOST', 'scc.suse.com');
+    die "PUBLIC_CLOUD_DNS_CHECK_HOST '$host' is not a host name" if $host !~ /^[A-Za-z0-9.-]+$/;
+
+    # Each check is retried for about a minute; die => 0 so a persistent failure is
+    # diagnosed below before dying, and a late success is recorded with its duration.
+    my %retry = (retry => 6, delay => 10, timeout => 30, die => 0);
+    my $problem;
+    my $start = time();
+    if ($instance->ssh_script_retry(cmd => q(test -s /etc/resolv.conf && grep -Eq '^[[:space:]]*nameserver[[:space:]]+[^[:space:]]+' /etc/resolv.conf), %retry)) {
+        $problem = '/etc/resolv.conf is missing, empty or names no nameserver after ' . (time() - $start) . ' seconds';
+    } elsif ($instance->ssh_script_retry(cmd => "getent ahosts $host", %retry)) {
+        $problem = "$host did not resolve within " . (time() - $start) . ' seconds';
+    } elsif ((my $took = time() - $start) >= 10) {
+        record_info('DNS late', "resolv.conf and $host were ready only after $took seconds");
+    }
+    return unless $problem;
+
+    my @diag = ('ls -l /etc/resolv.conf', 'cat /etc/resolv.conf', 'ip a', 'ip r',
+        'sudo systemctl --no-pager status systemd-resolved NetworkManager wicked cloud-init', 'resolvectl status',
+        "getent ahosts $host",
+        'sudo journalctl -b --no-pager -u NetworkManager -u wicked -u systemd-resolved | tail -n 50');
+    my $out = $instance->ssh_script_output(cmd => '(' . join('; ', map { "echo '# $_'; $_" } @diag) . ') 2>&1', timeout => 120, proceed_on_failure => 1);
+    record_info('DNS diagnostics', $out, result => 'fail');
+    die "DNS check failed: $problem";
 }
 
 sub register_addons_in_pc {

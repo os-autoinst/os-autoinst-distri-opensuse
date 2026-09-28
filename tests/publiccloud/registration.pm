@@ -25,6 +25,7 @@ sub run {
     select_host_console();    # select console on the host, not the PC instance
 
     pc_wait_quit($args->{my_instance});
+    check_dns($args->{my_instance});
     # Unified instance registration for BYOS and OnDemand. Run registercloudguest unconditionally when PUBLIC_CLOUD_FORCE_REGISTRATION is set.
     if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION')) {
         registercloudguest($args->{my_instance});

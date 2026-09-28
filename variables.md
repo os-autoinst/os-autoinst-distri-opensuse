@@ -413,6 +413,7 @@ PUBLIC_CLOUD_SSH_TIMEOUT | int | 300 | Sets the timeout for ssh wait operations.
 PUBLIC_CLOUD_STORAGE_ACCOUNT | string | "" | Storage account used e.g. for custom disk and container images
 PUBLIC_CLOUD_SUPPORTCONFIG_EXCLUDE | string | "" | List of comma-separated features to exclude from 'supportconfig' execution
 PUBLIC_CLOUD_SMOKETEST | boolean | false | Scheduling setting - Run instance smoke tests
+PUBLIC_CLOUD_DNS_CHECK_HOST | string | scc.suse.com | Host name that publiccloud::utils::check_dns() resolves on the instance before registration
 PUBLIC_CLOUD_SMT_IP | string | Specify custom SMT IP for publiccloud::utils::registercloudguest()
 PUBLIC_CLOUD_SMT_FQDN | string | Specify custom SMT FQDN for publiccloud::utils::registercloudguest()
 PUBLIC_CLOUD_SMT_FP | string | Specify custom SMT FP for publiccloud::utils::registercloudguest()
