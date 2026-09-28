@@ -28,10 +28,10 @@
   <guest_installation_extra_args/>
   <guest_installation_wait/>
   <guest_installation_media/>
-  <guest_os_variant>sles16</guest_os_variant>
+  <guest_osinfo>sles16.1</guest_osinfo>
   <guest_storage_path/>
   <guest_storage_type>disk</guest_storage_type>
-  <guest_storage_format>qcow2</guest_storage_format>
+  <guest_storage_format>raw</guest_storage_format>
   <guest_storage_label>gpt</guest_storage_label>
   <guest_storage_size>40</guest_storage_size>
   <guest_storage_backing_path/>

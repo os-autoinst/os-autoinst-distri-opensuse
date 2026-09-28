@@ -1007,14 +1007,15 @@ sub config_guest_sysinfo {
 
 =head2 config_guest_storage
 
-  config_guest_rng($self [, key-value pairs of guest storage arguments])
+    config_guest_storage($self [, key-value pairs of guest storage arguments])
 
 Configure [guest_storage_options]. User can still change [guest_storage_type],
 [guest_storage_size], [guest_storage_format], [guest_storage_label], [guest_storage_path]
 and [guest_storage_others] by passing non-empty arguments using hash. If installations
 already passes, modify_guest_params will be called to modify [guest_storage_type],
 [guest_storage_size], [guest_storage_format], [guest_storage_path] and
-[guest_storage_others] using already modified [guest_storage_options].
+[guest_storage_others] using already modified [guest_storage_options]. For an
+import with raw storage and a raw image, use the downloaded image directly.
 
 =cut
 
@@ -1046,13 +1047,20 @@ sub config_guest_storage {
             $self->{guest_storage_backing_path} =~ s/\.xz$//i;
             $self->{guest_storage_backing_path} =~ /\.([\w]{1,})$/i;
             $self->{guest_storage_backing_format} = $1;
-            $self->{guest_storage_options} = "--disk type=file,device=disk,source.file=$self->{guest_storage_path},size=$self->{guest_storage_size},format=$self->{guest_storage_format},driver.type=$self->{guest_storage_format}";
-            $self->{guest_storage_options} = $self->{guest_storage_options} . ",backing_store=$self->{guest_storage_backing_path},backing_format=$self->{guest_storage_backing_format}";
+            if ($self->{guest_storage_format} eq 'raw' and $self->{guest_storage_backing_format} eq 'raw') {
+                # Use the downloaded image directly instead of creating an overlay.
+                $self->{guest_storage_path} = $self->{guest_storage_backing_path};
+                $self->{guest_storage_options} = "--disk type=file,device=disk,source.file=$self->{guest_storage_path},format=raw,driver.type=raw";
+            }
+            else {
+                $self->{guest_storage_options} = "--disk type=file,device=disk,source.file=$self->{guest_storage_path},size=$self->{guest_storage_size},format=$self->{guest_storage_format},driver.type=$self->{guest_storage_format}";
+                $self->{guest_storage_options} .= ",backing_store=$self->{guest_storage_backing_path},backing_format=$self->{guest_storage_backing_format}";
+            }
             $self->{guest_storage_options} = $self->{guest_storage_options} . ",target.dev=vda,target.bus=virtio";
         }
     }
     $self->{guest_storage_options} = $self->{guest_storage_options} . ",$self->{guest_storage_others}" if ($self->{guest_storage_others} ne '');
-    if (($self->{guest_installation_result} eq 'PASSED') and ($_current_storage_options = $self->{guest_storage_options})) {
+    if (($self->{guest_installation_result} eq 'PASSED') and ($_current_storage_options ne $self->{guest_storage_options})) {
         $self->modify_guest_params($self->{guest_name}, 'guest_storage_options');
     }
     return $self;
@@ -1647,10 +1655,6 @@ sub config_guest_installation_media {
             else {
                 assert_script_run("curl -s -o $self->{guest_storage_backing_path} " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 3600);
             }
-            if (is_aarch64 && check_var('KERNEL_64KB', '1')) {
-                $self->convert_raw_backing_image(_cluster_size => 65536);
-                inspect_existing_issue(issue => 'bsc#1277435 QEMU raw backing image workaround');
-            }
         }
         else {
             record_info("Installation media $self->{guest_installation_media} does not exist", script_output("curl -I " . render_autoinst_url(url => $self->{guest_installation_media}), proceed_on_failure => 1), result => 'fail');
@@ -1658,36 +1662,6 @@ sub config_guest_installation_media {
         }
     }
     record_info("Guest $self->{guest_name} is going to use installation media $self->{guest_installation_media}", "Please check it out !");
-    return $self;
-}
-
-=head2 convert_raw_backing_image
-
-    convert_raw_backing_image($self, _cluster_size => $cluster_size)
-
-Convert a raw guest backing image to qcow2 with the requested cluster size in
-bytes. The cluster size is required when the backing image format is raw and
-must be a positive integer. The converted image is checked and the guest
-storage options are updated to use it. This subroutine returns without changes
-when the backing image format is not raw.
-
-=cut
-
-sub convert_raw_backing_image {
-    my ($self, %args) = @_;
-    $args{_cluster_size} //= '';
-
-    return if ($self->{guest_storage_backing_format} ne 'raw');
-    croak('cluster_size must be a positive integer') if (!$args{_cluster_size} or $args{_cluster_size} <= 0);
-
-    my $_raw_path = $self->{guest_storage_backing_path};
-    my $_qcow_path = "$_raw_path-converted.qcow2";
-    my $_cluster_size = $args{_cluster_size};
-    assert_script_run("qemu-img convert --force-share -f raw -O qcow2 -o cluster_size=$_cluster_size $_raw_path $_qcow_path", timeout => 3600);
-    assert_script_run("qemu-img check --force-share $_qcow_path", timeout => 600);
-    $self->{guest_storage_options} =~ s/\Qbacking_store=$_raw_path,backing_format=raw\E/backing_store=$_qcow_path,backing_format=qcow2/;
-    $self->{guest_storage_backing_path} = $_qcow_path;
-    $self->{guest_storage_backing_format} = 'qcow2';
     return $self;
 }
 
