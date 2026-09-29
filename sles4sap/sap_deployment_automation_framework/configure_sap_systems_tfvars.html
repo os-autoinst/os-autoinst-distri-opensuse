@@ -24,6 +24,7 @@
       <li><a href="#define_application_servers">define_application_servers</a></li>
       <li><a href="#define_miscellaneous_settings">define_miscellaneous_settings</a></li>
       <li><a href="#define_nfs_settings">define_nfs_settings</a></li>
+      <li><a href="#define_hanasr_timing_params_settings">define_hanasr_timing_params_settings</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/configure_sap_systems_tfvars.pm</h1>
@@ -158,6 +159,33 @@
 <pre><code>define_nfs_settings();</code></pre>
 
 <p>Returns tfvars NFS related setting section in HASHREF format. NFS storage is used to distribute installation media across all nodes. NFS storage is served by Hana DB node in case only database is installed, otherwise it is ASCS node that serves media. <b>Example:</b> {NFS_provider : &#39;&quot;AFS&quot;&#39;, ANF_HANA_use_AVG : &#39;false&#39; ... } Pay attention to double quoting strings. They are very important in resulting file.</p>
+
+<h2 id="define_hanasr_timing_params_settings">define_hanasr_timing_params_settings</h2>
+
+<pre><code>define_hanasr_timing_params_settings(
+    saphanasr_hook_verification_retries=&gt;&#39;20&#39;, 
+    saphanasr_hook_verification_delay_in_s=&gt;&#39;30&#39;,
+    saphanasr_hook_verification_rescue_retries=&gt;&#39;20&#39;
+    saphanasr_hook_verification_rescue_delay_in_s=&gt;&#39;30&#39;
+);</code></pre>
+
+<p>Returns tfvars HanaSR timing parameters settings section in HASHREF format. <b>Example:</b> {saphanasr_hook_verification_retries: &quot;20&quot;, saphanasr_hook_verification_delay_in_s: &quot;30&quot; ... } Pay attention to double quoting strings. They are very important in resulting file.</p>
+
+<ul>
+
+<li><p><b>saphanasr_hook_verification_retries</b>: Define verification retry attempts.</p>
+
+</li>
+<li><p><b>saphanasr_hook_verification_delay_in_s</b>: Define the delay in seconds between verification retries.</p>
+
+</li>
+<li><p><b>saphanasr_hook_verification_rescue_retries</b>: Define verification rescue retry attempts.</p>
+
+</li>
+<li><p><b>saphanasr_hook_verification_rescue_delay_in_s</b>: Define the delay in seconds between verification rescue retries.</p>
+
+</li>
+</ul>
 
 
 </body>
