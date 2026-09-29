@@ -67,6 +67,7 @@ sub check_strategy_maint_window {
     rbm_call 'reboot';
     rbm_check_status 2;
     die "System should be rebooting" unless wait_screen_change(undef, 180);
+    wait_still_screen(5, timeout => 300);
     process_reboot;
 
     # Trigger & cancel reboot
