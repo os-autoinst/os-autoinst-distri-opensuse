@@ -102,7 +102,8 @@ sub agama_set_root_password_screen {
 
         scroll_up();
 
-        assert_screen('agama-auth-changes-applied');
+        # The banner is inserted above the form once saved, which can leave it scrolled out of view
+        send_key_until_needlematch('agama-auth-changes-applied', 'ctrl-up', 10, 5);
     }
 }
 
