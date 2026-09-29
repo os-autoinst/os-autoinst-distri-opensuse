@@ -35,14 +35,7 @@ sub run {
             domain => 'security',
         }
     );
-    if (is_sle('=15-SP7') || is_sle('=16.0')) {
-        eval { $test->setup()->run_test()->parse_results()->cleanup() };
-        if ($@) {
-            record_soft_failure("poo#200579, bsc#1266010: OpenSSL Post-quantum not yet ready for SLES 15-SP7/16.0: $@");
-        }
-    } else {
-        $test->setup()->run_test()->parse_results()->cleanup();
-    }
+    $test->setup()->run_test()->parse_results()->cleanup();
 }
 
 1;
