@@ -17,6 +17,7 @@
       <li><a href="#is_debugfs_mounted">is_debugfs_mounted</a></li>
       <li><a href="#enable_debugfs">enable_debugfs</a></li>
       <li><a href="#get_kernel_config">get_kernel_config</a></li>
+      <li><a href="#get_verified_shallow_tar">get_verified_shallow_tar</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/utils.pm</h1>
@@ -38,6 +39,14 @@
 <pre><code>get_kernel_config();</code></pre>
 
 <p>Locates the running kernel&#39;s config file (<code>/boot/config-$(uname -r)</code>, falling back to <code>/usr/lib/modules/$(uname -r)/config</code> and then <code>/proc/config.gz</code>) and records its full contents via <code>record_info()</code>, prefixed with a comment naming the source file (as done in <code>LTP::utils::log_versions</code>).</p>
+
+<h2 id="get_verified_shallow_tar">get_verified_shallow_tar</h2>
+
+<pre><code>get_verified_shallow_tar(tree =&gt; &#39;stable&#39;, branch =&gt; &#39;linux-6.12.y&#39;, commit =&gt; &#39;...&#39;);</code></pre>
+
+<p>Downloads the kernel.org shallow-clone tarball for the given <code>tree</code> and <code>branch</code>, verifies it via the signed checksums, and checks out <code>commit</code> into <i>./linux</i>. <code>commit</code> should always be supplied in CI; omitting it checks out the current tip (the bundle is published nightly).</p>
+
+<p>See <a href="https://people.kernel.org/monsieuricon/using-shallow-git-tarballs-for-ci">https://people.kernel.org/monsieuricon/using-shallow-git-tarballs-for-ci</a>.</p>
 
 
 </body>
