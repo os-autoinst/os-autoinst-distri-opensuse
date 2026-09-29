@@ -59,3 +59,22 @@ sub run {
 }
 
 1;
+
+=head1 Description
+
+Check that the Pressure Stall Information (PSI) files C<cpu>, C<memory> and
+C<io> in C</proc/pressure> can be read.
+
+On SLE 16.1+ and Tumbleweed, PSI is enabled by default (jsc#PED-15418). On
+older SLE versions it is disabled by default, so the test first checks that
+the files are not available, then adds C<psi=1> to the kernel command line,
+reboots and checks them again.
+
+=head1 Configuration
+
+=head2 PSI
+
+On s390x, if this is set, the test switches to the root console without
+waiting for the system to boot.
+
+=cut

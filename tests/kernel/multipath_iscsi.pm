@@ -45,3 +45,25 @@ sub run {
 }
 
 1;
+
+=head1 Description
+
+Smoke test for multipath over iSCSI. The test installs C<open-iscsi> and
+C<multipath-tools>, starts C<iscsid> and C<multipathd>, then discovers and
+logs in to the iSCSI target. It waits up to 10 seconds for C<multipathd> to
+report an active multipath device, then logs out.
+
+The iSCSI target has to be provided by another machine on the multimachine
+network, usually a supportserver.
+
+=head1 Configuration
+
+=head2 ISCSI_TARGET
+
+IP address of the iSCSI target. Defaults to C<10.0.2.1>.
+
+=head2 ISCSI_IQN
+
+IQN of the iSCSI target. Defaults to C<iqn.2016-02.de.openqa>.
+
+=cut

@@ -62,14 +62,20 @@ sub test_flags {
 =head1 Notes
 
 =head2 INSTALL_KOTD
+
 Set 1 to enable KOTD.
 
 =head2 KOTD_REPO
-URL of a kernel of the day repository:
-http://download.suse.de/ibs/Devel:/Kernel:/SLE12-SP5/standard/
-http://download.opensuse.org/repositories/Kernel:/HEAD/standard/
+
+URL of a kernel of the day repository, e.g.:
+
+ http://download.suse.de/ibs/Devel:/Kernel:/SLE12-SP5/standard/
+ http://download.opensuse.org/repositories/Kernel:/HEAD/standard/
 
 =head2 KMP_REPO
-URL of kernel module packages repository for SLES in development:
-http://download.suse.de/ibs/Devel:/Kernel:/SLE12-SP5:/KMP/standard/
+
+URL of kernel module packages repository for SLES in development, e.g.:
+
+ http://download.suse.de/ibs/Devel:/Kernel:/SLE12-SP5:/KMP/standard/
+
 =cut

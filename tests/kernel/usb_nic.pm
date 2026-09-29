@@ -59,3 +59,24 @@ sub test_flags {
 }
 
 1;
+
+=head1 Description
+
+Smoke test for a USB network adapter connected to the SUT. The test looks for
+a network interface backed by a USB device and configures it for DHCP, using
+wicked or NetworkManager depending on which one is in use. It then checks that
+the interface got an IP address and pings the neighbours it has discovered.
+The test passes as soon as one neighbour responds.
+
+The machine the test runs on must have a USB NIC plugged in and connected to a
+network with a DHCP server.
+
+=head1 Configuration
+
+=head2 REQUIRED_USB_DEVICES
+
+Optional comma-separated list of C<vendor:product> USB IDs, for example
+C<0bda:8153>, that must be connected to the SUT. Missing devices are reported
+as a failure, but the test keeps going.
+
+=cut

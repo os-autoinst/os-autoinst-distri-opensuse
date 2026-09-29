@@ -6,7 +6,7 @@
 # Package: parted systemd
 # Summary: bsc#1089761, SUSE-RU-2018:2620-1
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: LSG QE Kernel <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
@@ -66,3 +66,34 @@ sub run {
 }
 
 1;
+
+=head1 Description
+
+Regression test for bsc#1089761. udev should not create
+C</dev/disk/by-partlabel> symlinks for the generic partition names
+C<primary> and C<logical>, which C<parted> assigns by default and which
+often appear on many partitions at once.
+
+The test first checks that a normal installation has no partitions with
+these names. It then creates 101 GPT partitions called C<primary> and 10
+called C<openqapart> on C</dev/vdb>, reboots, and checks that:
+
+=over
+
+=item * C<detect-part-label-duplicates.service> logged a warning about the
+large number of partitions sharing a label,
+
+=item * no by-partlabel symlinks exist for C<primary>, while all 10
+C<openqapart> symlinks are created.
+
+=back
+
+Finally, it adds C<udev.no-partlabel-links=1> to the kernel command line,
+reboots, and checks that no by-partlabel symlinks are created at all.
+
+=head1 Requirements
+
+The SUT needs a second disk at C</dev/vdb>, which the test overwrites. The
+test changes the bootloader configuration and reboots twice.
+
+=cut
