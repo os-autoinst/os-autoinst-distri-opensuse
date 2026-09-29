@@ -86,6 +86,7 @@ sub instantiate_guests_and_profiles {
         $_guest_profile->{guest_product_mode} = $_store_of_guests{$_element}{PRODUCT_MODE} if ($_store_of_guests{$_element}{PRODUCT_MODE} ne '');
         $_guest_profile->{guest_network_type} = $_store_of_guests{$_element}{NETWORK_TYPE} if ($_store_of_guests{$_element}{NETWORK_TYPE} ne '');
         $_guest_profile->{guest_network_mode} = $_store_of_guests{$_element}{NETWORK_MODE} if ($_store_of_guests{$_element}{NETWORK_MODE} ne '');
+        $_guest_profile->{guest_osinfo} = $_store_of_guests{$_element}{OSINFO} if ($_store_of_guests{$_element}{OSINFO} ne '');
         $guest_instances_profiles{$_element} = $_guest_profile;
         diag "Guest $_element is going to use profile" . Dumper($guest_instances_profiles{$_element});
     }
