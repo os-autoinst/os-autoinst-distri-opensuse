@@ -848,6 +848,13 @@ sub create_guest {
         }
         $extra_args = trim($extra_args);
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory $display_options";
+        if ($launch_security eq 'tdx') {
+            # Without graphics the installer kernel still defaults to the framebuffer
+            # console, so route it to ttyS0 and let libvirt log that serial stream.
+            # Keep the PTY as well so `virsh console` remains usable.
+            $extra_args = trim("console=ttyS0,115200 $extra_args");
+            $virtinstall .= " --serial pty,log.file=/tmp/${name}-serial.log,log.append=on";
+        }
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
         $virtinstall .= " --network $network --autostart";
         record_info("Network Config", "Guest $name using network: $network");
