@@ -57,6 +57,7 @@ our @EXPORT = qw(
   is_migration_tests
   kdestep_is_applicable
   kdump_is_applicable
+  load_agama_installation_tests
   load_autoyast_clone_tests
   load_autoyast_tests
   load_ayinst_tests
@@ -904,6 +905,20 @@ sub load_ayinst_tests {
     loadtest("autoyast/console");
     loadtest("autoyast/login");
     loadtest("autoyast/autoyast_reboot");
+}
+
+sub load_agama_installation_tests {
+    # The caller schedules the bootloader. With INST_AUTO an agama profile
+    # drives the installation unattended: boot_agama boots the installer itself
+    # and types the inst.auto boot parameter, so no bootloader module is needed.
+    # agama_auto collects logs the same as agama_reboot
+    if (get_var('INST_AUTO')) {
+        loadtest 'yam/agama/boot_agama';
+        loadtest 'yam/agama/agama_auto';
+        return;
+    }
+    loadtest 'installation/agama';
+    loadtest 'installation/agama_reboot';
 }
 
 sub load_inst_tests {
