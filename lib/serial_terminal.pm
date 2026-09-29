@@ -165,32 +165,49 @@ sub login {
     my $user = shift;
     my $prompt = shift;
     my $escseq = qr/(\e [\(\[] [\d\w]{1,2})/x;
+    my $shell_prompt = qr/$escseq* \w+:~(\s\#|>) $escseq* \s*$/x;
+    my $login_prompt = qr/login:\s*$/i;
+    my $max_attempts = 3;
 
     bmwqemu::log_call;
 
     # Eat stale buffer contents, otherwise the code below may get confused
     # after reboot and start typing the username before the console is actually
     # ready to accept it
-    wait_serial(qr/login:\s*$/i, timeout => 3, quiet => 1);
+    wait_serial($login_prompt, timeout => 3, quiet => 1);
     # newline nudges the guest to display the login prompt, if this behaviour
     # changes then remove it
     send_key 'ret';
-    die 'Failed to wait for login prompt' unless wait_serial(qr/login:\s*$/i);
-    enter_cmd("$user");
+    die 'Failed to wait for login prompt' unless wait_serial($login_prompt);
 
-    my $re = qr/$user[\r\n]/i;
-    if (!wait_serial($re, timeout => 3)) {
-        record_info('RELOGIN', 'Need to retry login to workaround virtio console race', result => 'softfail');
+    # A lost keystroke while typing the password makes the login fail and the
+    # getty shows its login prompt again instead of a shell. Retry the login
+    # instead of waiting for a shell prompt that will never appear. After a
+    # failed login the prompt is printed by login(1) itself, so only the first
+    # attempt needs the agetty nudge above; the retries type the username again
+    # at the prompt that is already there. See poo#207687.
+    for my $attempt (1 .. $max_attempts) {
         enter_cmd("$user");
-        die 'Failed to wait for password prompt' unless wait_serial($re, timeout => 3);
-    }
 
-    if (length $testapi::password) {
-        die 'Failed to wait for password prompt' unless wait_serial(qr/Password:\s*$/i, timeout => 30);
-        type_password;
-        send_key 'ret';
+        my $re = qr/$user[\r\n]/i;
+        if (!wait_serial($re, timeout => 3)) {
+            record_soft_failure('Need to retry login to workaround virtio console race. See poo#207687');
+            enter_cmd("$user");
+            die 'Failed to wait for password prompt' unless wait_serial($re, timeout => 3);
+        }
+
+        if (length $testapi::password) {
+            die 'Failed to wait for password prompt' unless wait_serial(qr/Password:\s*$/i, timeout => 30);
+            type_password;
+            send_key 'ret';
+        }
+
+        my $out = wait_serial([$shell_prompt, $login_prompt]);
+        die 'Failed to confirm that login was successful' unless $out;
+        last if $out =~ $shell_prompt;
+        die 'Failed to confirm that login was successful' if $attempt == $max_attempts;
+        record_soft_failure('Login failed, retrying to workaround virtio console race (poo#207687)');
     }
-    die 'Failed to confirm that login was successful' unless wait_serial(qr/$escseq* \w+:~(\s\#|>) $escseq* \s*$/x);
 
     # Some (older) versions of bash don't take changes to the terminal during runtime into account. Re-exec it.
     enter_cmd('export PAGER=cat TERM=dumb; stty cols 2048; exec $SHELL');
