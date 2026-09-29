@@ -65,6 +65,7 @@ sub run {
             domain => 'console',
             # PackageHub is enabled above only when the product needs it
             skip_phub => 1,
+            run_timeout => 600,
         }
     );
     $test->setup()->run_test()->parse_results()->cleanup();
