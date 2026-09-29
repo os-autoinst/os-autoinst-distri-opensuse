@@ -81,13 +81,12 @@ sub prepare_test_framework {
     #  next 'barrier_wait' when master stopped too quickly
     mutex_lock('wait_nodes') if ($hostname eq 'node01');
 
+    # Record K8s status (we want all, stderr as well)
+    record_info('K8s status', script_output('kubectl get pod -A 2>&1')) unless ($hostname eq 'node04');
+
     # Wait for tests to be executed on master node
     barrier_wait('TEST_FRAMEWORK_DONE');
     mutex_unlock('wait_nodes') if ($hostname eq 'node01');
-    mutex_unlock('wait_nodes') if ($hostname eq 'node01');
-
-    # Record K8s status (we want all, stderr as well)
-    record_info('K8s status', script_output('kubectl get pod -A 2>&1')) unless ($hostname eq 'node04');
 }
 
 sub run {
