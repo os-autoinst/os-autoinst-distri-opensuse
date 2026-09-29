@@ -15,7 +15,16 @@ use utils;
 use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_serial_terminal;
+    # On ppc64le (OFW) the root-virtio-terminal is hvc1 and only gets its getty
+    # from prepare_serial_console in system_prepare. Schedules that run hostname
+    # before system_prepare (e.g. the yast gpt/RAID0 installation tests) would
+    # otherwise wait forever for a login prompt, so keep the VGA console there.
+    if (get_var('OFW')) {
+        select_console 'root-console';
+    }
+    else {
+        select_serial_terminal;
+    }
 
     # Prevent HOSTNAME from being reset by DHCP
     if (script_run('test -f /etc/sysconfig/network/dhcp') == 0) {
