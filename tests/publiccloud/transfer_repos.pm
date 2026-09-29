@@ -56,9 +56,11 @@ sub run {
 
     s/https?:\/\/.*\/ibs\/// for @repos;
 
-    # Create list of directories for rsync
-    for my $repo (@repos) {
-        assert_script_run("echo $repo | tee -a /tmp/transfer_repos.txt");
+    # Create list of directories for rsync, one repo per line. Build the whole
+    # list in a single call instead of one echo per repository.
+    if (@repos) {
+        my $repo_paths = join ' ', @repos;
+        assert_script_run("printf '%s\\n' $repo_paths | tee -a /tmp/transfer_repos.txt");
     }
     # VM repos.dir support preparation
     $instance->ssh_assert_script_run("sudo mkdir $repodir;sudo chmod 777 $repodir");
