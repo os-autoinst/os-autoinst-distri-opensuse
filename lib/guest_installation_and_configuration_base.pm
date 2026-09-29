@@ -617,6 +617,9 @@ sub config_guest_osinfo {
     # Support backward compatibility for parameter profiles using legacy
     # when $self->{guest_osinfo} is empty
     my $_guest_osinfo = $self->{guest_osinfo} || $self->{guest_os_variant};
+    # Julie debug: to fake a <guest_osinfo> value to test `sle-unknown`.
+    # these lines will be removed before merging
+    $_guest_osinfo = 'sle16';
     if (($_guest_osinfo // '') ne '') {
         # Get list of supported OS names on the current host
         my $_supported = script_output('virt-install --osinfo list');
