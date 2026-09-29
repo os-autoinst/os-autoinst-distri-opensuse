@@ -316,22 +316,24 @@ subtest '[register_addons_in_pc] discriminates the no-enabled-repos cause' => su
     _unset(qw/SCC_ADDONS/);
 };
 
-subtest '[check_dns] resolv.conf and a host, diagnostics before dying' => sub {
+subtest '[check_dns] resolv.conf and a host, retries and optional failure' => sub {
     # poo#207630
     my $utils = Test::MockModule->new('publiccloud::utils', no_auto => 1);
     my @infos;
     $utils->redefine(record_info => sub { push @infos, [@_] });
     my (%rc, @cmds);
     my $inst = Test::MockObject->new;
-    my %retries;
+    my (%retries, %delays);
     $inst->mock(ssh_script_retry => sub {
             my (undef, %args) = @_;
             push @cmds, $args{cmd};
-            $retries{$args{cmd} =~ /resolv/ ? 'resolv' : 'getent'} = $args{retry};
-            return $rc{$args{cmd} =~ /resolv/ ? 'resolv' : 'getent'} // 0;
+            my $check = $args{cmd} =~ /resolv/ ? 'resolv' : 'getent';
+            $retries{$check} = $args{retry};
+            $delays{$check} = $args{delay};
+            return $rc{$check} // 0;
     });
     $inst->mock(ssh_script_output => sub { my (undef, %args) = @_; push @cmds, $args{cmd}; 'DIAG' });
-    my $reset = sub { %rc = @_; @cmds = (); @infos = () };
+    my $reset = sub { %rc = @_; @cmds = (); @infos = (); %retries = (); %delays = () };
     # The host check_dns resolves: the setting, or scc.suse.com by default.
     my $host;
     my $expect_host = sub { $host = testapi::get_var('PUBLIC_CLOUD_DNS_CHECK_HOST', 'scc.suse.com') };
@@ -341,8 +343,14 @@ subtest '[check_dns] resolv.conf and a host, diagnostics before dying' => sub {
     $reset->();
     lives_ok { check_dns($inst) } 'a valid resolv.conf and a resolving default host pass';
     like($cmds[0], qr{/etc/resolv\.conf.*nameserver}, 'resolv.conf is checked for a nameserver');
-    cmp_ok($retries{resolv}, '>', 1, 'a resolv.conf written late is waited for');
+    is_deeply(\%retries, {resolv => 6, getent => 6}, 'both checks use the default retries');
+    is_deeply(\%delays, {resolv => 10, getent => 10}, 'both checks use the default delay');
     ok(grep(/getent ahosts \Q$host\E/, @cmds), 'scc.suse.com is resolved by default');
+
+    $reset->();
+    lives_ok { check_dns($inst, retry => 12, delay => 2) } 'custom retry settings are accepted';
+    is_deeply(\%retries, {resolv => 12, getent => 12}, 'custom retries apply to both checks');
+    is_deeply(\%delays, {resolv => 2, getent => 2}, 'custom delay applies to both checks');
 
     set_var('PUBLIC_CLOUD_DNS_CHECK_HOST', 'smt.example.org');
     $expect_host->();
@@ -362,9 +370,20 @@ subtest '[check_dns] resolv.conf and a host, diagnostics before dying' => sub {
     throws_ok { check_dns($inst) } qr/\Q$host\E did not resolve/, 'a host that never resolves dies';
     ok(grep(/getent ahosts \Q$host\E/, @cmds[1 .. $#cmds]), 'diagnostics include the failed lookup');
 
+    $reset->(resolv => 1);
+    lives_ok { check_dns($inst, die => 0) } 'an invalid resolv.conf is non-fatal with die => 0';
+    is($infos[0][1], 'DIAG', 'non-fatal resolver failure still records diagnostics');
+    like($infos[-1][1], qr{/etc/resolv\.conf}, 'non-fatal resolver failure records its reason');
+
+    $reset->(getent => 2);
+    lives_ok { check_dns($inst, die => 0) } 'an unresolved host is non-fatal with die => 0';
+    is($infos[0][1], 'DIAG', 'non-fatal lookup failure still records diagnostics');
+    like($infos[-1][1], qr/\Q$host\E did not resolve/, 'non-fatal lookup failure records its reason');
+
     set_var('PUBLIC_CLOUD_DNS_CHECK_HOST', 'x; rm -rf /');
     $reset->();
     throws_ok { check_dns($inst) } qr/not a host name/, 'a setting that is not a host name is refused';
+    throws_ok { check_dns($inst, die => 0) } qr/not a host name/, 'die => 0 does not bypass host validation';
     ok(!@cmds, 'nothing runs on the instance for a bad setting');
 
     _unset(qw/PUBLIC_CLOUD_DNS_CHECK_HOST/);
