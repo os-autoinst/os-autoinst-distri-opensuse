@@ -22,9 +22,7 @@ sub run {
     my @timers = qw(snapper-cleanup.timer fstrim.timer transactional-update.timer btrfs-balance.timer btrfs-defrag.timer btrfs-scrub.timer btrfs-trim.timer);
     push(@timers, "snapper-timeline.timer") unless (is_microos);
     push(@timers, "transactional-update-cleanup.timer") if (is_sle_micro);
-    foreach my $timer (@timers) {
-        systemctl("disable --now '$timer'");
-    }
+    systemctl("disable --now @timers");
 }
 
 1;
