@@ -88,6 +88,11 @@ sub create_sap_systems_tfvars {
     $tfvars_data{miscellaneous_settings} = define_miscellaneous_settings();
     $tfvars_data{nfs_support} = define_nfs_settings();
     $tfvars_data{vm_images} = define_vm_images(os_image => $args{os_image});
+    $tfvars_data{timing_params} = define_hanasr_timing_params_settings(
+        saphanasr_hook_verification_retries => get_var('HANASR_HOOK_VR_RETRY', '90'),
+        saphanasr_hook_verification_delay_in_s => get_var('HANASR_HOOK_VR_DELAY_IN_S', '30'),
+        saphanasr_hook_verification_rescue_retries => get_var('HANASR_HOOK_VR_RESCUE_RETRY', '90'),
+        saphanasr_hook_verification_rescue_delay_in_s => get_var('HANASR_HOOK_VR_RESCUE_DELAY_IN_S', '30'));
 
     my $tfvars_file = get_os_variable('sap_system_parameter_file');
     write_tfvars_file(tfvars_data => \%tfvars_data, tfvars_file => $tfvars_file);
@@ -400,6 +405,50 @@ sub define_nfs_settings {
         use_random_id_for_storageaccounts => 'true',
         ANF_HANA_use_AVG => 'false'
     );
+
+    return (\%result);
+}
+
+=head2 define_hanasr_timing_params_settings
+
+    define_hanasr_timing_params_settings(
+        saphanasr_hook_verification_retries=>'20', 
+        saphanasr_hook_verification_delay_in_s=>'30',
+        saphanasr_hook_verification_rescue_retries=>'20'
+        saphanasr_hook_verification_rescue_delay_in_s=>'30'
+    );
+
+Returns tfvars HanaSR timing parameters settings section in HASHREF format.
+B<Example:> {saphanasr_hook_verification_retries: "20", saphanasr_hook_verification_delay_in_s: "30" ... }
+Pay attention to double quoting strings. They are very important in resulting file.
+
+=over
+
+=item * B<saphanasr_hook_verification_retries>: Define verification retry attempts.
+
+=item * B<saphanasr_hook_verification_delay_in_s>: Define the delay in seconds between verification retries.
+
+=item * B<saphanasr_hook_verification_rescue_retries>: Define verification rescue retry attempts.
+
+=item * B<saphanasr_hook_verification_rescue_delay_in_s>: Define the delay in seconds between verification rescue retries.
+
+=back
+
+=cut
+
+sub define_hanasr_timing_params_settings {
+    my (%args) = @_;
+    my %result = (
+        header => q|### HanaSR timing parameters settings ###|
+    );
+    $result{configuration_settings} = <<"END";
+{
+  saphanasr_hook_verification_retries = $args{saphanasr_hook_verification_retries},
+  saphanasr_hook_verification_delay_in_s = $args{saphanasr_hook_verification_delay_in_s},
+  saphanasr_hook_verification_rescue_retries = $args{saphanasr_hook_verification_rescue_retries},
+  saphanasr_hook_verification_rescue_delay_in_s = $args{saphanasr_hook_verification_rescue_delay_in_s}
+}
+END
 
     return (\%result);
 }
