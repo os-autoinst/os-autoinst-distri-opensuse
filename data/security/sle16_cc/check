@@ -1,0 +1,105 @@
+#!/bin/bash
+
+# shellcheck source=scripts/libcc
+. /usr/lib/common-criteria/doc/libcc
+
+cc_require_root
+
+# Read-only counterpart to `apply`: reports whether the evaluated
+# configuration is currently in place, without changing anything. Sources
+# every scripts/NN-* file for its check_* function definitions only - the
+# BASH_SOURCE == $0 guard in each one means sourcing never runs that
+# script's apply_* function or touches cc_exit/$CC_ERRFILE, so this is safe
+# to invoke as often as wanted (e.g. once per login), unlike `apply`.
+#
+# Deliberately does not call cc_start_logging: this is meant to be cheap and
+# frequent, and routing every check into $CC_LOGFILE would mix routine
+# verification noise into what's otherwise `apply`'s own operation record.
+#
+# A script's check_* function name is derived mechanically from its own
+# filename (20-config-sshd -> check_20_config_sshd, just s/-/_/ plus a
+# prefix) rather than kept as a separate, hand-maintained list here - the
+# same reason `apply`'s own dispatch loop matches scripts/NN-* by glob
+# instead of naming each one: a new or renamed script picks this up for
+# free, with no second place to remember to update.
+# PASS is right-justified (indented) and FAIL/ERROR are left-justified (flush
+# against the margin) in the same fixed-width field, on purpose: PASS is the
+# expected, common case, so pushing it inward leaves a blank left margin that
+# any FAIL or ERROR visibly breaks - scanning down the left edge finds a
+# problem line without reading every word.
+# Each check_* function prints one line explaining itself when it fails (see
+# any scripts/NN-* file) - captured here and shown indented under its FAIL,
+# rather than discarded, so a failure is diagnosable from `check`'s own
+# output alone, without having to go read the script's source.
+#
+# check_* can also return 2 - applied correctly, but needs a reboot before
+# it's actually in effect (`apply`'s own convention, see scripts/libcc's
+# cc_exit) - reported as REBOOT rather than FAIL, since nothing is actually
+# wrong. $overall only ever moves from 0 towards whichever is worse (a
+# single FAIL/ERROR anywhere makes the whole result 1, even if other scripts
+# are merely REBOOT), never backwards.
+check_one() {
+	local label="$1"
+	local fn="$2"
+	local reason
+	local rc
+
+	if ! declare -F "$fn" >/dev/null; then
+		printf '%-6s  %s\n' "ERROR" "$label ($fn not defined - a naming mismatch in check/apply itself, not a compliance finding)"
+		overall=1
+		return
+	fi
+
+	# Every scripts/NN-* file we sourced above declares `set -euo pipefail` at
+	# its own top level, which leaks into this process from the moment the
+	# first one is sourced (sourcing isn't scoped - shell options it sets
+	# apply here too) and never turns back off. A bare `reason=$(...)`
+	# assignment is not exempt from that, so it would abort this whole
+	# script the instant any check_* returns non-zero - `|| rc=$?` keeps
+	# this exempt the same way every apply_* guard already relies on.
+	rc=0
+	reason=$("$fn" 2>&1) || rc=$?
+
+	case "$rc" in
+	0)
+		printf '%6s  %s\n' "PASS" "$label"
+		;;
+	2)
+		printf '%-6s  %s\n' "REBOOT" "$label"
+		[ -n "$reason" ] && printf '        %s\n' "${reason//$'\n'/$'\n        '}"
+		if [ "$overall" -eq 0 ]; then
+			overall=2
+		fi
+		;;
+	*)
+		printf '%-6s  %s\n' "FAIL" "$label"
+		[ -n "$reason" ] && printf '        %s\n' "${reason//$'\n'/$'\n        '}"
+		overall=1
+		;;
+	esac
+}
+
+overall=0
+shopt -s nullglob
+for script in /usr/share/doc/packages/certification-sles-eal4/[0-9][0-9]-*; do
+	[ -f "$script" ] || continue
+	name=$(basename "$script")
+	# run it with bash because they might not have +x permissions in doc/
+	# shellcheck disable=SC1090
+	. "$script"
+	check_one "$name" "check_${name//-/_}"
+done
+
+case "$overall" in
+0)
+	echo "Common Criteria Evaluated Configuration: currently in place"
+	;;
+2)
+	echo "Common Criteria Evaluated Configuration: applied, but a reboot is required before it is fully in effect"
+	;;
+*)
+	echo "Common Criteria Evaluated Configuration: NOT currently in place - run /usr/lib/common-criteria/check for details, or /usr/lib/common-criteria/apply as root to fix"
+	;;
+esac
+
+exit "$overall"

@@ -7,3 +7,4 @@ description: >
   of the test module for the list.
 schedule:
   - security/installation/sle16cc/fips_cc_installation_smoketest
+  - shutdown/shutdown

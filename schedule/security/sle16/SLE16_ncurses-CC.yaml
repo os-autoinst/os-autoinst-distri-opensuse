@@ -1,0 +1,26 @@
+name: SLE16_ncurses-CC
+description: >
+  Installation using the ncurses installer with Common Criteria role and full
+  disk encryption on SLE 16.0, followed by the Common Criteria EAL4+
+  check/apply verification (poo#207705). The system stays running after the
+  installation, so no disk image is published. Use ncurses_based_installation
+  to publish the image.
+
+  Set the settings in the job group, test suite or command line. See the header
+  of the installation test module for the list.
+schedule:
+  - '{{boot}}'
+  - security/installation/sle16cc/fips_cc_installation_smoketest
+  - console/consoletest_setup
+  - security/oqa_agnostic/cc_sle16
+  - shutdown/shutdown
+  - '{{svirt_upload}}'
+conditional_schedule:
+  boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+  svirt_upload:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
