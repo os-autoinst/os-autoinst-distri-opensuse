@@ -1761,6 +1761,15 @@ sub ensure_serialdev_permissions {
 
     ensure_testuser_present;
 
+    # /dev/sshserial is not a device. It is a FIFO that the SSH based consoles
+    # (for example root-ssh) create with mode 666 when they connect. If only the
+    # serial-ssh terminal was used since boot, the FIFO does not exist yet and
+    # there is nothing to change.
+    if ($testapi::serialdev eq 'sshserial' && script_run('test -p /dev/sshserial') != 0) {
+        record_info('No sshserial', '/dev/sshserial does not exist, skip the permission setup');
+        return;
+    }
+
     # ownership has effect immediately, group change is for effect after
     # reboot an alternative https://superuser.com/a/609141/327890 would need
     # handling of optional sudo password prompt within the exec
