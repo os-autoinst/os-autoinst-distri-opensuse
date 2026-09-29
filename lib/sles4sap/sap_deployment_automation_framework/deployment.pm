@@ -23,6 +23,7 @@ use utils qw(write_sut_file file_content_replace define_secret_variable);
 use Mojo::JSON qw(decode_json);
 use publiccloud::utils qw(get_credentials);
 use sles4sap::azure_cli;
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id);
 use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
   homedir
   deployment_dir
@@ -874,6 +875,27 @@ sub sdaf_cleanup {
             $result{remover_failed} = $deployment_type;
         }
     }
+
+    # Clean up terraform tfstate files created by your own deployment job
+    # See also: https://github.com/sdaf-suse/sap-automation/issues/42
+    # ([BUG] tfstate files are not being cleaned up by remover script)
+    record_info('Cleanup tfstate files', 'Clean up storage blob terraform tfstate files created by your own deployment job');
+    my $query = get_required_var('SDAF_ENV_CODE') . '-' . convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')) . '-' . find_deployment_id();
+    my $tf_files = az_storage_blob_list(
+        container_name => 'tfstate',
+        storage_account_name => get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT'),
+        query => "[?contains(name, '${query}') && ends_with(name, '.terraform.tfstate')].name",
+        timeout => '120'
+    );
+    foreach my $file (@$tf_files) {
+        az_storage_blob_delete(
+            container_name => 'tfstate',
+            storage_account_name => get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT'),
+            name => "$file",
+            timeout => '120'
+        );
+    }
+
     # Navigate out the directory you are about to delete, but continue with cleanup even upon failure
     $result{file_cleanup} = script_run('cd; rm -Rf ' . deployment_dir()) ? 'fail' : 'pass';
     record_info('Project cleanup', 'Cleanup of SDAF project failed. Files were destroyed with deployer VM')
