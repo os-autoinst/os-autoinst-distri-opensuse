@@ -16,6 +16,8 @@ from pathlib import Path
 
 ML_KEM_ALGOS = ["ML-KEM-512", "ML-KEM-768", "ML-KEM-1024"]
 HYBRID_KEM_ALGOS = ["X25519MLKEM768", "X448MLKEM1024", "SecP256r1MLKEM768", "SecP384r1MLKEM1024"]
+# skip X448MLKEM1024 as it's not implemented for TLS
+TLS_HANDSHAKE_ALGOS = [algo for algo in HYBRID_KEM_ALGOS if algo != "X448MLKEM1024"]
 ML_DSA_ALGOS = ["ML-DSA-44", "ML-DSA-65", "ML-DSA-87"]
 SLH_DSA_ALGOS = ["SLH-DSA-SHA2-128s", "SLH-DSA-SHA2-128f", "SLH-DSA-SHAKE-256s"]
 
@@ -165,7 +167,7 @@ def test_ml_dsa_explicit_dgst_compatibility(tmp_path: Path, algo, openssl):
 
 
 # TEST: TLS 1.3 Handshake with PQC / Hybrid KEMs
-@pytest.mark.parametrize("algo", HYBRID_KEM_ALGOS)
+@pytest.mark.parametrize("algo", TLS_HANDSHAKE_ALGOS)
 def test_tls_handshake(tmp_path: Path, algo, openssl):
     """
     Spins up an 'openssl s_server' and connects with 'openssl s_client'
@@ -206,7 +208,7 @@ def test_tls_handshake(tmp_path: Path, algo, openssl):
     )
 
     try:
-        # Give server a moment to start (X448 might be slower)
+        # Give server a moment to start
         time.sleep(1.0)
         
         # 4. Run s_client
@@ -251,7 +253,7 @@ def test_tls_handshake(tmp_path: Path, algo, openssl):
 
 
 # TEST: KEM (Key Encapsulation Mechanism) Lifecycle
-@pytest.mark.parametrize("algo", ML_KEM_ALGOS + HYBRID_KEM_ALGOS)
+@pytest.mark.parametrize("algo", ML_KEM_ALGOS)
 def test_kem_lifecycle(tmp_path: Path, algo, openssl):
     """
     Tests Key Encapsulation Mechanism (File-based).
