@@ -18,6 +18,10 @@ conditional_schedule:
                 - console/aplay
                 - console/soundtouch
                 - console/wavpack
+    opencode:
+        VERSION:
+            Tumbleweed:
+                - console/opencode
     steamcmd:
         ARCH:
             x86_64:
@@ -91,4 +95,4 @@ schedule:
     - console/journalctl
     - console/tar
     - console/sevenzip
-    - console/opencode
+    - '{{opencode}}'
