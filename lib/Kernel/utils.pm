@@ -19,6 +19,7 @@ our @EXPORT_OK = qw(
   is_debugfs_mounted
   enable_debugfs
   get_kernel_config
+  get_verified_shallow_tar
 );
 
 =head2 is_debugfs_mounted
@@ -75,6 +76,34 @@ sub get_kernel_config {
 
     my $cmd = "echo '# $config'; echo; " . ($config =~ /\.gz$/ ? "zcat $config" : "cat $config");
     record_info('kernel config', script_output($cmd));
+}
+
+=head2 get_verified_shallow_tar
+
+ get_verified_shallow_tar(tree => 'stable', branch => 'linux-6.12.y', commit => '...');
+
+Downloads the kernel.org shallow-clone tarball for the given C<tree> and
+C<branch>, verifies it via the signed checksums, and checks out C<commit>
+into F<./linux>. C<commit> should always be supplied in CI; omitting it
+checks out the current tip (the bundle is published nightly).
+
+See L<https://people.kernel.org/monsieuricon/using-shallow-git-tarballs-for-ci>.
+
+=cut
+
+sub get_verified_shallow_tar {
+    my (%args) = @_;
+    my $tree = $args{tree} // 'torvalds';
+    my $branch = $args{branch} // 'master';
+    my $commit = $args{commit} // '';
+
+    my $script = 'get-verified-shallow-tar';
+    assert_script_run('curl -fO ' . autoinst_url("/data/kernel/$script"));
+    assert_script_run("chmod +x $script");
+    assert_script_run('export GNUPGHOME=""');
+    my $cmd = "./$script $tree $branch";
+    $cmd .= " $commit" if $commit;
+    assert_script_run($cmd, 1800);
 }
 
 1;

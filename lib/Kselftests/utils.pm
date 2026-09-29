@@ -15,24 +15,23 @@ use warnings;
 use utils;
 use Kselftests::parser;
 use LTP::WhiteList;
-use version_utils qw(is_sle has_selinux is_tumbleweed is_transactional);
-use Kernel::utils qw(is_debugfs_mounted enable_debugfs);
+use version_utils qw(is_sle is_tumbleweed is_transactional);
 use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use package_utils qw(install_package install_available_packages);
 use transactional qw(trup_apply);
-use utils qw(write_sut_file systemctl);
-use Utils::Systemd qw(disable_and_stop_service);
 
 our @EXPORT = qw(
+  build
   export_kselftest_env
   get_whitelist
-  install_kselftests
+  install_dependencies
   livepatch_conflicts_with_kgraft
-  post_process_single
   post_process
+  post_process_single
+  setup_repos
   validate_kconfig
 );
 
@@ -121,109 +120,17 @@ sub build
     assert_script_run("cd $build_dir/kselftest/kselftest_install");
 }
 
-sub install_from_git
+sub setup_repos
 {
     my ($collection) = @_;
-
-    my $git_tree = get_var('KSELFTEST_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
-    my $git_ref = get_var('KSELFTEST_GIT_REF', '');
-
-    install_package('git', trup_apply => 1);
-    my $clone_cmd = "git clone --depth 1 --filter=blob:none --single-branch";
-    $clone_cmd .= " --branch $git_ref" if $git_ref ne '';
-    $clone_cmd .= " $git_tree linux";
-    assert_script_run($clone_cmd, 240);
-
-    assert_script_run("cd ./linux");
-
-    record_info("GIT Commit", script_output("git --no-pager log -1 --oneline"));
-
-    if (is_sle && $collection eq 'livepatch') {
-        my $patch = 'selftests-livepatch-Ignore-NO_SUPPORT-line-in-dmesg.patch';
-        assert_script_run("curl -O " . autoinst_url("/data/kernel/$patch"));
-        assert_script_run("git apply $patch");
-    }
-
-    build($collection, '.');
-}
-
-sub install_upstream_harness
-{
-    my ($install_dir) = @_;
-
-    my $version = script_output('uname -r');
-    $install_dir //= "/lib/modules/$version/build/kselftest/kselftest_install";
-
-    my $git_tree = get_var('KSELFTEST_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
-    my $tmpdir = '/var/tmp/linux-harness';
-
-    install_package('git', trup_apply => 1);
-
-    # Partial clone: fetch only tree/commit metadata, no blobs, no working tree.
-    # Then check out just the two harness paths, lazily fetching only those blobs.
-    assert_script_run("rm -rf $tmpdir");
-    assert_script_run("git clone --depth 1 --filter=blob:none --no-checkout --branch master $git_tree $tmpdir", 300);
-    assert_script_run("git -C $tmpdir checkout HEAD -- tools/testing/selftests/run_kselftest.sh tools/testing/selftests/kselftest", 120);
-
-    record_info("Upstream harness", script_output("git -C $tmpdir --no-pager log -1 --oneline"));
-
-    assert_script_run("cp $tmpdir/tools/testing/selftests/run_kselftest.sh $install_dir/");
-    assert_script_run("cp -r $tmpdir/tools/testing/selftests/kselftest/ $install_dir/");
-    assert_script_run("rm -rf $tmpdir");
-}
-
-sub install_from_repo
-{
-    zypper_ar(get_required_var('KSELFTEST_REPO'), name => 'kselftests', priority => 1, no_gpg_check => 1);
-    install_package('kselftests', trup_apply => 1);
-
-    # When using the `kselftests` package from a repository, make sure the KMP subpackage containing the test kernel modules
-    # were built against the same kernel version the SUT is currently running.
-    my ($kver) = script_output('uname -r') =~ /(.*)-\w*/;
-    my ($kmpver) = script_output("rpm -q --qf '%{VERSION}\n' kselftests-kmp-default") =~ /\d*_k(.*)/;
-    die 'Could not extract kernel or KMP suffix' unless defined $kver && defined $kmpver;
-    $kver =~ s/_/-/g;
-    $kmpver =~ s/_/-/g;
-    die "Kernel and KMP versions mismatch: $kver != $kmpver" if $kver ne $kmpver;
-
-    assert_script_run("cd /usr/share/kselftests");
-}
-
-sub install_dependencies
-{
-    my ($collection) = @_;
-
-    enable_debugfs() unless is_debugfs_mounted();
-
-    # selftests may manipulate namespaces and devices in ways that
-    # trigger AVC denials on SELinux-enabled systems
-    script_run('setenforce 0') if has_selinux;
-
-    # the default firewall might interfere with many tests,
-    # stop it to avoid false negative test results
-    disable_and_stop_service('firewalld');
 
     # cgroup tests do not require phub nor qa repo
-    if (is_sle() && $collection ne 'cgroup') {
+    return if $collection eq 'cgroup';
+
+    if (is_sle()) {
         add_qa_head_repo;
         add_suseconnect_product(get_addon_fullname('phub'));
         trup_apply() if is_transactional;
-    }
-
-    if ($collection eq 'mm') {
-        install_package('libcap-devel liburing-devel libnuma-devel', trup_continue => 1);
-    }
-
-    if ($collection eq 'bpf') {
-        # install build deps
-        install_package('clang llvm-devel lld python3-docutils rsync', trup_continue => 1);
-        # install test deps
-        install_package('iptables');
-    }
-
-    if ($collection eq 'namespaces') {
-        # install build deps
-        install_package('libcap-devel', trup_continue => 1);
     }
 
     if ($collection =~ m{^net(/|$)}) {
@@ -237,47 +144,42 @@ sub install_dependencies
             # ipv6toolkit netsniff-ng ndisc6 dropwatch
             zypper_ar("https://download.opensuse.org/repositories/network:/utilities/$version/network:utilities.repo", priority => 100);
         }
-
-        # install build deps
-        install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_apply => 1);
-
-        # install test deps
-        install_available_packages('packetdrill libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
-
-        if (is_sle('>=16.0')) {
-            # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
-            my $netdevsim_mask = <<"EOF";
-[main]
-plugins=keyfile
-[keyfile]
-unmanaged-devices=driver:netdevsim
-EOF
-            write_sut_file('/etc/NetworkManager/conf.d/99-disable-netdevsim.conf', $netdevsim_mask);
-            systemctl('reload NetworkManager');
-        }
-
-        # The sit module auto-claims 2002::/16 (6to4) addresses, which are used by
-        # net:tun tests as outer IPv6 tunnel addresses. This creates competing local
-        # routes that prevent GENEVE-decapsulated packets from reaching the test socket
-        # (observed as failures in *_gtgso send_gso_packet variants).
-        script_run('rmmod sit');
     }
 }
 
-sub install_kselftests
+sub install_dependencies
 {
     my ($collection) = @_;
 
-    install_dependencies($collection);
+    my @deps = qw(curl coreutils git-core gpg2 tar);
+    my @maybe_deps;
 
-    if (get_var('KSELFTEST_FROM_GIT', 0)) {
-        install_from_git($collection);
-    } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
-        build($collection);
-        install_upstream_harness();
-    } else {
-        install_from_repo();
+    if ($collection eq 'mm') {
+        # build
+        push @deps, qw(libcap-devel liburing-devel libnuma-devel);
     }
+
+    if ($collection eq 'bpf') {
+        # build
+        push @deps, qw(clang llvm-devel lld python3-docutils rsync);
+        # runtime
+        push @deps, qw(iptables);
+    }
+
+    if ($collection eq 'namespaces') {
+        # build
+        push @deps, qw(libcap-devel);
+    }
+
+    if ($collection =~ m{^net(/|$)}) {
+        # build
+        push @deps, qw(clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema);
+        # runtime
+        push @maybe_deps, qw(packetdrill libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch);
+    }
+
+    install_package(join(' ', @deps), (@maybe_deps ? (trup_continue => 1) : ()));
+    install_available_packages(join(' ', @maybe_deps)) if @maybe_deps;
 }
 
 sub get_sanitized_test_name
