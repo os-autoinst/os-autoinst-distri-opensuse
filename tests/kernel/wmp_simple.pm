@@ -21,6 +21,46 @@ use registration;
 use utils;
 use Mojo::Util 'trim';
 
+# Total resident memory (kB) of the processes in SAP.slice
+sub sap_slice_rss {
+    my $rss = script_output(q{for p in $(cat /sys/fs/cgroup/SAP.slice/cgroup.procs); do awk '/^VmRSS:/ {print $2}' /proc/$p/status; done | awk '{sum+=$1} END {print sum+0}'},
+        proceed_on_failure => 1);
+    return $rss =~ /(\d+)/ ? $1 : 0;
+}
+
+# Wait for HANA to finish allocating memory after StartSystem. The memory is
+# considered settled once the total RSS of SAP.slice has not changed by more
+# than 50 MiB over three samples. Capped at the previous fixed 5 minute wait.
+sub wait_for_sap_memory_settle {
+    my $deadline = time + bmwqemu::scale_timeout(300);
+    my ($previous, $stable) = (undef, 0);
+    while (time < $deadline) {
+        my $rss = sap_slice_rss();
+        $stable = (defined $previous && abs($rss - $previous) < 50 * 1024) ? $stable + 1 : 0;
+        $previous = $rss;
+        last if $stable >= 3;
+        sleep bmwqemu::scale_timeout(10);
+    }
+}
+
+# Wait until stress-ng has put the system under memory pressure, detected as
+# MemAvailable dropping below 10% of MemTotal, then give swapping a short grace
+# period. If the pressure is never observed, wait the previous fixed 5 minutes.
+sub wait_for_memory_pressure {
+    my $deadline = time + bmwqemu::scale_timeout(300);
+    my $mem_total = script_output(q{awk '/^MemTotal:/ {print $2}' /proc/meminfo}, proceed_on_failure => 1);
+    $mem_total = $1 if $mem_total =~ /(\d+)/;
+    while (time < $deadline) {
+        my $available = script_output(q{awk '/^MemAvailable:/ {print $2}' /proc/meminfo}, proceed_on_failure => 1);
+        $available = $1 if $available =~ /(\d+)/;
+        if ($mem_total && $available && $available < $mem_total / 10) {
+            sleep bmwqemu::scale_timeout(30);
+            last;
+        }
+        sleep bmwqemu::scale_timeout(10);
+    }
+}
+
 sub run {
     my $meminfo;
     my $failed;
@@ -59,14 +99,14 @@ sub run {
     assert_script_run('sudo -u ' . $admuser . ' bash -c "export LD_LIBRARY_PATH=' . $sappath . '" "' . $sapctrl . ' -nr 00 -function StartSystem ALL"');
 
 
-    # wait until memory usage of HANA settled, this takes a while and we have to patiently wait
-    sleep 300;
+    # wait until the memory usage of HANA has settled
+    wait_for_sap_memory_settle;
 
     # consume memory in the background
     background_script_run("stress-ng --vm-bytes $stressng_mem --vm-keep -m 1");
 
-    # let everything run for a while
-    sleep 300;
+    # let the memory pressure build up
+    wait_for_memory_pressure;
 
     $meminfo = script_output("cat /proc/meminfo");
     record_info("meminfo", "$meminfo");
