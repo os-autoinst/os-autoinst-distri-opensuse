@@ -10,7 +10,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_leap);
 
 sub run {
     select_serial_terminal;
@@ -31,11 +31,11 @@ sub run {
     # Add new authentication methods ldap and ssh.
     # Based on bsc#1196896, pam_ldap is removed on SLE,
     # so we need skip it on SLE
-    zypper_call('in nss-pam-ldapd') if (!is_sle);
+    zypper_call('in nss-pam-ldapd') if !(is_sle || is_leap);
 
     my @modules = ('env');
 
-    if (!is_sle) {
+    if (!(is_sle || is_leap)) {
         push(@modules, 'ldap');
     }
     # SLE 16: pam_ssh is no longer shipped
