@@ -68,6 +68,7 @@
       <li><a href="#az_validate_uuid_pattern">az_validate_uuid_pattern</a></li>
       <li><a href="#az_storage_blob_upload">az_storage_blob_upload</a></li>
       <li><a href="#az_storage_blob_lease_acquire">az_storage_blob_lease_acquire</a></li>
+      <li><a href="#az_storage_blob_delete">az_storage_blob_delete</a></li>
       <li><a href="#az_storage_blob_list">az_storage_blob_list</a></li>
       <li><a href="#az_storage_blob_update">az_storage_blob_update</a></li>
       <li><a href="#az_keyvault_list">az_keyvault_list</a></li>
@@ -1531,6 +1532,37 @@ identifiers for Azure resources.</code></pre>
 </dd>
 </dl>
 
+<h2 id="az_storage_blob_delete">az_storage_blob_delete</h2>
+
+<pre><code>az_storage_blob_delete(
+    container_name=&gt;&#39;somecontainer&#39;,
+    storage_account_name=&gt;&#39;storageaccount&#39;,
+    name=&gt;&#39;filename&#39;,
+    timeout =&gt; 120
+);</code></pre>
+
+<p>Delete blob file specified by <b>storage_account_name</b>, <b>container_name</b> and <b>name</b>. Returns az cli command exit code.</p>
+
+<dl>
+
+<dt id="container_name-Existing-storage-container-name2"><b>container_name</b> Existing storage container name.</dt>
+<dd>
+
+</dd>
+<dt id="storage_account_name-Storage-account-name2"><b>storage_account_name</b> Storage account name.</dt>
+<dd>
+
+</dd>
+<dt id="name-Blob-file-name"><b>name</b> Blob file name.</dt>
+<dd>
+
+</dd>
+<dt id="timeout-az-command-timeout:-default-of-wait_serial-https:-open.qa-api-testapi-script_output1"><b>timeout</b> az command timeout: default of `wait_serial` https://open.qa/api/testapi/#script_output</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="az_storage_blob_list">az_storage_blob_list</h2>
 
 <pre><code>az_storage_blob_list(
@@ -1543,11 +1575,11 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="container_name-Existing-storage-container-name2"><b>container_name</b> Existing storage container name.</dt>
+<dt id="container_name-Existing-storage-container-name3"><b>container_name</b> Existing storage container name.</dt>
 <dd>
 
 </dd>
-<dt id="storage_account_name-Storage-account-name2"><b>storage_account_name</b> Storage account name.</dt>
+<dt id="storage_account_name-Storage-account-name3"><b>storage_account_name</b> Storage account name.</dt>
 <dd>
 
 </dd>
@@ -1555,7 +1587,7 @@ identifiers for Azure resources.</code></pre>
 <dd>
 
 </dd>
-<dt id="timeout-az-command-timeout:-default-of-wait_serial-https:-open.qa-api-testapi-script_output1"><b>timeout</b> az command timeout: default of `wait_serial` https://open.qa/api/testapi/#script_output</dt>
+<dt id="timeout-az-command-timeout:-default-of-wait_serial-https:-open.qa-api-testapi-script_output2"><b>timeout</b> az command timeout: default of `wait_serial` https://open.qa/api/testapi/#script_output</dt>
 <dd>
 
 </dd>
