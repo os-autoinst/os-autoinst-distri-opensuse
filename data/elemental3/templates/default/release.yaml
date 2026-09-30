@@ -3,3 +3,4 @@ components:
   kubernetes: {}
   helm:
     - chart: elemental-lifecycle-manager
+      valuesFile: lcm-internal-suse-ca.yaml
