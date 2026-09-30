@@ -13,6 +13,7 @@ use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';
+use repo_tools 'add_qa_head_repo';
 use version_utils qw(is_sle is_tumbleweed);
 
 sub install_dependencies_pynfs {
@@ -44,11 +45,21 @@ sub install_dependencies_cthon04 {
     install_package(join(' ', @deps), trup_apply => 1);
 }
 
+sub install_from_repo {
+    my $pkg = shift;
+
+    add_qa_head_repo(priority => 100);
+    install_package("$pkg nfs-client nfs-kernel-server", trup_apply => 1);
+    record_info("$pkg version", script_output("rpm -q $pkg"));
+}
+
 sub install_testsuite {
     my $testsuite = shift;
     my ($url, $rel);
 
     if (get_var("PYNFS")) {
+        return install_from_repo('pynfs') if get_var('PYNFS_INSTALL', 'from_repo') eq 'from_repo';
+
         $url = get_var('PYNFS_GIT_URL', 'git://git.linux-nfs.org/projects/cdmackay/pynfs.git');
         $rel = get_var('PYNFS_RELEASE');
         $rel = "-b $rel" if ($rel);
@@ -60,6 +71,8 @@ sub install_testsuite {
         assert_script_run('./setup.py build && ./setup.py build_ext --inplace');
     }
     elsif (get_var("CTHON04")) {
+        return install_from_repo('cthon04') if get_var('CTHON04_INSTALL', 'from_repo') eq 'from_repo';
+
         $url = get_var('CTHON04_GIT_URL', 'git://git.linux-nfs.org/projects/steved/cthon04.git');
         $rel = get_var('CTHON04_RELEASE');
         $rel = "-b $rel" if ($rel);

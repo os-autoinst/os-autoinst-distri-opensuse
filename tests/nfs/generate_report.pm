@@ -12,6 +12,8 @@ use Mojo::JSON;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use upload_system_log;
+use LTP::WhiteList;
+use LTP::utils 'prepare_whitelist_environment';
 
 sub display_pynfs_results {
     my $self = shift;
@@ -19,12 +21,9 @@ sub display_pynfs_results {
     my $pass = "";
     my $fail = 0;
 
-    my $version = get_required_var('NFSVERSION');
+    upload_logs('/var/tmp/pynfs-results.json', failok => 1);
 
-    assert_script_run("cd ~/pynfs/nfs$version");
-    upload_logs('results.json', failok => 1);
-
-    my $content = script_output('cat results.json');
+    my $content = script_output('cat /var/tmp/pynfs-results.json');
     my $results = Mojo::JSON::decode_json($content);
 
     die 'failed to parse results.json' unless $results;
@@ -43,12 +42,22 @@ sub display_pynfs_results {
     record_info('Passed', $pass);
     record_info('Skipped', $skip, result => $results->{skipped} ? 'softfail' : 'ok');
 
+    my ($whitelist, $environment);
+    if (my $issues = get_var('PYNFS_KNOWN_ISSUES')) {
+        $whitelist = LTP::WhiteList->new($issues);
+        $environment = prepare_whitelist_environment();
+        $environment->{kernel} = script_output('uname -r');
+        $environment->{test_variant} = get_required_var('NFSVERSION');
+    }
+
     for my $test (@{$results->{testcase}}) {
         bmwqemu::fctinfo("code: $test->{code}");
         next unless (exists($test->{failure}));
 
         my $targs = OpenQA::Test::RunArgs->new();
         $targs->{data} = $test;
+        $targs->{whitelist} = $whitelist;
+        $targs->{environment} = $environment;
         autotest::loadtest("tests/nfs/pynfs_result.pm", name => $test->{code}, run_args => $targs);
         $fail = 1;
     }
@@ -62,7 +71,7 @@ sub display_pynfs_results {
 
 sub upload_cthon04_log {
     my $self = shift;
-    assert_script_run('cd ~/cthon04');
+    assert_script_run('cd /var/tmp/cthon04');
     if (script_output("grep 'All tests completed' ./result* | wc -l") =~ '4') {
         record_info('Complete', "All tests completed");
     }
