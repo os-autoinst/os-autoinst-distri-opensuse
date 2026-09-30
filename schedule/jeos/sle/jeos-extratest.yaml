@@ -56,7 +56,7 @@ schedule:
     - console/oqa_agnostic/ansible_agnostic
     - x11/evolution/evolution_prepare_servers
     - console/unzip
-    - console/salt
+    - console/oqa_agnostic/salt_agnostic
     - console/gpg
     - console/rsync
     - console/shells
