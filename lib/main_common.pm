@@ -761,10 +761,6 @@ sub is_smt {
     return (check_var('SMT_TEST', '1') && is_sle('<15'));
 }
 
-sub is_rmt {
-    return (check_var('RMT_TEST', '1') && is_sle('>=15'));
-}
-
 sub remove_common_needles {
     my $no_skipto = get_var('SKIPTO') ? 0 : 1;
     unregister_needle_tags("ENV-SKIPTO-$no_skipto");
@@ -1195,7 +1191,6 @@ sub load_consoletests {
         loadtest "console/check_locked_package";
     }
     loadtest "console/textinfo";
-    loadtest "console/rmt" if is_rmt;
     loadtest "console/hostname" unless is_bridged_networking;
     # Add non-oss and debug repos for o3 and remove other by default
     replace_opensuse_repos_tests if is_repo_replacement_required;
