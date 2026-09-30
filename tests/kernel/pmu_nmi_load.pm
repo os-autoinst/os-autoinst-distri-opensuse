@@ -16,6 +16,7 @@ use package_utils 'install_package';
 use version_utils 'is_sle';
 use registration qw(is_phub_ready add_suseconnect_product get_addon_fullname);
 use repo_tools 'add_qa_head_repo';
+use LTP::utils 'check_kernel_taint';
 use Kernel::cpu qw(
   lscpu_info
   get_cpu_model
@@ -43,6 +44,8 @@ sub record_cpu_info {
     my $vulns = get_cpu_vulnerabilities();
     record_info('get_cpu_vulnerabilities', join("\n", map { "$_: $vulns->{$_}" } sort keys %$vulns) || 'none');
 }
+
+my $kernel_errors = qr/BUG:|Oops|WARNING:|general protection|unchecked MSR|NMI received for unknown reason|hard LOCKUP|soft lockup|self-detected stall/;
 
 # Run a perf sampling command and check that the NMI count increased
 sub run_perf_sampling {
@@ -106,9 +109,15 @@ sub run {
     # TODO: This dmesg check is an initial solution. Investigate how to do
     # this check with the openQA serial failure detection (known_bugs.pm)
     # and then remove it.
+    # The kernel log is for diagnostics only.
     my @dmesg = split(/\n/, script_output('dmesg'));
-    my @errors = grep { /BUG:|Oops|WARNING:|general protection|unchecked MSR/ } @dmesg[$dmesg_lines .. $#dmesg];
-    die "Kernel errors found during perf sampling:\n" . join("\n", @errors) if @errors;
+    my @new_lines = @dmesg[$dmesg_lines .. $#dmesg];
+    my @errors = grep { /$kernel_errors/ } @new_lines;
+    record_info('Kernel log', @errors ? join("\n", @errors) : 'No kernel errors in the log');
+    my @throttling = grep { /perf: interrupt took too long/ } @new_lines;
+    record_info('perf throttling', join("\n", @throttling)) if @throttling;
+
+    check_kernel_taint($self);
 }
 
 sub test_flags {
@@ -143,8 +152,12 @@ check that the NMI count in C</proc/interrupts> increased.
 =item * Run C<perf record> again while C<stress-ng> keeps all online CPUs
 busy and does context switches, and check that the NMI count increased.
 
-=item * Check that no C<BUG:>, C<Oops>, C<WARNING:>, C<general protection>
-or C<unchecked MSR> message was added to the kernel log.
+=item * Check the kernel taint flags in C</proc/sys/kernel/tainted> with
+C<check_kernel_taint> from C<LTP::utils>. The test fails if a flag is set
+that is not expected, for example for a warning, an Oops or BUG, a machine
+check or a soft lockup. The new kernel log messages about errors, lockups,
+stalls and unknown NMIs, and C<perf> throttling messages are recorded for
+diagnostics only.
 
 =back
 
@@ -158,5 +171,10 @@ machine, set C<QEMUCPU=host> to make a virtual PMU available.
 
 Duration of each C<perf record> sampling (idle and with load) in seconds.
 Default is 30.
+
+=head2 LTP_TAINT_EXPECTED
+
+Mask of the kernel taint flags that are expected and do not fail the test.
+See C<check_kernel_taint> in C<LTP::utils>.
 
 =cut
