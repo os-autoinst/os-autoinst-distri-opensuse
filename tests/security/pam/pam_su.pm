@@ -31,7 +31,7 @@ sub run {
     my $su_file = '/etc/pam.d/su';
     my $sul_file = '/etc/pam.d/su-l';
 
-    if (is_sle('<16') || is_leap) {
+    if (is_sle('<16') || is_leap('<16.0')) {
         $su_file_tw = '/usr/etc/pam.d/su';
         $sul_file_tw = '/usr/etc/pam.d/su-l';
     } else {

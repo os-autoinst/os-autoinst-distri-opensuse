@@ -32,12 +32,12 @@ sub run {
     my $pam_sshd_bak = '/tmp/sshd_bak';
     my $pam_login_bak = '/tmp/login_bak';
     my $pam_login = '/etc/pam.d/login';
-    if (is_sle || is_leap) {
+    if (is_sle || is_leap('<16.0')) {
         $pam_sshd_tw = '/usr/etc/pam.d/sshd';
     } else {
         $pam_sshd_tw = '/usr/lib/pam.d/sshd';
     }
-    if (is_sle || is_leap) {
+    if (is_sle || is_leap('<16.0')) {
         $pam_login_tw = '/usr/etc/pam.d/login';
     } else {
         $pam_login_tw = '/usr/lib/pam.d/login';
