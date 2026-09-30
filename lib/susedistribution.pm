@@ -965,6 +965,10 @@ sub activate_console {
         assert_screen "text-logged-in-$user", 60;
     }
     elsif ($type eq 'serial-ssh') {
+        if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ && $serialdev eq 'sshserial') {
+            testapi::select_console('root-ssh');
+            testapi::select_console($console);
+        }
         serial_terminal::set_serial_prompt($self->prompt_for_user($user));
     }
     else {
