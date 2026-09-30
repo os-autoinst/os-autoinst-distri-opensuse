@@ -83,8 +83,8 @@ sub run_cit_tests {
     my $image = sprintf('%s%s', $gce_store, $sut_image);
 
     my @cmd = (
-        "podman run --rm -td",
-        "-v /tmp:/creds",
+        "podman run --rm -t",
+        "-v /tmp:/creds:z",
         "-e GOOGLE_APPLICATION_CREDENTIALS=/creds/gce_creds.json",
         "$cit_dir",
         "-project '$project'",
@@ -109,11 +109,10 @@ sub run_cit_tests {
         );
 
     } else {
-        # permissions are required to get the container from google's registry
-        # TODO: this is not tested as the container from google's project requires project authorization
         assert_script_run("gcloud auth activate-service-account --key-file=$cred_path --project=$project");
         assert_script_run('gcloud auth configure-docker --quiet gcr.io');
         assert_script_run('gcloud auth print-access-token | podman login -u oauth2accesstoken --password-stdin gcr.io');
+        script_retry("podman pull $cit_dir", timeout => 300, delay => 60, retry => 3);
     }
 
     my %suite_timeouts = (
