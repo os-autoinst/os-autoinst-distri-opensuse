@@ -56,8 +56,7 @@ sub run {
 
     s/https?:\/\/.*\/ibs\/// for @repos;
 
-    # Create list of directories for rsync, one repo per line. Build the whole
-    # list in a single call instead of one echo per repository.
+    # Create list of directories for rsync, one repo per line.
     if (@repos) {
         my $repo_paths = join ' ', @repos;
         assert_script_run("printf '%s\\n' $repo_paths | tee -a /tmp/transfer_repos.txt");
