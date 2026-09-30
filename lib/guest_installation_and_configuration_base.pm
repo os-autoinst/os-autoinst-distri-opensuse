@@ -613,7 +613,7 @@ sub config_guest_osinfo {
     $self->reveal_myself;
     my $_current_osinfo_options = $self->{guest_osinfo_options};
     $self->config_guest_params(@_) if (scalar(@_) > 0);
-    my $_guest_osinfo = $self->{guest_osinfo} // $self->{guest_os_variant};
+    my $_guest_osinfo = $self->{guest_osinfo} || $self->{guest_os_variant};
     if (($_guest_osinfo // '') ne '') {
         # Get list of supported OS names on the current host
         my $_supported = script_output('virt-install --osinfo list || virt-install --os-variant list');
