@@ -21,15 +21,22 @@ sub run {
     if (get_var("PYNFS")) {
         my $version = get_required_var('NFSVERSION');
 
-        assert_script_run("cd ~/pynfs/nfs$version");
-        script_run('./testserver.py -v --rundeps --hidepass --json results.json --maketree localhost:/var/exportdir all', 3600);
+        my $pynfs_dir = get_var('PYNFS_INSTALL', 'from_repo') eq 'from_repo' ? '/usr/lib/pynfs' : '~/pynfs';
+
+        assert_script_run("cd $pynfs_dir/nfs$version");
+        # The installed test directory is read-only on transactional systems
+        script_run('./testserver.py -v --rundeps --hidepass --json /var/tmp/pynfs-results.json --maketree localhost:/var/exportdir all', 3600);
     }
     elsif (get_var("CTHON04")) {
-        script_run('cd ~/cthon04');
-        script_run('./runtests -b -t /var/exportdir | tee result_basic_test.txt');
-        script_run('./runtests -g -t /var/exportdir | tee result_general_test.txt');
-        script_run('./runtests -s -t /var/exportdir | tee result_special_test.txt');
-        script_run('./runtests -l -t /var/exportdir | tee result_lock_test.txt');
+        my $cthon04_dir = get_var('CTHON04_INSTALL', 'from_repo') eq 'from_repo' ? '/usr/lib/cthon04' : '~/cthon04';
+
+        # The installed test directory is read-only on transactional systems
+        assert_script_run('mkdir -p /var/tmp/cthon04');
+        script_run("cd $cthon04_dir");
+        script_run('./runtests -b -t /var/exportdir | tee /var/tmp/cthon04/result_basic_test.txt');
+        script_run('./runtests -g -t /var/exportdir | tee /var/tmp/cthon04/result_general_test.txt');
+        script_run('./runtests -s -t /var/exportdir | tee /var/tmp/cthon04/result_special_test.txt');
+        script_run('./runtests -l -t /var/exportdir | tee /var/tmp/cthon04/result_lock_test.txt');
     }
 }
 
