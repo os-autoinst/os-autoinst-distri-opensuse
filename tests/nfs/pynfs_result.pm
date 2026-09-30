@@ -40,6 +40,11 @@ sub run {
 
     die 'failure does not exist' unless (exists($data->{failure}));
 
+    if ($args->{whitelist} && $args->{whitelist}->override_known_failures($self, $args->{environment}, 'pynfs', $test)) {
+        record_info('Log', $log);
+        return;
+    }
+
     if ($softfail) {
         $self->record_soft_failure_result("$softfail\n\n" . $log);
     } else {
