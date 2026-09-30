@@ -106,6 +106,11 @@ sub run {
     # write them to a pipe and discard them.
     run_perf_sampling('load', "perf record -a -F 10000 -o - -- stress-ng --cpu 0 --switch 0 --timeout ${duration}s > /dev/null", $duration);
 
+    # Test with memory load: NMIs during page fault entry crashed kernels
+    # with the RETBLEED fixes on Intel CPUs that use IBRS (bsc#1201644,
+    # bsc#1201664). Generate page faults and memory mappings on all CPUs.
+    run_perf_sampling('memory', "perf record -a -F 10000 -o - -- stress-ng --fault 0 --mmap 0 --timeout ${duration}s > /dev/null", $duration);
+
     # TODO: This dmesg check is an initial solution. Investigate how to do
     # this check with the openQA serial failure detection (known_bugs.pm)
     # and then remove it.
@@ -152,6 +157,11 @@ check that the NMI count in C</proc/interrupts> increased.
 =item * Run C<perf record> again while C<stress-ng> keeps all online CPUs
 busy and does context switches, and check that the NMI count increased.
 
+=item * Run C<perf record> again while C<stress-ng> generates page faults
+and memory mappings on all online CPUs, and check that the NMI count
+increased. NMIs during page fault entry caused bsc#1201644 and
+bsc#1201664.
+
 =item * Check the kernel taint flags in C</proc/sys/kernel/tainted> with
 C<check_kernel_taint> from C<LTP::utils>. The test fails if a flag is set
 that is not expected, for example for a warning, an Oops or BUG, a machine
@@ -169,8 +179,8 @@ machine, set C<QEMUCPU=host> to make a virtual PMU available.
 
 =head2 PMU_NMI_LOAD_DURATION
 
-Duration of each C<perf record> sampling (idle and with load) in seconds.
-Default is 30.
+Duration of each C<perf record> sampling (idle, CPU load and memory load)
+in seconds. Default is 30.
 
 =head2 LTP_TAINT_EXPECTED
 
