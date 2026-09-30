@@ -163,18 +163,26 @@ END_BOOTSCRIPT
 }
 
 sub enter_o3_ipxe_boot_entry {
-    ipmitool('chassis power reset') unless check_screen([qw(o3-ipxe-menu ipxe-boot-failure)], 180);
-    assert_screen('o3-ipxe-menu', 210);
-    my $key = get_var('HOST_INSTALL_AUTOYAST') ? (is_kvm_host ? 'k' : 'z') : 't';
+
+    my $key = get_var('AGAMA') ? 'g' : (get_var('HOST_INSTALL_AUTOYAST') ? 'y' : 't');
+
+    assert_screen('o3-ipxe-menu', 120);
+
     send_key "$key";
-    # try one more time as sometimes sending key does not take effect
-    send_key "$key" if check_screen('o3-ipxe-menu');
-    # confirm the dialog asking for user modifications to kernel, cmdline and initrd
-    # set limit to 10 in case some keys don't go through
-    for (1 .. 10) {
-        last if check_screen([qw(load-linux-kernel load-initrd)], 3);
-        send_key "ret";
+    # Give the SOL buffer 1s to process the hotkey and transition to the 'read
+    # kernel' prompt. Without this, 'g' gets swallowed and 'ret' accidentally
+    # executes the default 'exit' option.
+    sleep 1;
+
+    # Rapidly press 'Enter' to clear the three 'read' prompts (read kernel,
+    # read cmdline, read initrd) in menu.ipxe before SOL noise pollutes the URLs
+    for (1 .. 4) {
+        send_key 'ret';
+        sleep 0.5;
     }
+
+    # Confirm installation system is loading
+    assert_screen([qw(load-linux-kernel load-initrd)], 120);
 }
 
 
@@ -367,18 +375,24 @@ sub run {
         send_key "ret";
     }
 
+    #On O3, TW uses a static ipxe menu to start installation
+    enter_o3_ipxe_boot_entry if get_var('IPXE_STATIC');
+
     if (is_agama) {
         record_info('Loading kernel&initrd and starting installation');
         check_screen([qw(load-linux-kernel load-initrd)], 240);
         assert_screen('agama-installer-live-root', 400);
-        set_bootscript_hdd if get_var('IPXE_SET_HDD_BOOTSCRIPT');
+        if (get_var('IPXE_STATIC', '')) {
+            # A runtime bootscript is not supported on O3 static iPXE menu
+            ipmitool("chassis bootdev disk");
+        } else {
+            set_bootscript_hdd if get_var('IPXE_SET_HDD_BOOTSCRIPT');
+        }
         return;
     }
 
     # Print screenshots for ipxe boot process
     if (get_var('VIRT_AUTOTEST')) {
-        #it is static menu and choose the TW entry to start installation
-        enter_o3_ipxe_boot_entry if get_var('IPXE_STATIC');
         check_screen([qw(load-linux-kernel load-initrd)], 80);
         assert_screen([qw(network-config-created loading-installation-system sshd-server-started autoyast-installation)], 300);
         set_bootscript_hdd if get_var('IPXE_SET_HDD_BOOTSCRIPT');
