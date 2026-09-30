@@ -71,13 +71,14 @@ sub run {
             }
             build($collection, '.');
         } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
+            build($collection);
             if (script_run('test -d ./linux') == 0) {
+                # install kselftest harness from git checkout, if available
                 my $version = script_output('uname -r');
-                my $dest = "/lib/modules/$version/source/tools/testing/selftests/";
+                my $dest = "/lib/modules/$version/build/kselftest/kselftest_install";
                 assert_script_run("cp ./linux/tools/testing/selftests/run_kselftest.sh $dest");
                 assert_script_run("cp -r ./linux/tools/testing/selftests/kselftest/ $dest");
             }
-            build($collection);
         }
     };
     if ($@) {
