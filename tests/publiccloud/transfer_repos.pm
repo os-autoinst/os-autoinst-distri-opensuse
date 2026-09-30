@@ -58,7 +58,7 @@ sub run {
 
     # Create list of directories for rsync, one repo per line.
     if (@repos) {
-        my $repo_paths = join ' ', @repos;
+        my $repo_paths = "@repos";
         assert_script_run("printf '%s\\n' $repo_paths | tee -a /tmp/transfer_repos.txt");
     }
     # VM repos.dir support preparation
