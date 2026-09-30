@@ -11,7 +11,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';
-use utils 'script_retry';
+use utils qw(script_retry validate_script_output_retry);
 
 my $workdir = '/tmp/opencode-test';
 my $stub = '/tmp/opencode-stub.py';
@@ -42,8 +42,8 @@ sub run {
 
     # a mis-stripped binary reports the bun runtime's version instead of its own
     my $version = script_output(q(rpm -q --queryformat '%{VERSION}' opencode));
-    validate_script_output('opencode --version', sub { m/^\Q$version\E$/ });
-    validate_script_output('opencode --help 2>&1', sub { m/\brun\b/ });
+    validate_script_output('NO_COLOR=1 opencode --version', sub { m/^opencode v\Q$version\E$/ });
+    validate_script_output('NO_COLOR=1 opencode --help', sub { m/\brun\b/ });
 
     assert_script_run "mkdir -p $workdir/config/opencode";
     assert_script_run 'curl -f -o ' . $stub . ' ' . data_url('opencode/stub_server.py');
@@ -52,15 +52,19 @@ sub run {
     script_retry("curl -sf http://127.0.0.1:$port/v1/models", delay => 2, retry => 15,
         fail_message => 'stub provider did not answer');
 
-    assert_script_run opencode('models') . " | grep -qx 'stub/stub-model'", timeout => 120;
+    # models only lists providers once the background server has loaded the
+    # config, which a fresh --standalone server never has; cleanup stops it
+    validate_script_output_retry(opencode('models'), qr{^stub/stub-model$}m, delay => 3, retry => 10, timeout => 120,
+        fail_message => 'models never listed the stub provider');
 
     # opencode falls back to a hosted model when it cannot use the configured
     # provider, so the assertions below are on the canned reply: a real model
     # would answer something else and the fallback would be caught here.
-    validate_script_output opencode("run -m stub/stub-model 'say hello'"),
+    # --standalone gives each run a private server that exits with it.
+    validate_script_output opencode("run --standalone -m stub/stub-model 'say hello'"),
       sub { m/^\Q$reply\E$/ }, timeout => 180;
 
-    my $json = script_output opencode("run -m stub/stub-model --format json 'say hello'"), timeout => 180;
+    my $json = script_output opencode("run --standalone -m stub/stub-model --format json 'say hello'"), timeout => 180;
     die 'no text event carrying the stub reply in the json stream'
       unless $json =~ /"type":"text".*\Q$reply\E/;
     record_info('round trip', "the stub provider answered $reply in both output formats");
@@ -68,6 +72,7 @@ sub run {
 
 sub cleanup {
     script_run "pkill -f $stub";
+    script_run opencode('service stop');
     script_run "rm -rf $workdir $stub $stderr_log";
 }
 
