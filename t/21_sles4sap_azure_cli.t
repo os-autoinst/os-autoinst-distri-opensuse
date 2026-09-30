@@ -1284,6 +1284,28 @@ subtest '[az_storage_blob_lease_acquire] valid UUID with error ErrorCode' => sub
     is $ret, undef, "The return value '$ret_val' is undef as expected";
 };
 
+subtest '[az_storage_blob_delete]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            return 'out.json' if grep /az.json/, $_[0];
+            return '["Arlecchino","Pantalone","blobfilename"]' if grep /out.json/, $_[0]; });
+
+    my $return_value = az_storage_blob_delete(
+        container_name => 'Arlecchino',
+        storage_account_name => 'Pantalone',
+        name => 'blobfilename',
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /storage blob delete/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
+    ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--name blobfilename/, @calls), 'Check for argument "--name"');
+};
+
 subtest '[az_storage_blob_list]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;

@@ -62,6 +62,7 @@ our @EXPORT = qw(
   az_ipconfig_delete
   az_ipconfig_pool_add
   az_storage_account_create
+  az_storage_blob_delete
   az_storage_blob_list
   az_storage_blob_upload
   az_storage_blob_update
@@ -2084,6 +2085,47 @@ sub az_storage_blob_lease_acquire(%args) {
     # Return a string if az_validate_uuid_pattern return "true"
     # otherwise return undef, thanks to Perl's implicit return that get value from the if statement.
     return $lease_id if (az_validate_uuid_pattern(uuid => $lease_id));
+}
+
+=head2 az_storage_blob_delete
+
+    az_storage_blob_delete(
+        container_name=>'somecontainer',
+        storage_account_name=>'storageaccount',
+        name=>'filename',
+        timeout => 120
+    );
+
+Delete blob file specified by B<storage_account_name>, B<container_name> and B<name>. Returns az cli command exit code.
+
+=over
+
+=item B<container_name> Existing storage container name.
+
+=item B<storage_account_name> Storage account name.
+
+=item B<name> Blob file name.
+
+=item B<timeout> az command timeout: default of `wait_serial` https://open.qa/api/testapi/#script_output
+
+=back
+=cut
+
+sub az_storage_blob_delete(%args) {
+    foreach ('container_name', 'storage_account_name', 'name') {
+        croak "Missing mandatory argument: '$_'" unless $args{$_};
+    }
+    $args{timeout} //= $bmwqemu::default_timeout;
+
+    my $az_cmd = join(' ',
+        'storage blob delete',
+        "--container-name $args{container_name}",
+        "--account-name $args{storage_account_name}",
+        "--name $args{name}"
+    );
+    my $out =
+      az(az_args => $az_cmd, timeout => $args{timeout});
+    return $out->{rc};
 }
 
 =head2 az_storage_blob_list

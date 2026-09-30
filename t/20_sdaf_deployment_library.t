@@ -216,6 +216,12 @@ subtest '[sdaf_cleanup] Test correct usage' => sub {
     $ms_sdaf->redefine(sdaf_execute_remover => sub { return 0; });
     $ms_sdaf->redefine(script_run => sub { return 0; });
     $ms_sdaf->redefine(az_group_exists => sub { return $JSON::PP::true; });
+    $ms_sdaf->redefine(find_deployment_id => sub { return '001122'; });
+    $ms_sdaf->redefine(az_storage_blob_delete => sub { return 0; });
+    $ms_sdaf->redefine(az_storage_blob_list => sub { return ["LAB-SECE-12345-INFRA.terraform.tfstate", "LAB-SECE-12345-SID.terraform.tfstate"]; });
+    set_var('PUBLIC_CLOUD_REGION', 'swedencentral');
+    set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'OpenQA-SDAF-testing-group');
+    set_var('SDAF_TFSTATE_STORAGE_ACCOUNT', 'OpenQA-SDAF-testing-tf-storage-account');
 
     my %cleanup_results = %{sdaf_cleanup()};
     ok(!$cleanup_results{remover_failed}, 'Remover passes with correct usage');
@@ -231,6 +237,12 @@ subtest '[sdaf_cleanup] Test remover script failures' => sub {
     $ms_sdaf->redefine(sdaf_execute_remover => sub { return 1; });
     $ms_sdaf->redefine(script_run => sub { return 0; });
     $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
+    $ms_sdaf->redefine(find_deployment_id => sub { return '001122'; });
+    $ms_sdaf->redefine(az_storage_blob_delete => sub { return 0; });
+    $ms_sdaf->redefine(az_storage_blob_list => sub { return ["LAB-SECE-12345-INFRA.terraform.tfstate", "LAB-SECE-12345-SID.terraform.tfstate"]; });
+    set_var('PUBLIC_CLOUD_REGION', 'swedencentral');
+    set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'OpenQA-SDAF-testing-group');
+    set_var('SDAF_TFSTATE_STORAGE_ACCOUNT', 'OpenQA-SDAF-testing-tf-storage-account');
 
     my %cleanup_results = %{sdaf_cleanup()};
     ok($cleanup_results{remover_failed}, 'Remover passes with correct usage');
@@ -261,6 +273,12 @@ subtest '[sdaf_execute_remover] Check command line arguments' => sub {
             return '/some/path/LAB-SECE-SAP04-INFRASTRUCTURE-6453.tfvars' if $_[0] eq 'workload_zone_parameter_file';
             return '/some/path/LAB-SECE-SAP04-QES-6453.tfvars' if $_[0] eq 'sap_system_parameter_file';
     });
+    $ms_sdaf->redefine(find_deployment_id => sub { return '001122'; });
+    $ms_sdaf->redefine(az_storage_blob_delete => sub { return 0; });
+    $ms_sdaf->redefine(az_storage_blob_list => sub { return ["LAB-SECE-12345-INFRA.terraform.tfstate", "LAB-SECE-12345-SID.terraform.tfstate"]; });
+    set_var('PUBLIC_CLOUD_REGION', 'swedencentral');
+    set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'OpenQA-SDAF-testing-group');
+    set_var('SDAF_TFSTATE_STORAGE_ACCOUNT', 'OpenQA-SDAF-testing-tf-storage-account');
 
     sdaf_cleanup();
     for my $cmd (@script_run_calls) {
