@@ -248,22 +248,37 @@ sub registercloudguest {
 =head2 check_dns
 
     check_dns($instance);
+    check_dns($instance, retry => 12, delay => 10);
+    check_dns($instance, die => 0);
 
 Check name resolution on the instance before it registers (poo#207630):
 C</etc/resolv.conf> must name a nameserver, and C<scc.suse.com>, or the host in
-C<PUBLIC_CLOUD_DNS_CHECK_HOST>, must resolve; each check gets about a minute.
+C<PUBLIC_CLOUD_DNS_CHECK_HOST>, must resolve.
+
+C<retry> and C<delay> control retries for each check (defaults: 6 and 10 seconds).
+These are not a strict overall deadline: command execution also takes time.
+
 A resolution that needed retries is recorded with the time it took. On failure
-the resolver and network state is recorded, then the test dies.
+the resolver and network state is recorded, then the test dies. Set C<die>
+to 0 to record failure details and continue.
+
 =cut
 
 sub check_dns {
-    my ($instance) = @_;
+    my ($instance, %args) = @_;
+    my $die = $args{die} // 1;
     my $host = get_var('PUBLIC_CLOUD_DNS_CHECK_HOST', 'scc.suse.com');
     die "PUBLIC_CLOUD_DNS_CHECK_HOST '$host' is not a host name" if $host !~ /^[A-Za-z0-9.-]+$/;
 
-    # Each check is retried for about a minute; die => 0 so a persistent failure is
-    # diagnosed below before dying, and a late success is recorded with its duration.
-    my %retry = (retry => 6, delay => 10, timeout => 30, die => 0);
+    # Each check uses the configured retries and delay; die => 0 allows persistent
+    # failures to be diagnosed below before optionally dying. A late success is
+    # recorded with its duration.
+    my %retry = (
+        retry => $args{retry} // 6,
+        delay => $args{delay} // 10,
+        timeout => 30,
+        die => 0,
+    );
     my $problem;
     my $start = time();
     if ($instance->ssh_script_retry(cmd => q(test -s /etc/resolv.conf && grep -Eq '^[[:space:]]*nameserver[[:space:]]+[^[:space:]]+' /etc/resolv.conf), %retry)) {
@@ -281,7 +296,8 @@ sub check_dns {
         'sudo journalctl -b --no-pager -u NetworkManager -u wicked -u systemd-resolved | tail -n 50');
     my $out = $instance->ssh_script_output(cmd => '(' . join('; ', map { "echo '# $_'; $_" } @diag) . ') 2>&1', timeout => 120, proceed_on_failure => 1);
     record_info('DNS diagnostics', $out, result => 'fail');
-    die "DNS check failed: $problem";
+    die "DNS check failed: $problem" if $die;
+    record_info("DNS FAIL, it's always DNS", $problem, result => 'fail');
 }
 
 sub register_addons_in_pc {
