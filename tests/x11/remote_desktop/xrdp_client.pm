@@ -14,7 +14,7 @@ use version_utils ':VERSION';
 use lockapi;
 use mm_network;
 use package_utils qw(install_package);
-use x11utils 'default_gui_terminal';
+use x11utils qw(default_gui_terminal ensure_unlocked_desktop);
 
 sub run {
     my $self = shift;
@@ -36,6 +36,7 @@ sub run {
     enter_cmd "exit";
 
     mutex_wait 'win_server_ready';
+    ensure_unlocked_desktop;
 
     # Start Remmina and login the remote server
     x11_start_program('remmina', valid => 0);
