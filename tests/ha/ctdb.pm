@@ -88,9 +88,9 @@ sub run {
             write_sut_file('/tmp/ctdb_cib.txt', join("\n", @cib_lines));
             assert_script_run 'crm configure load update /tmp/ctdb_cib.txt';
 
-            # Remove maintenance mode and wait for resources start
+            # Remove maintenance mode and wait for the resources to start
             assert_script_run "crm configure property maintenance-mode=false";
-            sleep 60;
+            wait_until_resources_started;
             save_state;
 
             # Check CTDB status
