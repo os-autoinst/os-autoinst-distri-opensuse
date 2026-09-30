@@ -191,11 +191,18 @@ EOF');
     # get client id
     my $clientid = script_output('velociraptor-client --api_config ~/api.config.yaml query \'SELECT *, os_info.hostname as Hostname, client_id FROM clients()\' | grep -oP \'"client_id": "\K.*(?=")\'', 120);
 
-    # check for collected event on server
-    sleep 90;
+    # check for collected event on server. The test module's Perl runs on the
+    # worker, so the check has to run on the SUT. Wait until every artifact has
+    # its event directory, capped at the previous fixed 90s wait.
+    my @paths = map { "/var/tmp/velociraptor/clients/$clientid/monitoring/$_/" } @artifacts;
+    my $all_present = join ' && ', map { "[ -d '$_' ]" } @paths;
+    script_run("timeout 90 bash -c 'until $all_present; do sleep 5; done'", timeout => 120);
+
+    my $listed = script_output('for d in ' . join(' ', map { "'$_'" } @paths) . '; do [ -d "$d" ] && echo "$d"; done', proceed_on_failure => 1);
+    my %present = map { ($_ => 1) } split /\n/, $listed;
     foreach my $artifact (@artifacts) {
         my $path = "/var/tmp/velociraptor/clients/$clientid/monitoring/$artifact/";
-        if (-d $path) {
+        if ($present{$path}) {
             print "$path event logs present";
             script_run("ls $path | grep json");
         }
