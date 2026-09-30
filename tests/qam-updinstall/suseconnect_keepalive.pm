@@ -8,6 +8,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use utils qw(script_retry);
 use version_utils qw(is_sle is_sles4sap);
 use serial_terminal qw(select_serial_terminal);
 
@@ -22,8 +23,18 @@ sub run {
 
     select_serial_terminal;
     if (script_run('which SUSEConnect') == 0) {
-        my $exit_code = script_run('SUSEConnect --keepalive', timeout => 120);
+        # Retry to address transient network jitter or SCC response latency
+        my $exit_code = script_retry(
+            'bash -c "sleep $((RANDOM % 20)); SUSEConnect --keepalive"',
+            retry => 3,
+            delay => 5,
+            timeout => 120,
+            die => 0
+        );
         if ($exit_code != 0) {
+            # Collect diagnostic information before dying
+            record_info('Registration Status', script_output('SUSEConnect --status-text', proceed_on_failure => 1));
+            record_info('SCC Connectivity', script_output('curl -Iv -m 10 https://scc.suse.com 2>&1 || true', proceed_on_failure => 1));
             die "SUSEConnect --keepalive returned exit code: $exit_code. System might not be registered or SCC is unreachable.";
         }
         else {
