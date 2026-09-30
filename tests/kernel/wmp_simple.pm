@@ -21,6 +21,68 @@ use registration;
 use utils;
 use Mojo::Util 'trim';
 
+# PIDs of the HANA database processes (hdb*) in the
+# SAP<sid>_<instance>.service cgroup. The slice also holds the SAP start
+# helpers (sapstart, sapstartsrv) and the sibling saphostagent.service;
+# those are cold and can pick up a little swap under pressure, but WMP is
+# about the database workload, so only the hdb* processes are collected.
+sub sap_hdb_pids {
+    my $cgroup = '/sys/fs/cgroup/SAP.slice/SAP' . get_required_var('INSTANCE_SID') . '_' . get_required_var('INSTANCE_ID') . '.service';
+    my $out = script_output(
+        "for p in \$(find $cgroup -name cgroup.procs -exec cat {} + 2>/dev/null); do "
+          . "echo \"\$p \$(cat /proc/\$p/comm 2>/dev/null)\"; done",
+        proceed_on_failure => 1);
+    my @pids;
+    for my $line (split /\n/, $out) {
+        my ($pid, $comm) = split ' ', $line;
+        push @pids, $pid if defined $comm && $pid =~ /^\d+$/ && $comm =~ /^hdb/;
+    }
+    return @pids;
+}
+
+# Total resident memory (kB) of the HANA database processes
+sub sap_hdb_rss {
+    my @pids = sap_hdb_pids();
+    return 0 unless @pids;
+    my $rss = script_output('for p in ' . join(' ', @pids) . q{; do awk '/^VmRSS:/ {print $2}' /proc/$p/status; done | awk '{sum+=$1} END {print sum+0}'},
+        proceed_on_failure => 1);
+    return $rss =~ /(\d+)/ ? $1 : 0;
+}
+
+# Wait for HANA to finish allocating memory after StartSystem. The memory is
+# considered settled once the total RSS of the HANA database processes has
+# not changed by more than 50 MiB over three samples. Capped at the previous
+# fixed 5 minute wait.
+sub wait_for_sap_memory_settle {
+    my $deadline = time + bmwqemu::scale_timeout(300);
+    my ($previous, $stable) = (undef, 0);
+    while (time < $deadline) {
+        my $rss = sap_hdb_rss();
+        $stable = ($rss > 0 && defined $previous && abs($rss - $previous) < 50 * 1024) ? $stable + 1 : 0;
+        $previous = $rss;
+        last if $stable >= 3;
+        sleep bmwqemu::scale_timeout(10);
+    }
+}
+
+# Wait until stress-ng has put the system under memory pressure, detected as
+# MemAvailable dropping below 10% of MemTotal, then give swapping a short grace
+# period. If the pressure is never observed, wait the previous fixed 5 minutes.
+sub wait_for_memory_pressure {
+    my $deadline = time + bmwqemu::scale_timeout(300);
+    my $mem_total = script_output(q{awk '/^MemTotal:/ {print $2}' /proc/meminfo}, proceed_on_failure => 1);
+    $mem_total = $1 if $mem_total =~ /(\d+)/;
+    while (time < $deadline) {
+        my $available = script_output(q{awk '/^MemAvailable:/ {print $2}' /proc/meminfo}, proceed_on_failure => 1);
+        $available = $1 if $available =~ /(\d+)/;
+        if ($mem_total && $available && $available < $mem_total / 10) {
+            sleep bmwqemu::scale_timeout(30);
+            last;
+        }
+        sleep bmwqemu::scale_timeout(10);
+    }
+}
+
 sub run {
     my $meminfo;
     my $failed;
@@ -40,9 +102,12 @@ sub run {
 
     select_serial_terminal;
 
-    # we're only interested in the number
-    my $mem_free = script_output('grep MemFree /proc/meminfo') =~ /(\d+)/;
-    $stressng_mem = $mem_free if ($mem_free < $stressng_mem or $stressng_mem == 0);
+    # we're only interested in the number (list context gets the capture, not the match count)
+    my ($mem_free) = script_output('grep MemFree /proc/meminfo') =~ /(\d+)/;
+    $stressng_mem = $mem_free if (defined $mem_free && ($mem_free < $stressng_mem or $stressng_mem == 0));
+    die "cannot determine the stress-ng memory size" unless $stressng_mem;
+    # stress-ng needs a unit; both WMP_STRESS_MEM and MemFree are in kB
+    $stressng_mem .= 'K' if $stressng_mem =~ /^\d+$/;
 
     # we need packagehub for stress-ng, let's enable it
     add_suseconnect_product(get_addon_fullname('phub'));
@@ -59,20 +124,21 @@ sub run {
     assert_script_run('sudo -u ' . $admuser . ' bash -c "export LD_LIBRARY_PATH=' . $sappath . '" "' . $sapctrl . ' -nr 00 -function StartSystem ALL"');
 
 
-    # wait until memory usage of HANA settled, this takes a while and we have to patiently wait
-    sleep 300;
+    # wait until the memory usage of HANA has settled
+    wait_for_sap_memory_settle;
 
     # consume memory in the background
     background_script_run("stress-ng --vm-bytes $stressng_mem --vm-keep -m 1");
 
-    # let everything run for a while
-    sleep 300;
+    # let the memory pressure build up
+    wait_for_memory_pressure;
 
     $meminfo = script_output("cat /proc/meminfo");
     record_info("meminfo", "$meminfo");
 
 
-    my @pids = split(' ', script_output("cat /sys/fs/cgroup/SAP.slice/cgroup.procs"));
+    my @pids = sap_hdb_pids();
+    die "no HANA database processes found in SAP${sid}_${instance_id}.service" unless @pids;
 
     foreach (@pids) {
         my $vmswap = trim(script_output("grep \"VmSwap:\"  /proc/$_/status | cut -d ':' -f 2"));
@@ -97,8 +163,9 @@ sub run {
 Basic Workload Memory Protection (WMP) test for SAP systems. The test sets
 C<MemoryLow> on the C<SAP.slice> systemd slice, starts the SAP system, then
 uses C<stress-ng> (installed from PackageHub) to put the machine under memory
-pressure. After that, every process in C<SAP.slice> is checked, and the test
-fails if any of them has memory swapped out.
+pressure. After that, the HANA database processes (C<hdb*>) in the
+C<SAP<sid>_<instance>.service> cgroup are checked, and the test fails if any of
+them has memory swapped out.
 
 It expects a SAP instance that is already installed, and it only runs on
 SLE 15 up to SLE 15-SP4. On other versions it returns without doing anything.
@@ -112,9 +179,10 @@ for example C<30G>.
 
 =head2 WMP_STRESS_MEM
 
-Amount of memory for C<stress-ng --vm-bytes> to consume. It is capped at the
-C<MemFree> value from C</proc/meminfo>, and that value is also used if this is
-unset or set to C<0>.
+Amount of memory for C<stress-ng --vm-bytes> to consume, as a plain number in
+kB (a value with a C<stress-ng> suffix such as C<16G> is passed through). It is
+capped at the C<MemFree> value from C</proc/meminfo>, and that value is also
+used if this is unset or set to C<0>.
 
 =head2 INSTANCE_SID
 
