@@ -120,6 +120,17 @@ sub load_10GB_installation_tests {
     loadtest 'installation/installation_overview';
 }
 
+sub load_installation_finish_tests {
+    if (is_s390x) {
+        loadtest 'boot/reconnect_mgmt_console';
+        loadtest 'installation/first_boot';
+    } else {
+        loadtest 'microos/disk_boot';
+    }
+    loadtest 'console/textinfo';
+    replace_opensuse_repos_tests if is_repo_replacement_required;
+}
+
 sub load_installation_tests {
     loadtest 'installation/welcome';
     loadtest 'installation/disk_activation' if is_zvm;
@@ -148,22 +159,7 @@ sub load_installation_tests {
     loadtest 'installation/await_install';
     loadtest 'installation/logs_from_installation_system';
     loadtest 'installation/reboot_after_installation';
-    if (is_s390x) {
-        loadtest 'boot/reconnect_mgmt_console';
-        loadtest 'installation/first_boot';
-    } else {
-        loadtest 'microos/disk_boot';
-    }
-    loadtest 'console/textinfo';
-    replace_opensuse_repos_tests if is_repo_replacement_required;
-}
-
-sub load_agama_installation_tests {
-    loadtest 'installation/agama';
-    loadtest 'installation/agama_reboot';
-    loadtest 'microos/disk_boot';
-    loadtest 'console/textinfo';
-    replace_opensuse_repos_tests if is_repo_replacement_required;
+    load_installation_finish_tests;
 }
 
 sub load_yast_installation_tests {
@@ -474,6 +470,7 @@ sub load_tests {
         load_boot_from_dvd_tests;
         if (is_agama) {
             load_agama_installation_tests;
+            load_installation_finish_tests;
         } else {
             return if load_yast_installation_tests;
         }

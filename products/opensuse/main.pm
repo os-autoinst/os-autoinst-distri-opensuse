@@ -255,8 +255,15 @@ sub prepare_target {
 }
 
 sub load_default_tests {
-    load_boot_tests();
-    load_inst_tests();
+    if (is_agama) {
+        # With INST_AUTO the installer boots itself, see load_agama_installation_tests
+        load_boot_tests() unless get_var('INST_AUTO');
+        load_agama_installation_tests();
+    }
+    else {
+        load_boot_tests();
+        load_inst_tests();
+    }
     return 1 if get_var('EXIT_AFTER_START_INSTALL');
     load_reboot_tests();
 }
