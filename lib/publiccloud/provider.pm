@@ -358,9 +358,30 @@ sub _tofu_run_step {
     return ($ret, $output);
 }
 
-=head2 region_out_of_resources
+=head2 _gce_zone_unavailable
 
-    my $bool = $self->region_out_of_resources($terraform_output);
+    my $bool = $self->_gce_zone_unavailable($terraform_output);
+
+Return true if the given terraform C<apply> output shows a problem specific to
+one zone: a shortage of resources, a shortage of accelerators or an instance
+type that the zone does not offer. Another zone of the same region can still
+work, so L</terraform_apply> tries the other zones of the region.
+
+=cut
+
+sub _gce_zone_unavailable {
+    my ($self, $output) = @_;
+    return 0 unless defined($output);
+    return ($output =~ /does not have enough resources available to fulfill the request/i
+          || $output =~ /is currently unavailable in the .* zone/i
+          || $output =~ /STOCKOUT|ZONE_RESOURCE_POOL_EXHAUSTED/i
+          || $output =~ /Machine type with name .* does not exist in zone/i
+    ) ? 1 : 0;
+}
+
+=head2 _region_out_of_resources
+
+    my $bool = $self->_region_out_of_resources($terraform_output);
 
 Return true if the given terraform C<apply> output indicates that the current
 region has no resources available to fulfil the request for the selected
@@ -373,15 +394,13 @@ Any other kind of error must fail immediately, so it returns false for them.
 
 =cut
 
-sub region_out_of_resources {
+sub _region_out_of_resources {
     my ($self, $output) = @_;
     return 0 unless defined($output);
+    return 1 if $self->_gce_zone_unavailable($output);
     # Provider-specific messages emitted by terraform when a region cannot
     # fulfil the request for the requested instance type.
-    return ($output =~ /does not have enough resources available to fulfill the request/i    # GCE
-          || $output =~ /is currently unavailable in the .* zone/i    # GCE (e.g. nvidia accelerators)
-          || $output =~ /STOCKOUT|ZONE_RESOURCE_POOL_EXHAUSTED/i    # GCE
-          || $output =~ /InsufficientInstanceCapacity|Insufficient capacity/i    # EC2
+    return ($output =~ /InsufficientInstanceCapacity|Insufficient capacity/i    # EC2
           || $output =~ /SkuNotAvailable|AllocationFailed|OverconstrainedAllocationRequest/i    # Azure
     ) ? 1 : 0;
 }
@@ -467,6 +486,7 @@ sub terraform_apply {
         $self->provider_client->region($region);
         record_info('REGION', "Attempting the deployment in region '$region'");
 
+        # Get CSP specific data for terraform var
         if (is_ec2) {
             $vars{availability_zone} = script_output("aws ec2 describe-instance-type-offerings --location-type availability-zone --filters Name=instance-type,Values=" . $instance_type . " --region '" . $region . "' --query 'InstanceTypeOfferings[0].Location' --output 'text'");
             die('Instance type not supported by the selected Availability Zone') if ($vars{availability_zone} =~ /None/);
@@ -490,9 +510,12 @@ sub terraform_apply {
         ($ret, $tf_apply_output) = $self->_tofu_run_step(step => 'apply', cmd => "$runner apply -no-color -input=false myplan", timeout => $terraform_timeout, delay => 0, retry => 1);
         $self->terraform_applied(1);    # Must happen here to prevent resource leakage
 
-        # when all instances of certain type are booked in one AZ there is a chance that other AZ in same region still have them
-        # to improve test stability let's loop over all available AZ in case initial one throwing error that all instances are booked
-        if ($ret != 0 && is_gce() && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone|Machine type with name .* does not exist in zone .*|The zone 'projects.*' does not have enough resources available to fulfill the request/)) {
+        my $out_of_resources = $self->_region_out_of_resources($tf_apply_output);
+
+        if ($ret != 0 && is_gce() && $self->_gce_zone_unavailable($tf_apply_output)) {
+            # A zone may run out of capacity or lack the requested machine type/accelerators,
+            # while other zones in the same region still support it. Retry across the
+            # remaining zones before giving up on this region.
             @alternative_zones = grep { $_ ne $vars{availability_zone} } @alternative_zones;
             record_info('ZONE UNAVAILABLE', "Alternative zones " . join(', ', @alternative_zones));
             for my $az (@alternative_zones) {
@@ -509,6 +532,7 @@ sub terraform_apply {
                     $self->provider_client->availability_zone($az);
                     last;
                 }
+                $out_of_resources ||= $self->_region_out_of_resources($tf_apply_output);
             }
         }
 
@@ -517,7 +541,9 @@ sub terraform_apply {
 
         # AC2: fall back to an alternate region only when the failure is caused by
         # the region running out of resources; any other error must fail immediately.
-        last unless ($self->region_out_of_resources($tf_apply_output));
+        # A zone that lacks the instance type fails with another error and hides the
+        # shortage of the zone that has it, so $out_of_resources covers all zone attempts.
+        last unless ($out_of_resources);
         record_info('REGION UNAVAILABLE', "Region '$region' has no resources available for instance type '$instance_type'");
     }
 

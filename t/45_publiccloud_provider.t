@@ -784,6 +784,58 @@ subtest '[terraform_apply] GCE syncs provider_client availability_zone after a r
     _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_ALTERNATE_REGIONS PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL PUBLIC_CLOUD_AVAILABILITY_ZONE/);
 };
 
+subtest '[terraform_apply] GCE falls back to alternate region when non-initial zones fail with machine type not existing' => sub {
+    # In the primary region, the initial zone 'a' hits a capacity stockout.
+    # The zone-retry loop iterates through remaining zones ('b', 'c'),
+    # but the instance type does not exist in those zones (Error 400).
+    # When the zone loop ends, $tf_apply_output has been overwritten by zone 'c'.
+    # region_out_of_resources() must still recognize that the region cannot fulfill
+    # the request and fall back to the alternate region 'Bajoran'.
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('FLAVOR', 'Talaxian');
+    set_var('OPENQA_URL', 'Xindi');
+    set_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'Romulan');
+
+    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+    set_var('PUBLIC_CLOUD_REGION', 'Ferengi');
+    set_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', 'Bajoran');
+
+    my $not_in_zone = q{Error: Error creating instance: googleapi: Error 400: Machine type with name 'Romulan' does not exist in zone 'Ferengi-c'};
+
+    my @calls;
+    my $mock = _mock_terraform_apply(
+        calls => \@calls,
+        script_responses => {
+            'apply.*myplan' => [
+                {exit => 42, output => 'None care'},    # primary region, initial zone 'a'
+                {exit => 42, output => 'None care'},    # primary region, zone 'b'
+                {exit => 42, output => 'None care'},    # primary region, zone 'c'
+                {exit => 0, output => ''},    # alternate region 'Bajor'
+            ],
+            '^cat ' => [
+                _cat_responses(
+                    {exit => 0, output => $OUT_OF_RESOURCES{GCE}},    # primary region, initial zone 'a' (STOCKOUT)
+                    {exit => 0, output => $not_in_zone},    # primary region, zone 'b' (does not exist)
+                    {exit => 0, output => $not_in_zone},    # primary region, zone 'c' (does not exist)
+                    {exit => 0, output => ''},    # alternate region 'Bajor'
+                )],
+            'gcloud compute zones list.*filter.*region.*Ferengi' => [{exit => 0, output => 'a,b,c,'}],
+            'gcloud compute zones list.*filter.*region.*Bajoran' => [{exit => 0, output => 'd,e,f,'}],
+        });
+    Test::MockModule->new('publiccloud::instances', no_auto => 1)->redefine(set_instances => sub { });
+    my $provider = publiccloud::provider->new(provider_client => publiccloud::gcp_client->new());
+
+    $provider->terraform_apply(vars => {availability_zone => 'a'});
+
+    is_deeply([map { /-var 'region=([^']+)'/ } grep { /\btofu plan\b/ } @calls],
+        ['Ferengi', 'Ferengi', 'Ferengi', 'Bajoran'], 'primary region planned once per zone, then falls back to alternate region');
+    is_deeply([map { /-var 'availability_zone=([^']+)'/ } grep { /\btofu plan\b/ } @calls],
+        ['a', 'b', 'c', 'd'], 'GCE zones tried in order a, b, c in Ferengi, then zone d in Bajoran');
+    is($provider->provider_client->region, 'Bajoran', 'active region switched to alternate region');
+
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_ALTERNATE_REGIONS PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
+};
+
 subtest '[terraform_apply] init/plan failures die with captured output, no region retry' => sub {
     set_var('PUBLIC_CLOUD', 1);
     set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
