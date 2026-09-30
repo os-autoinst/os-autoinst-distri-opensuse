@@ -9,10 +9,11 @@
 
 use Mojo::Base 'haclusterbasetest';
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use hacluster;
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     wait_until_resources_started;
     # Check for the state of the whole cluster
     check_cluster_state;
