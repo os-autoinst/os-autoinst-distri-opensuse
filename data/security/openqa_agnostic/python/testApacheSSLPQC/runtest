@@ -5,20 +5,27 @@
 # desc: Verifies that ML-DSA & ML-KEM post-quantum algorithms work through the Apache web server
 # steps:
 # - 1. Setup Apache
-#   - generate MLDSA65 key + certficate pair (self signed)
-#   - set up an Apache SSL virtual host with these keys and enforce TLS v1.3 and the 3 ML-KEM key exchange algorithms
+#   - set up an Apache SSL virtual host that enforces TLS v1.3 and the 3 ML-KEM key exchange algorithms
 #     (see provided pqc-ssl.conf)
 #   - stop firewall if running
-#   - start Apache and check that it's listening
-# - 2. Test MLDSA65 algorithm with MLKEM512, MLKEM768 and MLKEM1024 key exchange algorithms
+# - 2. For each of MLDSA44, MLDSA65 and MLDSA87:
+#   - generate the ML-DSA key + certificate pair (self signed) and deploy it to Apache
+#   - restart Apache and check that it's listening
 #   - use openssl s_client to verify that we can establish a TLS v1.3 connection using the 3 ML-KEM algorithms
-#   - verify peer signature is MLDSA65
+#     (MLKEM512, MLKEM768 and MLKEM1024)
+#   - verify peer signature is the expected ML-DSA variant
 #   - fetch default Apache web page with curl through TLS v1.3 connection, using the 3 ML-KEM algorithms
-# author: <mmilian@suse.com>
+#
+# Remark: SLH_DSA_* post-quantum signature algorithms do not work with TLS v1.3 beacuse none of the SLH-DSA
+#         variants are registered as TLS-SIGALGS (can be checked using openssl list -tls-signature-agorithms).
+#         Hence SLH_DSA_*  algorithms cannot be tested at this time.
+#         See OpenSSL feature request: https://github.com/openssl/openssl/issues/28026
+#
+# author: <mmilian@suse.de>
 # maintainer: QE Security <none@suse.de>
 # expected: no errors raised, connection succeed
 # platform: SLE16
-# tags: security post-quantum-crypto ssl apache python
+# tags: security post-quantum-crypto ssl apache python poo#194924
 # ---
 # METADATA_END
 
@@ -36,4 +43,4 @@ handle_args "$0" "$@"
 # If the metadata flag is not provided, run the tests as usual.
 
 # run tests with pytest and generate junit xml results
-pytest apache_pqc_ssl_test.py --junitxml=results.xml
+pytest -v apache_pqc_ssl_test.py --junitxml=results.xml
