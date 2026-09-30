@@ -55,9 +55,15 @@
 
 <h2 id="check_dns">check_dns</h2>
 
-<pre><code>check_dns($instance);</code></pre>
+<pre><code>check_dns($instance);
+check_dns($instance, retry =&gt; 12, delay =&gt; 10);
+check_dns($instance, die =&gt; 0);</code></pre>
 
-<p>Check name resolution on the instance before it registers (poo#207630): <code>/etc/resolv.conf</code> must name a nameserver, and <code>scc.suse.com</code>, or the host in <code>PUBLIC_CLOUD_DNS_CHECK_HOST</code>, must resolve; each check gets about a minute. A resolution that needed retries is recorded with the time it took. On failure the resolver and network state is recorded, then the test dies.</p>
+<p>Check name resolution on the instance before it registers (poo#207630): <code>/etc/resolv.conf</code> must name a nameserver, and <code>scc.suse.com</code>, or the host in <code>PUBLIC_CLOUD_DNS_CHECK_HOST</code>, must resolve.</p>
+
+<p><code>retry</code> and <code>delay</code> control retries for each check (defaults: 6 and 10 seconds). These are not a strict overall deadline: command execution also takes time.</p>
+
+<p>A resolution that needed retries is recorded with the time it took. On failure the resolver and network state is recorded, then the test dies. Set <code>die</code> to 0 to record failure details and continue.</p>
 
 <h2 id="get_credentials-get_credentials-url_suffix-some_csp.json-namespace-some_name-output_json-.-local_credentials.json">get_credentials get_credentials(url_suffix =&gt; &#39;some_csp.json&#39;[, namespace =&gt; &#39;some_name&#39;, output_json =&gt; &#39;./local_credentials.json&#39;])</h2>
 
