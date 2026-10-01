@@ -15,11 +15,12 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use registration qw(cleanup_registration register_product register_addons_cmd);
 use scheduler 'get_test_suite_data';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     cleanup_registration;
     register_product;
     my $addons = get_test_suite_data()->{addons};
