@@ -8,9 +8,10 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     # List each active package lock and check its version and release info
     for my $pkg (@{$lock_package::locked_pkg_info}) {
