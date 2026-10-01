@@ -9,10 +9,11 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 
 sub run {
-    select_console('root-console');
+    select_text_console;
     # Check if can get version
     assert_script_run 'aws --version';
     # Define test data
