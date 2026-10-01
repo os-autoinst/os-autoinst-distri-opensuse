@@ -295,6 +295,12 @@ sub test_combustion_prepare {
     assert_script_run('journalctl --no-pager | grep "localhost combustion: test_prepare function ran OK"');
 }
 
+sub get_encrypted_root_device {
+    return "/dev/mapper/luks" if (is_sle(">=16") || is_sle_micro(">=6.1"));
+    return "/dev/mapper/cr_root" if (is_sle || is_leap || is_sle_micro);
+    return "/dev/mapper/root";
+}
+
 sub run {
     my $self = shift;
     select_serial_terminal();
@@ -317,7 +323,7 @@ sub run {
     }
 
     if (get_var('QEMUTPM', '')) {
-        my $device = (is_sle(">=16") || is_sle_micro(">=6.1")) ? "/dev/mapper/luks" : "/dev/mapper/cr_root";
+        my $device = get_encrypted_root_device;
         validate_script_output("cryptsetup status $device", qr/is active and is in use./);
     }
 
