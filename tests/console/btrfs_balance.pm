@@ -12,6 +12,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use version_utils 'is_sle';
 
@@ -60,7 +61,7 @@ sub config_balance_parameters {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     zypper_call 'in -f btrfsmaintenance';
     create_unbalanced_scenario();
     # raid volume should be almost full, because data
