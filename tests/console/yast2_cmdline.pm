@@ -10,6 +10,7 @@
 
 use Mojo::Base 'y2_module_consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils qw(zypper_call systemctl);
 use repo_tools 'prepare_source_repo';
 use version_utils qw(is_sle is_leap);
@@ -39,7 +40,7 @@ sub run_yast_cli_test {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     die "wicked is not used. The yast2_network tests can run only against wicked." if (systemctl("status wicked.service", ignore_failure => 1) != 0);
     prepare_source_repo;
 
