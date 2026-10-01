@@ -10,9 +10,10 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     my $file_to_download = autoinst_url("/assets/other/" . get_required_var("ASSET_1"));
     assert_script_run("wget " . $file_to_download . " -O  " . "/tmp/y2logs.tar.bz2");
 }
