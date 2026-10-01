@@ -12,10 +12,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use repo_tools;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     if (check_var('VERSION', get_required_var('ORIGIN_SYSTEM_VERSION'))) {
         rmt_wizard();
