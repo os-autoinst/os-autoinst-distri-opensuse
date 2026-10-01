@@ -13,6 +13,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
@@ -21,7 +22,7 @@ sub run {
     my $test_data = get_test_suite_data();
     my @multi_devices = @{$test_data->{multi_devices}};
 
-    select_console 'root-console';
+    select_text_console;
 
     foreach (@multi_devices) {
         my $mount_point = $_->{mount_point};
