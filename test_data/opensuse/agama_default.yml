@@ -1,0 +1,4 @@
+---
+selinux:
+  status: enabled
+  mode: enforcing
