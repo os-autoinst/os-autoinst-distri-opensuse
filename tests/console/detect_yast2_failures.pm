@@ -9,10 +9,11 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 sub run {
     my $self = shift;
-    select_console 'root-console';
+    select_text_console;
     assert_script_run("mkdir -p /tmp/var/log; tar -xvf '/tmp/y2logs.tar.bz2' -C " . "/tmp/var/log");
     $self->investigate_yast2_failure(logs_path => '/tmp');
 }
