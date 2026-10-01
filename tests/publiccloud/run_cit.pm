@@ -13,6 +13,7 @@ use utils qw(zypper_call);
 use serial_terminal 'select_serial_terminal';
 use publiccloud::utils;
 use publiccloud::gce;
+use utils qw(script_retry);
 
 my $cred_path = '/tmp/gce_creds.json';
 my $out_path = '/tmp/cit_results.xml';
