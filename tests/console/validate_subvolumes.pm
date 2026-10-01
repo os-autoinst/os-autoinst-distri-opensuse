@@ -17,6 +17,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 
 sub validate_subvolume {
@@ -29,7 +30,7 @@ sub validate_subvolume {
 
 sub run {
     my $test_data = get_test_suite_data;
-    select_console 'root-console';
+    select_text_console;
 
     foreach my $subvolume (@{$test_data->{validate_subvolumes}}) {
         validate_subvolume({
