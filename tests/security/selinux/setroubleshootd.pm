@@ -16,7 +16,7 @@ use Mojo::Base 'selinuxtest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_leap);
 
 sub ensure_setroubleshootd_cannot_be_directly_run_as_root {
     # ensure current test is run as root user
@@ -92,7 +92,7 @@ sub check_sealert() {
 sub run {
     my ($self) = shift;
     select_serial_terminal;
-    if (is_sle) {    # bail out on SLE
+    if (is_sle || is_leap) {    # bail out on SLE
         record_info 'TEST SKIPPED', 'setroubleshootd is not yet implemented on SLE';
         return;
     }

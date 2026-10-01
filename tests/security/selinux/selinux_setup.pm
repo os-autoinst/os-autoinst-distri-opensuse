@@ -10,7 +10,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_sle is_sle_micro has_selinux);
+use version_utils qw(is_sle is_sle_micro has_selinux is_leap);
 use transactional qw(process_reboot trup_call);
 
 sub get_policy_date {
@@ -46,9 +46,9 @@ sub install_pkgs {
 
 sub run {
     my ($self) = @_;
-    # On SLE16 selinux is preinstalled, skip selinux setup if
+    # On SLE16/Leap16 selinux is preinstalled, skip selinux setup if
 
-    if (is_sle('>=16')) {
+    if (is_sle('>=16') || is_leap('>=16.0')) {
         select_serial_terminal;
         validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*enforcing/sx });
         # After update, clean the audit log to make suere there aren't any leftovers that were already fixed
