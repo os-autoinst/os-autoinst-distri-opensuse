@@ -356,7 +356,7 @@ sub handle_login {
     }
     # Need to update the VT the session runs on.
     # In the opensuse-welcome case, that's handled afterwards.
-    update_x11_vt if ((check_var('DESKTOP', 'kde') || check_var('DESKTOP', 'xfce')) && match_has_tag('generic-desktop'));
+    update_x11_vt if (get_var('DESKTOP', '') =~ /^(kde|xfce|lxde)$/ && match_has_tag('generic-desktop'));
 }
 
 =head2 handle_logout
