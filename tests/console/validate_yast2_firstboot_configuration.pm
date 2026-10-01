@@ -11,6 +11,7 @@
 package validate_yast2_firstboot_configuration;
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 
 sub assert_user_exist {
@@ -22,7 +23,7 @@ sub assert_user_exist {
 
 sub pre_run_hook {
     my ($self) = @_;
-    select_console 'root-console';
+    select_text_console;
     $self->SUPER::pre_run_hook;
 }
 
