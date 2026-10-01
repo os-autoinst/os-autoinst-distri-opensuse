@@ -18,11 +18,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use repo_tools;
 use utils;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     record_info('RMT server setup', 'Start to setup a rmt server');
     rmt_wizard();
     # sync from SCC
