@@ -8,9 +8,10 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     if (my $keys = get_var("IMPORT_GPG_KEYS")) {
         assert_script_run(
