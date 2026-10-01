@@ -11,10 +11,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     my $is_present = get_test_suite_data()->{resume_kernel_param_present};
     my $grep_param = ($is_present eq '1') ? '' : '-v';
     my $error_msg = ($is_present eq '1') ? 'resume parameter not found' : 'resume parameter found';
