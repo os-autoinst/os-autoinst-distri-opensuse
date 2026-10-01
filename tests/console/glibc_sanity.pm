@@ -16,13 +16,14 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use Utils::Architectures;
 use utils 'zypper_call';
 use package_utils 'install_package';
 use version_utils qw(is_sle is_leap);
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $libcstr = 'GNU C Library';
     if (is_x86_64 && !(is_sle('16+') || is_leap("16+"))) {
