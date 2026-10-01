@@ -10,10 +10,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils 'zypper_call';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     assert_script_run "zypper lr --uri | tee /dev/$serialdev";
 }
 
