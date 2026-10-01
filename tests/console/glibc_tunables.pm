@@ -9,11 +9,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils 'zypper_call';
 use Utils::Architectures;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     if (is_aarch64 && check_var('AARCH64_MTE_SUPPORTED', '1')) {
         record_info('Testing MTE on aarch64');
