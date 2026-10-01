@@ -11,11 +11,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use repo_tools;
 use version_utils;
 
 sub run {
-    select_console('root-console');
+    select_text_console;
 
     # We need ensure the firewalld is enabled for the requirement of RMT wizard
     assert_script_run('systemctl enable firewalld');
