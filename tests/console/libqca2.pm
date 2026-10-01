@@ -17,12 +17,13 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use registration qw(add_suseconnect_product register_product);
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     if (is_tumbleweed || is_leap) {
         zypper_call("in libqca-qt5 libqca-qt5-devel", timeout => 600);
     } else {
