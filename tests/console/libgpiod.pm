@@ -10,6 +10,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use Utils::Architectures;
 use version_utils qw(is_sle is_leap);
@@ -20,7 +21,7 @@ sub run {
         record_info('SKIP', 'Do not test libgpiod v1.x');
         return;
     }
-    select_console 'root-console';
+    select_text_console;
 
     # Install libgpiod tools
     zypper_call 'in libgpiod-utils';
