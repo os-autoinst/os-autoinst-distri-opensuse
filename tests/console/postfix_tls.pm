@@ -12,6 +12,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use mailtest;
 
@@ -21,7 +22,7 @@ sub run {
     my $postfix_cert = "/etc/postfix/ssl/postfix.crt";
     my $postfix_key = "/etc/postfix/ssl/postfix.key";
 
-    select_console "root-console";
+    select_text_console;
     prepare_mail_server;
 
     # Install postfix and required packages
