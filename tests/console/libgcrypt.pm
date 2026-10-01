@@ -14,12 +14,13 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use version_utils qw(is_sle is_opensuse);
 use registration;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     assert_script_run "rpm -q libgcrypt20";
     if (script_run("rpm -q libgcrypt-devel") == 1) {
         zypper_call "-v in gcc libgcrypt-devel", timeout => 1000;
