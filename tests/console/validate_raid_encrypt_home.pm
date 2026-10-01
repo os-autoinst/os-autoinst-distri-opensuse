@@ -9,6 +9,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use Mojo::JSON qw(decode_json);
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
@@ -16,7 +17,7 @@ use filesystem_utils qw(is_lsblk_able_to_display_mountpoints);
 use version_utils qw(is_sle);
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     my $md_name = get_test_suite_data()->{mds}[1]{name};
     my $params = is_sle('15+') ? '-M' : '-f -o +type';
     my $lsblk_output = decode_json(script_output("lsblk $params -J /dev/$md_name"));
