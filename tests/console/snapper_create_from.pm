@@ -12,12 +12,13 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use Test::Assert ':all';
 use scheduler 'get_test_suite_data';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $snapshots = get_test_suite_data()->{snapshots};
 
