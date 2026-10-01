@@ -156,6 +156,8 @@ sub load_latest_publiccloud_tests {
                 loadtest('publiccloud/ahb', run_args => $args);
             } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
                 loadtest("publiccloud/bsc_1205002", run_args => $args);
+            } elsif (get_var('PUBLIC_CLOUD_EC2_ENCLAVE_TESTS')) {
+                loadtest "publiccloud/aws_enclave", run_args => $args;
             } else {    # All test cases below excluding check_service require tunelled environment
                 my $smoketest = get_var('PUBLIC_CLOUD_SMOKETEST')
                   && !get_var('PUBLIC_CLOUD_CONSOLE_TESTS')
