@@ -9,13 +9,14 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use testapi;
+use serial_terminal 'select_text_console';
 use Mojo::Base 'consoletest';
 use repo_tools;
 use utils;
 use lockapi qw(mutex_create mutex_wait);
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     rmt_wizard();
     # sync from SCC
     rmt_sync;
