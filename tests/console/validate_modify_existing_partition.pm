@@ -8,13 +8,14 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
 sub run {
     my $test_data = get_test_suite_data();
 
-    select_console "root-console";
+    select_text_console;
 
     my @partitions = ();
     # Module is used to validate logical volumes too, so if no plain partitions
