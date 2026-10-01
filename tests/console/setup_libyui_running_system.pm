@@ -8,10 +8,11 @@
 
 use Mojo::Base 'installbasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use YuiRestClient;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $app = YuiRestClient::get_app(timeout => 60, interval => 1);
     my $port = $app->get_port();
