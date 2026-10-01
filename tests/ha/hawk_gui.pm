@@ -136,7 +136,14 @@ sub run {
     # Upload results
     my $are_results = script_run("ls $results");
     # Fail test if results file does not exist, otherwise parse it
-    die "Selenium test [$pyscr] aborted. Check logs" if ($are_results or !defined $are_results);
+    if ($are_results or !defined $are_results) {
+        eval {
+            my $log = script_output("cat '$logs' 2>/dev/null || true");
+            record_info('Selenium Exception', "Selenium exception found in test log: $1", result => 'fail')
+              if $log =~ /^(selenium\.common\.exceptions\.[A-Za-z0-9_]+:[^\r\n]*)/m;
+        };
+        die "Selenium test [$pyscr] aborted. Check logs";
+    }
     parse_extra_log(IPA => $results);
 
     # Synchronize with the nodes
