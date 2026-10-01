@@ -1,0 +1,126 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kernel/cpu.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#lscpu_info">lscpu_info</a></li>
+      <li><a href="#get_cpu_model">get_cpu_model</a></li>
+      <li><a href="#get_cpu_count">get_cpu_count</a></li>
+      <li><a href="#get_online_cpus">get_online_cpus</a></li>
+      <li><a href="#get_offline_cpus">get_offline_cpus</a></li>
+      <li><a href="#get_present_cpus">get_present_cpus</a></li>
+      <li><a href="#get_cpu_topology">get_cpu_topology</a></li>
+      <li><a href="#get_cpu_flags">get_cpu_flags</a></li>
+      <li><a href="#has_cpu_flag">has_cpu_flag</a></li>
+      <li><a href="#get_cpu_vulnerabilities">get_cpu_vulnerabilities</a></li>
+      <li><a href="#has_hw_pmu">has_hw_pmu</a></li>
+      <li><a href="#nmi_count">nmi_count</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kernel/cpu.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>CPU helpers for kernel tests.</p>
+
+<p>To run <code>lscpu</code> only one time, get the data with <code>lscpu_info()</code> and give it to the other helpers:</p>
+
+<pre><code>my $info = lscpu_info();
+my $model = get_cpu_model($info);
+my $count = get_cpu_count($info);</code></pre>
+
+<p>If no data is given, each helper runs <code>lscpu</code> again.</p>
+
+<h2 id="lscpu_info">lscpu_info</h2>
+
+<pre><code>my $info = lscpu_info();</code></pre>
+
+<p>Runs <code>LC_ALL=C lscpu</code> on the SUT and returns a hash reference of field name to value, for example <code>$info-&gt;{&#39;Model name&#39;}</code>. The leading indentation of new <code>lscpu</code> versions is ignored. If a field occurs more than one time, the first value is kept.</p>
+
+<h2 id="get_cpu_model">get_cpu_model</h2>
+
+<pre><code>my $model = get_cpu_model([$info]);</code></pre>
+
+<p>Returns the CPU model name, from the <code>lscpu</code> <code>Model name</code> field. If it is not available (for example on s390x), returns the <code>Machine type</code>, then the <code>Model</code> field. Returns undef if none is available.</p>
+
+<h2 id="get_cpu_count">get_cpu_count</h2>
+
+<pre><code>my $count = get_cpu_count([$info]);</code></pre>
+
+<p>Returns the number of online CPUs, from the <code>lscpu</code> <code>On-line CPU(s) list</code> field. Offline CPUs are not counted.</p>
+
+<h2 id="get_online_cpus">get_online_cpus</h2>
+
+<pre><code>my @cpus = get_online_cpus();</code></pre>
+
+<p>Returns the list of online CPU numbers, from <code>/sys/devices/system/cpu/online</code>.</p>
+
+<h2 id="get_offline_cpus">get_offline_cpus</h2>
+
+<pre><code>my @cpus = get_offline_cpus();</code></pre>
+
+<p>Returns the list of offline CPU numbers, from <code>/sys/devices/system/cpu/offline</code>. These CPUs are present or possible, but not online. Returns an empty list if all CPUs are online.</p>
+
+<h2 id="get_present_cpus">get_present_cpus</h2>
+
+<pre><code>my @cpus = get_present_cpus();</code></pre>
+
+<p>Returns the list of present CPU numbers, from <code>/sys/devices/system/cpu/present</code>. These are the CPUs that the system has, online or offline.</p>
+
+<h2 id="get_cpu_topology">get_cpu_topology</h2>
+
+<pre><code>my $topology = get_cpu_topology([$info]);</code></pre>
+
+<p>Returns a hash reference with the keys <code>sockets</code>, <code>cores_per_socket</code>, <code>threads_per_core</code> and <code>numa_nodes</code>, from <code>lscpu</code>. A value is undef if <code>lscpu</code> does not show it on this architecture (for example, s390x shows sockets per book instead of sockets).</p>
+
+<h2 id="get_cpu_flags">get_cpu_flags</h2>
+
+<pre><code>my @flags = get_cpu_flags([$info]);</code></pre>
+
+<p>Returns the list of CPU flags, from the <code>lscpu</code> <code>Flags</code> field. Returns an empty list if <code>lscpu</code> shows no flags.</p>
+
+<h2 id="has_cpu_flag">has_cpu_flag</h2>
+
+<pre><code>has_cpu_flag($flag, [$info]);</code></pre>
+
+<p>Returns true if the CPU has the flag <code>$flag</code>, for example <code>arch_perfmon</code>.</p>
+
+<h2 id="get_cpu_vulnerabilities">get_cpu_vulnerabilities</h2>
+
+<pre><code>my $vulns = get_cpu_vulnerabilities();</code></pre>
+
+<p>Reads the files in <code>/sys/devices/system/cpu/vulnerabilities/</code> on the SUT and returns a hash reference of vulnerability name to status, for example <code>{ retbleed =&gt; &#39;Mitigation: IBRS&#39; }</code>. Returns an empty hash reference if the directory does not exist.</p>
+
+<h2 id="has_hw_pmu">has_hw_pmu</h2>
+
+<pre><code>has_hw_pmu();</code></pre>
+
+<p>Checks whether a hardware Performance Monitoring Unit (PMU) is available, with <code>perf stat -e cycles</code>. The <code>perf</code> package must be installed.</p>
+
+<p>Returns true if the <code>cycles</code> hardware event is counted. Returns false if it is not supported or not counted, for example in a virtual machine without a virtual PMU.</p>
+
+<h2 id="nmi_count">nmi_count</h2>
+
+<pre><code>my $count = nmi_count();</code></pre>
+
+<p>Returns the sum of the <code>NMI</code> counters of all CPUs from <code>/proc/interrupts</code>. Returns 0 if there is no <code>NMI</code> line.</p>
+
+<p>The meaning of the <code>NMI</code> line is architecture specific: on x86_64 it includes the PMU interrupts, but on ppc64le it counts System Reset interrupts and on s390x Machine Check interrupts.</p>
+
+
+</body>
+
+</html>
+
+
