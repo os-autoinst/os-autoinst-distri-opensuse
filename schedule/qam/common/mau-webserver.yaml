@@ -56,6 +56,7 @@ conditional_schedule:
         - console/rails
         - console/nginx
         - console/nginx_php_fpm
+        - console/tomcat
       15.6:
         - console/apache_nss
         - console/django

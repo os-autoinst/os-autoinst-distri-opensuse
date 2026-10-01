@@ -6,5 +6,5 @@ description: >
     Boot from HDD directly to run tomcat on Tumbleweed.
 schedule:
     - boot/boot_to_desktop
-    - x11/tomcat
+    - console/tomcat
     - shutdown/shutdown
