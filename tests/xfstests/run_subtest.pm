@@ -471,6 +471,10 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = @_;
     $self->override_known_failures() if $self->{result} eq 'fail';
+
+    # Skip the generic post_fail_hook if already softfailed
+    return if $self->result eq 'softfail';
+
     $self->SUPER::post_fail_hook;
 }
 
