@@ -11,11 +11,12 @@
 
 use Mojo::Base 'yast2_lan_hostname_base';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler qw(get_test_suite_data);
 use YaST::Module;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     if (script_run('systemctl is-active NetworkManager.service') == 0) {
         record_info('SKIP', 'Only supported with Wicked, not NetworkManager.');
