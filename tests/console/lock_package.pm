@@ -9,12 +9,13 @@
 package lock_package;
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 
 our $locked_pkg_info = [];
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     # Packages to be locked is comma-separated
     my @pkgs = split(/,/, get_var('LOCK_PACKAGE'));
