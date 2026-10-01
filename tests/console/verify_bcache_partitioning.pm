@@ -16,13 +16,14 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 use Test::Assert 'assert_true';
 
 sub run {
     my $test_data = get_test_suite_data();
     my $cachingdev = $test_data->{profile}->{partitioning}->{drive}->[1]->{device};
-    select_console 'root-console';
+    select_text_console;
 
     # assert the registered backing dev
     assert_script_run "cat /sys/block/bcache0/bcache/backing_dev_name | grep $test_data->{backingdev}";
