@@ -37,7 +37,7 @@ use constant {
 
 # Tumbleweed uses a persistent journal, Leap 15.3+ (except 15.3 AArch64 JeOS) inherits SLE's default
 sub has_default_persistent_journal {
-    return is_tumbleweed || is_sle('16.0+') || (is_leap('=15.3') && check_var('FLAVOR', 'JeOS-for-AArch64'));
+    return is_tumbleweed || is_sle('16.0+') || (is_leap('=15.3') && check_var('FLAVOR', 'JeOS-for-AArch64')) || is_leap('>=16.0');
 }
 
 # If the daemon is stopped uncleanly, or if the files are found to be corrupted, they are renamed using the ".journal~" suffix
@@ -176,7 +176,7 @@ sub run {
     # To enable persistent logging in opensuse, we use systemd-logger.rpm that creates */var/log/journal/* directory
     get_current_boot_id \@boots;
     if (has_default_persistent_journal) {
-        if (is_tumbleweed || is_sle('16.0+')) {
+        if (is_tumbleweed || is_sle('16.0+') || is_leap('>=16.0')) {
             script_output(sprintf("test -d %s && ls --almost-all %s", PERSISTENT_LOG_DIR, PERSISTENT_LOG_DIR));
         } else {
             assert_script_run 'rpm -q systemd-logger';
@@ -244,7 +244,7 @@ sub run {
     verify_journal();
     # Note: Detailled error message is "Specifying boot ID or boot offset has no effect, no persistent journal was found."
     # Create virtual serial console for journal redirecting
-    if (is_opensuse && !is_leap('>=15.3')) {
+    if (is_opensuse && !(is_leap('>=15.3') && is_leap('<16.0'))) {
         zypper_call 'in socat';
         script_run('socat pty,raw,echo=0,link=/dev/ttyS100 pty,raw,echo=0,link=/dev/ttyS101 & true');
         assert_script_run('jobs | grep socat', fail_message => "socat is not running");
