@@ -26,6 +26,8 @@ QE-SAP <qe-sap@suse.de>
 
 This module will check C<saptune> is installed, and it will also check if the
 corresponding service has been started in SLES for SAP 16 or newer.
+It also checks whether C<uuidd> is installed, installs it if necessary,
+and verifies that C<uuidd.service> starts successfully.
 
 B<The key tasks performed by this module include:>
 
@@ -34,6 +36,8 @@ B<The key tasks performed by this module include:>
 =item * Check with C<systemctl> the status of the C<saptune> service on SLES for SAP 16 or newer.
 
 =item * Check C<saptune> is installed with C<saptune version> command.
+
+=item * Report whether C<uuidd> is installed, install it if necessary, and check C<uuidd.service> starts successfully.
 
 =back
 
@@ -51,6 +55,23 @@ sub run {
     systemctl 'status saptune' if is_sle('>=16');
 
     assert_script_run 'saptune version';
+
+    # Verify uuidd can start after installation (bsc#1283294).
+    my $uuidd_installed = script_run('rpm -q uuidd');
+
+    if ($uuidd_installed == 0) {
+        record_info 'uuidd', 'Package is already installed';
+    } else {
+        record_info 'uuidd', 'Package is not installed; installing it';
+        zypper_call 'in uuidd';
+    }
+
+    record_info 'uuidd packages',
+      script_output('rpm -q uuidd system-user-uuidd', proceed_on_failure => 1);
+
+    systemctl 'start uuidd.service';
+    sleep 2;    # give the service some time after start
+    systemctl 'status uuidd.service';
 }
 
 1;
