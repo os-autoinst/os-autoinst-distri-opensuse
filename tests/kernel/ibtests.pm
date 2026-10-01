@@ -39,6 +39,24 @@ sub upload_ibtest_logs {
     }
 }
 
+sub upload_hca_info {
+    # 15b3 is the Mellanox/NVIDIA PCI vendor ID. ibv_devinfo does not show
+    # the exact HCA chip, so lspci output is necessary for bug reports.
+    save_and_upload_log('lspci -nn -vv -d 15b3:', '/tmp/lspci_hca.log', {screenshot => 0});
+    save_and_upload_log('ibv_devinfo -v', '/tmp/ibv_devinfo.log', {screenshot => 0});
+
+    my $fw = script_output(q{ibv_devinfo | awk '/fw_ver/ {print $2}' | sort -u | paste -sd ' '}, proceed_on_failure => 1);
+    my $summary = script_output(q{lspci -nn -d 15b3:; ibv_devinfo | grep -E 'hca_id|fw_ver|vendor_part_id|board_id|state'}, proceed_on_failure => 1);
+    record_info("HCA fw $fw", $summary);
+}
+
+sub upload_ibtest_results {
+    # Upload the raw JUnit file, it is almost self-contained for bug reports
+    upload_logs('results/TEST-ib-test.xml', log_name => 'ibtests-results.xml', failok => 1);
+    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
+    parse_extra_log('XUnit', '/tmp/results.xml');
+}
+
 sub ibtest_slave {
     my $self = shift;
     barrier_wait('IBTEST_BEGIN');
@@ -103,8 +121,7 @@ sub ibtest_master {
     assert_script_run("cd $test_dir");
     barrier_wait('IBTEST_BEGIN');
     script_run("./ib-test.sh $args $master $slave", timeout => $timeout);
-    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
-    parse_extra_log('XUnit', '/tmp/results.xml');
+    upload_ibtest_results;
 
     barrier_wait('IBTEST_DONE');
     $self->upload_ibtest_logs;
@@ -125,6 +142,7 @@ sub run {
 
     record_info('KERNEL', script_output('rpm -qi kernel-default; uname -r'));
     save_and_upload_log('(rpm -qi kernel-default; uname -r)', 'kernel_bug_report.txt');
+    upload_hca_info;
 
     # wait for both machines to boot up before we continue
     barrier_wait('IBTEST_SETUP');
@@ -165,10 +183,7 @@ sub post_fail_hook {
     my $self = shift;
     my $role = get_required_var('IBTEST_ROLE');
 
-    if ($role eq 'IBTEST_MASTER') {
-        script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
-        parse_extra_log('XUnit', '/tmp/results.xml');
-    }
+    upload_ibtest_results if $role eq 'IBTEST_MASTER';
 
     $self->upload_ibtest_logs;
     $self->SUPER::post_fail_hook;
@@ -190,6 +205,13 @@ required.
 
 The test has some additional dependencies (twopence) that need to be in
 DEVEL_TOOLS_REPO.
+
+=head2 Logs for bug reports
+
+Both machines record the HCA model and firmware version in the "HCA fw"
+info box, and upload C<lspci_hca.log> and C<ibv_devinfo.log>. The master
+uploads the raw hpc-testing JUnit file as C<ibtests-results.xml>. Attach
+these files to InfiniBand bug reports.
 
 =head1 openQA setup
 
