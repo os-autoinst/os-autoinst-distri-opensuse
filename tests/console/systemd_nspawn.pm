@@ -26,6 +26,7 @@ sub run {
     }
     my $pkg_repo = get_var('MIRROR_HTTP', 'dvd:/?devices=/dev/sr0');
     my $release_pkg = (is_sle) ? 'sles-release' : 'openSUSE-release';
+    $release_pkg = 'Leap-release' if is_leap('>=16.0');
     my $packages = "systemd shadow zypper $release_pkg";
     my $machine = "test1";
     my $path = "/var/lib/machines/$machine";
