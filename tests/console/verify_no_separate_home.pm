@@ -11,10 +11,11 @@
 use Mojo::Base 'consoletest';
 use warnings FATAL => 'all';
 use testapi;
+use serial_terminal 'select_text_console';
 use Test::Assert 'assert_equals';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $root_device = script_output("findmnt -nrvo SOURCE -T /");
     my $home_device = script_output("findmnt -nrvo SOURCE -T /home");
