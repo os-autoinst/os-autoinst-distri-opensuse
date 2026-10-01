@@ -7,13 +7,14 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils 'systemctl';
 use service_check;
 use version_utils qw(is_sle is_sles4sap);
 use main_common 'is_desktop';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     check_services($default_services) if (is_sle && !is_desktop && !is_sles4sap && !get_var('MEDIA_UPGRADE') && !get_var('ZDUP') && !get_var('INSTALLONLY'));
 
     if ($srv_check_results{'after_migration'} eq 'FAIL') {
