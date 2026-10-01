@@ -9,13 +9,14 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use mailtest;
 
 sub run {
     my $self = shift;
 
-    select_console "root-console";
+    select_text_console;
     prepare_mail_client;
 
     # Install dovecot package
