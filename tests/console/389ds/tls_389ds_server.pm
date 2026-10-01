@@ -9,13 +9,14 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use lockapi;
 use mmapi;
 use services::389ds_server;
 
 sub run {
-    select_console("root-console");
+    select_text_console;
 
     if (check_var('VERSION', get_required_var('ORIGIN_SYSTEM_VERSION'))) {
         services::389ds_server::install_service();
