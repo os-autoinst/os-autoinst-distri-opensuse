@@ -19,6 +19,7 @@
 
 use Mojo::Base 'installbasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use scheduler 'get_test_suite_data';
 
@@ -28,7 +29,7 @@ sub _check_basic_installation {
     assert_script_run("test -d $nvm_test_data->{nvme_sys_path}", fail_message => "$nvm_test_data->{nvme_sys_path} not found as block device");
     assert_script_run("test -c /dev/$nvm_test_data->{nvm_char_device}", fail_message => "/dev/$nvm_test_data->{nvme_char_device} not found as character device");
 
-    my @nvm_partitions = split(/\n/, script_output("ls /dev/$nvm_test_data->{nvm_disk}*"));
+    my @nvm_partitions = split(/\n/, script_output("ls -1 /dev/$nvm_test_data->{nvm_disk}*"));
     foreach (@nvm_partitions) {
         assert_script_run("test -b $_", fail_message => "$_ should be a block device");
     }
@@ -79,7 +80,7 @@ sub _check_nvme_tools_installed {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     my $testdata = get_test_suite_data();
 
     _check_nvme_tools_installed;
