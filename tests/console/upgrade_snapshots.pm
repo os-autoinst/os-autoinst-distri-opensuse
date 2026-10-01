@@ -10,12 +10,13 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 
 # fate#317900: Create snapshot before starting Upgrade
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $waittime = 200 * get_var('TIMEOUT_SCALE', 1);
 
