@@ -7,6 +7,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use Utils::Architectures;
 use utils;
 use version_utils;
@@ -64,7 +65,7 @@ sub check_feature {
 }
 
 sub run {
-    select_console('root-console');
+    select_text_console;
     assert_script_run('setterm -blank 0') unless (is_s390x);
 
     check_feature;
