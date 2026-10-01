@@ -11,10 +11,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use version_utils 'is_sle';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     assert_script_run 'grep DHCLIENT_SET_HOSTNAME=\"no\" /etc/sysconfig/network/dhcp';
 
     # YaST tries to configure the local system hostname during installation.
