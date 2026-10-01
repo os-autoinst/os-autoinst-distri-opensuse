@@ -13,56 +13,7 @@ use Mojo::Util 'trim';
 use publiccloud::utils qw(is_azure is_gce);
 use publiccloud::ssh_interactive qw(select_host_console);
 use version_utils qw(package_version_cmp);
-
-sub systemd_time_to_second
-{
-    my $str_time = trim(shift);
-
-    if ($str_time !~ /^(?<check_hour>(?<hour>\d{1,2})\s*h\s*)?(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
-        record_info("WARN", "Unable to parse systemd time '$str_time'", result => 'fail');
-        return -1;
-    }
-    my $sec = $+{sec} // $+{ms} / 1000;
-    $sec += $+{min} * 60 if (defined($+{check_min}));
-    $sec += $+{hour} * 3600 if (defined($+{check_hour}));
-    return $sec;
-}
-
-sub extract_analyze_time {
-    my $str_time = shift;
-    my $res = {};
-    # Pick the line that actually holds the timing, not blindly the first line:
-    # ssh_script_output may prepend an SSH login banner / MOTD, which would
-    # otherwise leave us parsing an empty or non-timing line (poo#203817).
-    ($str_time) = grep { /Startup finished in/i } split(/\r?\n/, $str_time);
-    return undef unless defined($str_time);
-    $str_time =~ s/Startup finished in\s*//i;
-    $str_time =~ s/=(.+)$/+$1 (overall)/;
-    for my $time (split(/\s*\+\s*/, $str_time)) {
-        $time = trim($time);
-        my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
-        $res->{$type} = systemd_time_to_second($time);
-        return undef if ($res->{$type} == -1);
-    }
-    foreach (qw(kernel initrd userspace overall)) { return undef unless exists($res->{$_}); }
-    return $res;
-}
-
-sub extract_blame_time {
-    my $str_time = shift;
-    my $ret = {};
-    for my $line (split(/\r?\n/, $str_time)) {
-        $line = trim($line);
-        # Only <time> <service> lines are blame entries; skip anything else
-        # (e.g. an SSH login banner / MOTD prepended to the output, poo#203817).
-        my ($time, $service) = $line =~ /^(\S+)\s+(\S+)$/;
-        next unless defined($service);
-        my $sec = systemd_time_to_second($time);
-        next unless ($sec >= 0);
-        $ret->{$service} = $sec;
-    }
-    return $ret;
-}
+use Utils::SystemdAnalyze qw(extract_analyze_time extract_blame_time);
 
 sub do_systemd_analyze_time {
     my ($instance, %args) = @_;
