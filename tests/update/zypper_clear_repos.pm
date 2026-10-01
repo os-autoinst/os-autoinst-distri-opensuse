@@ -10,10 +10,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     # packagekit service may block zypper when operate on repos
     quit_packagekit;
 
@@ -25,7 +26,6 @@ sub run {
         15
     );
     zypper_call 'lr -d', exitcode => [0, 6];
-    save_screenshot;    # take a screenshot after repos removed
 
     if (get_var("STAGING")) {
         # With FATE#320494 the local repository would be disabled after installation
@@ -33,7 +33,6 @@ sub run {
         clear_console;
         assert_script_run("grep -rlE 'baseurl=cd:/(//)?\\?devices' $repos_folder | xargs --no-run-if-empty sed -i 's/^enabled=0/enabled=1/g'");
         zypper_call 'lr -d', exitcode => [0, 6];
-        save_screenshot;    # take a screenshot after repo enabled
     }
 }
 
