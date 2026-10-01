@@ -401,11 +401,7 @@ sub run {
             regex => ".*${kernel}\([0-9]*\\..*\)-\(.*\)"
         );
 
-        my ($fn, $version, $build) = get_values(
-            url => "${totest_path}/containers",
-            arch => $arch,
-            regex => ".*${kernel}\([0-9]*\\..*\)-\(.*\)"
-        );
+        my ($version, $build) = ($uri =~ /:([^:\/-]+)-([^:\/]+)$/) or die "Cannot parse version/build from '$uri'";
         $kernel =~ s/-$//;
 
         $out_file = extract_iso(
