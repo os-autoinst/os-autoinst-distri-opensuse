@@ -9,12 +9,13 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use version_utils 'is_sle';
 
 sub run {
     return record_info('No azurectl available on SLE 15, skipping') if is_sle('15+');
 
-    select_console('root-console');
+    select_text_console;
     # Check if can get version
     record_soft_failure('bsc#1105223') if (script_run('azurectl -v') != 0);
     # Define test data
