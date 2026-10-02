@@ -14,14 +14,14 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_leap);
 use package_utils qw(install_package uninstall_package);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = @_;
-    my $not_installed_pkg = is_sle(">=16.0") ? 'tmux' : 'iftop';    # iftop is not available on SLES16
+    my $not_installed_pkg = (is_sle(">=16.0") || is_leap(">=16.0")) ? 'tmux' : 'iftop';    # iftop is not available on SLES16/Leap16
 
     select_serial_terminal;
     uninstall_package("$not_installed_pkg", trup_reboot => 1) if (script_run("which $not_installed_pkg") == 0);
@@ -33,7 +33,7 @@ sub run {
     select_console 'user-console';
 
     save_screenshot;
-    assert_script_run(qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "sudo zypper install $not_installed_pkg"});
+    assert_script_run(qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -qE "sudo zypper install ($not_installed_pkg|<selected_package>)"});
     save_screenshot;
 
     if (is_sle('15+') && is_sle('<16')) {

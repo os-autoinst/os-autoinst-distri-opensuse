@@ -19,7 +19,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_opensuse is_tumbleweed is_sle);
+use version_utils qw(is_opensuse is_tumbleweed is_sle is_leap);
 use package_utils 'install_package';
 use registration qw(add_suseconnect_product get_addon_fullname register_product cleanup_registration);
 use feature 'signatures';
@@ -28,11 +28,11 @@ no warnings 'experimental::signatures';
 my $conf_dir = "/tmp/sssd_configs";
 
 sub install_dependencies($container_engine) {
-    zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16'));
-    my $openldap2_client = is_sle('>=16') ? 'openldap2_6-client' : 'openldap2-client';
+    zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16') || is_leap('>=16.0'));
+    my $openldap2_client = (is_sle('>=16') || is_leap('>=16.0')) ? 'openldap2_6-client' : 'openldap2-client';
     install_package("sssd sssd-ldap $openldap2_client sshpass $container_engine", trup_reboot => 1);
     record_info('bsc#1259250', 'Checking if sssd.conf is present after fresh install');
-    my $sssd_path = ((is_sle('>=16.0') || is_tumbleweed) ? "/usr/etc/sssd/sssd.conf" : "/etc/sssd/sssd.conf");
+    my $sssd_path = ((is_sle('>=16.0') || is_leap('>=16.0') || is_tumbleweed) ? "/usr/etc/sssd/sssd.conf" : "/etc/sssd/sssd.conf");
     assert_script_run("test -f $sssd_path", fail_message => "bsc#1259250 sssd.conf is not present after fresh install");
     systemctl("enable --now $container_engine") if ($container_engine eq "docker");
     return $container_engine;
@@ -77,7 +77,7 @@ sub setup_389ds_container ($container_engine) {
 
 sub configure_sssd_client ($container_engine, $run_as_user = 'root') {
     systemctl("stop nscd.service nscd.socket", ignore_failure => 1);
-    systemctl("disable --now nscd.service") unless (is_sle('>=16') || is_tumbleweed);
+    systemctl("disable --now nscd.service") unless (is_sle('>=16') || is_leap('>=16.0') || is_tumbleweed);
     systemctl("stop sssd.service");
 
     assert_script_run('mkdir -p /etc/sssd/');
