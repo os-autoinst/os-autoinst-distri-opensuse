@@ -144,9 +144,10 @@ L<Kernel::krb5>, see there. Call it before C<nfs-server> starts, so C<nfsd>
 uses the GSS service from the start.
 
 The GSS service is C<gssproxy> where it is installed, else C<rpc-svcgssd>.
-Only one of them runs, else the kernel can use either of them. C<gssproxy>
-needs the C<auth_rpcgss> module loaded when it starts, to make the kernel
-use it instead of C<rpc-svcgssd>.
+Only one of them runs, else the kernel can use either of them. Both need
+the C<auth_rpcgss> module loaded when they start: C<rpc.svcgssd> exits
+without it, and C<gssproxy> needs it to make the kernel use it instead of
+C<rpc-svcgssd>.
 
 The function makes sure that the GSS service runs and, for C<gssproxy>, that
 the kernel uses it. A restart alone does not show this: the service units
@@ -162,8 +163,11 @@ sub setup_nfs_krb5_server {
     setup_krb5_kdc(%args);
     add_host_principals('nfs', %args);
 
+    # Workaround: gssproxy and rpc.svcgssd need the auth_rpcgss module, which
+    # nfsd loads only later. Load it here until lib/Kernel provides kernel
+    # module operations, see poo#207906.
+    assert_script_run('modprobe auth_rpcgss');
     if (script_run('systemctl cat gssproxy.service > /dev/null 2>&1') == 0) {
-        assert_script_run('modprobe auth_rpcgss');
         systemctl('restart gssproxy');
         systemctl('is-active gssproxy');
         assert_script_run('grep -qx 1 /proc/net/rpc/use-gss-proxy');
