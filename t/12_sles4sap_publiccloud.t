@@ -1057,15 +1057,15 @@ subtest '[is_local_primary_recovery_aborting_takeover]' => sub {
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 1 });
 
 
-    is $self->is_local_primary_recovery_aborting_takeover(), 1,
+    is sles4sap::publiccloud::is_local_primary_recovery_aborting_takeover($self), 1,
       'Recovered local primary with DB online is detected';
 
     $cmd_output = 'Connection failed';
-    is $self->is_local_primary_recovery_aborting_takeover(), 0,
+    is sles4sap::publiccloud::is_local_primary_recovery_aborting_takeover($self), 0,
       'Promoted PRIMARY with DB offline is not treated as recovery';
 
     $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana02' });
-    is $self->is_local_primary_recovery_aborting_takeover(), 0,
+    is sles4sap::publiccloud::is_local_primary_recovery_aborting_takeover($self), 0,
       'Peer promotion is not treated as local recovery';
 
     $sles4sap_publiccloud->redefine(get_promoted_hostname => sub {
@@ -1073,7 +1073,7 @@ subtest '[is_local_primary_recovery_aborting_takeover]' => sub {
             return undef if $args{proceed_on_failure};
             die 'Master database was not found';
     });
-    is $self->is_local_primary_recovery_aborting_takeover(), 0,
+    is sles4sap::publiccloud::is_local_primary_recovery_aborting_takeover($self), 0,
       'Missing Promoted node during takeover is not treated as local recovery';
     set_var('INSTANCE_ID', undef);
     set_var('_HANA_MASTER_PW', undef);
