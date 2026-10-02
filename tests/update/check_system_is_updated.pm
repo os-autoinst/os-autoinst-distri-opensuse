@@ -10,10 +10,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils 'ensure_serialdev_permissions';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     ensure_serialdev_permissions;
     # pkcon returns non-zero code (5 'Nothing useful was done.')
     # so don't validate exit code and just match
