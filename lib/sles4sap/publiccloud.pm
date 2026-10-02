@@ -699,7 +699,7 @@ sub check_takeover {
             record_info('Takeover info', "Peer '$promoted' is Promoted, waiting for topology PRIM");
         }
         # Detect stable local primary recovery that aborts takeover.
-        elsif ($self->is_local_primary_recovery_aborting_takeover()) {
+        elsif (is_local_primary_recovery_aborting_takeover($self)) {
             $local_recovery_hits++;
             record_info('Takeover warn',
                 join("\n",
