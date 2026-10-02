@@ -11,12 +11,13 @@
 
 use Mojo::Base 'y2_installbase';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
 sub run {
     my $test_data = get_test_suite_data();
-    select_console 'root-console';
+    select_text_console;
 
     record_info("Check configuration", "Check if file /etc/systemd/system/yast-timesync.timer exists and has expected configuration.");
     assert_script_run('ls /etc/systemd/system/yast-timesync.timer');

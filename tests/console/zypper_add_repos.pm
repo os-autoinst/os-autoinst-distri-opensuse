@@ -10,13 +10,14 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils qw(quit_packagekit zypper_call);
 
 sub run {
     my $val = get_var("ZYPPER_ADD_REPOS");
     return unless $val;
 
-    select_console 'root-console';
+    select_text_console;
     quit_packagekit;
     my $prefix = get_var("ZYPPER_ADD_REPO_PREFIX", 'openqa');
 

@@ -10,12 +10,13 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 use scheduler 'get_test_suite_data';
 use filesystem_utils 'free_space';
 
 sub run {
-    select_console('root-console');
+    select_text_console;
     my $errors = '';
     my $disks = get_test_suite_data()->{disks};
 

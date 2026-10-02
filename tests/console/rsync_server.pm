@@ -14,6 +14,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use lockapi;
 use version_utils;
 use utils "zypper_call";
@@ -22,7 +23,7 @@ sub run {
     barrier_create('rsync_setup', 2);
     barrier_create('rsync_finished', 2);
     mutex_create 'barrier_setup_done';
-    select_console 'root-console';
+    select_text_console;
     zypper_call('in rsync') if (script_run('rpm -qi rsync') == 1);
 
     #preparation of rsync config files

@@ -8,6 +8,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use Test::Assert ':all';
 use Mojo::JSON 'decode_json';
@@ -15,7 +16,7 @@ use List::Util 'sum';
 
 sub pre_run_hook {
     my ($self) = @_;
-    select_console('root-console');
+    select_text_console;
     $self->SUPER::pre_run_hook;
 }
 

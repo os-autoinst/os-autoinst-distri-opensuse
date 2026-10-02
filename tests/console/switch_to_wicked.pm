@@ -9,13 +9,14 @@
 use Mojo::Base 'consoletest';
 use y2_module_basetest;
 use testapi;
+use serial_terminal 'select_text_console';
 use mm_network;
 
 sub run {
     my ($self) = shift;
     return unless is_network_manager_default;
     ensure_installed 'wicked';
-    select_console 'root-console';
+    select_text_console;
     $self->use_wicked_network_manager;
     configure_dhcp;
 }

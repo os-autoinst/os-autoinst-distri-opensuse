@@ -18,6 +18,7 @@ use Mojo::Base 'opensusebasetest';
 use scheduler 'get_test_suite_data';
 use validate_encrypt_utils;
 use testapi;
+use serial_terminal 'select_text_console';
 
 sub show_pbkdf {
     my $device = shift;
@@ -29,7 +30,7 @@ sub show_pbkdf {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     my $is_jq_installed = !script_run("rpm -q jq");
     my $test_data = get_test_suite_data();
     verify_crypttab_file_existence();

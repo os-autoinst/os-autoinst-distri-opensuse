@@ -10,10 +10,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     my $flavor = get_var("FLAVOR");
     my $repo_num;
     # In case of Full medium, test skips registration so all module repo URIs point to USB drive.

@@ -12,6 +12,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 use repo_tools 'verify_software';
@@ -142,7 +143,7 @@ sub verify_multipath {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $test_data_multipath = get_test_suite_data()->{multipath};
 

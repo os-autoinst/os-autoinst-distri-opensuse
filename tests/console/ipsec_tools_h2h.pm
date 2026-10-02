@@ -11,13 +11,14 @@
 use Mojo::Base 'consoletest';
 use lockapi;
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use mmapi;
 use mm_network;
 
 sub run {
     my $self = shift;
-    select_console 'root-console';
+    select_text_console;
     my $is_ipsec_primary = get_var('IPSEC_PRIMARY');
 
     # Static IP address for Primary host and secondary host

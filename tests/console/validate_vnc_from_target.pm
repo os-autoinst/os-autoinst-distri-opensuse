@@ -11,10 +11,11 @@
 use Mojo::Base 'consoletest';
 
 use testapi;
+use serial_terminal 'select_text_console';
 use utils "systemctl";
 
 sub run {
-    select_console "root-console";
+    select_text_console;
     # Check if the xvnc.socket is enabled and active.
     # Workaround for bsc#1177485.
     my $xvnc_inactive = systemctl "is-active xvnc.socket", ignore_failure => 1;

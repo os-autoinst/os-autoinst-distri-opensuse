@@ -9,12 +9,13 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 use scheduler 'get_test_suite_data';
 use filesystem_utils qw(get_partition_table_via_blkid partition_table);
 
 sub run {
-    select_console('root-console');
+    select_text_console;
 
     my $errors = '';
     foreach my $disk (@{get_test_suite_data()->{disks}}) {

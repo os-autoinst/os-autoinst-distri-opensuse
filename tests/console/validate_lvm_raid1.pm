@@ -8,6 +8,7 @@
 
 use Mojo::Base 'y2_module_consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use Test::Assert ':all';
 use scheduler 'get_test_suite_data';
@@ -15,7 +16,7 @@ use scheduler 'get_test_suite_data';
 sub run {
     my $self = shift;
 
-    select_console 'root-console';
+    select_text_console;
 
     my $config = get_test_suite_data();
     my $expected_num_devs = scalar @{$config->{disks}};

@@ -17,12 +17,13 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils 'zypper_call';
 use scheduler 'get_test_suite_data';
 
 sub run {
     my $packages = get_test_suite_data()->{install_packages};
-    select_console 'root-console';
+    select_text_console;
     zypper_call 'in ' . join(' ', @{$packages});
 }
 

@@ -10,10 +10,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils 'zypper_call';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     zypper_call('in -l perl-solv perl-Data-Dump');
 

@@ -8,6 +8,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use Utils::Architectures;
 use Utils::Backends 'is_pvm';
 use version_utils 'is_sle';
@@ -122,7 +123,7 @@ sub command_output {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     prepare_test_data;
     command_output(
         name => 'lsblk',

@@ -10,12 +10,13 @@
 use Mojo::Base 'y2_module_consoletest';
 
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use scheduler;
 use cfg_files_utils 'validate_cfg_file';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     my ($nm, $dev, $cfg_files) = @{get_test_suite_data()->{network}}{
         qw(network_manager device config_files)};
 

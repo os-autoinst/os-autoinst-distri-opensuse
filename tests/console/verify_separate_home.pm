@@ -11,9 +11,10 @@
 use Mojo::Base 'consoletest';
 use warnings FATAL => 'all';
 use testapi;
+use serial_terminal 'select_text_console';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     assert_script_run("lsblk -n | grep '/home'",
         fail_message => "Fail!\n

@@ -9,10 +9,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 # poo#11442
 sub run {
-    select_console("root-console");
+    select_text_console;
     assert_script_run("[ ! -f /root/autoinst.xml ]");
 }
 

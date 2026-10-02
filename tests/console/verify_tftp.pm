@@ -12,10 +12,11 @@
 
 use Mojo::Base 'y2_module_consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     assert_script_run 'echo "hello world" > /srv/tftpboot/tmp.txt';
     assert_script_run 'chown -R tftp /srv/tftpboot/tmp.txt';

@@ -10,6 +10,7 @@
 
 use Mojo::Base 'y2_module_consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils qw(zypper_call systemctl);
 use repo_tools 'prepare_source_repo';
 use version_utils qw(is_sle is_leap);
@@ -26,9 +27,7 @@ sub run_yast_cli_test {
     script_run "pushd $PACKDIR/BUILD/$packname-*";
 
     # Run 'prove' only if there is a directory called t
-    script_run("if [ -d t ]; then echo -n 'run'; else echo -n 'skip'; fi > /dev/$serialdev", 0);
-    my $action = wait_serial(['run', 'skip'], 10);
-    if ($action eq 'run') {
+    if (script_run('test -d t') == 0) {
         assert_script_run('prove -v', timeout => 180, fail_message => 'yast cli tests failed');
     }
 
@@ -39,7 +38,7 @@ sub run_yast_cli_test {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     die "wicked is not used. The yast2_network tests can run only against wicked." if (systemctl("status wicked.service", ignore_failure => 1) != 0);
     prepare_source_repo;
 

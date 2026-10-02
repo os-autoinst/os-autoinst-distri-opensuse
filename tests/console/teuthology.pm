@@ -11,6 +11,7 @@
 
 use base "consoletest";
 use testapi;
+use serial_terminal 'select_text_console';
 use version_utils 'is_sle';
 
 my $incidentnr = get_var('INCIDENT_ID');
@@ -36,7 +37,7 @@ sub openstack_cleanup {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     # export variables for teardown of openstack VM in next test
     assert_script_run "export instance_name=$instance_name";
     # TODO select ECP or OVH, now is ECP preconfigured in disk image

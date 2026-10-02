@@ -8,10 +8,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     zypper_call('in python3-openqa_review');
     assert_script_run 'openqa-review --help';

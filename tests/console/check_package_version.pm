@@ -7,6 +7,7 @@
 use Mojo::Base 'basetest';
 use version;
 use testapi;
+use serial_terminal 'select_text_console';
 use utils qw(systemctl zypper_call);
 use Mojo::Util 'trim';
 
@@ -56,7 +57,7 @@ sub loc_packages {
 
 sub run {
 
-    select_console 'root-console';
+    select_text_console;
 
     foreach my $key (keys %package) {
         my $pcks = cmp_packages($key, $package{$key});

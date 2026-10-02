@@ -12,6 +12,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 use utils qw(arrays_subset);
 
@@ -179,7 +180,7 @@ sub investigate_san_fabric {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $fcp_devices = get_fcp_devices_online();
     verify_fcp_devices($fcp_devices);
