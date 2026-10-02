@@ -18,8 +18,8 @@ sub run {
     my $arch = get_var('ARCH');
     my $test = get_var('TEST');
     my $tar_name = "${build}_${arch}_${test}.tar.gz";
-    my $orphaned_output = script_output('zypper packages --orphaned', proceed_on_failure => 1);
-    my $unneeded_output = script_output('zypper packages --unneeded', proceed_on_failure => 1);
+    my $orphaned_output = script_output('zypper -q packages --orphaned', proceed_on_failure => 1);
+    my $unneeded_output = script_output('zypper -q packages --unneeded', proceed_on_failure => 1);
     my $orphaned_file = "B${build}_${arch}_${test}_orphaned_packages.txt";
     my $unneeded_file = "B${build}_${arch}_${test}_unneeded_packages.txt";
     $orphaned_file = length($orphaned_file) > 80 ? "orphaned_packages.txt" : $orphaned_file;
