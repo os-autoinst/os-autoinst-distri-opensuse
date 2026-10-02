@@ -67,23 +67,19 @@ sub run {
     assert_script_run "ovs-vsctl add-port ovs-openqa-br0 patch-br1 -- set interface patch-br1 type=patch options:peer=patch-br0";
     assert_script_run "ovs-vsctl add-port ovs-openqa-br1 patch-br0 -- set interface patch-br0 type=patch options:peer=patch-br1";
 
-    script_run "ip link add ovs-veth0 type veth peer name ovs-veth-br0";
-    script_run "ip link add ovs-veth1 type veth peer name ovs-veth-br1";
+    script_run "ip link add ovs-veth0 type veth peer name ovs-veth-br0; ip link add ovs-veth1 type veth peer name ovs-veth-br1";
 
     assert_script_run "ovs-vsctl add-port ovs-openqa-br0 ovs-veth-br0";
     assert_script_run "ovs-vsctl add-port ovs-openqa-br1 ovs-veth-br1";
 
-    script_run "ip netns add ovs-openqa-ns0";
-    script_run "ip netns add ovs-openqa-ns1";
-    script_run "ip link set ovs-veth0 netns ovs-openqa-ns0";
-    script_run "ip link set ovs-veth1 netns ovs-openqa-ns1";
-    script_run "ip netns exec ovs-openqa-ns0 ip addr add 172.16.0.1/24 dev ovs-veth0";
-    script_run "ip netns exec ovs-openqa-ns1 ip addr add 172.16.0.2/24 dev ovs-veth1";
-    # All up!
-    script_run "ip netns exec ovs-openqa-ns0 ip link set dev ovs-veth0 up";
-    script_run "ip netns exec ovs-openqa-ns1 ip link set dev ovs-veth1 up";
-    script_run "ip link set dev ovs-veth-br0 up";
-    script_run "ip link set dev ovs-veth-br1 up";
+    # Set up the namespaces, addresses and links in one call
+    script_run "ip netns add ovs-openqa-ns0; ip netns add ovs-openqa-ns1; "
+      . "ip link set ovs-veth0 netns ovs-openqa-ns0; ip link set ovs-veth1 netns ovs-openqa-ns1; "
+      . "ip netns exec ovs-openqa-ns0 ip addr add 172.16.0.1/24 dev ovs-veth0; "
+      . "ip netns exec ovs-openqa-ns1 ip addr add 172.16.0.2/24 dev ovs-veth1; "
+      . "ip netns exec ovs-openqa-ns0 ip link set dev ovs-veth0 up; "
+      . "ip netns exec ovs-openqa-ns1 ip link set dev ovs-veth1 up; "
+      . "ip link set dev ovs-veth-br0 up; ip link set dev ovs-veth-br1 up";
     # For debug purposes
     script_run "ovs-vsctl show";
 
