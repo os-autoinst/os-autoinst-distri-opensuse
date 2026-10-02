@@ -9,6 +9,7 @@
 
 use Mojo::Base 'x11test';
 use testapi;
+use x11utils qw(update_x11_vt);
 
 sub run {
     x11_start_program('xfce4-session-logout', target_match => 'logoutdialog');
@@ -17,6 +18,7 @@ sub run {
     type_password;
     send_key "ret";
     assert_screen 'generic-desktop', 100;
+    update_x11_vt;
     mouse_set(100, 100);
     for (1 .. 4) {
         mouse_hide;
