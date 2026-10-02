@@ -8,13 +8,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use serial_terminal 'select_text_console';
 use utils;
 use lockapi;
 use services::389ds_sssd_client;
 
 sub run {
-    select_text_console;
+    select_console("root-console");
 
     services::389ds_sssd::install_service();
 
