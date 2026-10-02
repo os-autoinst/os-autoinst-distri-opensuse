@@ -38,7 +38,7 @@ schedule:
     - security/vsftpd/lftp
     - security/oqa_agnostic/go_post_quantum
     - console/ca_certificates_mozilla
-    - console/unzip
+    - console/oqa_agnostic/unzip_agnostic
     - console/rsync
     - console/shells
     - console/oqa_agnostic/sudo_agnostic

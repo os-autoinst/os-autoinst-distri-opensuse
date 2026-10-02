@@ -1761,7 +1761,8 @@ sub load_extra_tests_console {
     loadtest "console/curl_ipv6" unless is_public_cloud();
     loadtest "console/wget_ipv6";
     loadtest "console/ca_certificates_mozilla";
-    loadtest "console/unzip";
+    # The agnostic unzip test needs Python 3.6+; SLE 12 keeps the console test.
+    loadtest(is_sle('<15') ? "console/unzip" : "console/oqa_agnostic/unzip_agnostic");
     loadtest "console/salt" if ((is_jeos && is_sle('<16.0')) || is_opensuse);
     loadtest "console/gpg";
     loadtest "console/rsync";

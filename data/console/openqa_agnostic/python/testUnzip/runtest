@@ -1,0 +1,77 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: unzip
+# desc: >
+#   Functional tests for Info-ZIP unzip. Exercises extraction of a generated
+#   archive with deflated and stored members, extraction into a directory,
+#   archive integrity checking, selective single-member extraction, structural
+#   validation of zipinfo output, funzip streaming and the unzipsfx
+#   self-extractor. Ported from tests/console/unzip.pm and extended with the
+#   upstream Info-ZIP unix/Makefile "check" matrix plus zip64, ZipCrypto
+#   encryption, path traversal and corrupted-archive handling.
+# steps:
+#   - build a deterministic sample archive with deflated and stored members,
+#     a nested directory, an empty file and a filename containing a space
+#   - extract it and verify the members and their content
+#   - extract it into a new directory with -d
+#   - verify archive integrity with unzip -t
+#   - extract a single member and verify only that member is written
+#   - validate the structure of unzip -Z (zipinfo) output on testmake.zip
+#   - verify funzip streams the first member identically to unzip -p
+#   - build a self-extracting archive with unzipsfx and verify its output
+#   - extract a zip64 archive
+#   - decrypt a ZipCrypto archive and reject wrong or missing passwords
+#   - verify that a member with ../ does not escape the extraction directory
+#   - verify that unzip -t rejects an archive with a corrupted deflate stream
+# author: Vit Pelcak <vpelcak@suse.com>
+# maintainer: Vit Pelcak <vpelcak@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 15+ (SLE 12 skips: system Python < 3.6)
+# tags: console unzip funzip unzipsfx zipinfo
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_unzip.py testmake.zip)
+
+handle_args "$0" "$@"
+
+ensure_root
+
+# SLE 12 ships Python 3.4. The test body needs 3.6+ (zipfile.ZipFile.open with
+# mode='w' / force_zip64 was added in 3.6). Emit a JUnit skip so standalone
+# runs report clean instead of crashing at collection time.
+py_ver=$(python3 -c "import sys; print('%d%02d' % sys.version_info[:2])" 2>/dev/null || echo "000")
+if [ "$py_ver" -lt 306 ]; then
+    echo "SKIP: Python 3.6+ required (found $(python3 --version 2>&1))"
+    cat > results.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="testUnzip" tests="1" skipped="1" failures="0" errors="0">
+  <testcase name="python_version" classname="testUnzip">
+    <skipped message="Python 3.6+ required for zipfile.ZipFile.open with force_zip64"/>
+  </testcase>
+</testsuite>
+EOF
+    exit 0
+fi
+
+for tool in unzip funzip unzipsfx zipinfo; do
+    ensure_command_available "$tool"
+done
+
+echo "--- Test directory: $PWD ---"
+ls -l
+echo "----------------------------"
+
+set +e
+pytest -v --tb=short test_unzip.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc

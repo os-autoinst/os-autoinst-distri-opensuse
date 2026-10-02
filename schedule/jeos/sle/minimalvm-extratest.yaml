@@ -60,7 +60,7 @@ schedule:
     - console/oqa_agnostic/ansible_agnostic
     - x11/evolution/evolution_prepare_servers
     - console/console_reboot
-    - console/unzip
+    - console/oqa_agnostic/unzip_agnostic
     - console/gpg
     - console/rsync
     - console/shells

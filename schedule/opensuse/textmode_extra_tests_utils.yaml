@@ -56,7 +56,7 @@ schedule:
     - console/tuned
     - console/fwupd
     - console/ca_certificates_mozilla
-    - console/unzip
+    - console/oqa_agnostic/unzip_agnostic
     - console/gpg
     - console/rsync
     - console/shells
