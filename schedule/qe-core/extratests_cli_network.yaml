@@ -1,0 +1,141 @@
+name: extratests_cli_network
+description: >
+  Maintainer: qe-core.
+  Extra CLI tests, part 2 of 3: network tools, network services and authentication.
+  One schedule for maintenance, functional and openSUSE. Do not make product copies.
+  Add a conditional entry only if the package is not available on a product.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/ping
+  - console/arping
+  - console/wireshark_cli
+  - console/traceroute
+  - console/tracepath
+  - console/dig
+  - console/tcpdump
+  - console/dnsmasq
+  - console/openvswitch
+  - console/sshd
+  - console/slp
+  - console/openssl_alpn
+  - console/krb5
+  - console/mta
+  - console/check_default_network_manager
+  - console/rpcbind
+  - console/vsftpd
+  - x11/evolution/evolution_prepare_servers
+  - console/mutt
+  - '{{sle_common}}'
+  - '{{sle_15}}'
+  - '{{sle_15sp5}}'
+  - '{{sle_16}}'
+  - '{{sle}}'
+  - '{{opensuse}}'
+  - console/coredump_collect
+conditional_schedule:
+  sle_common:
+    VERSION:
+      12-SP5: &sle_common
+        - console/curl_ipv6
+        - console/wget_ipv6
+        - '{{sssd_12sp5}}'
+      15-SP4: *sle_common
+      15-SP5: *sle_common
+      15-SP6: *sle_common
+      15-SP7: *sle_common
+      '16.0': *sle_common
+      '16.1': *sle_common
+      Tumbleweed: *sle_common
+  sssd_12sp5:
+    VERSION:
+      12-SP5:
+        - '{{sssd_12sp5_arch}}'
+  sssd_12sp5_arch:
+    ARCH:
+      x86_64:
+        - console/sssd_389ds_functional
+      s390x:
+        - console/sssd_389ds_functional
+  sle_15:
+    VERSION:
+      15-SP4: &sle_15
+        - console/chrony
+        - console/ovn
+        - console/firewalld
+        - console/sssd_389ds_functional
+        - '{{snmp}}'
+        - '{{wpa_supplicant}}'
+      15-SP5: *sle_15
+      15-SP6: *sle_15
+      15-SP7: *sle_15
+      '16.0': *sle_15
+      '16.1': *sle_15
+      Tumbleweed: *sle_15
+  sle_15sp5:
+    VERSION:
+      15-SP5: &sle_15sp5
+        - '{{dpdk}}'
+      15-SP6: *sle_15sp5
+      15-SP7: *sle_15sp5
+      '16.0': *sle_15sp5
+      '16.1': *sle_15sp5
+      Tumbleweed: *sle_15sp5
+  sle_16:
+    VERSION:
+      '16.0': &sle_16
+        - console/nftables
+        - console/networkmanager
+        - network/cifs
+        - console/synce4l_gpsd
+        - network/samba/server
+      '16.1': *sle_16
+      Tumbleweed: *sle_16
+  snmp:
+    ARCH:
+      x86_64:
+        - network/snmp
+      aarch64:
+        - network/snmp
+      ppc64le:
+        - network/snmp
+  wpa_supplicant:
+    ARCH:
+      x86_64:
+        - console/wpa_supplicant
+  dpdk:
+    ARCH:
+      x86_64:
+        - console/dpdk
+  sle:
+    DISTRI:
+      sle:
+        - network/samba/samba_adcli
+  opensuse:
+    DISTRI:
+      opensuse:
+        - console/systemd_resolved
+        - console/salt
+        - console/znc
+        - console/weechat
+        - '{{yast2_lan_device_settings}}'
+        - '{{velociraptor}}'
+  yast2_lan_device_settings:
+    ARCH:
+      x86_64:
+        - console/yast2_lan_device_settings
+      aarch64:
+        - console/yast2_lan_device_settings
+      ppc64le:
+        - console/yast2_lan_device_settings
+  velociraptor:
+    ARCH:
+      x86_64:
+        - console/velociraptor_client_event_collect
+      aarch64:
+        - console/velociraptor_client_event_collect
+      ppc64le:
+        - console/velociraptor_client_event_collect

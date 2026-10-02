@@ -1,0 +1,151 @@
+name: extratests_cli_system
+description: >
+  Maintainer: qe-core.
+  Extra CLI tests, part 1 of 3: base system, packaging, storage and logging.
+  One schedule for maintenance, functional and openSUSE. Do not make product copies.
+  Add a conditional entry only if the package is not available on a product.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/clamav_upgrade
+  - console/man_pages
+  - console/pam
+  - console/update_alternatives
+  - console/rpm
+  - console/command_not_found
+  - console/autoyast_removed
+  - console/journalctl
+  - console/journalctlLevels
+  - console/cron
+  - console/syslog
+  - console/sysctl
+  - console/oqa_agnostic/sysstat_agnostic
+  - console/kmod
+  - console/suse_module_tools
+  - console/aaa_base
+  - console/timezone
+  - console/procps
+  - console/iotop
+  - console/dstat
+  - console/pciutils
+  - console/mdadm
+  - console/quota
+  - console/vhostmd
+  - console/shells
+  - console/oqa_agnostic/sudo_agnostic
+  - console/ca_certificates_mozilla
+  - console/unzip
+  - console/tar
+  - console/cpio
+  - console/rsync
+  - console/cups
+  - console/osinfo_db
+  - '{{sle_common}}'
+  - '{{sle_15}}'
+  - '{{sle_15sp5}}'
+  - '{{sle_15sp6}}'
+  - '{{sle_16}}'
+  - '{{sle}}'
+  - '{{opensuse}}'
+  - console/coredump_collect
+conditional_schedule:
+  sle_common:
+    VERSION:
+      12-SP3: &sle_common
+        - console/journald_fss
+      12-SP5:
+        - '{{journald_fss_12sp5}}'
+      15-SP4: *sle_common
+      15-SP5: *sle_common
+      15-SP6: *sle_common
+      15-SP7: *sle_common
+      '16.0': *sle_common
+      '16.1': *sle_common
+      Tumbleweed: *sle_common
+  journald_fss_12sp5:
+    ARCH:
+      x86_64:
+        - console/journald_fss
+      aarch64:
+        - console/journald_fss
+  sle_15:
+    VERSION:
+      15-SP4: &sle_15
+        - console/pkcon
+        - console/tuned
+        - console/gpg
+        - console/ndctl
+        - console/zypper_info
+        - console/snapper_zypp
+        - console/zypper_extend
+        - console/orphaned_packages_check
+        - console/systemd_nspawn
+        - '{{fwupd}}'
+        - console/lshw
+        - '{{year_2038_detection}}'
+      15-SP5: *sle_15
+      15-SP6: *sle_15
+      15-SP7: *sle_15
+      '16.0': *sle_15
+      '16.1': *sle_15
+      Tumbleweed: *sle_15
+  sle_15sp5:
+    VERSION:
+      15-SP5: &sle_15sp5
+        - console/sevenzip
+      15-SP6: *sle_15sp5
+      15-SP7: *sle_15sp5
+      '16.0': *sle_15sp5
+      '16.1': *sle_15sp5
+      Tumbleweed: *sle_15sp5
+  sle_15sp6:
+    VERSION:
+      15-SP6: &sle_15sp6
+        - qe-core/systemd/journal_remote
+      15-SP7: *sle_15sp6
+      '16.0': *sle_15sp6
+      '16.1': *sle_15sp6
+      Tumbleweed: *sle_15sp6
+  sle_16:
+    VERSION:
+      '16.0': &sle_16
+        - console/run0
+      '16.1': *sle_16
+      Tumbleweed: *sle_16
+  fwupd:
+    ARCH:
+      x86_64:
+        - console/fwupd
+      aarch64:
+        - console/fwupd
+      ppc64le:
+        - console/fwupd
+  year_2038_detection:
+    ARCH:
+      x86_64:
+        - console/year_2038_detection
+      aarch64:
+        - console/year_2038_detection
+      ppc64le:
+        - console/year_2038_detection
+  sle:
+    DISTRI:
+      sle:
+        - console/supportutils
+  opensuse:
+    DISTRI:
+      opensuse:
+        - console/vmstat
+        - console/nano
+        - console/systemd_rpm_macros
+        - console/a2ps
+        - console/zbar
+        - '{{steamcmd}}'
+  steamcmd:
+    ARCH:
+      x86_64:
+        - console/steamcmd
