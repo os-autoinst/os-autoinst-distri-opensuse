@@ -23,12 +23,11 @@
 
 use Mojo::Base 'btrfs_test';
 use testapi;
-use serial_terminal 'select_text_console';
 use utils 'zypper_call';
 
 sub run {
     my ($self) = @_;
-    select_text_console;
+    select_console 'root-console';
 
     my @snapper_runs = 'snapper';
     push @snapper_runs, 'snapper --no-dbus' if get_var('SNAPPER_NODBUS');
@@ -44,7 +43,6 @@ sub run {
 
         # Create partition on unpartitioned
         assert_script_run 'echo -e "g\nn\n\n\n\nt\n8e\np\nw" | fdisk ' . $disk;
-        assert_script_run 'udevadm settle';
         assert_script_run 'lsblk';
 
         # Create a volume group named 'test'

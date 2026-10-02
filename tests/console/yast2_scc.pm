@@ -6,11 +6,10 @@
 
 use Mojo::Base 'y2_module_consoletest';
 use testapi;
-use serial_terminal 'select_text_console';
 use registration;
 
 sub run {
-    select_text_console;
+    select_console 'root-console';
 
     if (my $u = get_var('SCC_URL')) {
         enter_cmd "echo 'url: $u' > /etc/SUSEConnect";
