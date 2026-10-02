@@ -23,7 +23,7 @@ use package_utils 'install_package';
 sub run {
     my $role = get_required_var('IBTEST_ROLE');
     my $install = get_var('IBTEST_INSTALL', 'from_repo');
-    my $packages = "rdma-core rdma-ndd iputils";
+    my $packages = "rdma-core rdma-ndd iputils libibverbs-utils pciutils";
     my $packages_master = $packages . " git-core bc";
 
 
