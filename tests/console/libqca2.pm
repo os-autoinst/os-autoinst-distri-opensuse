@@ -56,7 +56,7 @@ sub run {
     assert_script_run "$qca_cmd show cert cert.pem";
     assert_script_run "$qca_cmd keybundle make rsapriv.pem cert.pem --pass=suse --newpass=suse";
     assert_script_run "$qca_cmd keystore list-stores";
-    enter_cmd "$qca_cmd keystore monitor >>/dev/$serialdev";
+    enter_cmd "$qca_cmd keystore monitor";
     wait_serial 'Monitoring keystores';
     wait_serial 'System Trusted Certificates';
     enter_cmd "q";

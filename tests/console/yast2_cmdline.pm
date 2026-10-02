@@ -27,9 +27,7 @@ sub run_yast_cli_test {
     script_run "pushd $PACKDIR/BUILD/$packname-*";
 
     # Run 'prove' only if there is a directory called t
-    script_run("if [ -d t ]; then echo -n 'run'; else echo -n 'skip'; fi > /dev/$serialdev", 0);
-    my $action = wait_serial(['run', 'skip'], 10);
-    if ($action eq 'run') {
+    if (script_run('test -d t') == 0) {
         assert_script_run('prove -v', timeout => 180, fail_message => 'yast cli tests failed');
     }
 
