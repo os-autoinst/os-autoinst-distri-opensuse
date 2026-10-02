@@ -33,7 +33,8 @@ sub verify_test_data {
     my ($dir, @files) = @_;
 
     assert_script_run("cd $dir");
-    assert_script_run("md5sum -c md5sum.txt");
+    record_info("$dir: files", script_output("ls -l"));
+    record_info("$dir: checksum", script_output("md5sum -c md5sum.txt"));
     compare_checksums($_) foreach (@files);
 }
 
@@ -134,59 +135,19 @@ sub run {
     barrier_wait("NFS_CLIENT_ENABLED");
     barrier_wait("NFS_SERVER_CHECK");
 
+    my @files = ($file_flag_direct, $file_flag_dsync, $file_flag_sync);
     if ($kernel_nfs3 == 1) {
-        #checking files in /nfs/shared_nfs3
         record_info("TESTS: NFS3");
-        record_info("NFS3 list all files", script_output("ls $nfs_mount_nfs3"));
-
-        assert_script_run("cd $nfs_mount_nfs3");
-
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
-        record_info("NFS3 checksum", script_output("cat md5sum.txt"));
-
-        #check files copied with various flags: direct, dsync, sync
-        compare_checksums($file_flag_direct);
-        compare_checksums($file_flag_dsync);
-        compare_checksums($file_flag_sync);
-
-        #checking files in /nfs/shared_nfs3_async
+        verify_test_data($nfs_mount_nfs3, @files);
         record_info("TESTS: NFS3 async");
-
-        assert_script_run("cd $nfs_mount_nfs3_async");
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS3 async checksum", script_output("md5sum -c md5sum.txt"));
-
-        #check files copied with various flags: direct, dsync, sync
-        compare_checksums($file_flag_direct);
-        compare_checksums($file_flag_dsync);
-        compare_checksums($file_flag_sync);
+        verify_test_data($nfs_mount_nfs3_async, @files);
     }
 
     if ($kernel_nfs4 == 1) {
-        #checking files in /nfs/shared_nfs4
         record_info("TESTS: NFS4");
-
-        assert_script_run("cd $nfs_mount_nfs4");
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS4 checksum", script_output("md5sum -c md5sum.txt"));
-
-        #check files copied with various flags: direct, dsync, sync
-        compare_checksums($file_flag_direct);
-        compare_checksums($file_flag_dsync);
-        compare_checksums($file_flag_sync);
-
-        #checking files in /nfs/shared_nfs4_async
+        verify_test_data($nfs_mount_nfs4, @files);
         record_info("TESTS: NFS4 async");
-
-        assert_script_run("cd $nfs_mount_nfs4_async");
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS4 async checksum", script_output("md5sum -c md5sum.txt"));
-
-        #check files copied with various flags: direct, dsync, sync
-        compare_checksums($file_flag_direct);
-        compare_checksums($file_flag_dsync);
-        compare_checksums($file_flag_sync);
+        verify_test_data($nfs_mount_nfs4_async, @files);
     }
 
     # The client writes the data of each flavor in its own subdirectory
@@ -197,7 +158,7 @@ sub run {
                 record_info("TESTS: NFS$export->{version} $type $sec");
                 die "No test data in $dir: NFS_KRB5 and NFS_KRB5_FLAVORS must be the same on server and client"
                   if script_run("test -d $dir");
-                verify_test_data($dir, $file_flag_direct, $file_flag_dsync, $file_flag_sync);
+                verify_test_data($dir, @files);
             }
         }
     }
