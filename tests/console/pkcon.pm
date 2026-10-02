@@ -11,6 +11,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use registration;
 use version_utils 'is_sle';
@@ -20,7 +21,7 @@ sub run {
     my @command = qw(refresh repo-list backend-details get-roles get-groups get-filters);
     my $pkgname = "coreutils";
 
-    select_console 'root-console';
+    select_text_console;
     # need to add required product at first
     add_suseconnect_product('sle-module-desktop-applications', undef, undef, undef, 300, 1) if (is_sle(">=15") && is_sle("<16"));
 

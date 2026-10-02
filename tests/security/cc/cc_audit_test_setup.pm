@@ -9,6 +9,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use registration 'add_suseconnect_product';
 use audit_test;
@@ -21,7 +22,7 @@ sub run {
     my $file_tar = $audit_test::testfile_tar . '.tar';
     my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
 
-    select_console 'root-console';
+    select_text_console;
 
     unless (check_var('FLAVOR', 'Full-QR')) {
         if (script_run('which SUSEConnect') != 0) {

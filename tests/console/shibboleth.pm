@@ -15,10 +15,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $apache2 = get_var('APACHE2_PKG', "apache2");
     zypper_call "in shibboleth-sp $apache2";
