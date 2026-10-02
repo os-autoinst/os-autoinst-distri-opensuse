@@ -171,8 +171,6 @@ sub test_flags {
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
-    $self->destroy_test_barriers();
     select_serial_terminal;
     upload_nfs_krb5_logs if get_var('NFS_KRB5');
     export_logs_basic;
