@@ -16,10 +16,12 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(zypper_call script_retry script_output_retry file_content_replace);
+use utils qw(zypper_call script_retry script_output_retry file_content_replace ensure_ca_certificates_suse_installed);
+use Utils::Systemd qw(systemctl);
 use mmapi 'get_current_job_id';
 use power_action_utils;
 use version_utils;
+use Utils::Architectures;
 use containers::k8s;
 
 my $vmi_user = 'test';
@@ -29,12 +31,38 @@ my $vmi_ssh_key_path;
 my $vmi_name;
 my $vmi_image = get_var('CONTAINER_IMAGE_TO_TEST', 'registry.opensuse.org/opensuse/factory/totest/containers/opensuse/tumbleweed-kubevirt-minimal');
 
-sub install_kubevirt {
-    zypper_call('in kubevirt-manifests kubevirt-virtctl', timeout => 300);
+# SLES ships no kubevirt-manifests, so use the upstream release (latest unless KUBEVIRT_VERSION is set)
+sub install_upstream_kubevirt {
+    my $version = get_var('KUBEVIRT_VERSION') || script_output(
+        q{curl -fsSL -o /dev/null -w '%{url_effective}' https://github.com/kubevirt/kubevirt/releases/latest | sed 's|.*/||'});
+    die "Cannot determine the upstream KubeVirt version: '$version'" unless $version =~ /^v\d+\.\d+\.\d+$/;
 
-    my $manifest_dir = script_output(
-        q{find /usr/share -type f -path '*/manifests/release/kubevirt-operator.yaml' -printf '%h\n' -quit}
-    );
+    my $arch = is_aarch64 ? 'arm64' : 'amd64';
+    my $base_url = "https://github.com/kubevirt/kubevirt/releases/download/$version";
+    my $manifest_dir = '/tmp/kubevirt-manifests';
+
+    record_info('Upstream KubeVirt', "Using upstream KubeVirt $version");
+
+    assert_script_run("mkdir -p $manifest_dir");
+    for my $file (qw(kubevirt-operator.yaml kubevirt-cr.yaml)) {
+        script_retry("curl -fsSL -o $manifest_dir/$file $base_url/$file", retry => 3, delay => 15, timeout => 120);
+    }
+    script_retry("curl -fsSL -o /usr/local/bin/virtctl $base_url/virtctl-$version-linux-$arch", retry => 3, delay => 15, timeout => 300);
+    assert_script_run('chmod +x /usr/local/bin/virtctl');
+
+    return $manifest_dir;
+}
+
+sub install_kubevirt {
+    my $manifest_dir;
+    if (is_opensuse) {
+        zypper_call('in kubevirt-manifests kubevirt-virtctl', timeout => 300);
+        $manifest_dir = script_output(
+            q{find /usr/share -type f -path '*/manifests/release/kubevirt-operator.yaml' -printf '%h\n' -quit}
+        );
+    } else {
+        $manifest_dir = install_upstream_kubevirt();
+    }
 
     die 'KubeVirt manifest directory not found' unless $manifest_dir;
 
@@ -160,6 +188,15 @@ sub install_kernel_with_kvm_support {
     select_serial_terminal;
 }
 
+# registry.suse.de needs the SUSE CA; containerd reads the CA store only at startup
+sub trust_suse_ca_in_k3s {
+    return unless $vmi_image =~ m{^registry\.suse\.de/};
+
+    ensure_ca_certificates_suse_installed();
+    systemctl('restart k3s', timeout => 180);
+    script_retry('kubectl get nodes | grep -w Ready', retry => 12, delay => 10);
+}
+
 sub install_deps {
     my @deps = (
         "netcat-openbsd",
@@ -180,6 +217,7 @@ sub run {
 
     record_info('ContainerDisk', $vmi_image);
 
+    trust_suse_ca_in_k3s();
     install_kubevirt();
 
     create_vmi_manifest($job_id);
