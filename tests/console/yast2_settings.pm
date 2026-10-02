@@ -12,7 +12,6 @@
 
 use Mojo::Base 'y2_module_consoletest';
 use testapi;
-use serial_terminal 'select_text_console';
 use utils;
 use y2lan_restart_common;
 
@@ -55,7 +54,7 @@ sub _create_conflicts {
 sub run {
     my $self = shift;
 
-    select_text_console;
+    select_console 'root-console';
     zypper_call "in yast2-network";    # make sure yast2 routing module installed
 
     assert_script_run("sysctl net.ipv4.ip_forward | grep 0");
