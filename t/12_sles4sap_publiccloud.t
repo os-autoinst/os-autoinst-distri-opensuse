@@ -1035,52 +1035,6 @@ subtest '[check_takeover] fail if primary online' => sub {
 };
 
 
-subtest '[is_local_primary_recovery_aborting_takeover]' => sub {
-    my $self = sles4sap::publiccloud->new();
-    my $mock_pc = Test::MockObject->new();
-    $mock_pc->set_true('update_instance_ip');
-    $self->{my_instance} = $mock_pc;
-    $self->{my_instance}->{instance_id} = 'vmhana01';
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
-    set_var('INSTANCE_ID', '00');
-    set_var('_HANA_MASTER_PW', '1234');
-    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
-    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    my @calls;
-    my $cmd_output = 'bubblefish';
-    $sles4sap_publiccloud->redefine(run_cmd => sub {
-            my ($self, %args) = @_;
-            push @calls, $args{cmd};
-            return $cmd_output; }
-    );
-    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
-    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 1 });
-
-
-    is sles4sap::publiccloud::is_local_primary_recovery_aborting_takeover($self), 1,
-      'Recovered local primary with DB online is detected';
-
-    $cmd_output = 'Connection failed';
-    is sles4sap::publiccloud::is_local_primary_recovery_aborting_takeover($self), 0,
-      'Promoted PRIMARY with DB offline is not treated as recovery';
-
-    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana02' });
-    is sles4sap::publiccloud::is_local_primary_recovery_aborting_takeover($self), 0,
-      'Peer promotion is not treated as local recovery';
-
-    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub {
-            my ($self, %args) = @_;
-            return undef if $args{proceed_on_failure};
-            die 'Master database was not found';
-    });
-    is sles4sap::publiccloud::is_local_primary_recovery_aborting_takeover($self), 0,
-      'Missing Promoted node during takeover is not treated as local recovery';
-    set_var('INSTANCE_ID', undef);
-    set_var('_HANA_MASTER_PW', undef);
-    set_var('SAP_SIDADM', undef);
-};
-
-
 subtest '[check_takeover] tolerates missing promoted hostname' => sub {
     my $self = sles4sap::publiccloud->new();
     $self->{my_instance}->{instance_id} = 'vmhana01';
@@ -1108,7 +1062,6 @@ subtest '[check_takeover] tolerates missing promoted hostname' => sub {
     );
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
-    $sles4sap_publiccloud->redefine(is_local_primary_recovery_aborting_takeover => sub { return 0 });
     $sles4sap_publiccloud->redefine(get_promoted_hostname => sub {
             my ($self, %args) = @_;
             return undef if $args{proceed_on_failure};
@@ -1155,13 +1108,68 @@ subtest '[check_takeover] fail on local primary recovery' => sub {
     $sles4sap_publiccloud->redefine(get_hana_topology => sub { return \%test_topology; });
     $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
-    $sles4sap_publiccloud->redefine(is_local_primary_recovery_aborting_takeover => sub { return 1 });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 1 });
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return 'OK'; });
     $sles4sap_publiccloud->redefine(record_takeover_diagnostics => sub { return; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    set_var('INSTANCE_ID', '00');
+    set_var('_HANA_MASTER_PW', '1234');
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
 
     throws_ok { $self->check_takeover() }
     qr/Takeover aborted by local primary recovery/,
       'Detects local primary recovery aborting takeover';
+
+    set_var('INSTANCE_ID', undef);
+    set_var('_HANA_MASTER_PW', undef);
+    set_var('SAP_SIDADM', undef);
+};
+
+
+subtest '[check_takeover] local PRIMARY with DB offline does not abort takeover' => sub {
+    my $self = sles4sap::publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'vmhana01';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my $loops = 0;
+    my %test_topology = (
+        Host => {
+            vmhana01 => {vhost => 'vmhana01', site => 'site_a'},
+            vmhana02 => {vhost => 'vmhana02', site => 'site_b'}
+        },
+        Site => {
+            site_a => {srPoll => 'PRIM'},
+            site_b => {srPoll => 'SOK'}
+        }
+    );
+
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub {
+            $loops++;
+            if ($loops > 3) {
+                $test_topology{Site}{site_a}{srPoll} = 'SFAIL';
+                $test_topology{Site}{site_b}{srPoll} = 'PRIM';
+            }
+            return \%test_topology;
+    });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub {
+            return $loops <= 3 ? 1 : 0;
+    });
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return 'Connection failed'; });
+    $sles4sap_publiccloud->redefine(record_takeover_diagnostics => sub { return; });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    set_var('INSTANCE_ID', '00');
+    set_var('_HANA_MASTER_PW', '1234');
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
+
+    ok $self->check_takeover(),
+      'Local Promoted PRIMARY with DB offline is not treated as recovery';
+
+    set_var('INSTANCE_ID', undef);
+    set_var('_HANA_MASTER_PW', undef);
+    set_var('SAP_SIDADM', undef);
 };
 
 
