@@ -9,9 +9,8 @@
 # Summary: Basic tests for unzip
 #    1. Unzip (basic usage)
 #    2. Unzip into a new directory
-#    TODO:
-#     - 3. Test the credibility of the zip archive
-#     - 4. Unzip only one file (instead of all)
+#    3. Test the credibility of the zip archive
+#    4. Unzip only one file (instead of all)
 # Maintainer: Panos Georgiadis <pgeorgiadis@suse.com>
 
 use Mojo::Base 'consoletest';
@@ -46,6 +45,16 @@ sub run {
 
     # 3. Test the credibility of the zip archive
     assert_script_run 'unzip -tq test_unzip.zip';
+
+    # 4. Extract only a single file instead of the whole archive
+    assert_script_run 'unzip test_unzip.zip JavaScript.pdf -d single/';
+    # only the requested member must have been extracted
+    $entries = script_output('ls -1Uq single/ | wc -l');
+    die "Expected 1 extracted entry in single/, got $entries" unless $entries == 1;
+    # the extracted file must match the checksum already recorded in checklist.md5
+    assert_script_run '(cd single && grep -F JavaScript.pdf ../checklist.md5 | md5sum -c -)';
+    assert_script_run 'rm -rf single';
+
     assert_script_run 'popd';
 }
 
