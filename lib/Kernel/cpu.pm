@@ -13,6 +13,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Kernel::irq qw(get_interrupts get_irq_total);
 
 our @EXPORT_OK = qw(
   lscpu_info
@@ -277,12 +278,9 @@ interrupts and on s390x Machine Check interrupts.
 =cut
 
 sub nmi_count {
-    my ($nmi) = grep { /^\s*NMI:/ } split(/\n/, script_output('cat /proc/interrupts'));
-    return 0 unless defined $nmi;
-
-    my $count = 0;
-    $count += $_ for grep { /^\d+$/ } split(' ', $nmi);
-    return $count;
+    my $snapshot = get_interrupts();
+    return 0 unless $snapshot->{irqs}{NMI};
+    return get_irq_total($snapshot, 'NMI');
 }
 
 1;
