@@ -1,0 +1,16 @@
+---
+name: dhcpd
+description: >
+    Maintainer: qe-core
+    Install and test dhcpd
+conditional_schedule:
+    dhcpd:
+        HOSTNAME:
+            'client':
+                - network/dhcpd_client
+            'server':
+                - network/dhcpd_server
+schedule:
+    - boot/boot_to_desktop
+    - network/setup_multimachine
+    - '{{dhcpd}}'
