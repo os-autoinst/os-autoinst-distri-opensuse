@@ -1,0 +1,18 @@
+name:           agama_irq_delivery_storage_baremetal
+description:    >
+    Install bare metal with Agama, then check PCI storage interrupt delivery
+    under direct I/O on a system with more than eight online CPUs on at
+    least two sockets (irq_delivery_storage). Set
+    IRQ_DELIVERY_DEVICE to one or more whole PCI storage disks of the
+    machine, separated by spaces, preferably under /dev/disk/by-id/. The
+    test only reads the disks.
+vars:
+    INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+    LTP_BAREMETAL: '1'
+schedule:
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - kernel/update_kernel
+    - kernel/irq_delivery_storage
