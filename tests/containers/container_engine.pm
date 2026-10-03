@@ -129,172 +129,123 @@ sub basic_container_tests {
     ## Note: Leave the tumbleweed container to save some bandwidth. It is used in other test modules as well.
 }
 
-my $macvlan_netname = 'macvlan_test';
-my $macvlan_dev;
+my $created_network;
+my $created_vlan;
 
-sub cleanup_macvlan {
+sub cleanup_network {
     my %args = @_;
     my $runtime = $args{runtime};
     script_run("$runtime rm -f busybox_1");
     script_run("$runtime rm -f busybox_2");
-    return unless defined $macvlan_dev;
-    record_info "Clean up macvlan test";
-    script_run("$runtime network rm $macvlan_netname");
-    script_run("ip link delete dev $macvlan_dev");
-    undef $macvlan_dev;
+    if (defined $created_network) {
+        record_info "Clean up $created_network";
+        script_run("$runtime network rm $created_network");
+        undef $created_network;
+    }
+    if (defined $created_vlan) {
+        script_run("ip link delete dev $created_vlan");
+        undef $created_vlan;
+    }
 }
 
+# Create new VLAN sub nic for isolation
+sub create_vlan_dev {
+    my %args = @_;
+    my $id = $args{id};
+    my $nic = script_output(q(ip -4 route show default | awk '{print $5}'; exit));
+    my $dev = "$nic.$id";
+    assert_script_run("ip link add link $nic name $dev type vlan id $id");
+    $created_vlan = $dev;
+    assert_script_run("ip link set $created_vlan up");
+    return $created_vlan;
+}
+
+sub create_test_network {
+    my %args = @_;
+    my $runtime = $args{runtime};
+    my $driver = $args{driver};
+    my $netname = "${driver}_test";
+    my $opts = $args{opts} // '';
+
+    assert_script_run("$runtime network create -d $driver $opts $netname");
+    $created_network = $netname;
+    validate_script_output("$runtime network ls", qr/$netname/);
+    validate_script_output("$runtime network inspect -f '{{.Driver}}' $netname", qr/$driver/);
+    record_info("$driver network", script_output("$runtime network inspect $netname"));
+    return $netname;
+}
+
+# Run two containers in the test network and check they can reach each other
+sub start_test_containers {
+    my %args = @_;
+    my $runtime = $args{runtime};
+    my $network = $args{network};
+    my $ip1 = $args{ip1};
+    my $ip2 = $args{ip2};
+    my $image = "registry.opensuse.org/opensuse/busybox";
+
+    script_retry("$runtime image pull $image", timeout => 600, retry => 3, delay => 120);
+    assert_script_run("$runtime run -d --network $network --ip $ip1 --name busybox_1 $image sleep infinity");
+    assert_script_run("$runtime run -d --network $network --ip $ip2 --name busybox_2 $image sleep infinity");
+
+    # Check if containers really use the test network
+    validate_script_output("$runtime container inspect busybox_1", qr/$network/);
+    validate_script_output("$runtime container inspect busybox_2", qr/$network/);
+    validate_script_output("$runtime exec busybox_1 ip a", qr/$ip1/);
+    validate_script_output("$runtime exec busybox_2 ip a", qr/$ip2/);
+
+    assert_script_run("$runtime exec busybox_1 ping -c3 $ip2");
+    assert_script_run("$runtime exec busybox_2 ping -c3 $ip1");
+}
 
 sub check_network_macvlan {
     my %args = @_;
     my $runtime = $args{runtime};
-    my $image = "registry.opensuse.org/opensuse/busybox";
-    my $ip1 = "10.88.1.10";
-    my $ip2 = "10.88.1.11";
 
     record_info "Start macvlan test";
-
-    record_info "Check for kernel module 8021q required for macvlan test";
-    if (is_jeos && is_sle('=16.1') && script_run('modprobe 8021q') != 0) {
-        record_soft_failure("bsc#1274833 - kernel module 8021q is not available");
-        return;
-    }
-
     assert_script_run("modinfo macvlan", fail_message => "required macvlan module not present");
 
-    my $nic = script_output(q(ip -4 route show default | awk '{print $5}'; exit));
-    $macvlan_dev = "$nic.666";
-    script_retry("$runtime image pull $image", timeout => 600, retry => 3, delay => 120);
-
-    # Create new VLAN sub nic for isolation
-    assert_script_run("ip link add link $nic name $macvlan_dev type vlan id 666");
-    assert_script_run("ip link set $macvlan_dev up");
-
-    # Create macvlan network
-    assert_script_run("$runtime network create -d macvlan -o parent=$macvlan_dev --subnet=10.88.1.0/24 --gateway=10.88.1.254 $macvlan_netname");
-    validate_script_output("$runtime network ls", qr/$macvlan_netname/);
-    record_info("macvlan network", script_output("$runtime network inspect $macvlan_netname"));
-
-    # Create containers with macvlan network
-    assert_script_run("$runtime run -d --network $macvlan_netname --ip $ip1 --name busybox_1 $image sleep infinity");
-    assert_script_run("$runtime run -d --network $macvlan_netname --ip $ip2 --name busybox_2 $image sleep infinity");
-
-    # Check if container realy use macvlan network
-    validate_script_output("$runtime container inspect busybox_1", qr/$macvlan_netname/);
-    validate_script_output("$runtime container inspect busybox_2", qr/$macvlan_netname/);
-    validate_script_output("$runtime exec busybox_1 ip a", qr/$ip1/);
-    validate_script_output("$runtime exec busybox_2 ip a", qr/$ip2/);
-
-    # Containers using the macvlan network can reach each other
-    assert_script_run("$runtime exec busybox_1 ping -c3 $ip2");
-    assert_script_run("$runtime exec busybox_2 ping -c3 $ip1");
+    my $dev = create_vlan_dev(id => 666);
+    my $net = create_test_network(runtime => $runtime, driver => 'macvlan', opts => "-o parent=$dev --subnet=10.89.201.0/24 --gateway=10.89.201.254");
+    start_test_containers(runtime => $runtime, network => $net, ip1 => "10.89.201.10", ip2 => "10.89.201.11");
 
     # Containers using the macvlan network should not be able to reach 1.1.1.1
     assert_script_run("! $runtime exec busybox_1 ping -c2 1.1.1.1", fail_message => "container reached the internet, macvlan is not isolated");
 
-    # Clean up
-    cleanup_macvlan(runtime => $runtime);
-}
-
-my $ipvlan_netname = 'ipvlan_test';
-my $ipvlan_dev;
-
-sub cleanup_ipvlan {
-    my %args = @_;
-    my $runtime = $args{runtime};
-    script_run("$runtime rm -f busybox_1");
-    script_run("$runtime rm -f busybox_2");
-    return unless defined $ipvlan_dev;
-    record_info "Clean up ipvlan test";
-    script_run("$runtime network rm $ipvlan_netname");
-    script_run("ip link delete dev $ipvlan_dev");
-    undef $ipvlan_dev;
+    cleanup_network(runtime => $runtime);
 }
 
 sub check_network_ipvlan {
     my %args = @_;
     my $runtime = $args{runtime};
-    my $image = "registry.opensuse.org/opensuse/busybox";
-    my $ip1 = "10.88.2.10";
-    my $ip2 = "10.88.2.11";
 
     record_info "Start ipvlan test";
-
-    record_info "Check for kernel module 8021q required for ipvlan test";
-    if (is_jeos && is_sle('=16.1') && script_run('modprobe 8021q') != 0) {
-        record_soft_failure("bsc#1274833 - kernel module 8021q is not available");
-        return;
-    }
-
     record_info "Check for kernel module ipvlan required for ipvlan test";
     if (is_jeos && script_run('modprobe ipvlan') != 0) {
         record_info("Skip ipvlan", "kernel module ipvlan is not available in is_jeos requirement under review");
         return;
     }
-
     assert_script_run("modinfo ipvlan", fail_message => "required ipvlan module not present");
 
-    my $nic = script_output(q(ip -4 route show default | awk '{print $5}'; exit));
-    $ipvlan_dev = "$nic.667";
-    script_retry("$runtime image pull $image", timeout => 600, retry => 3, delay => 120);
-
-    # Create new VLAN sub nic for isolation
-    assert_script_run("ip link add link $nic name $ipvlan_dev type vlan id 667");
-    assert_script_run("ip link set $ipvlan_dev up");
-
-    # Create ipvlan network
-    assert_script_run("$runtime network create -d ipvlan -o parent=$ipvlan_dev -o mode=l2 --subnet=10.88.2.0/24 --gateway=10.88.2.254 $ipvlan_netname");
-    validate_script_output("$runtime network ls", qr/$ipvlan_netname/);
-    validate_script_output("$runtime network inspect -f '{{.Driver}}' $ipvlan_netname", qr/ipvlan/);
-    record_info("ipvlan network", script_output("$runtime network inspect $ipvlan_netname"));
-
-    # Create containers with ipvlan network
-    assert_script_run("$runtime run -d --network $ipvlan_netname --ip $ip1 --name busybox_1 $image sleep infinity");
-    assert_script_run("$runtime run -d --network $ipvlan_netname --ip $ip2 --name busybox_2 $image sleep infinity");
-
-    # Check if container realy use ipvlan network
-    validate_script_output("$runtime container inspect busybox_1", qr/$ipvlan_netname/);
-    validate_script_output("$runtime container inspect busybox_2", qr/$ipvlan_netname/);
-    validate_script_output("$runtime exec busybox_1 ip a", qr/$ip1/);
-    validate_script_output("$runtime exec busybox_2 ip a", qr/$ip2/);
+    my $dev = create_vlan_dev(id => 667);
+    my $net = create_test_network(runtime => $runtime, driver => 'ipvlan', opts => "-o parent=$dev -o mode=l2 --subnet=10.89.202.0/24 --gateway=10.89.202.254");
+    start_test_containers(runtime => $runtime, network => $net, ip1 => "10.89.202.10", ip2 => "10.89.202.11");
 
     # Check if ipvlan interfaces share the MAC address of host
-    my $parent_mac = script_output("cat /sys/class/net/$ipvlan_dev/address");
+    my $parent_mac = script_output("cat /sys/class/net/$dev/address");
     validate_script_output("$runtime exec busybox_1 ip link show eth0", qr/$parent_mac/i);
     validate_script_output("$runtime exec busybox_2 ip link show eth0", qr/$parent_mac/i);
-
-    # Containers using the ipvlan network can reach each other
-    assert_script_run("$runtime exec busybox_1 ping -c3 $ip2");
-    assert_script_run("$runtime exec busybox_2 ping -c3 $ip1");
 
     # Containers using the ipvlan network should not be able to reach 1.1.1.1
     assert_script_run("! $runtime exec busybox_1 ping -c2 1.1.1.1", fail_message => "container reached the internet, ipvlan is not isolated");
 
-    # Clean up
-    cleanup_ipvlan(runtime => $runtime);
-}
-
-my $bridge_netname = 'bridge_test';
-my $bridge_iface = 'br_test0';
-my $bridge_created;
-
-sub cleanup_bridge {
-    my %args = @_;
-    my $runtime = $args{runtime};
-    script_run("$runtime rm -f busybox_1");
-    script_run("$runtime rm -f busybox_2");
-    return unless $bridge_created;
-    record_info "Clean up bridge test";
-    script_run("$runtime network rm $bridge_netname");
-    undef $bridge_created;
+    cleanup_network(runtime => $runtime);
 }
 
 sub check_network_bridge {
     my %args = @_;
     my $runtime = $args{runtime};
-    my $image = "registry.opensuse.org/opensuse/busybox";
-    my $ip1 = "10.89.3.10";
-    my $ip2 = "10.89.3.11";
+    my $bridge_iface = 'br_test0';
     # Set a custom bridge interface name using the driver-specific option
     my %bridge_iface_opt = (
         podman => "--interface-name=$bridge_iface",
@@ -303,36 +254,15 @@ sub check_network_bridge {
 
     record_info "Start bridge test";
 
-    script_retry("$runtime image pull $image", timeout => 600, retry => 3, delay => 120);
-
-    # Create a second bridge network using native podman/docker commands
-    assert_script_run("$runtime network create -d bridge --subnet=10.89.3.0/24 --gateway=10.89.3.1 $bridge_iface_opt{$runtime} $bridge_netname");
-    $bridge_created = 1;
-    validate_script_output("$runtime network ls", qr/$bridge_netname/);
-    validate_script_output("$runtime network inspect -f '{{.Driver}}' $bridge_netname", qr/bridge/);
-    record_info("bridge network", script_output("$runtime network inspect $bridge_netname"));
-
-    # Create containers with the second bridge network
-    assert_script_run("$runtime run -d --network $bridge_netname --ip $ip1 --name busybox_1 $image sleep infinity");
-    assert_script_run("$runtime run -d --network $bridge_netname --ip $ip2 --name busybox_2 $image sleep infinity");
+    my $net = create_test_network(runtime => $runtime, driver => 'bridge', opts => "--subnet=10.89.203.0/24 --gateway=10.89.203.1 $bridge_iface_opt{$runtime}");
+    start_test_containers(runtime => $runtime, network => $net, ip1 => "10.89.203.10", ip2 => "10.89.203.11");
     assert_script_run("ip link show $bridge_iface", fail_message => "bridge interface $bridge_iface was not created");
-
-    # Check if containers really use the second bridge network
-    validate_script_output("$runtime container inspect busybox_1", qr/$bridge_netname/);
-    validate_script_output("$runtime container inspect busybox_2", qr/$bridge_netname/);
-    validate_script_output("$runtime exec busybox_1 ip a", qr/$ip1/);
-    validate_script_output("$runtime exec busybox_2 ip a", qr/$ip2/);
-
-    # Containers using the second bridge network can reach each other
-    assert_script_run("$runtime exec busybox_1 ping -c3 $ip2");
-    assert_script_run("$runtime exec busybox_2 ping -c3 $ip1");
 
     # Containers using the second bridge network can reach the outside
     assert_script_run("$runtime exec busybox_1 ping -c3 1.1.1.1", fail_message => "container cannot reach the internet");
     script_retry("$runtime exec busybox_1 ping -c3 google.com", retry => 3, delay => 60, fail_message => "container cannot resolve DNS");
 
-    # Clean up
-    cleanup_bridge(runtime => $runtime);
+    cleanup_network(runtime => $runtime);
 }
 
 sub run {
@@ -377,9 +307,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    cleanup_macvlan(runtime => $self->{runtime});
-    cleanup_ipvlan(runtime => $self->{runtime});
-    cleanup_bridge(runtime => $self->{runtime});
+    cleanup_network(runtime => $self->{runtime});
     $self->SUPER::post_fail_hook;
 }
 
