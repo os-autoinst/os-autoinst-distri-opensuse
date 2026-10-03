@@ -1,0 +1,24 @@
+name:           agama_irq_delivery_2hosts_baremetal
+description:    >
+    Install two bare metal machines with Agama, then check network card
+    interrupt delivery between them with irq_delivery_network.
+    The machines and their test link come from
+    test_data/kernel/multimachine/irq_delivery_2hosts.yaml. Set ROLE to sut
+    or peer.
+vars:
+    INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+    DESKTOP: textmode
+    LTP_BAREMETAL: '1'
+test_data:
+    <<: !include test_data/kernel/multimachine/irq_delivery_2hosts.yaml
+    multimachine_barriers:
+        - IRQ_NET_PEER_READY
+        - IRQ_NET_TRAFFIC_DONE
+schedule:
+    - kernel/multimachine_barriers
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - kernel/update_kernel
+    - kernel/irq_delivery_network

@@ -38,6 +38,10 @@ our @EXPORT_OK = qw(
   stop_packet_capture
   count_capture_packets
   capture_statistics
+  get_net_dev_pci_device
+  set_link_up
+  has_ipv4_addr
+  wait_for_ipv4_addr
 );
 
 =head1 SYNOPSIS
@@ -47,6 +51,71 @@ IPsec, L2TP, routing, and general tunnel configuration.
 
 =cut
 
+=head2 get_net_dev_pci_device
+
+ my $pci = get_net_dev_pci_device($interface);
+
+Returns the sysfs path of the PCI device of a network interface, for
+example C</sys/devices/pci0000:00/0000:00:1f.6> for C<eno1>. If there are
+PCI bridges, this is the PCI device closest to the interface. Dies if the
+interface is not under a PCI device in sysfs, for example a loopback,
+bridge or bond interface.
+
+=cut
+
+sub get_net_dev_pci_device {
+    my ($interface) = @_;
+    my $path = script_output("readlink -f /sys/class/net/$interface");
+    my ($pci) = $path =~ m{^(/sys/devices/.*/[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7])/};
+    die "$interface is not under a PCI device: $path" unless $pci;
+    return $pci;
+}
+
+=head2 set_link_up
+
+ set_link_up($dev);
+
+Sets the network interface C<$dev> up.
+
+=cut
+
+sub set_link_up {
+    my ($dev) = @_;
+    assert_script_run("ip link set $dev up");
+}
+
+=head2 has_ipv4_addr
+
+ my $present = has_ipv4_addr($dev, $ip);
+
+Returns true if the network interface C<$dev> has the IPv4 address C<$ip>.
+
+=cut
+
+sub has_ipv4_addr {
+    my ($dev, $ip) = @_;
+    my $addresses = script_output("ip -4 -o addr show dev $dev", proceed_on_failure => 1);
+    return $addresses =~ m{\binet \Q$ip\E/};
+}
+
+=head2 wait_for_ipv4_addr
+
+ wait_for_ipv4_addr($dev, $ip);
+
+Waits up to one minute until the network interface C<$dev> has the IPv4
+address C<$ip>, for example an address from DHCP. Dies if it does not get
+it.
+
+=cut
+
+sub wait_for_ipv4_addr {
+    my ($dev, $ip) = @_;
+    for (1 .. 12) {
+        return if has_ipv4_addr($dev, $ip);
+        sleep 5;
+    }
+    die "$dev does not have the IPv4 address $ip";
+}
 
 =head2 get_net_prefix_len
 
