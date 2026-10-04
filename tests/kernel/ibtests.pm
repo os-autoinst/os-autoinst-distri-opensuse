@@ -3,7 +3,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: git-core twopence-shell-client bc iputils python
+# Package: git-core twopence-shell-client bc iputils python pciutils
 # Summary: run InfiniBand test suite hpc-testing
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>
@@ -20,6 +20,7 @@ use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
 use mm_network;
 use LTP::WhiteList;
 use LTP::utils 'prepare_whitelist_environment';
+use Kernel::hca qw(get_hca_devices get_hca_info get_hca_ports get_hca_model get_hca_netdevs);
 
 our $master;
 our $slave;
@@ -37,6 +38,39 @@ sub upload_ibtest_logs {
     foreach (@systemd_units) {
         save_and_upload_log("journalctl -u ${_}.service", "/tmp/${_}.service.log", {screenshot => 0});
     }
+}
+
+# Show the HCA model, firmware and port state of each RDMA device, and
+# upload its lspci output. The maintainers need this data in bug reports.
+sub record_hca_info {
+    my @devs = get_hca_devices();
+    unless (@devs) {
+        record_info('HCA', 'No RDMA device in /sys/class/infiniband', result => 'fail');
+        return;
+    }
+    for my $dev (@devs) {
+        my $info = get_hca_info($dev);
+        my $ports = get_hca_ports($dev);
+        my $fw = $info->{fw_ver} // 'unknown';
+        my @text = (
+            'model: ' . ($info->{pci} ? get_hca_model($dev, pci => $info->{pci}) // 'unknown' : 'unknown'),
+            "fw_ver: $fw",
+            map({ "$_: " . ($info->{$_} // 'unknown') } qw(hca_type board_id node_guid pci)),
+            'netdevs: ' . (join(' ', get_hca_netdevs($dev)) || 'none'),
+            map({ my $p = $ports->{$_}; "port $_: $p->{state}, $p->{phys_state}, $p->{rate}, $p->{link_layer}" } sort keys %$ports),
+        );
+        record_info("HCA $dev fw $fw", join("\n", @text));
+        save_and_upload_log("lspci -nn -vv -s $info->{pci}", "/tmp/lspci_$dev.log", {screenshot => 0}) if $info->{pci};
+    }
+}
+
+# Upload the raw JUnit file of hpc-testing for bug reports, and show the
+# results in openQA. The sanitized copy for parse_extra_log is uploaded as
+# ibtests-results.xml, so the raw file has a different name.
+sub upload_ibtest_results {
+    upload_logs('results/TEST-ib-test.xml', log_name => 'ibtests-results-raw.xml', failok => 1);
+    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
+    parse_extra_log('XUnit', '/tmp/results.xml');
 }
 
 sub ibtest_slave {
@@ -103,8 +137,7 @@ sub ibtest_master {
     assert_script_run("cd $test_dir");
     barrier_wait('IBTEST_BEGIN');
     script_run("./ib-test.sh $args $master $slave", timeout => $timeout);
-    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
-    parse_extra_log('XUnit', '/tmp/results.xml');
+    upload_ibtest_results;
 
     barrier_wait('IBTEST_DONE');
     $self->upload_ibtest_logs;
@@ -125,6 +158,7 @@ sub run {
 
     record_info('KERNEL', script_output('rpm -qi kernel-default; uname -r'));
     save_and_upload_log('(rpm -qi kernel-default; uname -r)', 'kernel_bug_report.txt');
+    record_hca_info;
 
     # wait for both machines to boot up before we continue
     barrier_wait('IBTEST_SETUP');
@@ -165,10 +199,7 @@ sub post_fail_hook {
     my $self = shift;
     my $role = get_required_var('IBTEST_ROLE');
 
-    if ($role eq 'IBTEST_MASTER') {
-        script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
-        parse_extra_log('XUnit', '/tmp/results.xml');
-    }
+    upload_ibtest_results if $role eq 'IBTEST_MASTER';
 
     $self->upload_ibtest_logs;
     $self->SUPER::post_fail_hook;
@@ -190,6 +221,14 @@ required.
 
 The test has some additional dependencies (twopence) that need to be in
 DEVEL_TOOLS_REPO.
+
+=head2 Logs for bug reports
+
+Both machines show the model, firmware version and port state of each HCA
+in an info box with the title C<HCA E<lt>deviceE<gt> fw E<lt>versionE<gt>>,
+and upload C<lspci_E<lt>deviceE<gt>.log> (C<lspci -nn -vv> of the HCA). The
+master uploads the raw hpc-testing JUnit file as
+C<ibtests-results-raw.xml>. Attach these files to InfiniBand bug reports.
 
 =head1 openQA setup
 
