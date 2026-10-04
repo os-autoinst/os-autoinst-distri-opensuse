@@ -76,7 +76,8 @@ sub run {
         timeout => 3600,
         error_list => [
             'An internal execution error occurred. Please retry later',
-            'There is a peering operation in progress'
+            'There is a peering operation in progress',
+            'context deadline exceeded'
         ],
         destroy => 0);
     # Retrying terraform more times in case of GCP, to handle concurrent peering attempts
