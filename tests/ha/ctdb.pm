@@ -13,7 +13,7 @@ use lockapi;
 use hacluster;
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(is_sle);
-use utils qw(systemctl file_content_replace zypper_call);
+use utils qw(systemctl file_content_replace write_sut_file zypper_call);
 use network_utils qw(iface);
 
 sub run {
@@ -71,23 +71,26 @@ sub run {
             # Set maintenance mode before adding resources
             assert_script_run "crm configure property maintenance-mode=true";
 
-            # Create vip resource
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ip_rsc IPaddr2 params ip='$vip_ip' nic='$iface' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
+            # Add all resources in a single transaction
+            my @cib_lines = (
+                "primitive $ip_rsc IPaddr2 params ip=$vip_ip nic=$iface cidr_netmask=24 broadcast=10.0.2.255",
+                "primitive $ctdb_rsc CTDB params ctdb_manages_winbind=false ctdb_manages_samba=false "
+                  . "ctdb_recovery_lock=$ctdb_folder/ctdb.lock ctdb_socket=$ctdb_socket",
+                "primitive $nmb_rsc systemd:nmb",
+                "primitive $smb_rsc systemd:smb",
+                "group ctdb-group $ctdb_rsc $nmb_rsc $smb_rsc",
+                'clone ctdb-clone ctdb-group meta interleave=true',
+                'colocation col-ctdb-with-clusterfs inf: ctdb-clone base-clone',
+                "colocation col-ip-with-ctdb Mandatory: $ip_rsc ctdb-clone",
+                'order o-clusterfs-then-ctdb Mandatory: base-clone ctdb-clone',
+                "order o-ip-then-ctdb Mandatory: $ip_rsc ctdb-clone",
+            );
+            write_sut_file('/tmp/ctdb_cib.txt', join("\n", @cib_lines));
+            assert_script_run 'crm configure load update /tmp/ctdb_cib.txt';
 
-            # Add ctdb, nmb, smb, group, clone and order resources
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ctdb_rsc CTDB params ctdb_manages_winbind=false ctdb_manages_samba=false ctdb_recovery_lock='$ctdb_folder/ctdb.lock' ctdb_socket='$ctdb_socket''\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $nmb_rsc systemd:nmb'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $smb_rsc systemd:smb'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a group ctdb-group $ctdb_rsc $nmb_rsc $smb_rsc'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a clone ctdb-clone ctdb-group meta interleave=true'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a colocation col-ctdb-with-clusterfs inf: ctdb-clone base-clone'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a colocation col-ip-with-ctdb Mandatory: $ip_rsc ctdb-clone'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a order o-clusterfs-then-ctdb Mandatory: base-clone ctdb-clone'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a order o-ip-then-ctdb Mandatory: $ip_rsc ctdb-clone'\" crm configure edit";
-
-            # Remove maintenance mode and wait for resources start
+            # Remove maintenance mode and wait for the resources to start
             assert_script_run "crm configure property maintenance-mode=false";
-            sleep 60;
+            wait_until_resources_started;
             save_state;
 
             # Check CTDB status
