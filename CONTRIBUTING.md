@@ -221,9 +221,10 @@ independently without pulling in unrelated changes.
     * The commit subject **must not**:
         * exceed 72 characters in length.
         * end with a dot.
-    * The commit subject **must** start with a capital or tag. For example:
-        * `Fix deep issue in test module`
-        * `bugfix: Fix deep issue in a library`
+    * The commit subject **must** start with a `scope:` prefix naming the
+      affected area (kernel style). For example:
+        * `containers: Fix deep issue in test module`
+        * `lib/utils: Fix deep issue in a library`
     * There must be an empty newline between the commit subject and the commit
       body.
 
@@ -236,7 +237,7 @@ independently without pulling in unrelated changes.
  An example of a good commit format from https://commit.style/
 
 ```commit
-Commit message style guide for Git
+docs: Commit message style guide for Git
 
 The first line of a commit message serves as a summary.  When displayed
 on the web, it's often styled as a heading, and in emails, it's
