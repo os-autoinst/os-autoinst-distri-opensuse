@@ -1,0 +1,112 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kernel/krb5.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#Realm-settings">Realm settings</a></li>
+      <li><a href="#krb5_enctype">krb5_enctype</a></li>
+      <li><a href="#setup_krb5_conf">setup_krb5_conf</a></li>
+      <li><a href="#setup_krb5_kdc">setup_krb5_kdc</a></li>
+      <li><a href="#add_principal">add_principal</a></li>
+      <li><a href="#add_host_principals">add_host_principals</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kernel/krb5.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Set up a small Kerberos realm for kernel tests that need Kerberos, for example NFS with <code>sec=krb5</code>. One node runs the KDC and <code>kadmind</code>, all nodes use the same <code>krb5.conf</code> and add their own service principals.</p>
+
+<h2 id="Realm-settings">Realm settings</h2>
+
+<p>All functions accept these optional named arguments. Each one defaults to a fixed test value:</p>
+
+<dl>
+
+<dt id="realm---realm-name-defaults-to-KERNEL-QE.TEST"><code>realm</code> - realm name, defaults to <code>KERNEL-QE.TEST</code></dt>
+<dd>
+
+</dd>
+<dt id="admin---admin-principal-defaults-to-root-admin"><code>admin</code> - admin principal, defaults to <code>root/admin</code></dt>
+<dd>
+
+</dd>
+<dt id="admin_pass---password-of-the-admin-principal-defaults-to-Admin_pass"><code>admin_pass</code> - password of the admin principal, defaults to <code>Admin_pass</code></dt>
+<dd>
+
+</dd>
+<dt id="db_pass---master-password-of-the-KDC-database-defaults-to-DB_phrase"><code>db_pass</code> - master password of the KDC database, defaults to <code>DB_phrase</code></dt>
+<dd>
+
+</dd>
+<dt id="enctype---the-only-encryption-type-of-the-realm-defaults-to-krb5_enctype"><code>enctype</code> - the only encryption type of the realm, defaults to <code>krb5_enctype()</code></dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>A function uses only the settings that it needs. The KDC and all other nodes must use the same values: if a caller overrides a setting on the KDC, it must pass the same value on the other nodes too.</p>
+
+<h2 id="krb5_enctype">krb5_enctype</h2>
+
+<pre><code>my $enctype = krb5_enctype();</code></pre>
+
+<p>Return the encryption type to use for the realm. SLE older than 15-SP6 does not support <code>aes256-cts-hmac-sha384-192</code> in the kernel GSS code, thus use <code>aes256-cts-hmac-sha1-96</code> there.</p>
+
+<h2 id="setup_krb5_conf">setup_krb5_conf</h2>
+
+<pre><code>setup_krb5_conf($kdc [, realm =&gt; $realm, enctype =&gt; $enctype, libdefaults =&gt; {$key =&gt; $value}, includedir =&gt; $dir]);</code></pre>
+
+<p>Write <code>krb5.conf</code> for the test realm with <code>kdc</code> as KDC and admin server. <code>kdc</code> can include a port, for example <code>127.0.0.1:88</code>.</p>
+
+<p>Hostname canonicalization is disabled, thus principals use the host names exactly as the tests use them. The acceptor accepts each key in its keytab, independent of the host name that the client used.</p>
+
+<p><code>libdefaults</code> adds keys to the <code>[libdefaults]</code> section or replaces the default values. A key with the value <code>undef</code> is removed.</p>
+
+<p><code>includedir</code> adds an <code>includedir</code> directive in front of the sections. It defaults to <code>/etc/krb5.conf.d</code> if that directory exists, the same as the vendor configuration. Then the system crypto policy, for example FIPS mode, applies to the test realm too. The included files are read first and for a key that occurs more than once, the first value is used. Thus the included files take precedence, for example the <code>permitted_enctypes</code> of the crypto policy. Set <code>includedir</code> to <code>undef</code> to write a configuration that contains only the values of this function.</p>
+
+<p>Write the test configuration to <code>/etc/krb5.conf</code>. This file takes precedence over the vendor configuration in <code>/usr/etc/krb5.conf</code>.</p>
+
+<p>Call it first, after the Kerberos packages are installed: it also makes the MIT Kerberos tools available in the current shell. SLE 15 installs them to <code>/usr/lib/mit/bin</code> and <code>/usr/lib/mit/sbin</code> and adds these to <code>PATH</code> only in new login shells, through <code>/etc/profile.d/krb5.sh</code>. Products without that file have the tools in <code>PATH</code> already.</p>
+
+<h2 id="setup_krb5_kdc">setup_krb5_kdc</h2>
+
+<pre><code>setup_krb5_kdc([realm =&gt; $realm, enctype =&gt; $enctype, admin =&gt; $admin, admin_pass =&gt; $pass, db_pass =&gt; $pass]);</code></pre>
+
+<p>Create the realm database on this node, add the admin principal and start <code>krb5kdc</code> and <code>kadmind</code>. Call <code>setup_krb5_conf()</code> with the same realm before.</p>
+
+<h2 id="add_principal">add_principal</h2>
+
+<pre><code>add_principal($name [, keytab =&gt; 1, remote =&gt; 1, admin =&gt; $admin, admin_pass =&gt; $pass]);</code></pre>
+
+<p>Add the principal <code>name</code> with a random key to the KDC, for example the user principal <code>fsgqa</code>. Give <code>name</code> without realm, the principal is in the default realm of <code>krb5.conf</code>.</p>
+
+<p>Use <code>keytab</code> to also add the key to <code>/etc/krb5.keytab</code>.</p>
+
+<p>Use <code>remote</code> on nodes other than the KDC: then <code>kadmin</code> connects to <code>kadmind</code> as the admin principal, else <code>kadmin.local</code> is used.</p>
+
+<p>The function makes sure that the principal exists, because <code>kadmin -q</code> does not always report a failed query in its exit status.</p>
+
+<h2 id="add_host_principals">add_host_principals</h2>
+
+<pre><code>add_host_principals($service [, remote =&gt; 1, admin =&gt; $admin, admin_pass =&gt; $pass]);</code></pre>
+
+<p>Add the principal <code>service</code>/<i>host</i> to the KDC and its key to <code>/etc/krb5.keytab</code>, see <code>add_principal()</code>. <i>host</i> is the short host name and, if different, the fully qualified host name, thus the key matches both names.</p>
+
+
+</body>
+
+</html>
+
+

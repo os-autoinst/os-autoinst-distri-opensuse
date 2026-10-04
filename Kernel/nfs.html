@@ -17,6 +17,10 @@
       <li><a href="#create_export">create_export</a></li>
       <li><a href="#setup_pnfs_client">setup_pnfs_client</a></li>
       <li><a href="#verify_pnfs_block_layout">verify_pnfs_block_layout</a></li>
+      <li><a href="#kernel_supports_nfs_krb5">kernel_supports_nfs_krb5</a></li>
+      <li><a href="#setup_nfs_krb5_server">setup_nfs_krb5_server</a></li>
+      <li><a href="#setup_nfs_krb5_client">setup_nfs_krb5_client</a></li>
+      <li><a href="#upload_nfs_krb5_logs">upload_nfs_krb5_logs</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/nfs.pm</h1>
@@ -46,6 +50,36 @@
 <p>With a working block layout the client writes to the block device on its own and only the layout operations reach the server, so no NFS WRITE operation must show up while the block device must see the write. The check has to run after the NFS grace period, during the grace LAYOUTGET is answered with NFS4ERR_GRACE and the client falls back to regular NFS writes.</p>
 
 <p>Products without the capture tools are reported and skipped.</p>
+
+<h2 id="kernel_supports_nfs_krb5">kernel_supports_nfs_krb5</h2>
+
+<pre><code>my $supported = kernel_supports_nfs_krb5();</code></pre>
+
+<p>Return 1 if the running kernel supports RPCSEC_GSS with Kerberos (<code>CONFIG_RPCSEC_GSS_KRB5</code>), else 0. Kerberos works with all NFS versions, the caller decides which versions to test.</p>
+
+<h2 id="setup_nfs_krb5_server">setup_nfs_krb5_server</h2>
+
+<pre><code>setup_nfs_krb5_server([%realm_settings]);</code></pre>
+
+<p>Prepare this node as KDC and Kerberos NFS server. Set up the realm with this node as KDC, add the <code>nfs</code> service principals of this node and start the server side GSS service. Optional realm settings are passed to <a>Kernel::krb5</a>, see there. Call it before <code>nfs-server</code> starts, so <code>nfsd</code> uses the GSS service from the start.</p>
+
+<p>The GSS service is <code>gssproxy</code> where it is installed, else <code>rpc-svcgssd</code>. Only one of them runs, else the kernel can use either of them. Both need the <code>auth_rpcgss</code> module loaded when they start: <code>rpc.svcgssd</code> exits without it, and <code>gssproxy</code> needs it to make the kernel use it instead of <code>rpc-svcgssd</code>.</p>
+
+<p>The function makes sure that the GSS service runs and, for <code>gssproxy</code>, that the kernel uses it. A restart alone does not show this: the service units ignore a failed start (<code>ExecStart=-</code>) and are skipped without a keytab.</p>
+
+<h2 id="setup_nfs_krb5_client">setup_nfs_krb5_client</h2>
+
+<pre><code>setup_nfs_krb5_client($kdc [, %realm_settings]);</code></pre>
+
+<p>Prepare this node as Kerberos NFS client of the realm on <code>kdc</code>. Add the <code>nfs</code> service principals of this node through <code>kadmind</code> on <code>kdc</code> and restart <code>rpc-gssd</code> and make sure that it runs. The KDC has to be ready, see <code>setup_nfs_krb5_server()</code>. Pass the same realm settings as on the server.</p>
+
+<p>Before the mounts, check the Kerberos setup in user space: get a ticket with the key of this node and a service ticket for <code>nfs/</code><i>kdc</i>. Thus a failure in the realm setup fails here, not as a failed mount that looks like a kernel issue. <code>kdc</code> must be the name that the client mounts the server by.</p>
+
+<h2 id="upload_nfs_krb5_logs">upload_nfs_krb5_logs</h2>
+
+<pre><code>upload_nfs_krb5_logs();</code></pre>
+
+<p>Upload the logs to debug NFS with Kerberos: the keytab entries, the journal of the GSS and Kerberos services and the KDC and <code>kadmind</code> logs. Missing logs are skipped, thus it works on the server and on the client, also in a <code>post_fail_hook</code>.</p>
 
 
 </body>
