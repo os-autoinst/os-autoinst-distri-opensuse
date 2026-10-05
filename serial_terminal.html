@@ -22,6 +22,7 @@
       <li><a href="#download_file">download_file</a></li>
       <li><a href="#upload_file-upload_file-src-dst-chunk_size-cz-chunk_retry-cr">upload_file upload_file($src, $dst, [, chunk_size =&gt; $cz][, chunk_retry =&gt; $cr]);</a></li>
       <li><a href="#select_serial_terminal">select_serial_terminal</a></li>
+      <li><a href="#select_text_console">select_text_console</a></li>
       <li><a href="#select_user_serial_terminal">select_user_serial_terminal</a></li>
     </ul>
   </li>
@@ -90,6 +91,12 @@
 <p><code>SERIAL_CONSOLE</code>=0 disables serial console (use {root,user}-console instead of the default {root-,}sut-serial) NOTE: serial console is disabled by default on all but s390x machines (<code>SERIAL_CONSOLE</code>=0), because it&#39;s not working yet on other machines (see poo#55985). For s390x it requires console=ttysclp0 in kernel parameters (add it to autoyast profile or update grub setup manually with add_grub_cmdline_settings()).</p>
 
 <p>On ikvm|ipmi|spvm|pvm_hmc it&#39;s expected, that use_ssh_serial_console() has been called (done via activate_console()) therefore SERIALDEV has been set and we can use root-ssh console directly.</p>
+
+<h2 id="select_text_console">select_text_console</h2>
+
+<pre><code>select_text_console();</code></pre>
+
+<p>Select the most suitable text console for the current backend. Same as <code>select_serial_terminal</code>, except on ppc64le (OFW) where the root-virtio-terminal is hvc1 and only gets its getty from <code>prepare_serial_console</code> in <code>system_prepare</code>. Modules that may run before <code>system_prepare</code> keep the VGA root console there.</p>
 
 <h2 id="select_user_serial_terminal">select_user_serial_terminal</h2>
 
