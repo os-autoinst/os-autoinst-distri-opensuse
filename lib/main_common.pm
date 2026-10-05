@@ -837,7 +837,7 @@ our %valueranges = (
     DOCRUN => [0, 1],
 
     #   BTRFS=>[0,1],
-    DESKTOP => [qw(kde gnome xfce lxde minimalx textmode serverro)],
+    DESKTOP => [qw(kde gnome xfce lxde minimalx sway hyprland textmode serverro)],
 
     #   ROOTFS=>[qw(ext3 xfs jfs btrfs reiserfs)],
     VIDEOMODE => ["", "text", "ssh-x"],
