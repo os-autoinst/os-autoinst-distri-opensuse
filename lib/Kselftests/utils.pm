@@ -180,6 +180,26 @@ sub install_dependencies
 
     install_package(join(' ', @deps), (@maybe_deps ? (trup_continue => 1) : ()));
     install_available_packages(join(' ', @maybe_deps)) if @maybe_deps;
+    install_kernel_extra() if is_sle && $collection =~ m{^net(/|$)};
+}
+
+# On SLE, modules marked unsupported (e.g. mpls_iptunnel, needed by net/fib_nexthops.sh)
+# ship only in kernel-<flavor>-extra and modprobe refuses to load them unless allowed.
+# Install the package matching the running kernel, if available, and allow loading them.
+sub install_kernel_extra
+{
+    my ($kver, $flavor) = script_output('uname -r') =~ /^(.*)-([^-]+)$/;
+    my $pkg = "kernel-$flavor-extra";
+    my $result = zypper_search("-s -t package --match-exact $pkg");
+    my ($match) = grep { $_->{version} =~ /^\Q$kver\E(\.|$)/ } @$result;
+
+    unless ($match) {
+        record_info($pkg, "$pkg $kver not available, unsupported modules will be missing");
+        return;
+    }
+
+    install_package("$pkg=$match->{version}", trup_apply => 1);
+    assert_script_run("echo 'allow_unsupported_modules 1' > /etc/modprobe.d/10-unsupported-modules.conf");
 }
 
 sub get_sanitized_test_name
