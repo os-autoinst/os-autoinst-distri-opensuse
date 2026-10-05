@@ -75,11 +75,6 @@ sub run {
 
     my @xfails = ();
     push @xfails, (
-        # These tests fail on aarch64
-        "github.com/docker/buildx/tests::TestIntegration",
-        "github.com/docker/buildx/tests::TestIntegration/TestBuildAnnotations/worker=remote",
-    ) if (is_aarch64);
-    push @xfails, (
         # XXX These fail for unknown reasons and not really important right now:
         "github.com/docker/buildx/tests::TestIntegration",
         "github.com/docker/buildx/tests::TestIntegration/TestComposeBuildCheck/worker=remote",
