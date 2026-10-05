@@ -77,7 +77,8 @@ sub run {
         error_list => [
             'An internal execution error occurred. Please retry later',
             'There is a peering operation in progress',
-            'context deadline exceeded'
+            'context deadline exceeded',
+            'HTTP response was nil; connection may have been reset'
         ],
         destroy => 0);
     # Retrying terraform more times in case of GCP, to handle concurrent peering attempts
