@@ -51,7 +51,8 @@ sub test ($target) {
 
     # Extract "v2" or "v5" from $version
     my $v = substr($version, 0, 2);
-    my @xfails = (
+    my @xfails = ();
+    push @xfails, (
         # These fail with Docker v29: https://github.com/docker/compose/issues/13565
         # and multi-arch may need the containerd image store as documented here:
         # https://docs.docker.com/build/building/multi-platform/
@@ -65,7 +66,7 @@ sub test ($target) {
         "github.com/docker/compose/$v/pkg/e2e::TestUpStopWithLogsMixed",
         "github.com/docker/compose/$v/pkg/e2e::TestWatch",
         "github.com/docker/compose/$v/pkg/e2e::TestWatch/debian",
-    );
+    ) unless (is_tumbleweed);
 
     run_timeout_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3600;
     upload_logs "$target.txt", failok => 1;
