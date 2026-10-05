@@ -106,7 +106,8 @@ sub crash_deploy_azure(%args) {
     foreach (qw(region os)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    my $tags = qesap_get_public_cloud_tags();
+    my %tags = qesap_get_public_cloud_tags();
+    my $tags = join(' ', map { "$_=$tags{$_}" } sort keys %tags);
 
     my $rg = crash_deploy_name();
     az_group_create(name => $rg, region => $args{region}, tags => $tags);
