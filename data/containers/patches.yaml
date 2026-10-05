@@ -38,9 +38,11 @@ buildah:
     max: "1.44.0"
 
 buildx:
-  # https://github.com/docker/buildx/pull/3475/ - test: Handle version not having the initial 'v'
+  # https://github.com/docker/buildx/pull/3475 - test: Handle version not having the initial 'v'
+  # https://github.com/docker/buildx/pull/4126 - tests: normalize platform in TestBuildAnnotations descriptor key
   3475:
     min: "0.29.0"
+  4126:
 
 compose:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
