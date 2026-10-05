@@ -191,25 +191,36 @@ EOF');
     # get client id
     my $clientid = script_output('velociraptor-client --api_config ~/api.config.yaml query \'SELECT *, os_info.hostname as Hostname, client_id FROM clients()\' | grep -oP \'"client_id": "\K.*(?=")\'', 120);
 
-    # check for collected event on server. The test module's Perl runs on the
-    # worker, so the check has to run on the SUT. Wait until every artifact has
-    # its event directory, capped at the previous fixed 90s wait.
-    my @paths = map { "/var/tmp/velociraptor/clients/$clientid/monitoring/$_/" } @artifacts;
-    my $all_present = join ' && ', map { "[ -d '$_' ]" } @paths;
-    script_run("timeout 90 bash -c 'until $all_present; do sleep 5; done'", timeout => 120);
+    # The module's Perl runs on the worker, so the event check has to run on the
+    # SUT. Wait for every artifact, capped at the previous 90s. Some events only
+    # appear in a subdir (Crontab/JournalTaskExecs, Timers/TimerExecs), so
+    # waiting for the top-level dir alone would return too early.
+    my $base = "/var/tmp/velociraptor/clients/$clientid/monitoring";
+    my @paths = map { "$base/$_/" } @artifacts;
+    # eBPF based artifacts are never produced on 12-SP5
+    @paths = grep { !m{SUSE\.Linux\.Events\.(?:DNS|ImmutableFile|TCPConnections)/$} } @paths if is_sle('=12-SP5');
+    push @paths, "$base/SUSE.Linux.Events.Crontab/JournalTaskExecs/";
+    push @paths, "$base/SUSE.Linux.Events.Crontab/SyslogTaskExecs/";
+    push @paths, "$base/SUSE.Linux.Events.Timers/TimerExecs/";
 
-    my $listed = script_output('for d in ' . join(' ', map { "'$_'" } @paths) . '; do [ -d "$d" ] && echo "$d"; done', proceed_on_failure => 1);
-    my %present = map { ($_ => 1) } split /\n/, $listed;
-    foreach my $artifact (@artifacts) {
-        my $path = "/var/tmp/velociraptor/clients/$clientid/monitoring/$artifact/";
-        if ($present{$path}) {
+    # the inline `until [ -d ... ]` line is too long to type on the serial
+    # terminal, so the paths and the check live in files on the SUT
+    write_sut_file('/tmp/velociraptor_paths', join("\n", @paths) . "\n");
+    write_sut_file('/tmp/velociraptor_wait.sh', "#!/bin/bash\nwhile read -r d; do [ -d \"\$d\" ] || exit 1; done < /tmp/velociraptor_paths\n");
+    script_run('timeout 90 bash -c "until bash /tmp/velociraptor_wait.sh; do sleep 5; done"', timeout => 120);
+
+    my @missing;
+    foreach my $path (@paths) {
+        if (script_run("test -d $path") == 0) {
             print "$path event logs present";
             script_run("ls $path | grep json");
         }
         else {
             print "$path event logs missing";
+            push @missing, $path;
         }
     }
+    record_info('Missing events', 'No events in: ' . join(', ', @missing)) if @missing;
 
     # upload event logs
     script_run("tar cvpzf eventlogs.tgz /var/tmp/velociraptor/clients/$clientid/");
