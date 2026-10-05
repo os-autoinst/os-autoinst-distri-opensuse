@@ -197,11 +197,11 @@ EOF');
     # waiting for the top-level dir alone would return too early.
     my $base = "/var/tmp/velociraptor/clients/$clientid/monitoring";
     my @paths = map { "$base/$_/" } @artifacts;
-    # eBPF based artifacts are never produced on 12-SP5
-    @paths = grep { !m{SUSE\.Linux\.Events\.(?:DNS|ImmutableFile|TCPConnections)/$} } @paths if is_sle('=12-SP5');
+    # these artifacts/events are never produced on 12-SP5
+    @paths = grep { !m{SUSE\.Linux\.Events\.(?:DNS|ImmutableFile|TCPConnections|Timers)/$} } @paths if is_sle('=12-SP5');
     push @paths, "$base/SUSE.Linux.Events.Crontab/JournalTaskExecs/";
     push @paths, "$base/SUSE.Linux.Events.Crontab/SyslogTaskExecs/";
-    push @paths, "$base/SUSE.Linux.Events.Timers/TimerExecs/";
+    push @paths, "$base/SUSE.Linux.Events.Timers/TimerExecs/" unless is_sle('=12-SP5');
 
     # the inline `until [ -d ... ]` line is too long to type on the serial
     # terminal, so the paths and the check live in files on the SUT
