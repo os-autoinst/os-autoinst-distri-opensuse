@@ -94,7 +94,7 @@ EOF');
     # add client monitoring
     my @artifacts = qw(SUSE.Linux.Events.Crontab SUSE.Linux.Events.DNS SUSE.Linux.Events.ExecutableFiles SUSE.Linux.Events.ImmutableFile SUSE.Linux.Events.NewFiles SUSE.Linux.Events.NewFilesNoOwner SUSE.Linux.Events.NewHiddenFile SUSE.Linux.Events.NewZeroSizeLogFile SUSE.Linux.Events.Packages SUSE.Linux.Events.ProcessStatuses SUSE.Linux.Events.SSHLogin SUSE.Linux.Events.Services SUSE.Linux.Events.SshAuthorizedKeys SUSE.Linux.Events.SystemLogins SUSE.Linux.Events.TCPConnections SUSE.Linux.Events.Timers SUSE.Linux.Events.UserAccount SUSE.Linux.Events.UserGroupMembershipUpdates);
     foreach my $artifact (@artifacts) {
-        if ($artifact == 'SUSE.Linux.Events.Packages' || $artifact == 'SUSE.Linux.Events.SshAuthorizedKeys') {
+        if ($artifact eq 'SUSE.Linux.Events.Packages' || $artifact eq 'SUSE.Linux.Events.SshAuthorizedKeys') {
             script_output("velociraptor-client --api_config ~/api.config.yaml query 'SELECT add_client_monitoring(artifact=\"$artifact\", parameters=dict(period=\"10\")) FROM scope()' > /dev/null");
 
         }
