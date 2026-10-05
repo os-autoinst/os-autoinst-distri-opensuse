@@ -30,6 +30,7 @@ BEGIN {
       serial_term_prompt
       upload_file
       select_serial_terminal
+      select_text_console
       select_user_serial_terminal
     );
     our @EXPORT_OK = qw(
@@ -396,6 +397,22 @@ sub select_serial_terminal {
 
     die "No support for backend '$backend', add it" if (!defined $console) || ($console eq '');
     select_console($console);
+}
+
+=head2 select_text_console
+
+    select_text_console();
+
+Select the most suitable text console for the current backend. Same as
+C<select_serial_terminal>, except on ppc64le (OFW) where the
+root-virtio-terminal is hvc1 and only gets its getty from
+C<prepare_serial_console> in C<system_prepare>. Modules that may run before
+C<system_prepare> keep the VGA root console there.
+=cut
+
+sub select_text_console {
+    return select_console 'root-console' if get_var('OFW');
+    select_serial_terminal;
 }
 
 =head2 select_user_serial_terminal

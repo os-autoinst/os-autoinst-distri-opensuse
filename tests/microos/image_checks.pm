@@ -8,12 +8,13 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use version_utils qw(is_microos is_sle_micro is_jeos is_leap_micro is_transactional);
 use Utils::Backends 'is_pvm';
 use Utils::Architectures qw(is_aarch64 is_ppc64le);
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     # Disk which /var resides on
     my $device = script_output 'findmnt -nrvoSOURCE /var';

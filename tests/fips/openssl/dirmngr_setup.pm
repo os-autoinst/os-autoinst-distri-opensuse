@@ -10,6 +10,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use version_utils;
 
@@ -91,7 +92,7 @@ sub dirmngr_setup {
 sub run {
 
     my ($self) = @_;
-    select_console 'root-console';
+    select_text_console;
 
     # Setup Dirmngr
     $self->dirmngr_setup();
