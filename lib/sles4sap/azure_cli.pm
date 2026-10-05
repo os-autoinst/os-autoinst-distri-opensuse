@@ -159,13 +159,97 @@ sub az(%args) {
     $result{error} = script_output("cat $err_file",
         quiet => $args{quiet});
 
-    die "Error messages present during az cli execution:\n$result{error}\n"
+    die "Error messages present during az cli execution:\n$result{error}"
       if ($result{error} && !$args{failok});
-    die "AZ CLI returned non zero value:$result{rc}\n" if ($result{rc} && !$args{failok});
+    die "AZ CLI returned non zero value:$result{rc}" if ($result{rc} && !$args{failok});
 
     # Delete unique temporary files
     assert_script_run("rm $err_file $out_file", quiet => '1');
     return \%result;
+}
+
+=head2 _az_validate_tags
+
+    _az_validate_tags(tags => 'name1=value1 name2=value2' [, max_tags => 15, max_name_length => 128, strict_name => 1]);
+
+Private function. Validate a string of tags before it goes into the C<--tags> argument of an az cli command.
+The tags string is put in the shell command without quotes,
+so the function only accepts characters that the shell does not interpret.
+The function dies at the first rule that the tags do not obey. Rules:
+
+=over
+
+=item * Tags are separated by the space character only. Other whitespace (newline, tab) is not permitted.
+
+=item * The format of each tag is C<name=value>. The value can be empty.
+        A value cannot contain spaces: the format cannot show where such a value stops.
+
+=item * Maximum B<max_tags> tags.
+
+=item * The name cannot be empty and it is maximum B<max_name_length> characters.
+
+=item * The name cannot contain C<< < > % & \ ? / >>.
+
+=item * The name contains only C<A-Z a-z 0-9 _ . : ->.
+
+=item * The name cannot start with C<->. This prevents an injection of az cli options, like C<--something>.
+
+=item * Two names cannot be equal, also with different case. Names are case-insensitive in Azure.
+
+=item * The value is maximum 256 characters.
+
+=item * The value contains only C<A-Z a-z 0-9 _ . : @ + , / ->.
+
+=back
+
+Tags are plain text in Azure. Do not put secrets in tags.
+
+=over
+
+=item B<tags> - string of space separated name=value tags
+
+=item B<max_tags> - maximum number of tags. Default 50. Use 15 for resources that support only 15 tags,
+                     like Azure DNS zones.
+
+=item B<max_name_length> - maximum length of a tag name. Default 512. Use 128 for storage accounts.
+
+=item B<strict_name> - if true, the name must start with a letter and contain only letters, digits and C<_>.
+                        Use it for resources with stricter rules, like Azure DNS zones.
+
+=back
+=cut
+
+sub _az_validate_tags(%args) {
+    croak('Argument < tags > missing') unless $args{tags};
+    $args{max_tags} //= 50;
+    $args{max_name_length} //= 512;
+    my $tags = $args{tags};
+
+    croak "Invalid tags '$tags': the space character is only permitted as separator" if $tags =~ /[^\S ]/;
+    my @pairs = split(' ', $tags);
+    croak "Invalid tags: no tag in '$tags'" unless @pairs;
+    croak 'Invalid tags: ' . scalar(@pairs) . " tags, maximum is $args{max_tags}" if @pairs > $args{max_tags};
+
+    my %names;
+    foreach my $pair (@pairs) {
+        croak "Invalid tags: '$pair' is not in the format name=value" unless $pair =~ /^([^=]*)=(.*)$/;
+        my ($name, $value) = ($1, $2);
+        croak "Invalid tags: empty name in '$pair'" unless length($name);
+        croak "Invalid tags: name '$name' is longer than $args{max_name_length} characters"
+          if length($name) > $args{max_name_length};
+        croak "Invalid tags: name '$name' contains one of < > % & \\ ? /" if $name =~ m{[<>%&\\?/]};
+        croak "Invalid tags: name '$name' contains characters that are not in [A-Za-z0-9_.:-]"
+          unless $name =~ /^[A-Za-z0-9_.:-]+$/;
+        croak "Invalid tags: name '$name' starts with -" if $name =~ /^-/;
+        croak "Invalid tags: name '$name' must start with a letter and contain only [A-Za-z0-9_]"
+          if $args{strict_name} && $name !~ /^[A-Za-z][A-Za-z0-9_]*$/;
+        croak "Invalid tags: name '$name' is used more than one time (names are case-insensitive)"
+          if $names{lc($name)}++;
+        croak "Invalid tags: value of '$name' is longer than 256 characters" if length($value) > 256;
+        croak "Invalid tags: value of '$name' contains characters that are not in [A-Za-z0-9_.:\@+,/-]"
+          unless $value =~ m{^[A-Za-z0-9_.:\@+,/-]*$};
+    }
+    return;
 }
 
 =head2 az_version
@@ -201,6 +285,7 @@ Create an Azure resource group in a specific region
 sub az_group_create(%args) {
     foreach (qw(name region)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
     # Create a resource group to contain all deployed resources
     my $az_cmd = join(' ', 'az group create',
         '--name', $args{name},
@@ -258,7 +343,7 @@ Delete a resource group with a specific name
 =cut
 
 sub az_group_delete(%args) {
-    croak("Argument < name > missing") unless $args{name};
+    croak('Argument < name > missing') unless $args{name};
     $args{timeout} //= 60;
     my $az_cmd = join(' ',
         'az group delete',
@@ -282,7 +367,7 @@ Returns non-empty value if resource group exists, otherwise B<undef>
 =cut
 
 sub az_group_exists(%args) {
-    croak "Missing mandatory argument: 'name'" unless $args{name};
+    croak('Argument < name > missing') unless $args{name};
     my $out = az(az_args => "group exists --resource-group $args{name}",
         quiet => $args{quiet});
     die "Command failed.\nCommand didn't return a boolean value: $out->{output}"
@@ -324,6 +409,7 @@ Create a virtual network
 sub az_network_vnet_create(%args) {
     foreach (qw(resource_group region vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
     # Only set default value for ranges if the caller
     # require to also create the subnet
     if ($args{snet}) {
@@ -417,7 +503,7 @@ some query result in the function to die on decode_json.
 =cut
 
 sub az_network_vnet_get(%args) {
-    croak("Argument < resource_group > missing") unless $args{resource_group};
+    croak('Argument < resource_group > missing') unless $args{resource_group};
     $args{query} //= '[].name';
 
     my $az_args = "network vnet list -g $args{resource_group}";
@@ -447,6 +533,7 @@ Create a network security group
 sub az_network_nsg_create(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
 
     my $az_cmd = join(' ', 'az network nsg create',
         '--resource-group', $args{resource_group},
@@ -527,6 +614,7 @@ Create an IPv4 public IP resource
 sub az_network_publicip_create(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
     $args{sku} //= 'Standard';
     my $alloc_cmd = $args{allocation_method} ? '--allocation-method ' . $args{allocation_method} : '';
     my $zone_cmd = $args{zone} ? '--zone ' . $args{zone} : '';
@@ -597,6 +685,7 @@ Create a NAT Gateway
 sub az_network_nat_gateway_create(%args) {
     foreach (qw(resource_group region name public_ip)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
 
     my $az_cmd = join(' ', 'az network nat gateway create',
         '--resource-group', $args{resource_group},
@@ -652,6 +741,7 @@ SKU Standard (and not Basic) is needed to get some Metrics
 sub az_network_lb_create(%args) {
     foreach (qw(resource_group name vnet snet backend frontend_ip_name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
 
     $args{sku} //= 'Basic';
     my $fip_cmd = '';
@@ -799,6 +889,7 @@ Create an availability set. Later on VM can be assigned to it.
 sub az_vm_as_create(%args) {
     foreach (qw(resource_group name region)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
 
     my $fc_cmd = $args{fault_count} ? "--platform-fault-domain-count $args{fault_count}" : '';
 
@@ -825,7 +916,7 @@ List all availability set in a resource group.
 =cut
 
 sub az_vm_as_list(%args) {
-    croak("Argument < resource_group > missing") unless $args{resource_group};
+    croak('Argument < resource_group > missing') unless $args{resource_group};
     my $az_cmd = join(' ', 'az vm availability-set list',
         '--resource-group', $args{resource_group},
         '--query "[].{name:name}" -o tsv');
@@ -883,6 +974,7 @@ Create an image out of a .vhd disk in Azure storage.
 sub az_img_from_vhd_create(%args) {
     foreach (qw(resource_group name source)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
     my $az_cmd = join(' ', 'az image create',
         '--resource-group', $args{resource_group},
         '-n', $args{name},
@@ -955,6 +1047,7 @@ sub az_vm_create(%args) {
 
     $args{timeout} //= 900;
     croak("At least one between argument < image > or < attach_os_disk > are needed") unless ($args{image} || $args{attach_os_disk});
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
 
     my @vm_create = ('az vm create');
     push @vm_create, '--debug' if $args{debug};
@@ -1003,7 +1096,7 @@ Return a decoded json hash according to the provided jmespath query
 =cut
 
 sub az_vm_list(%args) {
-    croak("Argument < resource_group > missing") unless $args{resource_group};
+    croak('Argument < resource_group > missing') unless $args{resource_group};
     $args{query} //= '[].name';
 
     my $az_args = "vm list -g $args{resource_group}";
@@ -1281,6 +1374,7 @@ Create a NIC
 sub az_nic_create(%args) {
     foreach (qw(resource_group name vnet subnet nsg pubip_name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
 
     my $az_args = join(' ',
         'network nic create',
@@ -1550,7 +1644,7 @@ Return a list of diagnostic file paths on the JumpHost
 =cut
 
 sub az_vm_diagnostic_log_get(%args) {
-    croak("Argument < resource_group > missing") unless $args{resource_group};
+    croak('Argument < resource_group > missing') unless $args{resource_group};
 
     my $timeout = $args{timeout} // 240;
     my @diagnostic_log_files;
@@ -1640,6 +1734,7 @@ Create a storage account
 sub az_storage_account_create(%args) {
     foreach (qw(resource_group region name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}, max_name_length => 128) if $args{tags};
 
     my $az_cmd = join(' ', 'az storage account create',
         '--resource-group', $args{resource_group},
@@ -1820,6 +1915,7 @@ sub az_disk_create(%args) {
     foreach ('resource_group', 'name') { croak("Argument < $_ > missing") unless $args{$_}; }
     croak "Arguments 'size_gb' and 'source' are mutually exclusive" if $args{size_gb} and $args{source};
     croak "Argument 'size_gb' or 'source' has to be specified" unless $args{size_gb} or $args{source};
+    _az_validate_tags(tags => $args{tags}) if $args{tags};
 
     my @az_command = ('az disk create',
         "--resource-group $args{resource_group}",
@@ -1856,7 +1952,7 @@ Function returns `az` command exit code.
 =cut
 
 sub az_resource_delete(%args) {
-    croak "Mandatory argument 'resource_group' missing" unless $args{resource_group};
+    croak('Argument < resource_group > missing') unless $args{resource_group};
     croak "Arguments 'name' and 'ids' are mutually exclusive" if $args{ids} and $args{name};
     croak "Argument 'name' or 'ids' has to be specified" unless $args{ids} or $args{name};
     $args{timeout} //= 60;
@@ -1918,12 +2014,12 @@ Tags list of resource IDs with list of tags
 =cut
 
 sub az_resource_tag(%args) {
-
     for my $argument ('resource_ids', 'tags') {
         croak "Mandatory argument '$argument' missing" unless $args{$argument};
         croak "Argument '$argument' must be an array reference" unless
           (ref($args{$argument}) eq 'ARRAY');
     }
+    _az_validate_tags(tags => join(' ', @{$args{tags}}));
 
     my $resources = join(' ', map("\"$_\"", @{$args{resource_ids}}));
     my $tags = join(' ', map("\"$_\"", @{$args{tags}}));
@@ -1966,7 +2062,7 @@ B<Arguments:>
 =cut
 
 sub az_validate_uuid_pattern(%args) {
-    croak "Mandatory argument 'uuid' missing" unless $args{uuid};
+    croak('Argument < uuid > missing') unless $args{uuid};
     my $pattern = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
     return $args{uuid} if ($args{uuid} =~ /$pattern/i);
     diag("String did not match UUID pattern:\nString: '$args{uuid}'\nPattern: '$pattern'");
@@ -2220,7 +2316,7 @@ Output can be modified using B<query> argument.
 =cut
 
 sub az_keyvault_list(%args) {
-    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
+    croak('Argument < resource_group > missing') unless $args{resource_group};
     $args{query} //= '[].name';
 
     my $az_out = az(az_args => "keyvault list --resource-group $args{resource_group}", query => $args{query});
@@ -2244,7 +2340,7 @@ Output can be modified using B<query> argument.
 =cut
 
 sub az_keyvault_secret_list(%args) {
-    croak "Missing mandatory argument: 'vault_name'" unless $args{vault_name};
+    croak('Argument < vault_name > missing') unless $args{vault_name};
     $args{query} //= '[].name';
 
     my $az_out = az(az_args => "keyvault secret list --vault-name $args{vault_name}", query => $args{query}, timeout => 120);
@@ -2360,6 +2456,7 @@ Creates private DNS zone within specified B<resource_group>.
 sub az_network_dns_zone_create {
     my (%args) = @_;
     foreach ('resource_group', 'name') { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
+    _az_validate_tags(tags => $args{tags}, max_tags => 15, strict_name => 1) if $args{tags};
     my @az_args = ('network private-dns zone create',
         "--resource-group $args{resource_group}",
         "--name $args{name}",
@@ -2414,7 +2511,7 @@ Returns private DNS zone list as an B<ARRAYREF> existing within specified B<reso
 
 sub az_network_dns_zone_list {
     my (%args) = @_;
-    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
+    croak('Argument < resource_group > missing') unless $args{resource_group};
     $args{query} //= '[].name';
     my $az_out = az(az_args => "network private-dns zone list --resource-group $args{resource_group}", query => $args{query});
     return $az_out->{output};
