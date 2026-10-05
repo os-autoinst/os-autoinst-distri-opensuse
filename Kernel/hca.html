@@ -1,0 +1,114 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kernel/hca.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#get_hca_devices">get_hca_devices</a></li>
+      <li><a href="#get_hca_info">get_hca_info</a></li>
+      <li><a href="#get_hca_ports">get_hca_ports</a></li>
+      <li><a href="#get_hca_model">get_hca_model</a></li>
+      <li><a href="#get_hca_netdevs">get_hca_netdevs</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kernel/hca.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Helpers for InfiniBand and RDMA Host Channel Adapters (HCAs), for example Mellanox/NVIDIA ConnectX adapters with the <code>mlx5</code> driver.</p>
+
+<p>The helpers read the RDMA devices from <code>/sys/class/infiniband</code>, so they do not need <code>ibv_devinfo</code> or other packages. Only <code>get_hca_model()</code> uses <code>lspci</code>.</p>
+
+<pre><code>for my $dev (get_hca_devices()) {
+    my $info = get_hca_info($dev);
+    my $ports = get_hca_ports($dev);
+    record_info(&quot;HCA $dev&quot;, &quot;fw: $info-&gt;{fw_ver}\nmodel: &quot; . get_hca_model($dev));
+}</code></pre>
+
+<h2 id="get_hca_devices">get_hca_devices</h2>
+
+<pre><code>my @devs = get_hca_devices();</code></pre>
+
+<p>Returns the names of the RDMA devices in <code>/sys/class/infiniband</code>, for example <code>mlx5_0</code> and <code>mlx5_1</code>, sorted. Returns an empty list if there is no RDMA device, for example if the driver is not loaded.</p>
+
+<h2 id="get_hca_info">get_hca_info</h2>
+
+<pre><code>my $info = get_hca_info($dev);</code></pre>
+
+<p>Returns a hash reference with the attributes of the RDMA device <code>dev</code>:</p>
+
+<ul>
+
+<li><p><code>fw_ver</code>: firmware version, for example <code>16.27.1016</code></p>
+
+</li>
+<li><p><code>hca_type</code>: HCA type, for example <code>MT4119</code></p>
+
+</li>
+<li><p><code>board_id</code>: board ID (PSID), for example <code>MT_0000000010</code></p>
+
+</li>
+<li><p><code>node_guid</code>: node GUID, for example <code>b859:9f03:00d4:2c3a</code></p>
+
+</li>
+<li><p><code>pci</code>: PCI address of the adapter, for example <code>0000:3b:00.0</code></p>
+
+</li>
+</ul>
+
+<p>A value is <code>undef</code> if the driver does not provide the attribute. Dies if the device does not exist.</p>
+
+<h2 id="get_hca_ports">get_hca_ports</h2>
+
+<pre><code>my $ports = get_hca_ports($dev);</code></pre>
+
+<p>Returns a hash reference of the port numbers of the RDMA device <code>dev</code> to a hash reference with:</p>
+
+<ul>
+
+<li><p><code>state</code>: logical port state, for example <code>ACTIVE</code> or <code>DOWN</code></p>
+
+</li>
+<li><p><code>phys_state</code>: physical port state, for example <code>LinkUp</code> or <code>Disabled</code></p>
+
+</li>
+<li><p><code>rate</code>: link rate, for example <code>100 Gb/sec (4X EDR)</code></p>
+
+</li>
+<li><p><code>link_layer</code>: <code>InfiniBand</code> or <code>Ethernet</code></p>
+
+</li>
+</ul>
+
+<p>The numeric prefix of <code>state</code> and <code>phys_state</code> in sysfs (for example <code>4: ACTIVE</code>) is removed.</p>
+
+<h2 id="get_hca_model">get_hca_model</h2>
+
+<pre><code>my $model = get_hca_model($dev [, pci =&gt; $pci]);</code></pre>
+
+<p>Returns the exact adapter model of the RDMA device <code>dev</code> from <code>lspci -nn</code>, with the PCI vendor and device ID, for example <code>Mellanox Technologies MT27800 Family [ConnectX-5] [15b3:1017]</code>. The <code>pciutils</code> package must be installed.</p>
+
+<p>If the caller already has the PCI address of the device, for example from <code>get_hca_info()</code>, give it as <code>pci</code> to not read it again from sysfs.</p>
+
+<h2 id="get_hca_netdevs">get_hca_netdevs</h2>
+
+<pre><code>my @netdevs = get_hca_netdevs($dev);</code></pre>
+
+<p>Returns the network interfaces of the RDMA device <code>dev</code>, for example <code>ib0</code> for IP over InfiniBand, sorted. Returns an empty list if the adapter has no network interface.</p>
+
+
+</body>
+
+</html>
+
+
