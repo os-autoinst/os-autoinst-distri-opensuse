@@ -63,6 +63,8 @@ set_var('DESKTOP', check_var('VIDEOMODE', 'text') ? 'textmode' : 'kde') unless g
 # See https://github.com/agama-project/agama/issues/2143
 # Autologin is not possible in agama as of now
 set_var("NOAUTOLOGIN", 1) if (is_leap("16.0+") && !get_var("ZDUP", 0));
+my $is_leap_15_upgrade = (get_var('HDD_1') =~ /15\.\d/);
+set_var("NOAUTOLOGIN", 1) if (is_agama && !is_leap && !get_var("ZDUP", 0) && !$is_leap_15_upgrade);
 
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
