@@ -8,6 +8,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use Test::Assert ':all';
 
 # Verify that there are two Host Bus adapters Attached (HBA), and that the corresponding channels are listed
@@ -43,7 +44,7 @@ sub verify_multipath_block_devices {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     verify_host_bus_adapters_attached("0.0.fa00", "0.0.fc00");
     verify_plain_scsi_block_devices;
     verify_multipath_block_devices;

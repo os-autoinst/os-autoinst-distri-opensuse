@@ -9,13 +9,14 @@
 
 use Mojo::Base 'y2_installbase';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 use filesystem_utils qw(get_partition_size get_used_partition_space);
 
 sub pre_run_hook {
     my ($self) = @_;
     my $test_data = get_test_suite_data();
-    select_console 'root-console';
+    select_text_console;
     record_info("Configuration", "Configure snapper.");
     foreach my $param (keys %{$test_data->{snapper_config}}) {
         assert_script_run("snapper set-config $param=$test_data->{snapper_config}->{$param}",

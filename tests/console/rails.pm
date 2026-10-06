@@ -9,9 +9,10 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     # something like `test -f tmp/pids/server.pid; pumactl -P tmp/pids/server.pid stop; !test -f tmp/pids/server.pid`
     # is the correct test procedure on rails >= 5, for earlier versions we
     # need to handle this on our own

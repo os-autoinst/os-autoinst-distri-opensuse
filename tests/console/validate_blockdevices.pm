@@ -9,6 +9,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 use scheduler 'get_test_suite_data';
 use filesystem_utils qw(
@@ -16,7 +17,7 @@ use filesystem_utils qw(
   is_lsblk_able_to_display_mountpoints);
 
 sub run {
-    select_console('root-console');
+    select_text_console;
     my $disks = get_test_suite_data()->{disks};
     my $size = get_test_suite_data()->{size};
 

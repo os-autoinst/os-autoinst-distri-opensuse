@@ -20,10 +20,11 @@ use Mojo::Base 'y2_module_consoletest';
 use cfg_files_utils 'validate_cfg_file';
 use scheduler;
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     validate_cfg_file(get_test_suite_data()->{config_files});
 }

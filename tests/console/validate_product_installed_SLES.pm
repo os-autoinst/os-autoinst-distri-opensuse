@@ -8,11 +8,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use Config::Tiny;
 use Test::Assert ':all';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $os_release_output = script_output('cat /etc/os-release');
     my $os_release_name = Config::Tiny->read_string($os_release_output)->{_}->{NAME};

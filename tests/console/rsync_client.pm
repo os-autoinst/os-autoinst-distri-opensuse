@@ -14,11 +14,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use lockapi;
 use utils "zypper_call";
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     zypper_call('in rsync') if (script_run('rpm -qi rsync') == 1);
     select_console 'user-console';
 

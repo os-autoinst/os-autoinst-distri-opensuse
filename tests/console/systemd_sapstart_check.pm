@@ -23,6 +23,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use version_utils qw(is_sle is_opensuse is_tumbleweed);
 use Mojo::JSON qw(encode_json);
@@ -117,7 +118,7 @@ sub upload_systemdlib_tests_logs {
 sub run {
     my ($self) = @_;
 
-    select_console 'root-console';
+    select_text_console;
     $self->install_test_package;
     enter_cmd "cd $testdir";
     # systemd_prepare.sh can fail with a 0 retval, so we run it with sh -e

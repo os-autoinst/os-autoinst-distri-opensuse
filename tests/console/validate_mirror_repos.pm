@@ -9,11 +9,12 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use repo_tools 'validate_repo_properties';
 use registration 'scc_version';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $method = uc get_required_var('INSTALL_SOURCE');
     my $mirror_src = get_required_var("MIRROR_$method");

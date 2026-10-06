@@ -17,11 +17,12 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 
 sub run {
     my $disks = get_test_suite_data()->{disks};
-    select_console 'root-console';
+    select_text_console;
 
     my $luks_type;
     foreach my $disk (@{$disks}) {

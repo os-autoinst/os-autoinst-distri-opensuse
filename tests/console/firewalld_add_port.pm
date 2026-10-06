@@ -16,12 +16,13 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 use Utils::Firewalld qw(add_port_to_zone reload_firewalld);
 
 sub run {
     my $test_data = get_test_suite_data();
-    select_console 'root-console';
+    select_text_console;
     add_port_to_zone({zone => $test_data->{zone}, port => $test_data->{port}});
     reload_firewalld();
 }

@@ -12,12 +12,13 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 use version_utils 'is_sle';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     # development module needed for dependencies, released products are tested with sdk module
     if (is_sle() && !main_common::is_updates_tests()) {
         cleanup_registration;
@@ -45,7 +46,7 @@ sub run {
     assert_script_run 'rm -rf soundtouch';
     # unregister SDK
     if (is_sle() && !main_common::is_updates_tests()) {
-        select_console 'root-console';
+        select_text_console;
         remove_suseconnect_product(get_addon_fullname('sdk'));
     }
 }

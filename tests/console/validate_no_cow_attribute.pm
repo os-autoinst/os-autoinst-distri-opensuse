@@ -17,13 +17,14 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
 sub run {
     my $test_data = get_test_suite_data();
 
-    select_console('root-console');
+    select_text_console;
 
     record_info('Test #1', "Verify the certain subvolumes should have No_COW attibute.");
     foreach (@{$test_data->{subvolume}->{no_cow}}) {

@@ -11,13 +11,14 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use XML::Writer;
 use utils qw(zypper_call);
 use autoyast qw(expand_variables generate_xml);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $xml = 'add_on_products.xml';
     my $dud = get_required_var('DUD');

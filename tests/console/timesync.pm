@@ -7,10 +7,11 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal 'select_text_console';
 use utils;
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     assert_script_run 'timedatectl set-ntp true';
     assert_script_run 'chronyc makestep';
     assert_script_run 'chronyc waitsync 120 0.5', 1210;
