@@ -10,6 +10,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use version_utils qw(is_sle);
+use Utils::Architectures 'is_x86_64';
 
 sub run {
     my $tmp_output = '/tmp/out';
@@ -75,6 +76,9 @@ sub run {
         script_run('ps -q 1');
         # Search for events based on a specific CPU architecture
         validate_script_output("ausearch -i --arch x86_64", sub { m/arch=x86_64/ });
+        # Remove the get_pid rule: it is no longer needed and would keep
+        # generating audit records for the following modules
+        assert_script_run('auditctl -d always,exit -F arch=x86_64 -S getpid -k get_pid') if is_x86_64;
     }
 }
 
