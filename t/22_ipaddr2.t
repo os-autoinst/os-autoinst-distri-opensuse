@@ -14,6 +14,7 @@ my $qesap_utils_mock = Test::MockModule->new('sles4sap::qesap::utils', no_auto =
 $qesap_utils_mock->redefine(get_current_job_id => sub { return 'Volta'; });
 
 subtest '[ipaddr2_infra_deploy]' => sub {
+    set_var('OPENQA_HOSTNAME', 'openqa.suse.de');
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
@@ -46,11 +47,13 @@ subtest '[ipaddr2_infra_deploy]' => sub {
         "Run expected ip-config update for the VM with IP 41");
     ok((any { /az network nic ip-config update.*private-ip-address.*\..+\..+\.42/ } @cmds),
         "Run expected ip-config update for the VM with IP 42");
+    set_var('OPENQA_HOSTNAME', undef);
 };
 
 subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    $ipaddr2->redefine(qesap_get_public_cloud_tags => sub { return (); });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
     $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
@@ -82,6 +85,7 @@ subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
 subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    $ipaddr2->redefine(qesap_get_public_cloud_tags => sub { return (); });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
     $ipaddr2->redefine(data_url => sub { return '/Faggin'; });
@@ -111,6 +115,7 @@ subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
 subtest '[ipaddr2_infra_deploy] diagnostic' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    $ipaddr2->redefine(qesap_get_public_cloud_tags => sub { return (); });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(write_sut_file => sub { return; });
@@ -132,6 +137,7 @@ subtest '[ipaddr2_infra_deploy] diagnostic' => sub {
 subtest '[ipaddr2_infra_deploy] with .vhd' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    $ipaddr2->redefine(qesap_get_public_cloud_tags => sub { return (); });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
     $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
@@ -164,7 +170,7 @@ subtest '[ipaddr2_infra_deploy] tags' => sub {
     $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
     $ipaddr2->redefine(ipaddr2_cloudinit_create => sub { return '/tmp/Faggin'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $ipaddr2->redefine(qesap_get_public_cloud_tags => sub { return 'PellegrinoTurri'; });
+    $ipaddr2->redefine(qesap_get_public_cloud_tags => sub { return (Pellegrino => 'Turri'); });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
@@ -184,10 +190,69 @@ subtest '[ipaddr2_infra_deploy] tags' => sub {
     ok((@create_cmds),
         'Found at least one "az.*create" command');
 
-    my @missing_tags = grep { !/--tags PellegrinoTurri/ } @create_cmds;
-    ok((all { /--tags PellegrinoTurri/ } @create_cmds),
-        'All create commands contain "--tags PellegrinoTurri"')
+    my @missing_tags = grep { !/--tags Pellegrino=Turri/ } @create_cmds;
+    ok((all { /--tags Pellegrino=Turri/ } @create_cmds),
+        'All create commands contain "--tags Pellegrino=Turri"')
       or diag("The following commands are missing the tag:\n" . join("\n", @missing_tags));
+};
+
+subtest '[ipaddr2_infra_deploy] tags argument to az functions' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    $ipaddr2->redefine(record_info => sub { return; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
+    $ipaddr2->redefine(az_version => sub { return; });
+    $ipaddr2->redefine(az_network_vnet_subnet_update => sub { return; });
+    $ipaddr2->redefine(az_vm_as_list => sub { return; });
+    $ipaddr2->redefine(az_vm_as_show => sub { return; });
+    $ipaddr2->redefine(az_vm_diagnostic_log_enable => sub { return; });
+    $ipaddr2->redefine(az_vm_openport => sub { return; });
+    $ipaddr2->redefine(az_nic_get_id => sub { return 'nic-id'; });
+    $ipaddr2->redefine(az_ipconfig_name_get => sub { return 'ipconfig-name'; });
+    $ipaddr2->redefine(az_nic_name_get => sub { return 'nic-name'; });
+    $ipaddr2->redefine(az_ipconfig_update => sub { return; });
+    $ipaddr2->redefine(az_ipconfig_pool_add => sub { return; });
+    $ipaddr2->redefine(az_network_lb_probe_create => sub { return; });
+    $ipaddr2->redefine(az_network_lb_rule_create => sub { return; });
+
+    my %mock_tags = (
+        cloud => 'azure',
+        job => '12345',
+        server => 'openqa.suse.de',
+    );
+    $ipaddr2->redefine(qesap_get_public_cloud_tags => sub { return %mock_tags; });
+
+    my @tagged_funcs = qw(
+      az_group_create
+      az_img_from_vhd_create
+      az_network_vnet_create
+      az_network_nsg_create
+      az_network_publicip_create
+      az_network_nat_gateway_create
+      az_network_lb_create
+      az_vm_as_create
+      az_storage_account_create
+      az_vm_create
+    );
+
+    my %received_tags;
+    for my $func (@tagged_funcs) {
+        $ipaddr2->redefine($func => sub {
+                my (%args) = @_;
+                push @{$received_tags{$func}}, $args{tags};
+                return;
+        });
+    }
+
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'test.vhd', diagnostic => 1);
+
+    my $expected_tags = 'cloud=azure job=12345 server=openqa.suse.de';
+    for my $func (@tagged_funcs) {
+        ok($received_tags{$func} && @{$received_tags{$func}}, "$func was called");
+        for my $tag_arg (@{$received_tags{$func}}) {
+            is($tag_arg, $expected_tags, "$func received expected tags argument");
+        }
+    }
 };
 
 subtest '[ipaddr2_infra_destroy]' => sub {

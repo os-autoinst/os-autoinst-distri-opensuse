@@ -229,7 +229,8 @@ sub ipaddr2_infra_deploy(%args) {
 
     az_version();
 
-    my $tags = qesap_get_public_cloud_tags();
+    my %tags = qesap_get_public_cloud_tags();
+    my $tags = join(' ', map { "$_=$tags{$_}" } sort keys %tags);
 
     my $rg = ipaddr2_azure_resource_group();
 

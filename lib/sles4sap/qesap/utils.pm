@@ -82,22 +82,25 @@ sub qesap_is_job_finished {
 
 =head3 qesap_get_public_cloud_tags
 
-    my $tags = qesap_get_public_cloud_tags();
+    my %tags = qesap_get_public_cloud_tags();
 
-Retrieve tags from the `PUBLIC_CLOUD_TAGS` openQA setting, map key=value pairs,
-override `openqa_var_job_id` with get_current_job_id(), and return a formatted,
-space-separated string suitable for the `--tags` argument of the az cli.
+Calculate tags to match CloudCustodian needs.
+Return a dictionary.
 
 =cut
 
 sub qesap_get_public_cloud_tags {
-    my $tags = '';
-    if (my $value = get_var('PUBLIC_CLOUD_TAGS')) {
-        my %tags_hash = map { if (/([^=]+)=([^=]+)/) { $1 => "$2" } else { $_ => 1 } } split(/,/, $value);
-        $tags_hash{openqa_var_job_id} = get_current_job_id() if exists $tags_hash{openqa_var_job_id};
-        $tags = join(' ', map { "$_=$tags_hash{$_}" } sort keys %tags_hash);
-    }
-    return $tags;
+    my $openqa_var_server = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'))
+      or die("Neither 'OPENQA_URL' nor 'OPENQA_HOSTNAME' is set");
+    # Remove the http://, https://, and/or the slash at the end
+    $openqa_var_server =~ s@^https?://|/$@@g;
+
+    my %tags = (
+        openqa_var_job_id => get_current_job_id(),
+        openqa_var_name => get_var('NAME', ''),
+        openqa_var_server => $openqa_var_server,
+    );
+    return %tags;
 }
 
 1;
