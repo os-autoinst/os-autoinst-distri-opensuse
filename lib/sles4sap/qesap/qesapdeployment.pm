@@ -548,10 +548,11 @@ sub qesap_execute {
 
     my $verbose = $args{verbose} ? "--verbose" : "";
     $args{cmd_options} //= '';
+    $args{cmd_options} .= ' --numbered-logs' if $args{cmd} eq 'ansible';
     $args{timeout} //= bmwqemu::scale_timeout(90);
 
     my %paths = qesap_get_file_paths();
-    my $exec_log = '/tmp/' . $args{logname};
+    my $exec_log = '/tmp/' . ($args{cmd} eq 'ansible' ? '00-ansible-' : '') . $args{logname};
 
     my $qesap_cmd = join(' ', qesap_py(), $paths{deployment_dir} . '/scripts/qesap/qesap.py',
         $verbose,
