@@ -523,6 +523,38 @@ subtest '[wait_for_guestregister] timeout captures diagnostics before dying' => 
     ok((any { /journalctl -u guestregister\.service/ } @calls), 'journal command targets guestregister.service');
 };
 
+subtest '[wait_for_guestregister] timeout on GCE with bsc#1277388 records a soft failure' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my (@uploads, @softfails);
+    my ($stall_bug, $ipv6_unreachable);
+    $instmod->redefine(ssh_script_run => sub { 0 });
+    $instmod->redefine(ssh_script_output => sub { 'guestregister.service - active' });
+    $instmod->redefine(upload_log => sub { my ($self, $log, %args) = @_; push @uploads, $log });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    $instmod->redefine(record_soft_failure => sub { push @softfails, $_[0] });
+    $instmod->redefine(has_gcemetadata_ipv6_stall_bug => sub { $stall_bug });
+    $instmod->redefine(is_gce_metadata_ipv6_unreachable => sub { $ipv6_unreachable });
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+    my $reset = sub { ($stall_bug, $ipv6_unreachable) = @_; @uploads = (); @softfails = () };
+
+    $reset->(1, 1);
+    is($inst->wait_for_guestregister(timeout => 0), 1, 'returns 1 when the IPv6 metadata server does not reply');
+    is_deeply(\@softfails, ['bsc#1277388 - guestregister timeout, gcemetadata stops on the IPv6 metadata server'], 'soft failure references bsc#1277388');
+    is(scalar @uploads, 2, 'diagnostics are captured before the soft failure');
+
+    $reset->(1, undef);
+    is($inst->wait_for_guestregister(timeout => 0), 1, 'without curl, the package version is sufficient');
+    is(scalar @softfails, 1, 'one soft failure without curl');
+
+    $reset->(1, 0);
+    throws_ok { $inst->wait_for_guestregister(timeout => 0) } qr/didn't end in expected timeout/, 'dies when the IPv6 metadata server replies';
+    ok(!@softfails, 'no soft failure when the IPv6 metadata server replies');
+
+    $reset->(0, 1);
+    throws_ok { $inst->wait_for_guestregister(timeout => 0) } qr/didn't end in expected timeout/, 'dies with python-gcemetadata 1.1.2';
+    ok(!@softfails, 'no soft failure with python-gcemetadata 1.1.2');
+};
+
 subtest '[upload_supportconfig_log] timeout adjustments: SLE 12-SP5' => sub {
     my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
     my $captured_timeout;
@@ -534,7 +566,8 @@ subtest '[upload_supportconfig_log] timeout adjustments: SLE 12-SP5' => sub {
     });
     $instmod->redefine(upload_log => sub { return 1 });
     $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
-    $instmod->redefine(is_gce => sub { 0 });
+    my $utilsmod = Test::MockModule->new('publiccloud::utils', no_auto => 1);
+    $utilsmod->redefine(is_gce => sub { 0 });
     $instmod->redefine(is_sle => sub { my ($v) = @_; return ($v eq '=12-SP5') ? 1 : 0 });
 
     my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
@@ -553,7 +586,8 @@ subtest '[upload_supportconfig_log] timeout adjustments: GCE with python-gcemeta
     });
     $instmod->redefine(upload_log => sub { return 1 });
     $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
-    $instmod->redefine(is_gce => sub { 1 });
+    my $utilsmod = Test::MockModule->new('publiccloud::utils', no_auto => 1);
+    $utilsmod->redefine(is_gce => sub { 1 });
     $instmod->redefine(is_sle => sub { 0 });
     $instmod->redefine(ssh_script_output => sub {
             my $self = shift;
@@ -578,7 +612,8 @@ subtest '[upload_supportconfig_log] timeout adjustments: GCE with python-gcemeta
     });
     $instmod->redefine(upload_log => sub { return 1 });
     $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
-    $instmod->redefine(is_gce => sub { 1 });
+    my $utilsmod = Test::MockModule->new('publiccloud::utils', no_auto => 1);
+    $utilsmod->redefine(is_gce => sub { 1 });
     $instmod->redefine(is_sle => sub { 0 });
     $instmod->redefine(ssh_script_output => sub {
             my $self = shift;
@@ -603,7 +638,8 @@ subtest '[upload_supportconfig_log] timeout adjustments: both SLE 12-SP5 and GCE
     });
     $instmod->redefine(upload_log => sub { return 1 });
     $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
-    $instmod->redefine(is_gce => sub { 1 });
+    my $utilsmod = Test::MockModule->new('publiccloud::utils', no_auto => 1);
+    $utilsmod->redefine(is_gce => sub { 1 });
     $instmod->redefine(is_sle => sub { my ($v) = @_; return ($v eq '=12-SP5') ? 1 : 0 });
     $instmod->redefine(ssh_script_output => sub {
             my $self = shift;

@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_sle_micro check_version);
+use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_sle_micro check_version package_version_cmp);
 use transactional qw(process_reboot);
 use registration qw(get_addon_fullname add_suseconnect_product %ADDONS_REGCODE);
 use maintenance_smelt qw(is_embargo_update);
@@ -49,6 +49,8 @@ our @EXPORT = qw(
   is_hardened
   is_cloudinit_supported
   check_dns
+  has_gcemetadata_ipv6_stall_bug
+  is_gce_metadata_ipv6_unreachable
   registercloudguest
   register_addon
   register_addons_in_pc
@@ -219,6 +221,65 @@ sub deregister_addon {
     record_info('SUSEConnect time', 'The command SUSEConnect -d ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
 }
 
+=head2 has_gcemetadata_ipv6_stall_bug
+
+    has_gcemetadata_ipv6_stall_bug($instance);
+
+Return true on GCE when the installed python-gcemetadata is older than 1.1.2.
+These versions have no timeout and no IPv4 fallback: on a dual-stack
+instance gcemetadata can stop if the IPv6 metadata server does not
+reply (bsc#1277388).
+
+=cut
+
+sub has_gcemetadata_ipv6_stall_bug {
+    my ($instance) = @_;
+    return 0 unless is_gce();
+    my $ver = $instance->ssh_script_output(cmd => q(rpm -q --qf '%{VERSION}' python-gcemetadata), proceed_on_failure => 1);
+    $ver =~ s/^\s+|\s+$//g;
+    return ($ver =~ /^\d+(?:\.\d+)*$/ && package_version_cmp($ver, '1.1.2') < 0) ? 1 : 0;
+}
+
+=head2 is_gce_metadata_ipv6_unreachable
+
+    is_gce_metadata_ipv6_unreachable($instance);
+
+Send one request with a time limit to the GCE metadata server over IPv4 and
+one over IPv6. Return true when only the IPv4 request gets a reply, false
+otherwise. Return undef when curl is not available on the instance.
+
+=cut
+
+sub is_gce_metadata_ipv6_unreachable {
+    my ($instance) = @_;
+    my $probe = q(curl -sf -m 5 -o /dev/null -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/);
+    my $v4 = $instance->ssh_script_run(cmd => "$probe -4", timeout => 30) // -1;
+    my $v6 = $instance->ssh_script_run(cmd => "$probe -6", timeout => 30) // -1;
+    record_info('GCE metadata', "IPv4 request exit code: $v4\nIPv6 request exit code: $v6");
+    return undef if ($v4 == 127 || $v6 == 127);
+    return ($v4 == 0 && $v6 != 0) ? 1 : 0;
+}
+
+# Apply a work-around for bsc#1277388 after registercloudguest timed out.
+# Do nothing if the cause of the timeout is not bsc#1277388.
+# The old registercloudguest process stays on the instance and keeps the
+# registration lock. Then a new call with the same arguments does not register
+# and returns 0. Stop the old processes before the next attempt.
+sub _workaround_gcemetadata_ipv6_stall {
+    my ($instance) = @_;
+    return unless has_gcemetadata_ipv6_stall_bug($instance);
+    my $ipv6_unreachable = is_gce_metadata_ipv6_unreachable($instance);
+    # Rely only on the timeout and has_gcemetadata_ipv6_stall_bug() when the SUT does not have curl
+    return if (defined($ipv6_unreachable) && !$ipv6_unreachable);
+    record_soft_failure('bsc#1277388 - registercloudguest timeout, gcemetadata stops on the IPv6 metadata server');
+    # The bracket in the pattern prevents pkill from matching its own command line.
+    $instance->ssh_script_run(cmd => q(sudo pkill -f '[r]egistercloudguest'), timeout => 30);
+    $instance->ssh_script_run(cmd => q(sudo pkill -f '[g]cemetadata'), timeout => 30);
+    # Work-around: remove the IPv6 addresses of the metadata server, so gcemetadata uses IPv4.
+    # Only IPv6 addresses contain ':'.
+    $instance->ssh_assert_script_run(q(sudo sed -i '/^[^#[:space:]]*:[^[:space:]]*[[:space:]].*metadata\.google\.internal/s/^/#/' /etc/hosts));
+}
+
 sub registercloudguest {
     my ($instance) = @_;
     my $regcode = get_required_var('SCC_REGCODE');
@@ -236,7 +297,13 @@ sub registercloudguest {
     }
 
     my $cmd_time = time();
-    $instance->ssh_script_retry(cmd => "sudo $suseconnect $custom_smt -r $regcode", timeout => 420, retry => 3, delay => 120);
+    my $reg_cmd = "sudo $suseconnect $custom_smt -r $regcode";
+    # Run the first attempt alone, because script_retry does not report the exit code of each attempt.
+    my $ret = $instance->ssh_script_retry(cmd => $reg_cmd, timeout => 420, retry => 1, delay => 120, die => 0);
+    unless (defined($ret) && $ret == 0) {
+        _workaround_gcemetadata_ipv6_stall($instance) if (defined($ret) && $ret == 124);
+        $instance->ssh_script_retry(cmd => $reg_cmd, timeout => 420, retry => 2, delay => 120);
+    }
     record_info('registration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
 
     # If the SSH master socket is active, exit it, so the next SSH command will (re)login
