@@ -33,7 +33,12 @@ sub run {
 
     # Stop auditd before checking records in case the following executions
     # will generate new audit records
+    # Once auditd is gone the kernel prints audit records to the serial console,
+    # which can split the serial marker of the command. Silence the console meanwhile.
+    my $console_loglevel = script_output("awk '{print \$1}' /proc/sys/kernel/printk");
+    assert_script_run('dmesg -n 1');
     assert_script_run('systemctl stop auditd');
+    assert_script_run("dmesg -n $console_loglevel");
 
     # Generate report by default
     assert_script_run('aureport');
