@@ -119,7 +119,6 @@ EOF
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->SUPER::post_fail_hook;
     if (($self->{result} // '') eq 'fail' && defined($self->{kernel}) && ($self->{fail_reason} // '') =~ /\bmake\b.*failed/) {
         my $whitelist = get_whitelist();
         my $env = {
@@ -129,6 +128,9 @@ sub post_fail_hook {
         };
         $whitelist->override_known_failures($self, $env, 'kselftests_prepare', '');
     }
+    # Skip the generic post_fail_hook if already softfailed
+    return if $self->result eq 'softfail';
+    $self->SUPER::post_fail_hook;
 }
 
 1;
