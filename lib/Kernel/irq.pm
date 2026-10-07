@@ -208,6 +208,7 @@ example C<0-7,32-39>. Reads all interrupts with one command.
 
 sub get_irq_affinity {
     my (@irqs) = @_;
+    return {} unless @irqs;
     my %affinity;
     my $output = script_output("for irq in @irqs; do echo \"\$irq \$(cat /proc/irq/\$irq/smp_affinity_list 2>/dev/null)\"; done");
     for my $line (split /\n/, $output) {
@@ -231,6 +232,7 @@ irqbalance can change the affinity again later.
 
 sub set_irq_affinity {
     my (%cpus) = @_;
+    return () unless %cpus;
     my $pairs = join ' ', map { "$_:$cpus{$_}" } sort { $a <=> $b } keys %cpus;
     my $refused = script_output("for pair in $pairs; do irq=\${pair%%:*}; "
           . "{ echo \${pair#*:} > /proc/irq/\$irq/smp_affinity_list; } 2>/dev/null || echo \$irq; done");
