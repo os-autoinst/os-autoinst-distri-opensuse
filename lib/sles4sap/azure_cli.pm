@@ -1394,7 +1394,10 @@ sub az_ipconfig_name_get(%args) {
         nic_name => 'openqa-nic',
         ip => '192.168.0.42')
 
-Change the IpConfig to use a static IP
+Change the IpConfig to use a static IP.
+The command uses --debug, to get details about the Azure operation.
+Sometimes this operation takes about 10 minutes on the Azure side:
+if the command takes more than 60 seconds, a record_info with result fail reports the duration.
 
 =over
 
@@ -1416,11 +1419,17 @@ sub az_ipconfig_update(%args) {
     croak "Not a valid ip addr: $args{ip}" unless grep /^$RE{net}{IPv4}$/, $args{ip};
 
     my $az_cmd = join(' ', 'az network nic ip-config update',
+        '--debug',
         '--resource-group', $args{resource_group},
         '--name', $args{ipconfig_name},
         '--nic-name', $args{nic_name},
         '--private-ip-address', $args{ip});
-    assert_script_run($az_cmd, timeout => 900);
+    my $start_time = time();
+    assert_script_run($az_cmd, timeout => 1500);
+    my $duration = time() - $start_time;
+    record_info('Slow ipconfig',
+        "az network nic ip-config update for $args{nic_name} took $duration seconds",
+        result => 'fail') if ($duration > 60);
 }
 
 =head2 az_ipconfig_delete
