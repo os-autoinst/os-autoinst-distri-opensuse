@@ -146,6 +146,7 @@ sub run_sut {
     # A driver can reserve more interrupts than it uses
     my @irqs = get_irqs_in_use($current, @{$nic->{irqs}});
     die "No interrupt of $nic->{name} is in use" unless @irqs;
+    die "Card $nic->{name} has only " . scalar(@irqs) . " IRQs in use, need at least " . scalar(keys %sockets) . " to cover all sockets" if @irqs < keys %sockets;
     my %in_use = map { $_ => 1 } @irqs;
     my @unused = grep { !$in_use{$_} } @{$nic->{irqs}};
     record_info("IRQs in use $nic->{name}", scalar(@irqs) . ' of ' . scalar(@{$nic->{irqs}}) . ': ' . join(',', @irqs)
