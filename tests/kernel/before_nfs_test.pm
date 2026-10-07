@@ -10,6 +10,8 @@ use testapi;
 use serial_terminal "select_serial_terminal";
 use utils;
 use lockapi;
+use Kernel::multimachine_topology qw(has_topology get_topology get_local_node get_node_interface);
+use Kernel::net_tests 'add_hosts_entries';
 
 sub prepare_bond {
     my $cfg = " /etc/sysconfig/network/ifcfg-bond0";
@@ -41,7 +43,16 @@ sub run {
 
     select_serial_terminal;
     systemctl 'stop ' . $self->firewall;
-    set_hostname(get_var("HOSTNAME", "susetest"), restart_network => 1);
+    my $hostname = get_var("HOSTNAME", "susetest");
+    # with a topology, the node can set its host name, for example for Kerberos
+    $hostname = get_local_node()->{hostname} // $hostname if has_topology();
+    set_hostname($hostname, restart_network => 1);
+    # resolve the host names of the topology to its addresses, not to other
+    # addresses from DNS, for example IPv6 ones that the exports do not allow
+    if (has_topology()) {
+        my @nodes = grep { $_->{hostname} } @{get_topology()->{nodes}};
+        add_hosts_entries(map { $_->{hostname} => get_node_interface($_, 0)->{ipv4} } @nodes) if @nodes;
+    }
 
     prepare_bond if get_var('NFS_BOND') == "1";
     barrier_wait("NFS_BEFORE_TEST_DONE");

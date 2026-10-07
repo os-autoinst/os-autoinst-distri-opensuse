@@ -8,6 +8,7 @@ multimachine_topology:
   nodes:
     - id: sonic
       role: nfs_server
+      hostname: sonic-1.bmt.prg2.suse.org
       interfaces:
         - id: eno1
           network: mgmt
@@ -15,6 +16,7 @@ multimachine_topology:
 
     - id: coppi
       role: nfs_client1
+      hostname: coppi-1.bmt.prg2.suse.org
       interfaces:
         - id: eno1
           network: mgmt
@@ -22,6 +24,7 @@ multimachine_topology:
 
     - id: merckx
       role: nfs_client2
+      hostname: merckx-1.bmt.prg2.suse.org
       interfaces:
         - id: eno1
           network: mgmt

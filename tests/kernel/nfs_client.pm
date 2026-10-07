@@ -47,7 +47,8 @@ sub run {
     # with a topology, each client writes to its own directory of the exports
     my $client_dir = '';
     if (has_topology()) {
-        $server_node = get_node_interface(get_node_by_role('nfs_server'), 0)->{ipv4};
+        my $server = get_node_by_role('nfs_server');
+        $server_node = $server->{hostname} // get_node_interface($server, 0)->{ipv4};
         $client_dir = '/' . get_local_node()->{id};
     }
     my $nfs_krb5 = 0;
@@ -211,9 +212,10 @@ Hostname or IP of the NFS server.
 Defaults to C<server-node00>.
 
 If the schedule has a C<multimachine_topology> (see
-L<Kernel::multimachine_topology>), the server is the first interface
-address of the node with the role C<nfs_server>, and the client writes to a
-directory of the exports named after its node id.
+L<Kernel::multimachine_topology>), the server is the C<hostname> of the
+node with the role C<nfs_server>, or else its first interface address, and
+the client writes to a directory of the exports named after its node id.
+Kerberos (C<NFS_KRB5>) needs the C<hostname>.
 
 =head2 NFS_MOUNT_NFS3
 

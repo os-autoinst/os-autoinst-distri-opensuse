@@ -42,6 +42,7 @@ our @EXPORT_OK = qw(
   set_link_up
   has_ipv4_addr
   wait_for_ipv4_addr
+  add_hosts_entries
 );
 
 =head1 SYNOPSIS
@@ -115,6 +116,23 @@ sub wait_for_ipv4_addr {
         sleep 5;
     }
     die "$dev does not have the IPv4 address $ip";
+}
+
+=head2 add_hosts_entries
+
+ add_hosts_entries('server.example.com' => '192.0.2.1', ...);
+
+Adds a line with the address and the name to C</etc/hosts> for each given
+name, so that the names resolve to these addresses without DNS. For
+example, a name that has an IPv6 address in DNS then resolves only to the
+given IPv4 address. Records the resulting C</etc/hosts>.
+
+=cut
+
+sub add_hosts_entries {
+    my (%hosts) = @_;
+    assert_script_run("echo '$hosts{$_} $_' >> /etc/hosts") for sort keys %hosts;
+    record_info('hosts', script_output('cat /etc/hosts'));
 }
 
 =head2 get_net_prefix_len
