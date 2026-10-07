@@ -251,8 +251,6 @@ containerized OS image.
 
 sub install_cmd {
     my (%args) = @_;
-
-    #my $image       = get_required_var('CONTAINER_IMAGE_TO_TEST');
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $config_file = "$args{config_dir}/config.sh";
     my $device = '/dev/nbd0';
@@ -274,7 +272,7 @@ sub install_cmd {
 
     record_info('QCOW2', 'Generate and upload QCOW2 image');
 
-    # Create a raw image and mount it
+    # Create a qcow2 image and mount it
     assert_script_run(
         "qemu-img create -f qcow2 $args{config_dir}/$args{img_filename}.qcow2 $args{hddsize}G"
     );
@@ -287,6 +285,9 @@ sub install_cmd {
         "elemental3ctl --debug install --cmdline '$krnlcmdline' --os-image $args{image} --overlay dir://$overlay_dir --config $config_file --target $device",
         timeout => $args{timeout},
     );
+
+    # Disconnect the qcow2 image
+    assert_script_run("sync ; qemu-nbd -d $device");
 
     # Return HDD image
     return ("$args{config_dir}/$args{img_filename}.qcow2");
