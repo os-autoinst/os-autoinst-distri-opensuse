@@ -13,6 +13,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Kernel::irq qw(get_interrupts get_irq_total);
 
 our @EXPORT_OK = qw(
   lscpu_info
@@ -22,6 +23,7 @@ our @EXPORT_OK = qw(
   get_offline_cpus
   get_present_cpus
   get_cpu_topology
+  get_cpu_map
   get_cpu_flags
   has_cpu_flag
   get_cpu_vulnerabilities
@@ -188,6 +190,44 @@ sub get_cpu_topology {
     };
 }
 
+sub _parse_cpu_map {
+    my ($text) = @_;
+    my %map;
+
+    for my $line (split /\n/, $text // '') {
+        next if $line =~ /^#/;
+        my ($cpu, $socket, $node, $online) = split /,/, $line, -1;
+        next unless defined $cpu && $cpu =~ /^\d+$/;
+        $map{$cpu} = {
+            socket => ($socket // '') eq '' ? undef : $socket,
+            node => ($node // '') eq '' ? undef : $node,
+            online => ($online // '') eq 'Y' ? 1 : 0,
+        };
+    }
+    return \%map;
+}
+
+=head2 get_cpu_map
+
+ my $map = get_cpu_map();
+
+Returns a hash reference of the CPU number to a hash reference with the
+keys C<socket>, C<node> (NUMA node) and C<online> (1 or 0), from
+C<lscpu -a -p>. Offline CPUs are included. C<socket> or C<node> is undef
+if C<lscpu> does not show it, for example C<node> on a system without
+NUMA.
+
+Use it to group per-CPU values by socket or NUMA node:
+
+ my $map = get_cpu_map();
+ my %sockets = map { $map->{$_}{socket} => 1 } grep { $map->{$_}{online} } keys %$map;
+
+=cut
+
+sub get_cpu_map {
+    return _parse_cpu_map(script_output('LC_ALL=C lscpu -a -p=CPU,SOCKET,NODE,ONLINE'));
+}
+
 =head2 get_cpu_flags
 
  my @flags = get_cpu_flags([$info]);
@@ -277,12 +317,9 @@ interrupts and on s390x Machine Check interrupts.
 =cut
 
 sub nmi_count {
-    my ($nmi) = grep { /^\s*NMI:/ } split(/\n/, script_output('cat /proc/interrupts'));
-    return 0 unless defined $nmi;
-
-    my $count = 0;
-    $count += $_ for grep { /^\d+$/ } split(' ', $nmi);
-    return $count;
+    my $snapshot = get_interrupts();
+    return 0 unless $snapshot->{irqs}{NMI};
+    return get_irq_total($snapshot, 'NMI');
 }
 
 1;

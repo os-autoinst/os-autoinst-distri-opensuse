@@ -1,0 +1,21 @@
+multimachine_topology:
+  name: irq_delivery_2hosts
+
+  networks:
+    - id: mgmt
+      ipv4_cidr: "10.146.14.0/23"
+
+  nodes:
+    - id: coppi
+      role: sut
+      interfaces:
+        - id: eno1
+          network: mgmt
+          ipv4: "10.146.14.87"
+
+    - id: merckx
+      role: peer
+      interfaces:
+        - id: eno1
+          network: mgmt
+          ipv4: "10.146.14.90"
