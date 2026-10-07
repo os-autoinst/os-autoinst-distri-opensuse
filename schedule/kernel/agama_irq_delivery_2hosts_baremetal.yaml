@@ -7,7 +7,6 @@ description:    >
     or peer.
 vars:
     INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
-    DESKTOP: textmode
     LTP_BAREMETAL: '1'
 test_data:
     <<: !include test_data/kernel/multimachine/irq_delivery_2hosts.yaml
