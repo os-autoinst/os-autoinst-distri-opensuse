@@ -129,6 +129,10 @@ sub client {
             record_info('stress-ng', "Detected failed or untrustworthy metrics on path: $path", result => 'fail');
             $result = 1;
         }
+        if ($metrics->{passed} == 0) {
+            record_info('stress-ng', "No stressor passed on path: $path", result => 'fail');
+            $result = 1;
+        }
     }
 
     barrier_wait('NFS_STRESS_NG_END');
