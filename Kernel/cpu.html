@@ -21,6 +21,7 @@
       <li><a href="#get_offline_cpus">get_offline_cpus</a></li>
       <li><a href="#get_present_cpus">get_present_cpus</a></li>
       <li><a href="#get_cpu_topology">get_cpu_topology</a></li>
+      <li><a href="#get_cpu_map">get_cpu_map</a></li>
       <li><a href="#get_cpu_flags">get_cpu_flags</a></li>
       <li><a href="#has_cpu_flag">has_cpu_flag</a></li>
       <li><a href="#get_cpu_vulnerabilities">get_cpu_vulnerabilities</a></li>
@@ -83,6 +84,17 @@ my $count = get_cpu_count($info);</code></pre>
 <pre><code>my $topology = get_cpu_topology([$info]);</code></pre>
 
 <p>Returns a hash reference with the keys <code>sockets</code>, <code>cores_per_socket</code>, <code>threads_per_core</code> and <code>numa_nodes</code>, from <code>lscpu</code>. A value is undef if <code>lscpu</code> does not show it on this architecture (for example, s390x shows sockets per book instead of sockets).</p>
+
+<h2 id="get_cpu_map">get_cpu_map</h2>
+
+<pre><code>my $map = get_cpu_map();</code></pre>
+
+<p>Returns a hash reference of the CPU number to a hash reference with the keys <code>socket</code>, <code>node</code> (NUMA node) and <code>online</code> (1 or 0), from <code>lscpu -a -p</code>. Offline CPUs are included. <code>socket</code> or <code>node</code> is undef if <code>lscpu</code> does not show it, for example <code>node</code> on a system without NUMA.</p>
+
+<p>Use it to group per-CPU values by socket or NUMA node:</p>
+
+<pre><code>my $map = get_cpu_map();
+my %sockets = map { $map-&gt;{$_}{socket} =&gt; 1 } grep { $map-&gt;{$_}{online} } keys %$map;</code></pre>
 
 <h2 id="get_cpu_flags">get_cpu_flags</h2>
 

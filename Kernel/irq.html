@@ -1,0 +1,108 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kernel/irq.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#get_interrupts">get_interrupts</a></li>
+      <li><a href="#get_irq_total">get_irq_total</a></li>
+      <li><a href="#get_irq_per_cpu">get_irq_per_cpu</a></li>
+      <li><a href="#get_irq_remapped">get_irq_remapped</a></li>
+      <li><a href="#get_irqs_in_use">get_irqs_in_use</a></li>
+      <li><a href="#get_device_irqs">get_device_irqs</a></li>
+      <li><a href="#get_irq_affinity">get_irq_affinity</a></li>
+      <li><a href="#set_irq_affinity">set_irq_affinity</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kernel/irq.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Interrupt helpers for kernel tests.</p>
+
+<p>Take a snapshot of <code>/proc/interrupts</code> before and after a workload and compare the counters of the interrupts of interest:</p>
+
+<pre><code>my @irqs = get_device_irqs($controller);
+my $before = get_interrupts();
+# run the workload
+my $after = get_interrupts();
+my $delta = get_irq_total($after, @irqs) - get_irq_total($before, @irqs);</code></pre>
+
+<h2 id="get_interrupts">get_interrupts</h2>
+
+<pre><code>my $snapshot = get_interrupts();</code></pre>
+
+<p>Reads <code>/proc/interrupts</code> on the SUT and returns a hash reference with:</p>
+
+<ul>
+
+<li><p><code>cpus</code>: array reference of the CPU numbers of the counter columns. CPU numbers are not always contiguous, for example if CPUs are offline.</p>
+
+</li>
+<li><p><code>irqs</code>: hash reference of the interrupt name (<code>40</code>, <code>NMI</code>, <code>LOC</code>, ...) to a hash reference with <code>counts</code>, the per-CPU counters in the order of <code>cpus</code>, and <code>desc</code>, the rest of the line (chip and name).</p>
+
+</li>
+</ul>
+
+<p>Rows like <code>ERR</code> and <code>MIS</code> have one counter, not one per CPU.</p>
+
+<h2 id="get_irq_total">get_irq_total</h2>
+
+<pre><code>my $count = get_irq_total($snapshot, @irqs);</code></pre>
+
+<p>Returns the sum of the counters of all CPUs for the given interrupts of a snapshot from <code>get_interrupts()</code>. Dies if an interrupt is missing.</p>
+
+<h2 id="get_irq_per_cpu">get_irq_per_cpu</h2>
+
+<pre><code>my $counts = get_irq_per_cpu($snapshot, @irqs);</code></pre>
+
+<p>Returns a hash reference of the CPU number to the sum of the counters of the given interrupts on that CPU. Dies if an interrupt is missing.</p>
+
+<h2 id="get_irq_remapped">get_irq_remapped</h2>
+
+<pre><code>my $remapped = get_irq_remapped($snapshot, @irqs);</code></pre>
+
+<p>Returns a hash reference of each given interrupt to 1 if it goes through interrupt remapping (Intel VT-d or AMD-Vi), else 0, from a snapshot from <code>get_interrupts()</code>. Dies if an interrupt is missing.</p>
+
+<p>On x86_64, the chip name of a remapped interrupt in <code>/proc/interrupts</code> starts with <code>IR-</code>, for example <code>IR-PCI-MSIX-0000:02:00.0</code> or <code>IR-IO-APIC</code>. Other architectures do not use this prefix, so all interrupts are reported as not remapped there.</p>
+
+<h2 id="get_irqs_in_use">get_irqs_in_use</h2>
+
+<pre><code>my @in_use = get_irqs_in_use($snapshot, @irqs);</code></pre>
+
+<p>Returns the given interrupts that have a row in a snapshot from <code>get_interrupts()</code>, in the given order. A driver can reserve more interrupts than it uses: <code>get_device_irqs()</code> returns all reserved interrupts, but only interrupts that the driver requested appear in <code>/proc/interrupts</code>. For example, a network card reserves interrupts for an RDMA driver that is not loaded, and the driver of a network interface that is down requests none.</p>
+
+<h2 id="get_device_irqs">get_device_irqs</h2>
+
+<pre><code>my @irqs = get_device_irqs($sysfs_path);</code></pre>
+
+<p>Returns the interrupt numbers of a PCI device, for example <code>/sys/devices/pci0000:00/0000:00:01.0</code>. These are the MSI or MSI-X interrupts from <code>msi_irqs</code> if the device uses them, else the legacy interrupt from <code>irq</code>. Dies if the device has no interrupt. These are the interrupts that the driver reserved; see <code>get_irqs_in_use()</code> for the interrupts that it uses.</p>
+
+<h2 id="get_irq_affinity">get_irq_affinity</h2>
+
+<pre><code>my $affinity = get_irq_affinity(@irqs);</code></pre>
+
+<p>Returns a hash reference of each given interrupt to the CPUs that it may run on, as the kernel CPU list from <code>/proc/irq/N/smp_affinity_list</code>, for example <code>0-7,32-39</code>. Reads all interrupts with one command.</p>
+
+<h2 id="set_irq_affinity">set_irq_affinity</h2>
+
+<pre><code>my @refused = set_irq_affinity(298 =&gt; &#39;0&#39;, 299 =&gt; &#39;16&#39;, ...);</code></pre>
+
+<p>Sets the CPUs that each given interrupt may run on, as a kernel CPU list written to <code>/proc/irq/N/smp_affinity_list</code>, with one command. Returns the interrupts whose affinity the kernel refused, for example interrupts that the kernel manages itself, such as the queue interrupts of NVMe. A running irqbalance can change the affinity again later.</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,108 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Kernel::multimachine_topology - shared multimachine topology reader for test_data</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#require_field">require_field</a></li>
+      <li><a href="#get_topology">get_topology</a></li>
+      <li><a href="#get_node_by_role">get_node_by_role</a></li>
+      <li><a href="#get_local_node">get_local_node</a></li>
+      <li><a href="#get_job_nodes">get_job_nodes</a></li>
+      <li><a href="#get_peers">get_peers</a></li>
+      <li><a href="#get_topology_network">get_topology_network</a></li>
+      <li><a href="#get_node_interface">get_node_interface</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kernel/multimachine_topology.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>Kernel::multimachine_topology - shared multimachine topology reader for test_data</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>use Kernel::multimachine_topology qw(get_local_node get_node_by_role get_node_interface);
+
+my $node = get_local_node();    # the node of this job, from ROLE
+my $ip = get_node_interface($node, 0)-&gt;{ipv4};
+my $peer_ip = get_node_interface(get_node_by_role(&#39;peer&#39;), 0)-&gt;{ipv4};</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Reads the <code>multimachine_topology</code> of a multimachine test from the schedule <code>test_data</code> and validates it. The topology describes the machines of a setup: networks, and nodes with a role and interfaces. The schedule includes it from a YAML file:</p>
+
+<pre><code>test_data:
+  &lt;&lt;: !include test_data/kernel/multimachine/irq_delivery_2hosts.yaml</code></pre>
+
+<p>See <i>docs/KERNEL_BAREMETAL_MULTIMACHINE.md</i> for the format of the topology, roles and external nodes, and how to write and run a test with it.</p>
+
+<p>This module only reads the topology; it does not change the system.</p>
+
+<h2 id="require_field">require_field</h2>
+
+<pre><code>my $value = require_field($field, &#39;field missing&#39;);</code></pre>
+
+<p>Return the provided value if it is defined and non-empty. Dies otherwise.</p>
+
+<h2 id="get_topology">get_topology</h2>
+
+<pre><code>my $topology = get_topology();</code></pre>
+
+<p>Return the <code>multimachine_topology</code> hashref from <code>get_test_suite_data()</code>. The structure is validated and indexed on first access.</p>
+
+<h2 id="get_node_by_role">get_node_by_role</h2>
+
+<pre><code>my $node = get_node_by_role(&#39;peer&#39;);</code></pre>
+
+<p>Return the node hashref for the given role. Dies if no node has this role.</p>
+
+<h2 id="get_local_node">get_local_node</h2>
+
+<pre><code>my $node = get_local_node();</code></pre>
+
+<p>Resolve the local node using the <code>ROLE</code> job variable. Dies if that node is external.</p>
+
+<h2 id="get_job_nodes">get_job_nodes</h2>
+
+<pre><code>my $nodes = get_job_nodes();</code></pre>
+
+<p>Return an arrayref of the nodes that run an openQA job, in topology order: all nodes except the external ones. Use it, for example, for the number of tasks of a barrier.</p>
+
+<h2 id="get_peers">get_peers</h2>
+
+<pre><code>my $peers = get_peers(&#39;sut&#39;);
+my $peers = get_peers($node);</code></pre>
+
+<p>Return an arrayref containing all nodes except the selected one.</p>
+
+<h2 id="get_topology_network">get_topology_network</h2>
+
+<pre><code>my $network = get_topology_network(&#39;lab&#39;);</code></pre>
+
+<p>Return the network hashref for the given network id. Dies if it is missing.</p>
+
+<h2 id="get_node_interface">get_node_interface</h2>
+
+<pre><code>my $interface = get_node_interface($node, 0);</code></pre>
+
+<p>Return the interface hashref at the given index for the specified node.</p>
+
+
+</body>
+
+</html>
+
+

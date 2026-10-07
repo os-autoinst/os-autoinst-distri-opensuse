@@ -14,6 +14,10 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
+      <li><a href="#get_net_dev_pci_device">get_net_dev_pci_device</a></li>
+      <li><a href="#set_link_up">set_link_up</a></li>
+      <li><a href="#has_ipv4_addr">has_ipv4_addr</a></li>
+      <li><a href="#wait_for_ipv4_addr">wait_for_ipv4_addr</a></li>
       <li><a href="#get_net_prefix_len">get_net_prefix_len</a></li>
       <li><a href="#add_ipv6_addr">add_ipv6_addr</a></li>
       <li><a href="#add_ipv6_route">add_ipv6_route</a></li>
@@ -39,6 +43,30 @@
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
 <p>Networking helper utilities for multimachine openQA tests involving IPsec, L2TP, routing, and general tunnel configuration.</p>
+
+<h2 id="get_net_dev_pci_device">get_net_dev_pci_device</h2>
+
+<pre><code>my $pci = get_net_dev_pci_device($interface);</code></pre>
+
+<p>Returns the sysfs path of the PCI device of a network interface, for example <code>/sys/devices/pci0000:00/0000:00:1f.6</code> for <code>eno1</code>. If there are PCI bridges, this is the PCI device closest to the interface. Dies if the interface is not under a PCI device in sysfs, for example a loopback, bridge or bond interface.</p>
+
+<h2 id="set_link_up">set_link_up</h2>
+
+<pre><code>set_link_up($dev);</code></pre>
+
+<p>Sets the network interface <code>$dev</code> up.</p>
+
+<h2 id="has_ipv4_addr">has_ipv4_addr</h2>
+
+<pre><code>my $present = has_ipv4_addr($dev, $ip);</code></pre>
+
+<p>Returns true if the network interface <code>$dev</code> has the IPv4 address <code>$ip</code>.</p>
+
+<h2 id="wait_for_ipv4_addr">wait_for_ipv4_addr</h2>
+
+<pre><code>wait_for_ipv4_addr($dev, $ip);</code></pre>
+
+<p>Waits up to one minute until the network interface <code>$dev</code> has the IPv4 address <code>$ip</code>, for example an address from DHCP. Dies if it does not get it.</p>
 
 <h2 id="get_net_prefix_len">get_net_prefix_len</h2>
 
