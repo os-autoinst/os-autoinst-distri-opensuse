@@ -1741,9 +1741,12 @@
         "type": "ignore"
     },
     "bsc#1215516": {
-        "description": "kernel: kvm: RT requires X86_FEATURE_CONSTANT_TSC",
+        "description": "kernel: (kvm: )?RT requires X86_FEATURE_CONSTANT_TSC",
         "products": {
             "sle-micro": [
+                "5.3",
+                "5.4",
+                "5.5",
                 "6.1",
                 "6.2"
             ],
