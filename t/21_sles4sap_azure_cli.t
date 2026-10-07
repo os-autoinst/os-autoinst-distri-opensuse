@@ -1764,4 +1764,87 @@ subtest '[az_resource_tag] Test exceptions' => sub {
     dies_ok { az_resource_tag(resource_ids => ['A', 'B'], tags => 'string') } 'Fail with non arrayref argument - tags';
 };
 
+subtest '[az_*] pathological tags' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(assert_script_run => sub { return; });
+    $azcli->redefine(script_run => sub { return 0; });
+    $azcli->redefine(script_output => sub {
+            return 'Lelio_az.err' if $_[0] =~ /mktemp.*_az\.err/;
+            return 'Lelio_az.json' if $_[0] =~ /mktemp.*_az\.json/;
+            return '{}' if $_[0] =~ /cat Lelio_az\.json/;
+            return ''; });
+
+    # Each function accepting tags, with its mandatory arguments
+    # and some pathological values that are specific to it.
+    my %funcs = (
+        az_group_create => {args => {name => 'Arlecchino', region => 'Pulcinella'}},
+        az_network_vnet_create => {args => {resource_group => 'Arlecchino', region => 'Pulcinella', vnet => 'Pantalone'}},
+        az_network_nsg_create => {args => {resource_group => 'Arlecchino', name => 'Pantalone'}},
+        az_network_publicip_create => {args => {resource_group => 'Arlecchino', name => 'Pantalone'}},
+        az_network_nat_gateway_create => {args => {resource_group => 'Arlecchino', region => 'Pulcinella', name => 'Pantalone', public_ip => 'Colombina'}},
+        az_network_lb_create => {args => {resource_group => 'Arlecchino', name => 'Pantalone', vnet => 'Colombina', snet => 'Brighella', backend => 'Balanzone', frontend_ip_name => 'Tartaglia'}},
+        az_vm_as_create => {args => {resource_group => 'Arlecchino', region => 'Pulcinella', name => 'Pantalone'}},
+        az_img_from_vhd_create => {args => {resource_group => 'Arlecchino', name => 'Pantalone', source => 'Colombina.vhd'}},
+        az_vm_create => {args => {resource_group => 'Arlecchino', name => 'Pantalone', image => 'Colombina'}},
+        az_nic_create => {args => {resource_group => 'Arlecchino', name => 'Pantalone', vnet => 'Colombina', subnet => 'Brighella', nsg => 'Balanzone', pubip_name => 'Tartaglia'}},
+        az_storage_account_create => {
+            args => {resource_group => 'Arlecchino', region => 'Pulcinella', name => 'pantalone'},
+            pathological => ['a' x 129 . '=Colombina']},
+        az_disk_create => {args => {resource_group => 'Arlecchino', name => 'Pantalone', size_gb => 42}},
+        az_network_dns_zone_create => {
+            args => {resource_group => 'Arlecchino', name => 'calzini'},
+            pathological => ['1Pantalone=Colombina', 'Panta.lone=Colombina', 'Panta-lone=Colombina',
+                join(' ', map { "Arlecchino$_=Colombina" } 1 .. 16)]},
+        az_resource_tag => {args => {resource_ids => ['/sub/A']}, array_tags => 1},
+    );
+
+    my @pathological = (
+        # Shell injection and shell interpreted characters
+        'Arlecchino=1234; rm -rf /',
+        'Arlecchino=$(reboot)',
+        'Arlecchino=`reboot`',
+        'Arlecchino=${HOME}',
+        'Arlecchino=a|b',
+        'Arlecchino=a&&b',
+        'Arlecchino=a>b',
+        'Arlecchino=a<b',
+        'Arlecchino=a#b',
+        'Arlecchino=*',
+        "Arlecchino='Colombina'",
+        'Arlecchino="Colombina"',
+        'Arlecchino=Colombina\\',
+        "Arlecchino=Colombina\nPantalone=Balanzone",
+        "Arlecchino=Colombina\tPantalone=Balanzone",
+        # Format
+        'Arlecchino=with space',
+        'Arlecchino=aaa=bbb',
+        'Arlecchino',
+        '=Colombina',
+        '   ',
+        # Injection of az cli options
+        '--debug=Colombina',
+        '-o=Colombina',
+        # Azure limits
+        join(' ', map { "Arlecchino$_=Colombina" } 1 .. 51),
+        'a' x 513 . '=Colombina',
+        'Arlecchino=' . 'a' x 257,
+        'Arlecchino=Colombina arlecchino=Pantalone',
+        # Forbidden characters in the name
+        (map { "Arlec${_}chino=Colombina" } ('<', '>', '%', '&', '\\', '?', '/')),
+        # Non ASCII
+        'Arlecchino=Colombìna',
+    );
+
+    my $valid = 'openqa_var_job_id=12345 openqa_var_name=12345-sle-15-SP6-Azure-x86_64-Build1.2-sles4sap_ipaddr2@64bit openqa_var_server=openqa.suse.de openqa_build=N/A openqa_created_date=2026-10-05T11:54:56';
+    for my $func (sort keys %funcs) {
+        my $f = \&{"sles4sap::azure_cli::$func"};
+        my $tags_arg = sub { $funcs{$func}{array_tags} ? [$_[0]] : $_[0] };
+        lives_ok { $f->(%{$funcs{$func}{args}}, tags => $tags_arg->($valid)) } "$func lives with valid tags";
+        for my $tags (@pathological, @{$funcs{$func}{pathological} // []}) {
+            throws_ok { $f->(%{$funcs{$func}{args}}, tags => $tags_arg->($tags)) } qr/Invalid tags/,
+              "$func dies with tags '" . substr($tags, 0, 40) . "'";
+        }
+    }
+};
+
 done_testing;
