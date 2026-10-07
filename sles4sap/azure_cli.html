@@ -15,6 +15,7 @@
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
       <li><a href="#az">az</a></li>
+      <li><a href="#az_validate_tags">_az_validate_tags</a></li>
       <li><a href="#az_version">az_version</a></li>
       <li><a href="#az_group_create">az_group_create</a></li>
       <li><a href="#az_group_name_get">az_group_name_get</a></li>
@@ -120,6 +121,68 @@
 
 </dd>
 <dt id="failok---Ignore-error-messages-and-return-result.-Default:-False"><b>failok</b> - Ignore error messages and return result. Default: False</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_validate_tags">_az_validate_tags</h2>
+
+<pre><code>_az_validate_tags(tags =&gt; &#39;name1=value1 name2=value2&#39; [, max_tags =&gt; 15, max_name_length =&gt; 128, strict_name =&gt; 1]);</code></pre>
+
+<p>Private function. Validate a string of tags before it goes into the <code>--tags</code> argument of an az cli command. The tags string is put in the shell command without quotes, so the function only accepts characters that the shell does not interpret. The function dies at the first rule that the tags do not obey. Rules:</p>
+
+<ul>
+
+<li><p>Tags are separated by the space character only. Other whitespace (newline, tab) is not permitted.</p>
+
+</li>
+<li><p>The format of each tag is <code>name=value</code>. The value can be empty. A value cannot contain spaces: the format cannot show where such a value stops.</p>
+
+</li>
+<li><p>Maximum <b>max_tags</b> tags.</p>
+
+</li>
+<li><p>The name cannot be empty and it is maximum <b>max_name_length</b> characters.</p>
+
+</li>
+<li><p>The name cannot contain <code>&lt; &gt; % &amp; \ ? /</code>.</p>
+
+</li>
+<li><p>The name contains only <code>A-Z a-z 0-9 _ . : -</code>.</p>
+
+</li>
+<li><p>The name cannot start with <code>-</code>. This prevents an injection of az cli options, like <code>--something</code>.</p>
+
+</li>
+<li><p>Two names cannot be equal, also with different case. Names are case-insensitive in Azure.</p>
+
+</li>
+<li><p>The value is maximum 256 characters.</p>
+
+</li>
+<li><p>The value contains only <code>A-Z a-z 0-9 _ . : @ + , / -</code>.</p>
+
+</li>
+</ul>
+
+<p>Tags are plain text in Azure. Do not put secrets in tags.</p>
+
+<dl>
+
+<dt id="tags---string-of-space-separated-name-value-tags"><b>tags</b> - string of space separated name=value tags</dt>
+<dd>
+
+</dd>
+<dt id="max_tags---maximum-number-of-tags.-Default-50.-Use-15-for-resources-that-support-only-15-tags-like-Azure-DNS-zones"><b>max_tags</b> - maximum number of tags. Default 50. Use 15 for resources that support only 15 tags, like Azure DNS zones.</dt>
+<dd>
+
+</dd>
+<dt id="max_name_length---maximum-length-of-a-tag-name.-Default-512.-Use-128-for-storage-accounts"><b>max_name_length</b> - maximum length of a tag name. Default 512. Use 128 for storage accounts.</dt>
+<dd>
+
+</dd>
+<dt id="strict_name---if-true-the-name-must-start-with-a-letter-and-contain-only-letters-digits-and-_.-Use-it-for-resources-with-stricter-rules-like-Azure-DNS-zones"><b>strict_name</b> - if true, the name must start with a letter and contain only letters, digits and <code>_</code>. Use it for resources with stricter rules, like Azure DNS zones.</dt>
 <dd>
 
 </dd>
