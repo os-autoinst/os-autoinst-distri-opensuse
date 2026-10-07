@@ -42,6 +42,53 @@ subtest '[elemental3_cmd]' => sub {
     ok((any { /podman/ } @calls), 'podman called');
 };
 
+# Test elemental3ctl_cmd function
+subtest '[elemental3ctl_cmd]' => sub {
+    my $elemental3 = Test::MockModule->new('elemental3', no_auto => 1);
+    my @calls;
+    my %params = (
+        cmd => 'install --target /dev/nbd0',
+        uri =>
+          'registry.suse.de/devel/unifiedcore/main/totest/containers/beta/uc/elemental:latest',
+        config_dir => '/testdir',
+        overlay_dir => '/testoverlay',
+        device => '/dev/nbd0',
+        timeout => 120
+    );
+
+    # Check required variable
+    set_var('CONTAINER_RUNTIMES', undef);
+    dies_ok { elemental3ctl_cmd(%params) } 'Fail with required variable not set';
+
+    set_var('CONTAINER_RUNTIMES', 'podman');
+
+    # Check with no arguments
+    dies_ok { elemental3ctl_cmd() } 'Croak if no argument is provided';
+
+    # Simulate passing
+    $elemental3->redefine('assert_script_run' => sub { return 1 });
+    ok(elemental3ctl_cmd(%params), 'Pass with all args defined');
+
+    # Check container runtime call with all options
+    $elemental3->redefine('assert_script_run' => sub { push @calls, $_[0] });
+    elemental3ctl_cmd(%params);
+    ok((any { /podman/ } @calls), 'podman called');
+    ok((any { /--volume \/testdir:\/config:z/ } @calls), 'config_dir mounted');
+    ok((any { /--volume \/testoverlay:\/extensions:z/ } @calls), 'overlay_dir mounted');
+    ok((any { /--group-add keep-groups --device=\/dev\/nbd0:\/dev\/nbd0:rwm/ } @calls), 'device mapped');
+    ok((any { /elemental3ctl install --target \/dev\/nbd0/ } @calls), 'elemental3ctl command executed');
+
+    # Check without optional arguments (device, config_dir, overlay_dir)
+    @calls = ();
+    elemental3ctl_cmd(
+        cmd => 'version',
+        uri => $params{uri}
+    );
+    ok(!(any { /--device/ } @calls), 'device not included when not specified');
+    ok(!(any { /--volume \/testdir/ } @calls), 'config_dir not mounted when not specified');
+    ok(!(any { /--volume \/testoverlay/ } @calls), 'overlay_dir not mounted when not specified');
+};
+
 # Test get_artifact_uri function
 subtest '[get_artifact_uri]' => sub {
     my $elemental3 = Test::MockModule->new('elemental3', no_auto => 1);
@@ -105,11 +152,13 @@ subtest '[get_sysext]' => sub {
     dies_ok { get_sysext() } 'Croak if no argument is provided';
 
     # Simulate with variable set
+    set_var('CONTAINER_RUNTIMES', 'podman');
     set_var('SYSEXT_IMAGES_TO_TEST', 'sysext1,sysext2,sysext3');
     $elemental3->redefine('assert_script_run' => sub { push @calls, $_[0] });
-    get_sysext(tmpdir => '/my-test-dir');
+    get_sysext(uri => 'my-os-image', tmpdir => '/my-test-dir');
     ok((any { /mkdir/ } @calls), 'mkdir called');
     ok((any { /unpack-image/ } @calls), 'unpack-image called');
+    ok((any { /my-os-image/ } @calls), 'container image passed to elemental3ctl_cmd');
 };
 
 # Test get_values function
