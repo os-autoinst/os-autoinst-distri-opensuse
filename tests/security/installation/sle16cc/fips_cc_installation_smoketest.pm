@@ -12,8 +12,11 @@
 # ENCRYPT - 1
 # INSTALLONLY - 1
 # SYSTEM_ROLE - Common_Criteria
-# DEFAULT_PASSWORD - password for root, sysadmin and disk encryption,
+# DEFAULT_PASSWORD - password for root, the first user and disk encryption,
 #   default: $testapi::password
+# USERNAME - login name of the first user, default: bernhard
+#   ($testapi::username). The installer default is sysadmin, so the name is
+#   replaced. The later modules, like console/consoletest_setup, need this user.
 # SCC_REGCODE - registration code
 # QEMUCPU - host
 # GRUB_LINUX_LINE_DOWN - aarch64 only. Lines to move down from the first
@@ -28,10 +31,10 @@
 
 use Mojo::Base 'installbasetest';
 use testapi;
-use power_action_utils 'power_action';
 use serial_terminal 'select_serial_terminal';
 use utils 'is_uefi_boot';
 use Utils::Architectures 'is_aarch64';
+use security::sle16cc qw(fill_screen unlock_and_login_cc_system);
 
 use constant DEFAULT_TIMEOUT => 300;
 use constant INSTALLATION_TIMEOUT => 3600;
@@ -39,14 +42,6 @@ use constant INSTALLATION_TIMEOUT => 3600;
 sub accept_screen {
     my ($tag, $timeout) = @_;
     assert_screen $tag, $timeout // DEFAULT_TIMEOUT;
-    send_key 'ret';
-}
-
-# Wait for a screen, type a text in the input field and confirm it.
-sub fill_screen {
-    my ($tag, $text) = @_;
-    assert_screen $tag, DEFAULT_TIMEOUT;
-    type_string $text;
     send_key 'ret';
 }
 
@@ -84,13 +79,13 @@ sub select_cc_grub_entry {
     }
 }
 
-sub login_as_sysadmin {
-    my ($password) = @_;
-    assert_screen 'sle16-cc-login-prompt', DEFAULT_TIMEOUT;
-    type_string 'sysadmin';
-    send_key 'ret';
-    assert_screen 'sle16-cc-password-prompt';
-    type_string $password;
+# Wait for a screen, replace the default text of the input field with a text
+# and confirm it. The installer prefills the field, and typing appends to it.
+sub replace_screen {
+    my ($tag, $text) = @_;
+    assert_screen $tag, DEFAULT_TIMEOUT;
+    send_key 'backspace' for 1 .. 30;
+    type_string $text;
     send_key 'ret';
 }
 
@@ -112,6 +107,7 @@ sub check_os_release {
 
 sub run {
     my $password = get_var('DEFAULT_PASSWORD', $testapi::password);
+    my $user = get_var('USERNAME', $testapi::username);
 
     select_cc_grub_entry();
     accept_screen 'sle16-cc-fips-installation';
@@ -120,8 +116,8 @@ sub run {
     fill_screen 'sle16-cc-root-password', $password;
     fill_screen 'sle16-cc-root-password-confirmation', $password;
 
-    # Keep the default user name (sysadmin) and full name (System Administrator)
-    accept_screen 'sle16-cc-first-user-name';
+    # Replace the default user name (sysadmin) and keep the full name (System Administrator)
+    replace_screen 'sle16-cc-first-user-name', $user;
     accept_screen 'sle16-cc-first-user-fullname';
     fill_screen 'sle16-cc-first-user-password', $password;
     fill_screen 'sle16-cc-first-user-password-confirmation', $password;
@@ -141,35 +137,13 @@ sub run {
     accept_screen 'sle16-cc-installation-finished', INSTALLATION_TIMEOUT;
 
     # The system reboots
-    # The prompt looks different on UEFI, where tianocore shows it
-    if (is_uefi_boot()) {
-        record_info('UEFI boot', 'Using the tianocore disk encryption prompt');
-        fill_screen 'sle16-cc-disk-encryption-prompt-tianocore', $password;
-    }
-    else {
-        record_info('BIOS boot', 'Using the BIOS disk encryption prompt');
-        fill_screen 'sle16-cc-disk-encryption-prompt', $password;
-    }
-    # The installed system may boot without showing the grub menu. Wait for the
-    # menu or for the login prompt, and select the default entry only if the
-    # menu is shown.
-    assert_screen [qw(sle16-cc-grub-menu-installed sle16-cc-login-prompt)], DEFAULT_TIMEOUT;
-    if (match_has_tag 'sle16-cc-grub-menu-installed') {
-        record_info('Grub menu', 'The grub menu is shown, selecting the default entry');
-        send_key 'ret';
-    }
-    else {
-        record_info('No grub menu', 'The system boots without showing the grub menu');
-    }
-    login_as_sysadmin($password);
+    unlock_and_login_cc_system($user, $password);
 
-    wait_still_screen 2;
-    # The sysadmin user cannot write to the serial device, so run the check as root
+    # The first user cannot write to the serial device, so run the check as root
     select_serial_terminal;
+    assert_script_run("id $user");
     check_os_release();
-    # A clean power off is required to save the disk image. os-autoinst publishes
-    # the qcow2 image after the VM stops, if the setting PUBLISH_HDD_1 is set.
-    power_action('poweroff', textmode => 1);
+    # The system stays running, poweroff is called in the schedule
 }
 
 1;

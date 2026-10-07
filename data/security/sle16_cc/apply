@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# shellcheck source=scripts/libcc
+. /usr/lib/common-criteria/scripts/libcc
+
+cc_require_root
+cc_start_logging
+
+# Actually applies the evaluated configuration, invoking each script's
+# apply_* function (see scripts/libcc and any scripts/NN-* file for the
+# check_*/apply_* convention). Its read-only counterpart, `check`, verifies
+# the same configuration without changing anything - it sources these same
+# scripts for their check_* functions rather than executing them.
+#
+# Dispatch is driven entirely by filename: only scripts/NN-* (a two-digit
+# ordering prefix, e.g. 10-, 20-, 21-) are run, in the sorted order bash's
+# own pathname expansion guarantees (POSIX requires filename-generation
+# matches to be sorted by the current collating sequence) - unlike `find`,
+# whose traversal order reflects raw directory/readdir order, which is
+# filesystem-implementation-defined and not something to rely on (verified:
+# on this box's btrfs, `find` returns entries in creation order, not
+# alphabetical order). scripts/libcc and any script not yet following this
+# naming convention are deliberately excluded, not accidentally: as each
+# remaining script gets reviewed/ported, renaming it into the NN- scheme is
+# what activates it here - inclusion is no longer gated on the executable
+# bit (which is how scripts/services went unnoticed for so long as silently
+# skipped), so a script missing +x now fails loudly (permission denied)
+# instead of being silently skipped.
+#
+# That "loudly" only helps if something is actually listening: a failed
+# exec (e.g. a missing +x bit) never reaches the dispatched script's own
+# code, so it can't use cc_exit to record the failure itself - report_error
+# would otherwise see a clean CC_ERRFILE and report success regardless. So
+# this loop treats any non-zero exit from a dispatched script - other than
+# exit code 2, cc_exit's own convention for "applied correctly, but needs a
+# reboot" (not a failure) - as a failure of this whole invocation, rather
+# than only trusting each script to flag its own problems.
+shopt -s nullglob
+for script in /usr/lib/common-criteria/scripts/[0-9][0-9]-*; do
+	[ -f "$script" ] || continue
+	echo "applying $script"
+	"$script"
+	rc=$?
+	if [ "$rc" -eq 2 ]; then
+		cc_echo "NOTE: $script requires a reboot before it is fully in effect"
+	elif [ "$rc" -ne 0 ]; then
+		cc_echo "FAILED: $script exited with a non-zero status"
+		echo "Execution of $script failed" >> "$CC_ERRFILE"
+	fi
+done
+
+report_error
