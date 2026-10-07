@@ -12,7 +12,9 @@ import java.security.spec.ECPoint;
 import java.security.spec.ECPublicKeySpec;
 import java.security.spec.EllipticCurve;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import javax.crypto.KeyAgreement;
 
 public class EllipticCurveCoreTest {
 
@@ -77,6 +79,56 @@ public class EllipticCurveCoreTest {
             if (signature != null && verifier.verify(signature)) throw new IllegalStateException("tampered data was accepted as valid");
             ok(curve, "ecdsaRejectsTamperedData");
         } catch (Exception e) { fail(curve, "ecdsaRejectsTamperedData", e.getMessage()); }
+
+        // ECDH key agreement (positive test): two independently generated key pairs
+        // on the same curve must derive an identical shared secret from both sides.
+        KeyPair bobKeyPair = null;
+        try {
+            var bobKeyGen = KeyPairGenerator.getInstance("EC");
+            bobKeyGen.initialize(publicKey.getParams());
+            bobKeyPair = bobKeyGen.generateKeyPair();
+
+            var aliceKeyAgree = KeyAgreement.getInstance("ECDH");
+            aliceKeyAgree.init(keyPair.getPrivate());
+            System.err.println("[JCA INFO] [" + curve + "] KeyAgreement provider: " + aliceKeyAgree.getProvider().getName());
+            aliceKeyAgree.doPhase(bobKeyPair.getPublic(), true);
+            byte[] aliceSecret = aliceKeyAgree.generateSecret();
+
+            var bobKeyAgree = KeyAgreement.getInstance("ECDH");
+            bobKeyAgree.init(bobKeyPair.getPrivate());
+            bobKeyAgree.doPhase(publicKey, true);
+            byte[] bobSecret = bobKeyAgree.generateSecret();
+
+            if (aliceSecret.length == 0) throw new IllegalStateException("empty shared secret");
+            if (!Arrays.equals(aliceSecret, bobSecret))
+                throw new IllegalStateException("Alice and Bob derived different shared secrets");
+            ok(curve, "ecdhSharedSecretAgreement");
+        } catch (Exception e) { fail(curve, "ecdhSharedSecretAgreement", e.getMessage()); }
+
+        // ECDH key agreement (negative/sanity test): the shared secret derived with
+        // one peer must differ from the one derived with a different, unrelated peer
+        // on the same curve -- guards against a degenerate/no-op agreement.
+        try {
+            if (bobKeyPair == null) throw new IllegalStateException("prerequisite ecdhSharedSecretAgreement did not run");
+
+            var charlieKeyGen = KeyPairGenerator.getInstance("EC");
+            charlieKeyGen.initialize(publicKey.getParams());
+            var charlieKeyPair = charlieKeyGen.generateKeyPair();
+
+            var aliceKeyAgreeWithBob = KeyAgreement.getInstance("ECDH");
+            aliceKeyAgreeWithBob.init(keyPair.getPrivate());
+            aliceKeyAgreeWithBob.doPhase(bobKeyPair.getPublic(), true);
+            byte[] secretWithBob = aliceKeyAgreeWithBob.generateSecret();
+
+            var aliceKeyAgreeWithCharlie = KeyAgreement.getInstance("ECDH");
+            aliceKeyAgreeWithCharlie.init(keyPair.getPrivate());
+            aliceKeyAgreeWithCharlie.doPhase(charlieKeyPair.getPublic(), true);
+            byte[] secretWithCharlie = aliceKeyAgreeWithCharlie.generateSecret();
+
+            if (Arrays.equals(secretWithBob, secretWithCharlie))
+                throw new IllegalStateException("shared secret did not change with a different peer key");
+            ok(curve, "ecdhDistinctPeersYieldDistinctSecrets");
+        } catch (Exception e) { fail(curve, "ecdhDistinctPeersYieldDistinctSecrets", e.getMessage()); }
 
         // Invalid curve point injection
         try {
