@@ -1927,4 +1927,28 @@ subtest '[az_*] pathological tags' => sub {
     }
 };
 
+subtest '[az_graph_query] Test exceptions' => sub {
+    dies_ok { az_graph_query() } 'Fail with missing "statements" argument';
+    dies_ok { az_graph_query(statements => 'almost_and_array') } 'Check if "statement" is and ARRAY';
+};
+
+subtest '[az_graph_query] ' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            return 'out.json' if grep /az.json/, $_[0];
+            return '"result"' if grep /out.json/, $_[0]; }
+    );
+
+    my $result = az_graph_query(statements => ['a', 'b', 'c']);
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az graph query/ } @calls), 'Check for main command');
+    ok((any { /--graph-query/ } @calls), 'Check for --graph-query');
+    ok((any { /"a| b| c"/ } @calls), 'Check graph query composition');
+    is ref($result), 'HASH', 'Function returns az() return structure';
+};
+
 done_testing;
