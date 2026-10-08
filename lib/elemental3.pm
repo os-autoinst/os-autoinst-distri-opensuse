@@ -76,23 +76,25 @@ sub elemental3ctl_cmd {
 
     croak('Missing required argument!') unless (%args);
 
-    # This 'ca_vol' is needed to be able to pull images from internal
+    # These volumes are needed to be able to pull images from internal
     # registry as, for security reasons, internal SUSE CAs are not
     # installed in OS image container. As the VM image used to generate
     # UnifiedCore OS image has the CAs we can simply use them as-is.
-    # NOTE: ':z' is needed because of SELinux!
-    my $volumes = '--volume /var/lib/ca-certificates:/var/lib/ca-certificates:ro,z --volume /etc/ssl:/etc/ssl:ro,z';
+    # NOTE: Run privileged with unconfined_t SELinux domain so elemental3ctl
+    # can perform disk partitioning (systemd-repart) and file relabeling (setfiles).
+    my $sec_opts = '--privileged --security-opt label=type:unconfined_t';
+    my $volumes = '--volume /var/lib/ca-certificates:/var/lib/ca-certificates:ro --volume /etc/ssl:/etc/ssl:ro';
 
     # Check if specific directories need to be mounted
-    $volumes .= " --volume $args{config_dir}:/config:z" if ($args{config_dir});
-    $volumes .= " --volume $args{overlay_dir}:/extensions:z" if ($args{overlay_dir});
+    $volumes .= " --volume $args{config_dir}:/config" if ($args{config_dir});
+    $volumes .= " --volume $args{overlay_dir}:/extensions" if ($args{overlay_dir});
 
     # Is device sharing needed?
     my $device = '';
     $device = "--group-add keep-groups --device=$args{device}:$args{device}:rwm" if ($args{device});
 
     assert_script_run(
-        "$runtime run --rm ${volumes} ${device} $args{uri} elemental3ctl $args{cmd}",
+        "$runtime run --rm ${sec_opts} ${volumes} ${device} $args{uri} elemental3ctl $args{cmd}",
         timeout => $timeout
     );
 }
