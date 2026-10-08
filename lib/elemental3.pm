@@ -18,6 +18,7 @@ use utils qw(script_retry script_output_retry validate_script_output_retry);
 
 our @EXPORT = qw(
   elemental3_cmd
+  elemental3ctl_cmd
   get_artifact_uri
   get_sysext
   get_values
@@ -31,8 +32,8 @@ our @EXPORT = qw(
 
 =head2 elemental3_cmd
 
- elemental3_cmd( config_dir => <value>, cmd => <value>, uri => <value>,
-                 timeout => <value> );
+ elemental3_cmd( config_dir => <value>, cmd => <value>, uri => <value>
+                 [, timeout => <value> ] );
 
 Execute elemental3 command from container.
 
@@ -45,15 +46,54 @@ sub elemental3_cmd {
 
     croak('Missing required argument!') unless (%args);
 
-    # This is needed to be able to pull images from internal registry
-    # as, for security reasons, internal SUSE CAs are not installed
-    # in Elemental CLI container. As the VM image used to generate
-    # UnifiedCore OS image has the CAs we can simply use them as-is.
-
+    # This 'ca_vol' is needed to be able to pull images from internal
+    # registry as, for security reasons, internal SUSE CAs are not
+    # installed in Elemental CLI container. As the VM image used to
+    # generate UnifiedCore OS image has the CAs we can simply use them as-is.
     # NOTE: ':z' is needed because of SELinux!
     my $ca_vol = '--volume /var/lib/ca-certificates:/var/lib/ca-certificates:ro,z --volume /etc/ssl:/etc/ssl:ro,z';
+
     assert_script_run(
         "$runtime run --rm ${ca_vol} --volume $args{config_dir}:/config:z $args{uri} $args{cmd}",
+        timeout => $timeout
+    );
+}
+
+=head2 elemental3ctl_cmd
+
+ elemental3ctl_cmd( cmd => <value>, uri => <value> [, config_dir => <value> ]
+                    [, device => <value> ] [, overlay_dir => <value> ]
+                    [, timeout => <value> ] );
+
+Execute elemental3ctl command from container.
+
+=cut
+
+sub elemental3ctl_cmd {
+    my (%args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $runtime = get_required_var('CONTAINER_RUNTIMES');
+
+    croak('Missing required argument!') unless (%args);
+
+    # These volumes are needed to be able to pull images from internal
+    # registry as, for security reasons, internal SUSE CAs are not
+    # installed in OS image container. As the VM image used to generate
+    # UnifiedCore OS image has the CAs we can simply use them as-is.
+    # NOTE: Run privileged with unconfined_t SELinux domain so elemental3ctl
+    # can perform disk partitioning (systemd-repart) and file relabeling (setfiles).
+    my $opts = '--privileged --security-opt label=type:unconfined_t';
+    $opts .= ' --volume /var/lib/ca-certificates:/var/lib/ca-certificates:ro --volume /etc/ssl:/etc/ssl:ro';
+
+    # Check if specific directories need to be mounted
+    $opts .= " --volume $args{config_dir}:/config" if ($args{config_dir});
+    $opts .= " --volume $args{overlay_dir}:/extensions" if ($args{overlay_dir});
+
+    # Is device sharing needed?
+    $opts .= ' --volume /dev:/dev --volume /run/udev:/run/udev' if ($args{device});
+
+    assert_script_run(
+        "$runtime run --rm ${opts} $args{uri} elemental3ctl $args{cmd}",
         timeout => $timeout
     );
 }
@@ -106,7 +146,7 @@ sub get_artifact_uri {
 
 =head2 get_sysext
 
- get_sysext( tmpdir => <value>, timeout => <value> );
+ get_sysext( tmpdir => <value>, uri => <value> [, timeout => <value> ] );
 
 Get systemd system extensions from SYSEXT_IMAGES_TO_TEST list and
 prepare them to be used by elemental tool.
@@ -129,9 +169,11 @@ sub get_sysext {
 
     # Get the system extensions
     foreach my $img (split(/,/, get_var('SYSEXT_IMAGES_TO_TEST', ''))) {
-        assert_script_run(
-            "elemental3ctl --debug unpack-image --image ${img} --target ${sysext_dir}",
-            timeout => $timeout
+        elemental3ctl_cmd(
+            cmd => "--debug unpack-image --image ${img} --target /extensions",
+            uri => $args{uri},
+            overlay_dir => ${sysext_dir},
+            timeout => $args{timeout}
         );
     }
 

@@ -11,11 +11,31 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use elemental3;
-use transactional qw(trup_call);
-use package_utils qw(install_package);
 use serial_terminal qw(select_serial_terminal);
-use Mojo::File qw(path);
 use utils qw(file_content_replace);
+
+=head2 prepare_config_script
+
+ prepare_config_script( config_dir => <value>, config_file => <value> [, rootpwd => <value> ] );
+
+Download and prepare configuration script for Elemental OS.
+
+=cut
+
+sub prepare_config_script {
+    my (%args) = @_;
+
+    assert_script_run("curl -sf -o $args{config_dir}/$args{config_file} "
+          . data_url("elemental3/$args{config_file}"));
+    if ($args{rootpwd}) {
+        file_content_replace(
+            "$args{config_dir}/$args{config_file}",
+            '--sed-modifier' => 'g',
+            '%TEST_PASSWORD%' => "$args{rootpwd}"
+        );
+    }
+    assert_script_run("chmod 755 $args{config_dir}/$args{config_file}");
+}
 
 =head2 build_installer_cmd
 
@@ -31,37 +51,41 @@ sub build_installer_cmd {
     my (%args) = @_;
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $isocmdline = get_var('ISO_CMD_LINE', '');
-    my $config_file = "$args{config_dir}/config.sh";
-    my $iso_config_file = "$args{config_dir}/config-iso.sh";
+    my $config_file = 'config.sh';
+    my $iso_config_file = 'config-iso.sh';
     my $device = get_var('INSTALL_DISK', '/dev/vda');
 
     # Configure the systemd sysexts
-    my $overlay_dir =
-      get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
-
-    # OS configuration script
-    assert_script_run("curl -sf -o $config_file "
-          . data_url('elemental3/' . path($config_file)->basename));
-    # NOTE: some variables can be empty/undef, so double-quotes are expected here!
-    file_content_replace(
-        $config_file,
-        '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => "$args{rootpwd}"
+    my $overlay_dir = get_sysext(
+        tmpdir => $args{config_dir},
+        uri => $args{image},
+        timeout => $args{timeout}
     );
-    assert_script_run("chmod 755 $config_file");
 
-    # ISO configuration script
-    assert_script_run("curl -sf -o $iso_config_file "
-          . data_url('elemental3/' . path($iso_config_file)->basename));
-    assert_script_run("chmod 755 $iso_config_file");
+    # Prepare configuration scripts
+    prepare_config_script(
+        config_dir => $args{config_dir},
+        config_file => $config_file,
+        rootpwd => $args{rootpwd}
+    );
+    prepare_config_script(
+        config_dir => $args{config_dir},
+        config_file => $iso_config_file
+    );
 
     record_info('ISO', 'Generate and upload ISO image');
 
     # Generate OS image
-    assert_script_run(
-"elemental3ctl --debug build-installer --type $args{type} --output . --name $args{img_filename} --os-image $args{image} --cmdline '$isocmdline' --config $iso_config_file --install-overlay dir://$overlay_dir --install-config $config_file --install-cmdline '$krnlcmdline' --install-target $device",
+    elemental3ctl_cmd(
+        cmd => "--debug build-installer --type $args{type} --output /config --name $args{img_filename} --os-image $args{image} --cmdline '$isocmdline' --config /config/$iso_config_file --install-overlay dir:///extensions --install-config /config/$config_file --install-cmdline '$krnlcmdline' --install-target $device",
+        uri => $args{image},
+        config_dir => $args{config_dir},
+        overlay_dir => $overlay_dir,
         timeout => $args{timeout}
     );
+
+    # Move ISO image to current directory
+    assert_script_run("mv $args{config_dir}/$args{img_filename}.iso .");
 
     # Return ISO image
     return ("$args{img_filename}.iso");
@@ -231,7 +255,7 @@ sub extract_iso {
     my $out = "$args{img_filename}.iso";
 
     assert_script_run("$runtime pull $args{image}", timeout => $args{timeout});
-    my $run_id = script_output("$runtime run -d $args{image}");
+    my $run_id = script_output("$runtime create $args{image}");
     assert_script_run("$runtime cp ${run_id}:/iso/$args{iso} .");
     assert_script_run("mv $args{iso} '$out'");
 
@@ -251,42 +275,46 @@ containerized OS image.
 
 sub install_cmd {
     my (%args) = @_;
-
-    #my $image       = get_required_var('CONTAINER_IMAGE_TO_TEST');
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
-    my $config_file = "$args{config_dir}/config.sh";
+    my $config_file = 'config.sh';
     my $device = '/dev/nbd0';
 
     # Configure the systemd sysexts
-    my $overlay_dir =
-      get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
+    my $overlay_dir = get_sysext(
+        tmpdir => $args{config_dir},
+        uri => $args{image},
+        timeout => $args{timeout}
+    );
 
     # OS configuration script
-    assert_script_run("curl -sf -o $config_file "
-          . data_url('elemental3/' . path($config_file)->basename));
-    # NOTE: some variables can be empty/undef, so double-quotes are expected here!
-    file_content_replace(
-        $config_file,
-        '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => "$args{rootpwd}"
+    prepare_config_script(
+        config_dir => $args{config_dir},
+        config_file => $config_file,
+        rootpwd => $args{rootpwd}
     );
-    assert_script_run("chmod 755 $config_file");
 
     record_info('QCOW2', 'Generate and upload QCOW2 image');
 
-    # Create a raw image and mount it
+    # Create a qcow2 image and mount it
     assert_script_run(
         "qemu-img create -f qcow2 $args{config_dir}/$args{img_filename}.qcow2 $args{hddsize}G"
     );
-    assert_script_run('modprobe nbd');
+    assert_script_run('modprobe nbd max_part=16');
     assert_script_run(
         "qemu-nbd -c $device $args{config_dir}/$args{img_filename}.qcow2");
 
     # Generate OS image
-    assert_script_run(
-        "elemental3ctl --debug install --cmdline '$krnlcmdline' --os-image $args{image} --overlay dir://$overlay_dir --config $config_file --target $device",
-        timeout => $args{timeout},
+    elemental3ctl_cmd(
+        cmd => "--debug install --cmdline '$krnlcmdline' --os-image $args{image} --overlay dir:///extensions --config /config/$config_file --target $device",
+        uri => $args{image},
+        device => $device,
+        config_dir => $args{config_dir},
+        overlay_dir => $overlay_dir,
+        timeout => $args{timeout}
     );
+
+    # Disconnect the qcow2 image
+    assert_script_run("sync ; qemu-nbd -d $device");
 
     # Return HDD image
     return ("$args{config_dir}/$args{img_filename}.qcow2");
@@ -312,19 +340,6 @@ sub run {
     # NOTE: there is not enough space on /tmp, so we need to change TMPDIR.
     my $tmpdir = '/root/tmp';
     assert_script_run("mkdir -m 1777 -p $tmpdir && export TMPDIR=$tmpdir");
-
-    # Add Unified Core repository and install elemental3ctl package
-    # (we still need this one for now)
-    my $pkgs = 'squashfs mtools xorriso';
-    unless (check_var('TESTED_CMD', 'customize')) {
-        # We need to add elemental3ctl package
-        trup_call(
-            "run zypper addrepo --check --refresh ${totest_path}/standard elemental"
-        );
-        trup_call('--continue run zypper --gpg-auto-import-keys refresh');
-        $pkgs .= ' elemental3ctl';
-    }
-    install_package($pkgs, skip_trup => 0, trup_apply => 1, trup_continue => 1, trup_extra => '');
 
     # Use a crypted password
     my $hashpwd = script_output("openssl passwd -6 $rootpwd");
