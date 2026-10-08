@@ -1,0 +1,67 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: unzip
+# desc: >
+#   Functional tests for Info-ZIP unzip. Exercises extraction of a generated
+#   archive with deflated and stored members, extraction into a directory,
+#   archive integrity checking, selective single-member extraction, structural
+#   validation of zipinfo output, funzip streaming and the unzipsfx
+#   self-extractor. Ported from tests/console/unzip.pm and extended with the
+#   upstream Info-ZIP unix/Makefile "check" matrix plus the committed
+#   zip64/ZipCrypto fixtures, path traversal and corrupted-archive handling.
+# steps:
+#   - build a deterministic sample archive with deflated and stored members,
+#     a nested directory, an empty file, a filename containing a space and a
+#     large member
+#   - extract it and verify the members, their content, mode and mtime
+#   - extract it into a new directory with -d
+#   - verify archive integrity with unzip -t
+#   - extract a single member and verify only that member is written
+#   - verify that -n keeps an existing file and -o overwrites it
+#   - extract a member whose name needs the UTF-8 flag
+#   - validate the structure of unzip -Z (zipinfo) output on testmake.zip
+#   - verify funzip and unzip -p return the exact bytes of the first member,
+#     including funzip reading the archive from stdin
+#   - build a self-extracting archive with unzipsfx and verify its output
+#   - verify unzip recognizes and extracts the committed zip64 archive
+#   - decrypt a ZipCrypto archive and reject wrong or missing passwords
+#   - verify that members with ../ or a leading / are stripped and do not
+#     escape the extraction directory
+#   - verify that unzip -t rejects an archive with a corrupted deflate stream
+# author: Vit Pelcak <vpelcak@suse.com>
+# maintainer: Vit Pelcak <vpelcak@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 16+, SLE 15 SP4+
+# tags: console unzip funzip unzipsfx zipinfo
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_unzip.py testmake.zip encrypted.zip zip64.zip)
+
+handle_args "$0" "$@"
+
+for tool in unzip funzip unzipsfx zipinfo; do
+    ensure_command_available "$tool"
+done
+
+echo "--- Test directory: $PWD ---"
+ls -l
+echo "----------------------------"
+
+set +e
+pytest -v --tb=short test_unzip.py --junitxml=results.xml
+rc=$?
+set -e
+# The openQA runner parses results.xml itself, so let plain test failures
+# (rc=1) through as success and let it record each testcase. Anything else
+# (collection, usage or internal error, no tests) must fail, so a run where
+# nothing actually executed can never look green.
+if [ "$rc" -eq 1 ] && [ -f results.xml ]; then
+    exit 0
+fi
+exit "$rc"

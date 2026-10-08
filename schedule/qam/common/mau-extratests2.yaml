@@ -8,7 +8,6 @@ schedule:
   - console/consoletest_setup
   - console/dnsmasq
   - console/ca_certificates_mozilla
-  - console/unzip
   - console/rsync
   - console/shells
   - console/oqa_agnostic/sudo_agnostic
@@ -35,6 +34,7 @@ conditional_schedule:
   version_specific:
     VERSION:
       '16.0':
+        - console/oqa_agnostic/unzip_agnostic
         - console/pkcon
         - '{{fwupd}}'
         - console/rust
@@ -54,6 +54,7 @@ conditional_schedule:
         - console/sevenzip
         - console/ds389_advanced_functional
       15-SP7:
+        - console/oqa_agnostic/unzip_agnostic
         - console/pkcon
         - '{{fwupd}}'
         - console/rust
@@ -74,6 +75,7 @@ conditional_schedule:
         - console/sevenzip
         - console/ds389_advanced_functional
       15-SP6:
+        - console/oqa_agnostic/unzip_agnostic
         - console/pkcon
         - '{{fwupd}}'
         - console/rust
@@ -94,6 +96,7 @@ conditional_schedule:
         - console/sevenzip
         - console/ds389_advanced_functional
       15-SP5:
+        - console/oqa_agnostic/unzip_agnostic
         - console/pkcon
         - '{{fwupd}}'
         - console/rust
@@ -113,6 +116,7 @@ conditional_schedule:
         - console/sevenzip
         - console/ds389_advanced_functional
       15-SP4:
+        - console/oqa_agnostic/unzip_agnostic
         - console/pkcon
         - '{{fwupd}}'
         - console/rust
@@ -131,6 +135,7 @@ conditional_schedule:
         - console/valgrind
         - console/ds389_advanced_functional
       15-SP3:
+        - console/oqa_agnostic/unzip_agnostic
         - console/curl_ipv6
         - console/wget_ipv6
         - console/osinfo_db
@@ -143,6 +148,7 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
       15-SP2:
+        - console/oqa_agnostic/unzip_agnostic
         - console/curl_ipv6
         - console/wget_ipv6
         - console/osinfo_db
@@ -156,6 +162,7 @@ conditional_schedule:
         - console/valgrind
       12-SP5:
         - console/sudo
+        - console/unzip
         - console/curl_ipv6
         - console/wget_ipv6
         - console/osinfo_db
@@ -167,6 +174,7 @@ conditional_schedule:
         - '{{arch_systemtap}}'
       12-SP3:
         - console/sudo
+        - console/unzip
         - console/osinfo_db
         - console/journald_fss
         - '{{arch_specific}}'

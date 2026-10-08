@@ -35,7 +35,7 @@ schedule:
 #  - console/pciutils
 #  - console/sysctl
   - console/tar
-  - console/unzip
+  - console/oqa_agnostic/unzip_agnostic
   - console/vim
   - console/wavpack
   - coverage/coverage_report
