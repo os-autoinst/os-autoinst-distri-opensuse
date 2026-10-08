@@ -14,6 +14,29 @@ use elemental3;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(file_content_replace);
 
+=head2 prepare_config_script
+
+ prepare_config_script( config_dir => <value>, config_file => <value> [, rootpwd => <value> ] );
+
+Download and prepare configuration script for Elemental OS.
+
+=cut
+
+sub prepare_config_script {
+    my (%args) = @_;
+
+    assert_script_run("curl -sf -o $args{config_dir}/$args{config_file} "
+          . data_url("elemental3/$args{config_file}"));
+    if ($args{rootpwd}) {
+        file_content_replace(
+            "$args{config_dir}/$args{config_file}",
+            '--sed-modifier' => 'g',
+            '%TEST_PASSWORD%' => "$args{rootpwd}"
+        );
+    }
+    assert_script_run("chmod 755 $args{config_dir}/$args{config_file}");
+}
+
 =head2 build_installer_cmd
 
  build_installer_cmd( config_dir => <value>, image => <value>, img_filename => <value>,
@@ -39,21 +62,16 @@ sub build_installer_cmd {
         timeout => $args{timeout}
     );
 
-    # OS configuration script
-    assert_script_run("curl -sf -o $args{config_dir}/$config_file "
-          . data_url("elemental3/$config_file"));
-    # NOTE: some variables can be empty/undef, so double-quotes are expected here!
-    file_content_replace(
-        "$args{config_dir}/$config_file",
-        '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => "$args{rootpwd}"
+    # Prepare configuration scripts
+    prepare_config_script(
+        config_dir => $args{config_dir},
+        config_file => $config_file,
+        rootpwd => $args{rootpwd}
     );
-    assert_script_run("chmod 755 $args{config_dir}/$config_file");
-
-    # ISO configuration script
-    assert_script_run("curl -sf -o $args{config_dir}/$iso_config_file "
-          . data_url("elemental3/$iso_config_file"));
-    assert_script_run("chmod 755 $args{config_dir}/$iso_config_file");
+    prepare_config_script(
+        config_dir => $args{config_dir},
+        config_file => $iso_config_file
+    );
 
     record_info('ISO', 'Generate and upload ISO image');
 
@@ -269,15 +287,11 @@ sub install_cmd {
     );
 
     # OS configuration script
-    assert_script_run("curl -sf -o $args{config_dir}/$config_file "
-          . data_url("elemental3/$config_file"));
-    # NOTE: some variables can be empty/undef, so double-quotes are expected here!
-    file_content_replace(
-        "$args{config_dir}/$config_file",
-        '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => "$args{rootpwd}"
+    prepare_config_script(
+        config_dir => $args{config_dir},
+        config_file => $config_file,
+        rootpwd => $args{rootpwd}
     );
-    assert_script_run("chmod 755 $args{config_dir}/$config_file");
 
     record_info('QCOW2', 'Generate and upload QCOW2 image');
 
