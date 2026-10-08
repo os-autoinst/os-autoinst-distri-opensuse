@@ -15,6 +15,7 @@ use scheduler 'get_test_suite_data';
 use testapi qw(get_required_var diag);
 
 our @EXPORT_OK = qw(
+  has_topology
   get_topology
   get_node_by_role
   get_local_node
@@ -139,6 +140,21 @@ sub get_topology {
     my $topology = require_field($test_data->{multimachine_topology}, 'multimachine_topology missing from test_data');
 
     return $topology->{_index} ? $topology : _build_topology_index($topology);
+}
+
+=head2 has_topology
+
+  if (has_topology()) { ... }
+
+Return true if the schedule C<test_data> has a C<multimachine_topology>. Use
+it in modules that also run without a topology, for example with job
+variables on QEMU.
+
+=cut
+
+sub has_topology {
+    my $test_data = get_test_suite_data() // {};
+    return defined $test_data->{multimachine_topology};
 }
 
 =head2 get_node_by_role

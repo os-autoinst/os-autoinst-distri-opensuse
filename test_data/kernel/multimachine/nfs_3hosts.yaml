@@ -1,0 +1,28 @@
+multimachine_topology:
+  name: nfs_3hosts
+
+  networks:
+    - id: mgmt
+      ipv4_cidr: "10.146.14.0/23"
+
+  nodes:
+    - id: sonic
+      role: nfs_server
+      interfaces:
+        - id: eno1
+          network: mgmt
+          ipv4: "10.146.14.84"
+
+    - id: coppi
+      role: nfs_client1
+      interfaces:
+        - id: eno1
+          network: mgmt
+          ipv4: "10.146.14.87"
+
+    - id: merckx
+      role: nfs_client2
+      interfaces:
+        - id: eno1
+          network: mgmt
+          ipv4: "10.146.14.90"

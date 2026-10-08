@@ -13,6 +13,7 @@ use lockapi;
 use utils;
 use package_utils 'install_package';
 use Kernel::nfs qw(kernel_supports_nfs_krb5 setup_nfs_krb5_client upload_nfs_krb5_logs);
+use Kernel::multimachine_topology qw(has_topology get_local_node get_node_by_role get_node_interface);
 
 sub copy_file {
     my ($flag, $nfs_mount, $file) = @_;
@@ -22,6 +23,7 @@ sub copy_file {
 sub write_test_data {
     my ($dir) = @_;
 
+    assert_script_run("mkdir -p $dir");
     assert_script_run("cp testfile md5sum.txt $dir");
     copy_file('direct', $dir, 'testfile_oflag_direct');
     copy_file('dsync', $dir, 'testfile_oflag_dsync');
@@ -42,6 +44,12 @@ sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
     my $server_node = get_var('SERVER_NODE', 'server-node00');
+    # with a topology, each client writes to its own directory of the exports
+    my $client_dir = '';
+    if (has_topology()) {
+        $server_node = get_node_interface(get_node_by_role('nfs_server'), 0)->{ipv4};
+        $client_dir = '/' . get_local_node()->{id};
+    }
     my $nfs_krb5 = 0;
     if (get_var('NFS_KRB5')) {
         $nfs_krb5 = kernel_supports_nfs_krb5();
@@ -133,12 +141,12 @@ sub run {
     assert_script_run("md5sum testfile > md5sum.txt");
 
     if ($kernel_nfs3 == 1) {
-        write_test_data($local_nfs3);
-        write_test_data($local_nfs3_async);
+        write_test_data("$local_nfs3$client_dir");
+        write_test_data("$local_nfs3_async$client_dir");
     }
     if ($kernel_nfs4 == 1) {
-        write_test_data($local_nfs4);
-        write_test_data($local_nfs4_async);
+        write_test_data("$local_nfs4$client_dir");
+        write_test_data("$local_nfs4_async$client_dir");
     }
 
     # Mount each Kerberos export once for each flavor and write into its own subdirectory.
@@ -155,11 +163,10 @@ sub run {
                 record_info("NFS$mount->{version} $type $sec", $mount_cmd);
                 assert_script_run($mount_cmd, timeout => 180);
                 assert_script_run("findmnt -n -o OPTIONS $local | grep -w 'sec=$sec'");
-                assert_script_run("mkdir -p $local/$sec");
-                write_test_data("$local/$sec");
+                write_test_data("$local$client_dir/$sec");
                 assert_script_run("umount $local");
                 assert_script_run($mount_cmd, timeout => 180);
-                read_back_test_data("$local/$sec");
+                read_back_test_data("$local$client_dir/$sec");
                 assert_script_run("umount $local");
             }
         }
@@ -202,6 +209,11 @@ to check the checksums over the Kerberos flavor too.
 
 Hostname or IP of the NFS server.
 Defaults to C<server-node00>.
+
+If the schedule has a C<multimachine_topology> (see
+L<Kernel::multimachine_topology>), the server is the first interface
+address of the node with the role C<nfs_server>, and the client writes to a
+directory of the exports named after its node id.
 
 =head2 NFS_MOUNT_NFS3
 
