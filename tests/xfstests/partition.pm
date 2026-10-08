@@ -28,6 +28,7 @@ use registration;
 use version_utils qw(is_transactional is_sle_micro is_sle);
 use Utils::Architectures 'is_ppc64le';
 use transactional;
+use package_utils;
 use Kernel::block_dev qw(create_loop_backing_file attach_loop_device create_zoned_nullblk);
 use Kernel::nfs qw(setup_pnfs_client verify_pnfs_block_layout);
 use List::Util 'sum';
@@ -329,7 +330,9 @@ sub install_dependencies_ocfs2 {
     );
     script_run('zypper --gpg-auto-import-keys ref');
     if (is_transactional) {
-        trup_install(join(' ', @deps));
+        # Install in the snapshot of the sle-ha registration above, so the
+        # repository is available and one reboot applies both
+        install_package(join(' ', @deps), trup_continue => 1);
         reboot_on_changes;
     }
     else {
