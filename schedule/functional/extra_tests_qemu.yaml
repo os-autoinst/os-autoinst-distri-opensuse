@@ -1,0 +1,41 @@
+name:           extra_tests_qemu
+description:    >
+    Maintainer: dheidler.
+    Extra qemu tests
+conditional_schedule:
+    start:
+        ARCH:
+            's390x':
+                - installation/bootloader_start
+                - boot/boot_to_desktop
+        BACKEND:
+            'qemu':
+                - installation/bootloader_start
+                - boot/boot_to_desktop
+            'generalhw':
+                - jeos/prepare_firstboot
+                - jeos/firstrun
+                - update/zypper_clear_repos
+                - console/zypper_ar
+                - console/zypper_ref
+                - console/zypper_lr
+    kvm:
+        ARCH:
+            # nested kvm is not yet available on ARM (but runnable on bare metal) and kvm not supported on ppc64le
+            'aarch64':
+                - qemu/kvm
+            'x86_64':
+                - qemu/kvm
+            's390x':
+                - qemu/kvm
+    user:
+        DISTRI:
+            'opensuse':
+                - qemu/user
+schedule:
+    - '{{start}}'
+    - qemu/info
+    - qemu/qemu
+    - '{{kvm}}'
+    - '{{user}}'
+    - console/zypper_log_packages

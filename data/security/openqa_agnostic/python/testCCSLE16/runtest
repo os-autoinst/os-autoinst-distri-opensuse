@@ -1,0 +1,52 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: cc_sle16_verify
+# desc: >
+#   Run the SLES EAL4+ SLE 16 Common Criteria certification check/apply
+#   scripts from data/security/sle16_cc/ in os-autoinst-distri-opensuse.
+#   Phase 'pre'  - runs check (records initial CC status) then apply.
+#   Phase 'post' - runs check again after reboot to confirm apply succeeded.
+# steps:
+#   - 1. Read CC_PHASE env (pre|post); default is pre.
+#   - 2. pre: run ~/certification-sles-eal4-16.0/check and record output.
+#   - 3. pre: run ~/certification-sles-eal4-16.0/apply.
+#   - 4. post: run ~/certification-sles-eal4-16.0/check and assert success.
+# author: fsimorda@suse.com
+# maintainer: QE Security <none@suse.de>
+# expected: check exits 0 in both phases; apply exits 0 or 2 (2 = reboot required) in pre phase
+# platform: SLE16
+# tags: security cc eal4 sle16 poo#207705
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_cc_sle16.py)
+
+handle_args "$0" "$@"
+
+echo "--- Test directory: $PWD ---"
+ls -l
+echo "----------------------------"
+
+# CC_PHASE is set by the .pm wrapper (pre or post); default to pre.
+export CC_PHASE="${CC_PHASE:-pre}"
+echo "Running CC SLE16 verification - phase: $CC_PHASE"
+
+set +e
+# Select the tests by their mark (pre or post), not by a substring of the name
+pytest test_cc_sle16.py -v --junitxml=results.xml -m "$CC_PHASE"
+rc=$?
+set -e
+# Exit code 5 means that no test was selected, results.xml would pass with no test
+if [ "$rc" -eq 5 ]; then
+    echo "No test selected for phase: $CC_PHASE"
+    exit "$rc"
+fi
+if [ -f results.xml ]; then
+    exit 0
+fi
+exit $rc

@@ -1,0 +1,53 @@
+---
+os_release_name: SLES
+repos:
+  - name: PackageHub-%VERSION%
+    alias: SUSE_Package_Hub_%VERSION%_%ARCH%:PackageHub-%VERSION%
+    uri: http://openqa.suse.de/assets/repo/PackageHub-%VERSION%-%ARCH%-Build%BUILD%/
+    enabled: 'Yes'
+    filter: name
+  - name: PackageHub-%VERSION%-Debug
+    alias: SUSE_Package_Hub_%VERSION%_%ARCH%:PackageHub-%VERSION%-Debug
+    uri: http://openqa.suse.de/assets/repo/PackageHub-%VERSION%-%ARCH%-Debug-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: PackageHub-%VERSION%-Source
+    alias: SUSE_Package_Hub_%VERSION%_%ARCH%:PackageHub-%VERSION%-Source
+    uri: http://openqa.suse.de/assets/repo/PackageHub-%VERSION%-%ARCH%-Source-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: Backports-%VERSION%
+    alias: SUSE_Package_Hub_%VERSION%_%ARCH%:Backports-%VERSION%
+    uri: http://openqa.suse.de/assets/repo/Backports-%VERSION%-%ARCH%-Build%BUILD%/
+    enabled: 'Yes'
+    filter: name
+  - name: Backports-%VERSION%-Debug
+    alias: SUSE_Package_Hub_%VERSION%_%ARCH%:Backports-%VERSION%-Debug
+    uri: http://openqa.suse.de/assets/repo/Backports-%VERSION%-%ARCH%-Debug-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: Backports-%VERSION%-Source
+    alias: SUSE_Package_Hub_%VERSION%_%ARCH%:Backports-%VERSION%-Source
+    uri: http://openqa.suse.de/assets/repo/Backports-%VERSION%-%ARCH%-Source-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Build%BUILD%/
+    enabled: 'Yes'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Build%BUILD%/
+    enabled: 'Yes'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%-Debug
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%-Debug
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Debug-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%-Source
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%-Source
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Source-Build%BUILD%/
+    enabled: 'No'
+    filter: name

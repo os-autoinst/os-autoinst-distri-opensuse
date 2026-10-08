@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <classes config:type="list">
+    <class>
+      <class_name>general</class_name>
+      <configuration>users.xml</configuration>
+    </class>
+    <class>
+      <class_name>general</class_name>
+      <configuration>software.xml</configuration>
+    </class>
+    <class>
+      <class_name>swap</class_name>
+      <configuration>bigswap.xml</configuration>
+      <dont_merge config:type="list">
+        <element>partition</element>
+      </dont_merge>
+    </class>
+    <class>
+      <class_name>swap</class_name>
+      <configuration>smallswap.xml</configuration>
+      <dont_merge config:type="list">
+        <element>partition</element>
+      </dont_merge>
+    </class>
+  </classes>
+</profile>

@@ -1,0 +1,10 @@
+#!/bin/bash -ex
+<< 'heredoc_pod_whitespace_rule'
+As a convention the POD and the code needs to have an empty line in between.
+The script checks all the files rather the commit files in the lib directory.
+heredoc_pod_whitespace_rule
+
+
+grep -Pzo "=cut\nsub" -rn lib || exit 0
+echo -e '\033[0;31mCheck for whitespace after end of POD failed.\nAdd a empty line between =cut and code.'
+exit 1

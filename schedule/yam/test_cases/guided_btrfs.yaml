@@ -1,0 +1,25 @@
+---
+name:           guided_btrfs
+description:    >
+  Guided Partitioning installation with btrfs filesystem.
+schedule:
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  guided_open:
+    - installation/partitioning/select_guided_setup
+  guided_scheme:
+    - installation/partitioning/guided_setup/accept_default_part_scheme
+  guided_filesystem:
+    - installation/partitioning/guided_setup/accept_default_fs_options
+  system_preparation:
+    - console/system_prepare
+    - console/force_scheduled_tasks
+  system_validation:
+    - console/hibernation_check
+    - console/validate_product_installed_SLES
+    - console/validate_no_cow_attribute
+    - console/verify_separate_home
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices

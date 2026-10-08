@@ -1,0 +1,17 @@
+---
+name: qam-minimal-base-installation-ay
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{s390x_upload}}'
+conditional_schedule:
+  s390x_upload:
+    BACKEND:
+      svirt:
+        - shutdown/svirt_upload_assets

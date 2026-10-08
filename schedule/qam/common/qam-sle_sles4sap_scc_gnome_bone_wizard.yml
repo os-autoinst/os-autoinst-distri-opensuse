@@ -1,0 +1,10 @@
+name:           qam-sle_sles4sap_scc_gnome_bone_wizard
+description:    >
+  Deploy a Business One instance on top of gnome image using wizard.
+  Further info about the test suite
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/wizard_hana_install
+  - sles4sap/bone_test

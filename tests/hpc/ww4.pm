@@ -1,0 +1,170 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Configure and run a warewulf4 controller.
+# Maintainer: Kernel QE <kernel-qa@suse.de>
+
+use Mojo::Base qw(hpcbase hpc::utils), -signatures;
+use testapi;
+use serial_terminal qw(select_serial_terminal);
+use lockapi;
+use mmapi;
+use utils;
+use Utils::Logging 'export_logs';
+use hpc::formatter;
+use isotovideo;
+use mm_tests;
+use Utils::Logging 'save_and_upload_log';
+use POSIX 'strftime';
+
+
+sub run ($self) {
+    select_serial_terminal();
+    configure_static_network('10.0.2.1/24');
+
+    my $user_virtio_fixed = isotovideo::get_version() >= 35;
+    my $prompt = $user_virtio_fixed ? $testapi::username . '@' . get_required_var('HOSTNAME') . ':~> ' : undef;
+
+    ensure_ca_certificates_suse_installed();
+    mutex_create 'ww4_ready';
+    zypper_call("in warewulf4");
+
+    assert_script_run("wget --quiet " . data_url("hpc/net/ifcfg-eth1") . " -O /etc/sysconfig/network/ifcfg-eth1");
+    # Detect if warewulf4 installed dnsmasq as dependency, otherwise use dhcp-server configuration
+    my $dnsmasq = script_run('! rpm -q dnsmasq');
+    if ($dnsmasq) {
+        assert_script_run(qq{sed -ri 's/^#interface=.*\$/interface=eth1/g' /etc/dnsmasq.conf});
+    } else {
+        assert_script_run(qq{sed -ri 's/^DHCPD_INTERFACE.*\$/DHCPD_INTERFACE="eth1"/g' /etc/sysconfig/dhcpd});
+    }
+    systemctl 'restart wicked';
+    assert_script_run(qq{sed -ri 's/^ipaddr:.*\$/ipaddr: 192.168.10.100/g' /etc/warewulf/warewulf.conf});
+    assert_script_run(qq{sed -ri 's/^netmask:.*\$/netmask: 255.255.255.0/g' /etc/warewulf/warewulf.conf});
+    assert_script_run(qq{sed -ri 's/^network:.*\$/network: 192.168.10.0/g' /etc/warewulf/warewulf.conf});
+    assert_script_run(qq{sed -ri 's/^  range start:.*\$/  range start: 192.168.10.111/g' /etc/warewulf/warewulf.conf});
+    assert_script_run(qq{sed -ri 's/^  range end:.*\$/  range end: 192.168.10.115/g' /etc/warewulf/warewulf.conf});
+    systemctl 'enable --now warewulfd';
+    record_info "warewulf.conf", script_output("cat /etc/warewulf/warewulf.conf");
+
+    # Authentication support
+    my $warewulf_oci_username = get_var('HPC_WAREWULF_CONTAINER_USERNAME');
+    if ($warewulf_oci_username) {
+        assert_script_run('export WAREWULF_OCI_USERNAME=' . $warewulf_oci_username);
+        assert_script_run('export WAREWULF_OCI_PASSWORD=' . get_var('_SECRET_HPC_WAREWULF_CONTAINER_PASSWORD', get_required_var('SCC_REGCODE_HPC')), quiet => 1);
+        record_info('authentication', 'container authentication is enabled');
+    }
+    my $hpc_container = get_required_var('HPC_WAREWULF_CONTAINER');
+
+    # Disable url to use default SCC for repositories inside the warewulf-container
+    # See: progress.opensuse.org/issues/168028
+    script_run(qq{sed -i 's/url/#url/g' /etc/SUSEConnect});
+
+    assert_script_run "wwctl container import $hpc_container warewulf-container", timeout => 320;
+    assert_script_run "wwctl profile set -y --image warewulf-container default";
+    assert_script_run "wwctl profile set -y default --netname default --netmask 255.255.255.0 --gateway 192.168.10.100";
+    assert_script_run "wwctl profile list -a";
+    assert_script_run "wwctl node add compute10 --netdev eth0 -I 192.168.10.111 --discoverable=true --image warewulf-container";
+    assert_script_run "wwctl node add compute11 --netdev eth0 -I 192.168.10.112 --discoverable=true --image warewulf-container";
+
+    my $compute_nodes = script_output "wwctl node list -a";
+    record_info "nodes in conf", "$compute_nodes";
+
+    # Build container, mandatory since warewulf4 version 4.5
+    assert_script_run "wwctl container build warewulf-container";
+
+    # I think running the configuration after the profile and the nodes are set
+    # provides complete results of the scripts.
+    assert_script_run "echo yes | wwctl -v configure --all";
+    # Build overlay, mandatory since warewulf4 version 4.5
+    assert_script_run "wwctl overlay build";
+    # Refresh repositories inside the container
+    validate_script_output("echo 'zypper -n refresh && echo warewulf-container-refreshed' | wwctl container shell warewulf-container", sub { m/warewulf-container-refreshed/ });
+    # Restart dnsmasq to apply newly configured compute nodes, expected behavior documented in bsc#1269035
+    systemctl 'restart dnsmasq';
+    barrier_wait('WWCTL_READY');
+    record_info 'WWCTL_READY', strftime("\%H:\%M:\%S", localtime);
+    mutex_unlock 'ww4_ready';
+
+    barrier_wait('WWCTL_DONE');
+    record_info 'WWCTL_DONE', strftime("\%H:\%M:\%S", localtime);
+    my @compute_nodes = _get_compute_node_hostnames();
+    foreach my $node (@compute_nodes) {
+        script_run("ssh -o StrictHostKeyChecking=accept-new $node ip a | tee /tmp/script_out");
+        assert_script_run "grep -E 'inet 192\.168\.10\.11[1-5]' /tmp/script_out", fail_message => 'IP address likely is not set or is not in the defined IP range!!';
+        my $expected_name = get_required_var('HPC_WAREWULF_CONTAINER_NAME');
+        validate_script_output("ssh -o StrictHostKeyChecking=accept-new $node cat /etc/os-release", sub { m/NAME.+$expected_name/ });
+    }
+    barrier_wait('WWCTL_COMPUTE_DONE');
+    record_info 'WWCTL_COMPUTE_DONE', strftime("\%H:\%M:\%S", localtime);
+}
+
+sub _get_compute_node_hostnames() {
+    my $computes = script_output "wwctl node list -i | awk 'NR>2 {print \$1}'";
+    return split "\n", $computes;
+}
+
+sub test_flags ($self) {
+    return {fatal => 1, milestone => 1};
+}
+
+sub post_run_hook ($self) {
+    record_info "post_run", "hook started";
+    $self->upload_service_log('warewulfd');
+    save_and_upload_log('cat /etc/hosts', "/tmp/hostfile");
+    save_and_upload_log('ip a', "/tmp/controller_network");
+    save_and_upload_log('wwctl overlay list -a', "/tmp/wwctl_overlay");
+    save_and_upload_log('cat /etc/warewulf/warewulf.conf', '/tmp/warewulf.conf');
+    $self->SUPER::post_run_hook();
+}
+sub post_fail_hook ($self) {
+    $self->destroy_test_barriers();
+    export_logs();
+}
+
+1;
+
+=head1 Info
+
+=head2 External Documentation
+
+  https://gitlab.suse.de/HPC/warewulf-doc/-/blob/main/quickstart-sle.rst
+
+=head2 Test Setup
+
+  Controller needs two network interfaces. One public and one private. To accomplish
+  this the controller takes a job variable as C<NICVLAN=0,1>.
+  As such the qemu will bind two link to the VM (eth0 and eth1).
+  From previous steps we disable firewall so we do not need to take any action
+  there. Otherwise would have to add services on it.
+
+  =begin bash
+    # assert_script_run "firewall-cmd --permanent --add-service warewulf";
+    # assert_script_run "firewall-cmd --permanent --add-service nfs";
+    # assert_script_run "firewall-cmd --permanent --add-service tftp";
+    # assert_script_run "firewall-cmd --reload";
+  =end bash
+
+  The second interface is configured by the F<data/hpc/net/ifcfg-eth1>
+
+  We also need to assign the internal interface on F</etc/sysconfig/dhcpd>
+  and use the internal network on the F</etc/warewulf/warewulf.conf>
+
+  Once the controller is setup up with nodes added, we can boot the
+  compute nodes and check if the get configured based on the warewulf4
+  configuration. Node should get IP which is in the range we defined.
+  We need to say to qemu to boot from network (aka -boot n). To do so,
+  `PXEBOOT` should be set and unset HDD_1. Because OpenQA starts all the
+  machines, we can not trigger the compute nodes after the controller is
+  ready to provision. Thus, compute nodes needs to wait somehow for some
+  time and reboot constantly until the actual see a PXE connection to
+  start the installation process.
+  Compute nodes use F<hpc/tests/ww4_compute.pm>.
+
+=head2 Test Case
+
+  Test is successful once the controller is setup, compute nodes are able to
+  install the container from PXE and controller is able to connect remotely
+  into them.
+=cut

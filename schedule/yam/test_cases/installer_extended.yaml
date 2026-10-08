@@ -1,0 +1,28 @@
+---
+name: installer_extended
+description: >
+  Test suite performs additional UI checks. As of now following is tested:
+     - Switch keyboard layout and test it (only when is not VNC installation)
+     - License has to be accepted and there is pop-up with a hint.
+     - License translations (except SLE 15 due to missing translations in the
+       beta phase).
+     - Check available and selected by default modules for installation.
+schedule:
+  access_beta:
+    - installation/language_keyboard/switch_keyboard_layout
+  license_agreement:
+    - installation/licensing/verify_license_translations
+    - installation/licensing/verify_license_has_to_be_accepted
+    - installation/licensing/accept_license
+  extension_module_selection:
+    - installation/module_registration/view_development_versions
+    - installation/module_registration/verify_module_registration
+    - installation/module_registration/skip_module_registration
+  clock_and_timezone:
+    - installation/releasenotes
+    - installation/clock_and_timezone/accept_timezone_configuration
+  confirm_reboot: []
+  reconnect_svirt: []
+  grub: []
+  first_login: []
+  system_preparation: []

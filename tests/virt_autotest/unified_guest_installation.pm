@@ -1,0 +1,137 @@
+# CONCURRENT UEFI VIRTUAL MACHINE INSTALLATIONS MODULE
+#
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+#
+# Summary: This module supports concurrent multiple virtual machines
+# installations with vm names and profiles obtained from UNIFIED_GUEST_LIST
+# and UNIFIED_GUEST_PROFILES respectively. There is no restriction on vm names
+# to be used, so any desired vm names can be given to UNIFIED_GUEST_LIST=
+# "vm_name_1,vm_name_2,vm_name_3". Similary,any vm profile names can be
+# given to UNIFIED_GUEST_PROFILES,as long as there are corresponding profile
+# files in data/virt_autotest/guest_params_xml_files folder, for example,
+# there should be profile file called vm_profile_1.xml,vm_profile_2.xml
+# and vm_profile_3.xml in the folder if UNIFIED_GUEST_PROFILES="vm_profile_1,
+# vm_profile_2,vm_profile_3".Then vm_name_1 will be created and installed
+# using vm_profile_1 and so on by calling instantiate_guests_and_profiles
+# and install_guest_instances.
+# UNIFIED_GUEST_REG_CODES and UNIFIED_GUEST_REG_EXTS_CODES are two other
+# test suite level settings which are given guest os registration codes
+# and codes for additional modules/extensions/products to be used by guests.
+# For example, for above UNIFIED_GUEST_LIST setting, UNIFIED_GUEST_REG_CODES
+# = "vm1_code,vm2_code,vm3_code" and UNIFIED_GUEST_REG_EXTS_CODES = "
+# vm1ext1code#vm1ext2code,vm2ext1code#vm2ext2code#vm2ext3code,vm3ext1code".
+# Registration codes for different guests should be separated by comma and
+# for different modules/extensions/products but the same guest should be
+# separated by hash. If not all guests to be installed need code settings,
+# those that do not need should be left empty but with explicit separator,
+# for example, UNIFIED_GUEST_REG_EXTS_CODES = ",#vm2ext2code#vm2ext3code,",
+# UNIFIED_GUEST_REG_CODES = "vm1_code,vm2_code,". The codes for each guest
+# will be assigned to guest parameters [guest_registration_code] and
+# [guest_registration_extensions_codes], so please refer to base module
+# lib/concurrent_guest_installations for detailed information about them.
+# Some additional test suite level settings are also added to facilitate
+# more convenient and flexible test run, including:
+# UNIFIED_GUEST_SCC_URLS
+# UNIFIED_GUEST_INSTALLATION_BUILDS
+# UNIFIED_GUEST_INSTALLATION_MEDIA
+# UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_MEDIA
+# UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_REPOS
+# UNIFIED_GUEST_PRODUCT_MODES
+# UNIFIED_GUEST_NETWORK_TYPES
+# UNIFIED_GUEST_NETWORK_MODES
+# They are assigned to guest parameters:
+# [guest_registration_server]
+# [guest_build]
+# [guest_installation_media]
+# [guest_installation_fine_grained_media]
+# [guest_installation_fine_grained_repos]
+# [guest_product_mode]
+# [guest_network_type]
+# [guest_network_mode]
+# Their values are separated also by pipe symbol to differentiate values
+# that belong to different guests. Multiple values that are separated by
+# comma are allowed for single guest for setting:
+# UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_REPOS
+# Installation progress monitoring,result validation, junit log provision,
+# environment cleanup and failure handling are also included and supported
+# by calling other subroutines:
+# monitor_concurrent_guest_installations
+# validate_guest_installations_results
+# clean_up_guest_installations and
+# junit_log_provision.
+# All above called subroutines are wrapped up in one single subroutine:
+# concurrent_guest_installations_run base concurrent_guest_installations.
+#
+# Please refer to lib/concurrent_guest_installations for detailed information
+# about subroutines in base module being called.
+#
+# Maintainer: Wayne Chen <wchen@suse.com>
+package unified_guest_installation;
+
+use Mojo::Base 'concurrent_guest_installations';
+use testapi;
+use Carp;
+use Utils::Backends;
+use virt_autotest::utils qw(select_backend_console);
+use virt_autotest::domain_management_utils;
+
+sub run {
+    my $self = shift;
+
+    select_backend_console(init => 0);
+
+    $self->reveal_myself;
+    return if get_var('SKIP_GUEST_INSTALL');
+    my @guest_names = split(/\|/, get_required_var('UNIFIED_GUEST_LIST'));
+    my @guest_profiles = split(/\|/, get_required_var('UNIFIED_GUEST_PROFILES'));
+    croak("Guest names and profiles must be given to create, configure and install guests.") if ((scalar(@guest_names) eq 0) or (scalar(@guest_profiles) eq 0));
+    my %store_of_guests;
+    my @guest_installation_media = my @guest_installation_fine_grained_media = my @guest_installation_fine_grained_repos = ('') x scalar @guest_names;
+    my @guest_product_modes = my @guest_installation_builds = my @guest_network_types = my @guest_network_modes = ('') x scalar @guest_names;
+    my @guest_registration_servers = my @guest_registration_codes = my @guest_registration_extensions_codes = ('') x scalar @guest_names;
+    @guest_installation_media = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_MEDIA', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_MEDIA', '') ne '');
+    @guest_installation_builds = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_BUILDS', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_BUILDS', '') ne '');
+    @guest_registration_servers = split(/\|/, get_var('UNIFIED_GUEST_SCC_URLS', '')) if (get_var('UNIFIED_GUEST_SCC_URLS', '') ne '');
+    @guest_registration_codes = split(/\|/, get_var('UNIFIED_GUEST_REG_CODES', '')) if (get_var('UNIFIED_GUEST_REG_CODES', '') ne '');
+    @guest_registration_extensions_codes = split(/\|/, get_var('UNIFIED_GUEST_REG_EXTS_CODES', '')) if (get_var('UNIFIED_GUEST_REG_EXTS_CODES', '') ne '');
+    @guest_installation_fine_grained_media = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_MEDIA', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_MEDIA', '') ne '');
+    @guest_installation_fine_grained_repos = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_REPOS', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_FINE_GRAINED_REPOS', '') ne '');
+    @guest_product_modes = split(/\|/, get_var('UNIFIED_GUEST_PRODUCT_MODES', '')) if (get_var('UNIFIED_GUEST_PRODUCT_MODES', '') ne '');
+    @guest_network_types = split(/\|/, get_var('UNIFIED_GUEST_NETWORK_TYPES', '')) if (get_var('UNIFIED_GUEST_NETWORK_TYPES', '') ne '');
+    @guest_network_modes = split(/\|/, get_var('UNIFIED_GUEST_NETWORK_MODES', '')) if (get_var('UNIFIED_GUEST_NETWORK_MODES', '') ne '');
+    while (my ($index, $element) = each @guest_names) {
+        $store_of_guests{$element}{PROFILE} = $guest_profiles[$index];
+        $store_of_guests{$element}{INSTALL_MEDIA} = $guest_installation_media[$index];
+        $store_of_guests{$element}{INSTALL_BUILD} = $guest_installation_builds[$index];
+        $store_of_guests{$element}{REG_SERVER} = $guest_registration_servers[$index];
+        $store_of_guests{$element}{REG_CODE} = $guest_registration_codes[$index];
+        $store_of_guests{$element}{REG_EXTS_CODES} = $guest_registration_extensions_codes[$index];
+        $store_of_guests{$element}{INSTALL_FINE_GRAINED_MEDIA} = $guest_installation_fine_grained_media[$index];
+        $store_of_guests{$element}{INSTALL_FINE_GRAINED_REPOS} = $guest_installation_fine_grained_repos[$index];
+        $store_of_guests{$element}{PRODUCT_MODE} = $guest_product_modes[$index];
+        $store_of_guests{$element}{NETWORK_TYPE} = $guest_network_types[$index];
+        $store_of_guests{$element}{NETWORK_MODE} = $guest_network_modes[$index];
+    }
+
+    $self->concurrent_guest_installations_run(\%store_of_guests);
+    $self->clean_up_guests;
+    return $self;
+}
+
+sub test_flags {
+    return {
+        fatal => 0,
+        no_rollback => 1
+    };
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    $self->reveal_myself;
+    $self->SUPER::post_fail_hook;
+    return $self;
+}
+
+1;

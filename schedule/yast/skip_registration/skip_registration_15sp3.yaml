@@ -1,0 +1,38 @@
+---
+name:           skip_registration
+description:    >
+  Skipping registration for SLE 15, as requires network connection.
+  This is default behavior for SLE 12.
+vars:
+  ADDONS: 'all-packages'
+  SCC_ADDONS: 'base,serverapp,desktop'
+  SCC_REGISTER: 'none'
+  DESKTOP: 'gnome'
+  YUI_REST_API: '1'
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/skip_registration
+  - installation/addon_products_sle
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_settings/validate_default_target
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/performing_installation/confirm_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

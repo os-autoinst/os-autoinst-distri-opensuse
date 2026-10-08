@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        # Use custom registry to avoid API rate limits on docker.io
+        # The testing.registry must be registered in k8s
+        # as private registry and point to REGISTRY variable.
+        image: docker.io/library/nginx
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 256Mi
+          requests:
+            cpu: "0.1"
+            memory: 128Mi
+        volumeMounts:
+          - name: www
+            mountPath: /usr/share/nginx/html
+      volumes:
+        - name: www
+          hostPath:
+            path: /srv/www/kubectl
+            type: Directory
+

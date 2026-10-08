@@ -1,0 +1,73 @@
+---
+name: saptune_on_pvm
+description: >
+  SLES4SAP Installation on pvm_hmc and test saptune.
+vars:
+  AUTOMATED_REGISTER: 'false'
+  DESKTOP: 'textmode'
+  INSTANCE_ID: '00'
+  INSTANCE_SID: 'HA1'
+  INSTANCE_TYPE: 'HDB'
+  MULTIPATH_CONFIRM: 'yes'
+schedule:
+  - installation/bootloader
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - '{{sles4sap15_product}}'
+  - installation/partitioning
+  - installation/partitioning_smalldisk_storageng
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - sles4sap/saptune/mr_test
+conditional_schedule:
+  sles4sap15_product:
+    VERSION:
+      15:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP1:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP2:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP3:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP4:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP5:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP6:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP7:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+  sles4sap12_desktop:
+    VERSION:
+      12-SP2:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues
+      12-SP3:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues
+      12-SP4:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues
+      12-SP5:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues

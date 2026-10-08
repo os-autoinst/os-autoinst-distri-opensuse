@@ -1,0 +1,28 @@
+---
+name: autoyast_ext4
+description: >
+  Test verifies autoyast installation with ext4 filesystem. Same as autoyast_ext4
+  with product defined in the profile.
+vars:
+  AUTOYAST: yam/autoyast/ext4.xml
+  AUTOYAST_PREPARE_PROFILE: '1'
+  DESKTOP: gnome
+  FILESYSTEM: ext4
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - autoyast/verify_ext4

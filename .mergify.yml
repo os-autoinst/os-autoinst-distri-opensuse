@@ -1,0 +1,30 @@
+---
+merge_queue:
+  status_comments: none
+  queue_controls_comment: false
+
+pull_request_rules:
+  - name: remove outdated reviews
+    conditions:
+      - base=master
+    actions:
+      dismiss_reviews:
+  - name: additional checks
+    conditions:
+      - and: &base_checks
+        - base=master
+        - -label~=^acceptance-tests-needed|notready|WIP
+        - -body~=PLACEHOLDER
+        - "status-success~=static tests.*"
+        - "status-success~=unit tests.*"
+        - "status-success~=compile.*"
+        - "#check-failure=0"
+        - "#check-pending=0"
+        - linear-history
+      - and:
+        - "#approved-reviews-by>=2"
+        - "#changes-requested-reviews-by=0"
+        - "#review-requested=0"
+    actions:
+      review:
+        type: APPROVE

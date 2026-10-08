@@ -1,0 +1,7 @@
+[mysqld]
+port             = 3310
+datadir          = /var/lib/mysql/node1/databases
+pid-file         = /var/lib/mysql/node1/databases/mysqld.pid
+socket           = /run/mysql/node1mysql.sock
+log-error        = /var/log/mysql/node1/mysqld.log
+secure_file_priv = /var/lib/mysql-files

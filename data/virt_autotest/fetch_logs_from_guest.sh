@@ -1,0 +1,439 @@
+#!/bin/bash -x
+
+# This reads the virt_guests_password from the environment securely, replaces any
+# instance of it with [REDACTED], and then passes it to tee. Calling this function
+# in the form of "2>&1 | safe_log" can record and store information into log file
+# without printing plain password. 
+function safe_log() {
+        awk '{
+            if (ENVIRON["virt_guests_password"] != "") {
+                gsub(ENVIRON["virt_guests_password"], "[REDACTED]")
+            }
+            print
+            fflush()
+        }' | tee -a ${fetch_logs_from_guest_log}
+}
+
+# Setup libguestfs environmen for non-x86_64 machine
+#
+# Arguments explanation:
+# - host_arch: Host hardware architecture.
+#
+# Please also refer to script help_usage().
+function setup_libguestfs_env() {
+        local host_arch=`uname -p`
+        if [[ ${host_arch} != "x86_64" ]];then
+           export SUPERMIN_KERNEL_VERSION=`uname -r`
+           if [[ -f "/boot/Image-${SUPERMIN_KERNEL_VERSION}" ]];then
+              export SUPERMIN_KERNEL="/boot/Image-${SUPERMIN_KERNEL_VERSION}"
+           else
+              export SUPERMIN_KERNEL="/boot/image-${SUPERMIN_KERNEL_VERSION}"
+           fi
+           export SUPERMIN_MODULES="/lib/modules/${SUPERMIN_KERNEL_VERSION}"
+        fi
+        return 0
+}
+
+# Find the correct disk device that holds the specific folder which contains log
+# filesystem.
+#
+# Arguments explanation:
+# - guest_domain: Guest name can be used with libvirt or libguestfs.
+# - guest_filesystem: Absolute filesystem path to logs_folder on guest from which
+#   the storage device hosting it can be found, because libguestfs tool only works
+#   with specified storage device.
+#
+# Please also refer to script help_usage().
+function find_disk_hosts_filesystem() { 
+        local guest_domain=$1
+        local guest_filesystem=$2
+        guest_filesystem=${guest_filesystem/\//}
+        guest_filesystem=${guest_filesystem/\/*/}
+
+        local guest_devices=`virt-filesystems -d ${guest_domain} | grep -ioE "^/dev.*[^@].*$"`
+        local guest_device=""
+        local onedevice=""
+        for onedevice in ${guest_devices[@]};do
+            (guestfish -r -d ${guest_domain} -m ${onedevice} ls / | grep -ioE "^${guest_filesystem}$") &> /dev/null
+            if [[ $? -eq 0 ]];then
+               guest_device=${onedevice}
+               break
+            else
+               continue
+            fi
+        done
+
+        if [[ ${guest_device} != "" ]];then
+           echo ${guest_device}
+        else
+           echo "Can not find disk device that hosts ${guest_filesystem}."
+        fi
+}
+
+# Fetach logs from virtual machine to local host via ssh.
+#
+# Arguments explanation:
+# - guest_domain: Guest name can be used with libvirt or libguestfs.
+# - guest_ipaddr: Guest IP address to which ssh connection can be established.
+# - guest_password: Guest password with which ssh connection can be established.
+# - logs_folder: The folder hosts all logs on guest from which to be fetched. It
+#   is the top logs residence to which all logs are stored by the logs collecting
+#   script virt_logs_collector.sh.
+#
+# Please also refer to script help_usage().
+function fetch_logs_from_guest_via_ssh() {
+        local guest_domain=$1
+        local guest_ipaddr=$2
+        local guest_password=$3
+        local logs_folder=$4
+        local guest_user="root"
+        local guest_pass=${guest_password}
+        local sshpass_scp_cmd="sshpass -p ${guest_pass} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r ${guest_user}@${guest_ipaddr}"
+        local sshpass_ssh_cmd="sshpass -p ${guest_pass} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${guest_user}@${guest_ipaddr}"
+        local guest_transformed=${guest_domain//./_}
+
+        local ret_result=128
+        local retry_times=0
+        while [[ ${retry_times} -lt 2 ]] && [[ ${ret_result} -ne 0 ]];
+        do
+              mkdir -p ${logs_folder}/${guest_transformed}
+              echo -e "${sshpass_scp_cmd}:${logs_folder} ${logs_folder}/${guest_transformed}"
+              ${sshpass_scp_cmd}:${logs_folder} ${logs_folder}/${guest_transformed}
+              ret_result=$?
+              if [[ ${ret_result} -eq 0 ]];then
+                 echo -e "Successfully fetched ${logs_folder} from guest ${guest_domain} via ssh."
+                 ${sshpass_ssh_cmd} rm -f -r ${logs_folder}          
+                 break          
+              fi
+              retry_times=$((${retry_times}+1))
+        done
+
+        if [[ ${ret_result} -ne 0 ]];then
+            echo -e "Failed to fetch ${logs_folder} from guest ${guest_domain} via ssh."
+        fi
+
+	return ${ret_result}
+}
+
+# Fetch logs from virtual machine to local host by using libguestfs tools.
+#
+# Arguments explanatiion:
+# - guest_domain: Guest name can be used with libvirt or libguestfs.
+# - guest_password: Guest password with which ssh connection can be established.
+# - logs_fetched: Each folder or file to be fetached from logs_folder on guest
+#   which is the same as logs_folder via ssh and is sub-folder or sub-file in
+#   logs_folder via libguestfs tool because libguestfs can not fetch a whole
+#   folder all at once.  
+# - logs_folder: The folder hosts all logs on guest from which to be fetched. It
+#   is the top logs residence to which all logs are stored by the logs collecting
+#   script virt_logs_collector.sh.
+#
+# Please also refer to script help_usage().
+function fetch_logs_from_guest_via_libguestfs() {
+        local guest_domain=$1
+        local guest_password=$2
+        local logs_fetched=$3
+        local logs_folder=$4
+
+        setup_libguestfs_env
+        virt-filesystems -d ${guest_domain} &> /dev/null
+        if [[ $? -ne 0 ]];then
+           echo -e "Running ${guest_domain} can not be accessed by libguestfs currently. Shut it down now."
+           virsh destroy ${guest_domain}
+        fi
+        local guest_device=`find_disk_hosts_filesystem ${guest_domain} ${logs_fetched}`
+        echo -e "${guest_domain} ${guest_device} contains ${logs_fetched}."
+        local guest_transformed=${guest_domain//./_}
+        mkdir -p ${logs_folder}/${guest_transformed}
+        echo -e "guestfish -r -d ${guest_domain} -m ${guest_device} copy-out ${logs_fetched} ${logs_folder}/${guest_transformed}"
+        guestfish -r -d ${guest_domain} -m ${guest_device} copy-out ${logs_fetched} ${logs_folder}/${guest_transformed}
+        if [[ $? -eq 0 ]];then
+           echo -e "Copied out ${logs_fetched} from ${guest_domain} successfully."
+           return 0
+        else
+           echo -e "Try again to mount ${guest_device}:/:subvol=@ with guestfish."
+           echo -e "guestfish -r -d ${guest_domain} -m ${guest_device}:/:subvol=@ copy-out ${logs_fetched} ${logs_folder}/${guest_transformed}"
+           guestfish -r -d ${guest_domain} -m ${guest_device}:/:subvol=@ copy-out ${logs_fetched} ${logs_folder}/${guest_transformed}
+           if [[ $? -eq 0 ]];then
+              echo -e "Copied out ${logs_fetched} from ${guest_domain} successfully."
+              return 0
+           else
+              echo -e "Failed to copy out ${logs_fetched} from ${guest_domain}."
+              return 1
+           fi
+        fi
+}
+
+# Power off virtual machine if necessary and remove logs folder in it by using
+# libguestfs.
+#
+# Arguments explanation:
+# - guest_domain: Guest name can be used with libvirt or libguestfs.
+# - guest_password: Guest password with which ssh connection can be established.
+# - logs_folder: The folder hosts all logs on guest from which to be fetched. It
+#   is the top logs residence to which all logs are stored by the logs collecting
+#   script virt_logs_collector.sh.
+#
+# Please also refer to script help_usage().
+function remove_logs_folder_from_guest_via_libguestfs() {
+        local guest_domain=$1
+        local guest_password=$2
+        local logs_folder=$3
+        local ret_result=0
+
+        echo -e "Going to remove ${logs_folder} from ${guest_domain} via libguestfs"
+        local guest_device=`find_disk_hosts_filesystem ${guest_domain} ${logs_folder}`
+        echo -e "guestfish -w -d ${guest_domain} -m ${guest_device} rm-rf ${logs_folder}"
+        guestfish -w -d ${guest_domain} -m ${guest_device} rm-rf ${logs_folder}
+        ret_result=$?
+        if [[ ${ret_result} -ne 0 ]];then
+	   echo -e "Power off ${guest_domain} to make read-write access possible via libguestfs."
+           virsh destroy ${guest_domain}
+           echo -e "guestfish -w -d ${guest_domain} -m ${guest_device} rm-rf ${logs_folder}"
+           guestfish -w -d ${guest_domain} -m ${guest_device} rm-rf ${logs_folder}
+           ret_result=$?
+           if [[ ${ret_result} -ne 0 ]];then
+              echo -e "Try again to mount ${guest_device}:/:subvol=@ with guestfish."
+              echo -e "guestfish -w -d ${guest_domain} -m ${guest_device}:/:subvol=@ rm-rf ${logs_folder}"
+              guestfish -w -d ${guest_domain} -m ${guest_device}:/:subvol=@ rm-rf ${logs_folder}
+              ret_result=$?
+           fi
+        fi
+
+        virsh start ${guest_domain}
+        return ${ret_result}
+}
+
+# Fetch logs from virtual machine to local host via ssh firstly. Will resort to
+# libguestfs tools if ssh connection is broken
+#
+# Arguments explanation:
+# - guest_domain: Guest name can be used with libvirt or libguestfs.
+# - guest_ipaddr: Guest IP address to which ssh connection can be established.
+# - guest_password: Guest password with which ssh connection can be established
+# - logs_folder: The folder hosts all logs on guest from which to be fetched. It
+#   is the top logs residence to which all logs are stored by the logs collecting
+#   script virt_logs_collector.sh.
+# - extra_logs: Extra logs to fetched from guest via libguestfs tool because they
+#   might not be able to be collected successfully into logs_folder via ssh in the
+#   virt_logs_collector.sh. So they are only fetched again one by ne if logs_folder
+#   is not fetched successfully.  
+#
+# Please also refer to script help_usage().
+function fetch_logs_from_guest() {
+	local guest_domain=$1
+	local guest_ipaddr=$2
+	local guest_password=$3
+	local logs_folder=$4
+	shift
+	shift
+	shift
+	shift
+	local extra_logs=($@)
+
+	local ret1=0
+	fetch_logs_from_guest_via_ssh ${guest_domain} ${guest_ipaddr} ${guest_password} ${logs_folder}
+	if [[ $? -ne 0 ]];then
+	   echo -e "Try to use libguestfs tools to fetch ${logs_folder} from ${guest_domain}."
+	   fetch_logs_from_guest_via_libguestfs ${guest_domain} ${guest_password} ${logs_folder} ${logs_folder}
+	   ret1=$?
+	   if [[ ${ret1} -eq 0 ]];then
+	      remove_logs_folder_from_guest_via_libguestfs ${guest_domain} ${guest_password} ${logs_folder}	
+	      if [[ $? -eq 0 ]];then
+	         echo -e "Successfully removed ${logs_folder} from ${guest_domain} via libguestfs."
+	      else
+	         echo -e "Failed to remove ${logs_folder} from ${guest_domain} via libguestfs. Not fatal error."
+	      fi
+	   fi
+	fi
+
+	local ret2=0
+	if [[ ${extra_logs[@]} != "" && ${ret1} -ne 0 ]];then
+	   echo -e "Try to use libguestfs tools to fetch ${extra_logs[@]} from ${guest_domain}."
+	   local eachlog=""
+	   for eachlog in ${extra_logs[@]};do
+	       fetch_logs_from_guest_via_libguestfs ${guest_domain} ${guest_password} ${eachlog} ${logs_folder}
+	       ret2=$(( ${ret2} | $? ))
+	   done           
+	   if [[ ${ret2} -eq 0 ]];then
+	      echo -e "Copied out ${extra_logs[@]} from ${guest_domain} successfully."
+	   else
+	      echo -e "Failed to copy out ${extra_logs[@]} from ${guest_domain}."
+	   fi
+	fi 
+
+	virsh start ${guest_domain} 
+	if [[ ${ret1} -eq 0 && ${ret2} -eq 0 ]];then
+	   return 0
+	else
+	   return 1
+	fi
+}
+
+# Compress logs folder on local host which contains all logs from host and guest.
+#
+# Arguments explanation:
+# - logs_folder: The folder hosts all logs on guest from which to be fetched. It
+#   is the top logs residence to which all logs are stored by the logs collecting
+#   script virt_logs_collector.sh.
+#
+# Please also refer to script help_usage().
+function compress_virt_logs_folder() {
+	local logs_folder=$1
+	local logs_root=${logs_folder/\//}
+	logs_root=${logs_root/\/*/}
+
+	pushd ${logs_folder}
+	local mycmd="tar -czvf /${logs_root}/virt_logs_all.tar.gz *"
+	echo -e "$mycmd"
+	$mycmd
+	if [[ $? -eq 0 ]];then
+	   echo -e "Successfully compressed ${logs_folder} to /${logs_root}/virt_logs_all.tar.gz"
+	   popd
+	   return 0
+	else
+	   echo -e "Failed to ${logs_folder} to /${logs_root}/virt_logs_all.tar.gz"
+	   popd
+	   return 1
+	fi
+}
+
+#Usage and help info for the script
+help_usage(){
+	echo "script usage: $(basename $0) [-f \"Logs folder which contains logs collected(Can be omitted/Default to /tmp/virt_logs_residence)\"] \
+[-g \"guests to be involved, for example, \"guest1 guest2 guest3\" or all or none(Can be omitted/Default to all)\"] \
+[-p \"Root password to access all guests\"] \
+[-e \"Extra folders or files to be fetched from guest, for example, \"log_file1 log_file2 log_folder1\"(Can be omitted/Default to nothing)\"] \
+[-h help]"
+}
+
+fetch_logs_from_guest_log="/var/log/fetch_logs_from_guest.log"
+virt_guests_wanted=""
+virt_guests_password=""
+virt_logs_folder=""
+virt_extra_logs_guest=""
+fetch_logs_from_guest_log_result=0
+rm -f -r ${fetch_logs_from_guest_log}
+
+#Parse input arguments, all options are optional
+#Any log paremter passed in should take absolute path form
+while getopts 'l:g:p:e:h' OPTION; do
+   case "$OPTION" in
+      f)
+        virt_logs_folder="$OPTARG"
+        echo "Logs folder is ${virt_logs_folder}" 2>&1 | safe_log
+        ;;
+      g)
+        virt_guests_wanted="$OPTARG"
+        echo "The guests involved are ${virt_guests_wanted}" 2>&1 | safe_log
+        ;;
+      p)
+        export virt_guests_password="$OPTARG"
+        echo "Root password to access all guests ${virt_guests_password}" 2>&1 | safe_log
+        ;;
+      e)
+        virt_extra_logs_guest="$OPTARG"
+        virt_extra_logs_guest=(${virt_extra_logs_guest})
+        echo "The extra guest logs to be fetched are ${virt_extra_logs_guest[@]}" 2>&1 | safe_log
+        ;;
+      h)
+        help_usage 2>&1 | safe_log
+        exit 1
+        ;;
+      *)
+        help_usage 2>&1 | safe_log
+        exit 1
+        ;;
+   esac
+done
+
+shift "$(($OPTIND -1))"
+if [[ ${virt_logs_folder} == "" ]];then
+   virt_logs_folder="/tmp/virt_logs_residence"
+fi
+if [[ ${virt_guests_wanted} == "" ]];then
+   virt_guests_wanted="all"
+fi
+if [[ ${virt_guests_password} == "" ]];then
+   echo -e "Error: The virt_guests_password argument is mandatory." 2>&1 | safe_log
+   exit 1
+fi
+
+unset guest_hash_ipaddr
+declare -a guest_hash_ipaddr=""
+guest_domain_types="sles|slem|opensuse|tumbleweed|leap|oracle|alp"
+guests_inactive_array=`virsh list --inactive | grep -Ei "${guest_domain_types}" | awk '{print $2}'`
+guest_domains_array=`virsh list  --all | grep -Ei "${guest_domain_types}" | awk '{print $2}'`
+guest_current=""
+guest_macaddresses_array=""
+guest_ipaddress="";
+guest_hash_index=0
+dhcpd_lease_file="/var/lib/dhcp/db/dhcpd.leases"
+
+#Install necessary packages
+echo -e "Install necessary packages. zypper install -y sshpass nmap xmlstarlet libguestfs* guestfs-tools" 2>&1 | safe_log
+zypper install -y sshpass nmap xmlstarlet libguestfs* guestfs-tools 2>&1 | safe_log
+
+#Establish reachable networks and hosts database on host
+#In ALP, podman network takes ~40 minutes to finish scan, but it's useless, so exclude it
+subnets_in_route=`ip route show all | grep -v cni-podman0 | awk '{print $1}' | grep -v default`
+subnets_scan_results=""
+subnets_scan_index=0
+echo -e "Subnets ${subnets_in_route[@]} are reachable on host judging by ip route show all" 2>&1 | safe_log
+echo -e "Establishing reachable hosts in subnets ${subnets_in_route[@]} database on host" 2>&1 | safe_log
+for single_subnet in ${subnets_in_route[@]};do
+    single_subnet_transformed=${single_subnet//./_}
+    single_subnet_transformed=${single_subnet_transformed/\//_}
+    scan_timestamp=`date "+%F-%H-%M-%S"`
+    mkdir -p "${virt_logs_folder}/nmap_subnets_scan_results"
+    single_subnet_scan_results=${virt_logs_folder}'/nmap_subnets_scan_results/nmap_scan_'${single_subnet_transformed}'_'${scan_timestamp}
+    subnets_scan_results[${subnets_scan_index}]=${single_subnet_scan_results}
+    echo -e "nmap -T4 -sn --exclude 127.0.0.0/8 $single_subnet -oX $single_subnet_scan_results" 2>&1 | safe_log
+    nmap -T4 -sn --exclude 127.0.0.0/8 $single_subnet -oX $single_subnet_scan_results 2>&1 | safe_log
+    subnets_scan_index=$(( ${subnets_scan_index} + 1 ))
+done
+
+#Establish virtual machine domain name and ip address mapping
+for guest_current in ${guest_domains_array[@]};do
+    guest_macaddresses_array[${guest_hash_index}]=`virsh domiflist --domain ${guest_current} | grep -oE "([0-9|a-z]{2}:){5}[0-9|a-z]{2}"`
+    guest_ipaddress=`tac $dhcpd_lease_file | awk '!($0 in S) {print; S[$0]}' | tac | grep -iE "${guest_macaddresses_array[${guest_hash_index}]}" -B8 | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | tail -1`
+    if [[ -z ${guest_ipaddress} ]];then
+       for single_subnet_scan_results in ${subnets_scan_results[@]};do
+           guest_ipaddress=`xmlstarlet sel -t -v //address/@addr -n $single_subnet_scan_results | grep -i ${guest_macaddresses_array[${guest_hash_index}]} -B1 | grep -iv ${guest_macaddresses_array[${guest_hash_index}]}`
+           if [[ ! -z ${guest_ipaddress} ]];then
+               break
+           fi
+       done
+    fi
+    if [[ -z ${guest_ipaddress} ]];then
+       guest_ipaddress="NO_IP_ADDRESS_FOUND"
+    fi
+    guest_hash_ipaddr[${guest_hash_index}]=${guest_ipaddress}
+    echo -e ${guest_current}:${guest_hash_ipaddr[${guest_hash_index}]} 2>&1 | safe_log
+    guest_hash_index=$(( ${guest_hash_index} + 1 ))
+done
+
+#Start fetching logs from virtual machine
+if [[ ${virt_guests_wanted} == "none" ]];then
+   echo -e "Will not fetch any log from any guest." 2>&1 | safe_log
+else
+   guest_hash_index=0
+   for guest_current in ${guest_domains_array[@]};do
+       if [[ ${virt_guests_wanted} == "all" ]] || [[ ${virt_guests_wanted} =~ .*${guest_current}.* ]];then
+          if [[ ${guests_inactive_array[@]} == .*${guest_current}.* ]];then
+             echo -e "Virtual machine ${guest_current} in shutdown state. Skip fetching logs from it." 2>&1 | safe_log
+          else
+             echo -e "fetch_logs_from_guest ${guest_current} ${guest_hash_ipaddr[${guest_hash_index}]} ${virt_guests_password} ${virt_logs_folder} ${virt_extra_logs_guest[@]}" 2>&1 | safe_log
+             fetch_logs_from_guest ${guest_current} ${guest_hash_ipaddr[${guest_hash_index}]} ${virt_guests_password} ${virt_logs_folder} ${virt_extra_logs_guest[@]} 2>&1 | safe_log
+             fetch_logs_from_guest_log_result=$(( ${fetch_logs_from_guest_log_result} | $? ))
+          fi
+       else
+          echo -e "Virtual machine ${guest_current} is not wanted. Skip fetching logs from it." 2>&1 | safe_log
+       fi
+       guest_hash_index=$(( ${guest_hash_index} + 1 ))
+   done
+fi
+compress_virt_logs_folder ${virt_logs_folder} 2>&1 | safe_log
+fetch_logs_from_guest_log_result=$(( ${fetch_logs_from_guest_log_result} | $? ))
+rm -f -r ${virt_logs_folder}
+exit ${fetch_logs_from_guest_log_result}

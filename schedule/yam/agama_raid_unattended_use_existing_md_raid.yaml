@@ -1,0 +1,10 @@
+---
+name: agama_raid_unattended_existing_md_raid
+description: >
+  Perform unattended installation with RAID and modify the RAID disk of swap, export disks for validation.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - yam/agama/boot_agama
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

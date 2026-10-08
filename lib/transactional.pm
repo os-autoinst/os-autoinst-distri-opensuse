@@ -1,0 +1,462 @@
+# SUSE's openQA tests
+#
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: General library for every system that uses transactional-updates
+# Like MicroOS and transactional-server
+# Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
+
+package transactional;
+
+use base Exporter;
+use Exporter;
+
+use strict;
+use warnings;
+use testapi qw(is_serial_terminal :DEFAULT);
+use utils;
+use Carp;
+use microos 'microos_reboot';
+use power_action_utils qw(power_action prepare_system_shutdown);
+use version_utils;
+use utils qw(reconnect_mgmt_console unlock_if_encrypted);
+use Utils::Backends;
+use Utils::Architectures;
+use publiccloud::instances;
+
+our @EXPORT = qw(
+  process_reboot
+  check_reboot_changes
+  check_target_version
+  check_reboot_strategy_and_reboot
+  rpmver
+  trup_call
+  trup_install
+  trup_shell
+  get_utt_packages
+  enter_trup_shell
+  exit_trup_shell
+  exit_trup_shell_and_reboot
+  reboot_on_changes
+  record_kernel_audit_messages
+  trup_apply
+);
+
+# Download files needed for transactional update tests
+sub get_utt_packages {
+    # SLE and SUSE MicroOS need an additional repo for testing
+    if (is_sle || is_sle_micro) {
+        assert_script_run 'curl -O ' . data_url("microos/utt.repo");
+    } elsif (is_leap_micro) {
+        assert_script_run 'curl -o utt.repo ' . data_url("microos/utt-leap.repo");
+    }
+
+    # Different testfiles for SUSE MicroOS and openSUSE MicroOS
+    my $tarball = 'utt-';
+    $tarball .= is_opensuse() ? 'opensuse' : 'sle';
+    $tarball .= '-' . get_required_var('ARCH') . '.tgz';
+
+    assert_script_run 'curl -O ' . data_url("microos/$tarball");
+    assert_script_run "tar xzvf $tarball";
+}
+
+# After automated rollback initialization passes by GRUB twice.
+# Here it is handled the first time GRUB is displayed
+sub handle_first_grub {
+    enter_cmd "reboot";
+    if (is_s390x || is_pvm) {
+        reconnect_mgmt_console(timeout => 500, grub_expected_twice => 1);
+    }
+    else {
+        assert_screen 'grub2', 200;
+        assert_screen_change { send_key('ret') };
+        # Run ppc64le VMs on x86_64 setups is slow since no kvm support,
+        # Wait one more minute to make sure system leaves grub
+        wait_still_screen 60 if (check_var('MACHINE', 'ppc64le-emu') || check_var('MACHINE', 'svirt-vmware70'));
+        save_screenshot;
+    }
+}
+
+# Soft reboot only triggers a full reboot when installing a new kernel
+# update of the bootloader or any command like rollback, grub.cfg, bootloader, run or shell
+sub check_reboot_strategy_and_reboot {
+    my @reboot_args;
+
+    # as this will likely grow, it is better to have single line checks to give room to more
+    # complex expressions
+    my $has_soft_reboot = 1;
+    $has_soft_reboot = 0 if (is_sle_micro || is_sle('<16.1'));
+
+    if ($has_soft_reboot) {
+        my $regex = qr/Minimally required reboot level:\s([a-zA-Z-]+)/;
+        my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
+        if ($output =~ $regex) {
+            @reboot_args = (expected_grub => 0) if $1 eq 'soft-reboot';
+            record_info("Reboot strategy", "$1");
+        }
+    }
+    process_reboot(@reboot_args);
+}
+
+sub process_reboot {
+    my (%args) = @_;
+    $args{trigger} //= 0;
+    $args{automated_rollback} //= 0;
+    $args{expected_grub} //= (is_transactional && is_vmware) ? 0 : 1;
+    $args{expected_passphrase} //= 0;
+
+    if (is_public_cloud) {
+        my $instance = publiccloud::instances::get_instance();
+        $instance->softreboot();    # Handled re-establishing of the required ssh tunnel and consoles
+        return;
+    }
+
+    # Switch to root-console as we need VNC to check for grub and for login prompt
+    my $prev_console = current_console();
+    select_console 'root-console', await_console => 0 unless ($prev_console eq 'root-console');
+
+    handle_first_grub if ($args{automated_rollback});
+
+    if (!is_s390x && (is_microos || is_sle_micro('<6.0'))) {
+        microos_reboot($args{trigger}, $args{expected_grub});
+        record_kernel_audit_messages();
+    } elsif (is_backend_s390x) {
+        prepare_system_shutdown;
+        enter_cmd "reboot";
+        opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 300);
+        record_kernel_audit_messages();
+    } else {
+        power_action('reboot', observe => !$args{trigger}, keepconsole => 1);
+        if (is_s390x || is_pvm) {
+            reconnect_mgmt_console(timeout => 500) unless $args{automated_rollback};
+        }
+        if (!is_s390x && $args{expected_grub}) {
+            if (is_aarch64 && check_screen('tianocore-mainmenu', 30)) {
+                # Use firmware boot manager of aarch64 to boot HDD, when needed
+                opensusebasetest::handle_uefi_boot_disk_workaround();
+            }
+            if ($args{expected_passphrase}) {
+                unlock_if_encrypted();
+            }
+            # Replace by wait_boot if possible
+            if (is_ipmi) {
+                reset_consoles;
+                select_console('sol', await_console => 0);
+            }
+            assert_screen 'grub2', 300;
+            wait_screen_change { send_key 'ret' };
+            assert_screen 'linux-login', 400;
+        }
+        else {
+            #Need to wait 3s to start tty6 service refer bsc#1269251
+            assert_screen 'linux-login', 400;
+            wait_still_screen(3);
+        }
+
+        # Login & clear login needle
+        select_console 'root-console';
+        record_kernel_audit_messages();
+        assert_script_run 'clear';
+    }
+
+    # Switch to the previous console
+    # Skip if already on root-console: after a soft reboot select_console 'root-console' was
+    # already called above (line 158) and calling it again triggers a race condition on aarch64
+    # where the tty is not yet fully initialised, causing a "no candidate needle" failure.
+    # See https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/25771 and poo#202980.
+    select_console $prev_console unless ($prev_console eq 'root-console');
+}
+
+# Reboot if there's a diff between the current FS and the new snapshot
+sub check_reboot_changes {
+    my $change_expected = shift // 1;
+
+    # Compare currently mounted and default subvolume
+    my $time = time;
+    my $mounted = "mnt-$time";
+    my $default = "def-$time";
+    assert_script_run "mount | grep 'on / ' | grep -E -o 'subvolid=[0-9]*' | cut -d'=' -f2 > $mounted";
+    assert_script_run "btrfs su get-default / | cut -d' ' -f2 > $default";
+    my $change_happened = script_run "diff $mounted $default";
+
+    # If changes are expected check that default subvolume changed
+    die "Error during diff" if $change_happened > 1;
+    die "Change expected: $change_expected, happened: $change_happened" if $change_expected != $change_happened;
+
+    # https://progress.opensuse.org/issues/204552
+    assert_script_run 'time sync' if check_var('ENCRYPTED_IMAGE', 1);
+
+    # Reboot into new snapshot
+    process_reboot(trigger => 1) if $change_happened;
+}
+
+# Check target version after migration
+sub check_target_version {
+    my $release = script_output "cat /etc/os-release";
+    my $expected_version = get_var("TARGET_VERSION", get_required_var("VERSION"));
+    my $selector = is_micro(">=6.2") ?
+      qq|SUSE_SUPPORT_PRODUCT_VERSION="$expected_version"| :
+      "VERSION=\"?$expected_version\"?";
+
+    die "Target version not found! Expected: $expected_version" if ($release !~ $selector);
+}
+
+=head2 record_kernel_audit_messages
+
+Record the SELinux messages before the auditd daemon has been started, if present. If there are no such entries, this function has no effect.
+
+=cut
+
+sub record_kernel_audit_messages {
+    my %args = testapi::compat_args({log_upload => 0}, ['log_upload'], @_);
+    my $output = script_output("journalctl -k | grep 'audit:.*avc:' || true");
+    return unless ($output);    # Don't log anything if there is no output
+    record_info("AVC-k", "Kernel audit messages:\n\n$output", result => 'softfail');
+
+    # Upload the same log and don't fail on errors (supplemental material)
+    if ($args{log_upload}) {
+        script_run("journalctl -k | grep 'audit:.*avc:' > /var/tmp/k-audit.log");
+        upload_logs("/var/tmp/k-audit.log", fail_ok => 1);
+        script_run("rm -f /var/tmp/k-audit.log");
+    }
+}
+
+# Return names and version of packages for transactional-update tests
+sub rpmver {
+    my $q = shift;
+    my $arch = get_var('ARCH');
+    my $iobs = is_opensuse() ? 'obs' : 'ibs';
+
+    # rpm version & release numbers
+    my %rpm = (
+        obs => {v => '5.1', r => '1.20'},
+        ibs => {v => '5', r => '2.29'},
+    );
+
+    if ($arch eq 'aarch64') {
+        $rpm{obs} = {v => '5.1', r => '1.16'};
+    }
+
+    if ($arch eq 'riscv64') {
+        $rpm{obs} = {v => '5.2', r => '1.1'};
+    }
+
+    if ($arch eq 'ppc64le') {
+        $rpm{obs} = {v => '5.1', r => '1.15'};
+    }
+
+    my $vr = "$rpm{$iobs}{v}-$rpm{$iobs}{r}";
+    # Returns expected package version after installation
+    return $vr if $q eq 'vr';
+    # Returns rpm path for initial installation
+    return " update-test-trivial/update-test-$q-$vr.$arch.rpm";
+}
+
+# Optionally skip exit status check in case immediate reboot is expected
+sub trup_call {
+    my ($cmd, %args) = @_;
+    my $script = "transactional-update ";
+    my $ret;
+
+    $args{timeout} //= 180;
+    $args{exit_code} //= 0;
+    $args{proceed_on_failure} //= 0;
+    $script .= "-n " unless $args{interactive};
+    $script .= $cmd;
+
+    # Always wait for rollback.service to be finished before triggering manually transactional-update
+    ensure_rollback_service_not_running();
+
+    # If we expect a reboot on success, the exit marker might not reach
+    # the console. Check for t-u's own output just before the reboot instead.
+    if ($cmd =~ /reboot / && $args{exit_code} == 0) {
+        $script .= " >/dev/$serialdev" unless is_serial_terminal;
+        enter_cmd($script);
+        save_screenshot unless is_serial_terminal;
+        wait_serial(qr/New default snapshot is/, timeout => $args{timeout}) or die "transactional-update didn't finish";
+        return;
+    }
+
+    if ($args{interactive} && $cmd =~ /(pkg|ptf|package) /) {
+        script_start_io($script);
+        wait_serial('Continue?', no_regex => 1)
+          or die 'Confirmation dialog not shown';
+        type_string("\n");
+
+        if ($cmd =~ /\bup(date)?\b/ && $args{exit_code} == 1) {
+            die 'Abort dialog not shown' unless wait_serial('Abort');
+            type_string("\n");
+        }
+
+        $ret = script_finish_io(timeout => $args{timeout});
+    }
+    else {
+        $ret = script_run($script, timeout => $args{timeout});
+    }
+
+    if ($args{proceed_on_failure}) {
+        diag("transactional-update $cmd call returned: $ret");
+        return $ret;
+    }
+
+    die "transactional-update didn't finish" unless defined($ret);
+    die "transactional-update returned with $ret, expected $args{exit_code}" unless $ret == $args{exit_code};
+}
+
+# Install a pkg in MicroOS
+sub trup_install {
+    my $input = shift;
+
+    # rebootmgr has to be turned off as prerequisity for this to work
+    script_run "rebootmgrctl set-strategy off";
+
+    my @pkg = split(' ', $input);
+    my $necessary;
+    foreach (@pkg) {
+        $necessary .= "$_ " if script_run("rpm -q $_");
+    }
+    if ($necessary) {
+        trup_call("pkg install $necessary");
+        process_reboot(trigger => 1);
+    }
+
+    # By the end, all pkgs should be installed
+    assert_script_run("rpm -q $input");
+}
+
+# Run command in transactional shell and reboot to apply changes
+# Optional parameter reboot can disable rebooting into new snapshot
+sub trup_shell {
+    my ($cmd, %args) = @_;
+    $args{reboot} //= 1;
+    $args{timeout} //= 90;
+
+    enter_cmd("transactional-update shell; echo trup_shell-status-\$? > /dev/$serialdev");
+    wait_still_screen;
+    enter_cmd("$cmd");
+    enter_cmd("exit");
+    wait_serial('trup_shell-status-0', timeout => $args{timeout}) || die "'transactional-update shell' didn't finish";
+
+    process_reboot(trigger => 1) if $args{reboot};
+}
+
+# When transactional-update is triggered manually is required to wait for rollback.service
+# to not be running. This is needed because rollback.service is triggered on first boot
+# after updates or rollbacks.
+# The transactional-update.timer waits for that service to be finished before starting itself.
+# In general automated services will make sure that they don't block each other,
+# but this does not apply when manual triggering of the script.
+sub ensure_rollback_service_not_running {
+    for (1 .. 24) {
+        my $output = script_output("systemctl show -p SubState --value rollback.service");
+        $output =~ '^(start|running)$' ? sleep 10 : last;
+    }
+}
+
+=head2 enter_trup_shell
+
+  enter_trup_shell(global_options => $global_options, shell_options => $shell_options)
+
+Enter into transactional update shell by entering command on transactional server:
+transactional-update $global_options shell $shell_options. The two arguments for
+this subroutine, global_options and shell_options, are all text strings that are
+composed of space separated options for transactional-update and shell respectively.
+
+=cut
+
+sub enter_trup_shell {
+    my (%args) = @_;
+
+    $args{global_options} //= '';
+    $args{shell_options} //= '';
+    my $cmd = "transactional-update $args{global_options} shell $args{shell_options}; echo trup_shell-status-\$?";
+    $cmd .= " >/dev/$serialdev" unless is_serial_terminal;
+    enter_cmd($cmd);
+    wait_still_screen unless is_serial_terminal;
+    assert_script_run("uname -a");
+}
+
+=head2 exit_trup_shell
+
+  exit_trup_shell()
+
+Quit transactional update shell without rebooting.
+
+=cut
+
+sub exit_trup_shell {
+    enter_cmd("exit");
+    wait_serial('trup_shell-status-0') || croak("transactional-update shell did not finish");
+    wait_still_screen unless is_serial_terminal;
+}
+
+=head2 exit_trup_shell_and_reboot
+
+  exit_trup_shell_and_reboot()
+
+Quit transactional update shell by entering exit. Check if any changes that request
+reboot to take effect. This subroutine should be used together with enter_trup_shell.
+
+=cut
+
+sub exit_trup_shell_and_reboot {
+    exit_trup_shell;
+    reboot_on_changes();
+}
+
+=head2 reboot_on_changes
+
+  reboot_on_changes
+
+Check whether new snapshot is generated and reboot into this new snapshot if there
+are changes happened.
+
+=cut
+
+sub reboot_on_changes {
+    # Compare currently mounted and default subvolume
+    my $mountedsubvol = script_output("mount | grep 'on / ' | grep -E -o 'subvolid=[0-9]*' | cut -d'=' -f2", proceed_on_failure => 0);
+    my $defaultsubvol = script_output("btrfs su get-default / | cut -d' ' -f2", proceed_on_failure => 0);
+    my $has_change = abs(int($defaultsubvol) - int($mountedsubvol));
+
+    if ($has_change) {
+        # Reboot into new snapshot
+        process_reboot(trigger => 1);
+    }
+    else {
+        record_info("No reboot needed", "Reboot saved because there are no changes happened and no new snapshot generated");
+    }
+}
+
+=head2 trup_apply
+
+  trup_apply([timeout => $seconds])
+
+Apply pending changes from the new snapshot without rebooting using
+C<transactional-update apply>.
+
+B<Warning>: Do not use this for kernel packages or system libraries that
+require a reboot to take effect. Applying those without a reboot may leave
+the system in an inconsistent state. This function is intended only for
+end user applications and server services.
+
+=over
+
+=item C<timeout>
+
+Timeout in seconds (default: 30).
+
+=back
+
+=cut
+
+sub trup_apply {
+    my (%args) = @_;
+    $args{timeout} //= 30;
+
+    record_info("Apply pending changes", "Applying pending changes without reboot into new snapshot");
+    trup_call('apply', timeout => $args{timeout});
+}
+
+1;

@@ -1,0 +1,11 @@
+---
+name: agama_post_registration_s390x
+description: >
+  Perform Agama unattended installation with offline medium, and register the system after installation.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/validate/post_registration

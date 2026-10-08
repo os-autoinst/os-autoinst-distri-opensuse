@@ -1,0 +1,19 @@
+---
+name: agama_install_sles4sap
+description: >
+  Agama installation tests for sles4sap
+
+  Can be used to generate a qcow2 image for saptune test.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/saptune
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

@@ -1,0 +1,23 @@
+---
+name: gnome_install_from_source
+description: >
+  Install default system using the gnome desktop
+  using a remote repository over http or https or samba.
+  Scenario is thought to use Online medium to boot
+  and Full medium for remote repositories.
+schedule:
+  product_selection:
+    - installation/validation/validate_install_repo
+    - installation/product_selection/install_SLES
+  registration:
+    - installation/registration/skip_registration
+  extension_module_selection:
+    - installation/module_selection/select_module_desktop
+  add_on_product:
+    - installation/add_on_product_installation/accept_add_on_installation
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  default_systemd_target:
+    - installation/installation_settings/validate_default_target
+  system_validation:
+    - console/validate_mirror_repos

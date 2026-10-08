@@ -1,0 +1,33 @@
+services:
+
+  nginx:
+    image: registry.opensuse.org/opensuse/nginx
+    networks:
+      - backend
+    volumes:
+      - www:/usr/share/nginx/html
+    restart: on-failure
+
+  haproxy:
+    image: registry.opensuse.org/opensuse/haproxy
+    volumes:
+      - ./haproxy.cfg:/etc/haproxy/haproxy.cfg:ro,Z
+    ports:
+      - "8080:80"
+    # Port 80 is privileged but haproxy 2.4 runs as user by default.
+    # Docker on Tumbleweed has this by default
+    sysctls:
+      - net.ipv4.ip_unprivileged_port_start=0
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - nginx
+    restart: on-failure
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  www:

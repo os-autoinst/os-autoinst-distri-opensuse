@@ -1,0 +1,34 @@
+---
+name: hana_install
+description:    >
+    Deploy hana-perf machines by ipxe and autoyast
+vars:
+  DESKTOP: textmode
+schedule:
+  - autoyast/prepare_profile
+  - '{{pxe_bootloader}}'
+  - autoyast/installation
+  - '{{postinstall}}'
+  - '{{full_run}}'
+conditional_schedule:
+  pxe_bootloader:
+    ARCH:
+      x86_64:
+        - installation/ipxe_install
+      ppc64le:
+        - installation/bootloader
+  postinstall:
+    ARCH:
+      ppc64le:
+        - autoyast/console
+        - kernel_performance/install_qatestset
+        - boot/reconnect_mgmt_console
+        - support_server/login
+      x86_64:
+        - autoyast/console
+        - kernel_performance/install_qatestset
+  full_run:
+    HANA_PERF_FULL_RUN:
+      1:
+        - autoyast/console
+        - kernel_performance/full_run

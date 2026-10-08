@@ -1,0 +1,73 @@
+$id: Schedule-1.yaml
+$schema: http://json-schema.org/draft-04/schema#
+description: >
+    YAML schedules define the list of test modules to be executed by a given
+    job. It also allows setting variables that will affect the job to be
+    executed in the end.
+type: object
+additionalProperties: false
+required:
+# Every file should have a description, but we are not there yet
+#- description
+- name
+- schedule
+
+properties:
+
+  name:
+    type: string
+
+  description:
+    oneOf:
+    - type: string
+    - type: 'null'  # Some files have a description without a value
+
+  schedule:
+    oneOf:
+      - type: array
+        items:
+          type: string
+      - type: object
+        items:
+          type: array
+          items:
+            type: string
+
+  vars:
+    type: object
+    description: Additional test variables to be set
+    additionalProperties: false
+    patternProperties:
+      "^[A-Z_+]+[A-Z0-9_]*$":
+        oneOf:
+        - type: string
+        - type: number
+
+  test_data:
+    additionalProperties: false
+    type: object
+    patternProperties:
+      "^([a-zA-Z0-9_-]+)$":
+        oneOf:
+        - type: string
+        - type: number
+        - type: object
+        - type: array
+
+  conditional_schedule:
+    type: object
+    additionalProperties: false
+    patternProperties:
+      "^[a-zA-Z0-9_]+$":
+        type: object
+        additionalProperties: false
+        patternProperties:
+          '^[A-Z][A-Z0-9_]+$':
+            type: object
+            patternProperties:
+              "^[a-zA-Z0-9_]+$":
+                oneOf:
+                    - type: array
+                      items:
+                        type: string
+                    - type: 'null'

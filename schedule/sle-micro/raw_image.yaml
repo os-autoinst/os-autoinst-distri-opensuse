@@ -1,0 +1,75 @@
+name:           sle_micro_raw_image
+description:    >
+    Maintainer: jalausuch@suse.com, qa-c@suse.de.
+    SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+        - boot/boot_to_desktop
+      'x86_64':
+        - '{{wizard}}'
+      'aarch64':
+        - '{{wizard}}'
+  registration:
+    SCC_REGISTER:
+      'installation':
+        - console/suseconnect_scc
+  maintenance:
+    FLAVOR:
+      'MicroOS-Image-Updates':
+        - transactional/install_updates
+  selinux:
+    ENABLE_SELINUX:
+      '1':
+        - transactional/enable_selinux
+  k3s:
+    SLE_MICRO_K3S:
+      '1':
+        - containers/k3s_cli_check
+  rt:
+    FLAVOR:
+      'MicroOS-Image-RT':
+        - rt/rt_is_realtime
+  ECSAnywhere:
+    FLAVOR:
+      'ECS-Anywhere':
+        - containers/ecs_anywhere
+  wizard:
+    FIRST_BOOT_CONFIG:
+      'wizard':
+        - jeos/firstrun
+      'ignition':
+        - microos/disk_boot
+      'combustion':
+        - microos/disk_boot
+      'combustion+ignition':
+        - microos/disk_boot
+  image_customization:
+    TEST_PROVISIONING:
+      '1':
+        - microos/verify_setup
+schedule:
+  - '{{boot}}'
+  - transactional/host_config
+  - '{{ECSAnywhere}}'
+  - '{{rt}}'
+  - '{{registration}}'
+  - '{{maintenance}}'
+  - '{{selinux}}'
+  - '{{k3s}}'
+  - '{{image_customization}}'
+  - microos/networking
+  - microos/libzypp_config
+  - microos/image_checks
+  - microos/one_line_checks
+  - microos/services_enabled
+  - microos/cockpit_service
+  - transactional/trup_smoke
+  - transactional/filesystem_ro
+  - transactional/transactional_update
+  - transactional/rebootmgr
+  - transactional/health_check
+  - console/journal_check
+  - shutdown/shutdown

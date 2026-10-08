@@ -1,0 +1,16 @@
+---
+name: autofs
+description: >
+    Maintainer: zluo
+    Install and test autofs server on SLES
+conditional_schedule:
+    autofs:
+        HOSTNAME:
+            'client':
+                - network/autofs_client
+            'server':
+                - network/autofs_server
+schedule:
+    - boot/boot_to_desktop
+    - network/setup_multimachine
+    - '{{autofs}}'

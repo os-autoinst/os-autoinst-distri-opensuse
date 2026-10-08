@@ -1,0 +1,79 @@
+## Path:    System/Yast2/Firstboot
+## Description: Firstboot Configuration
+## Type:    string
+## Default: /usr/share/firstboot/scripts
+#
+# Scripts to be executed at first boot
+#
+SCRIPT_DIR="/usr/share/firstboot/scripts"
+
+## Type:    string
+## Default: /etc/YaST2/firstboot.xml
+#
+# Path to firstboot workflow file. Change this to provide customized file 
+# with a description of the workflow sequence.
+#
+FIRSTBOOT_CONTROL_FILE="/etc/YaST2/firstboot.xml"
+
+## Type:        string
+## Default:     ""
+#
+# Directory from which 'welcome.txt' and 'welcome_<locale>.txt' are read
+FIRSTBOOT_WELCOME_DIR="/usr/share/firstboot/custom"
+
+## Type:        string
+## Default:     ""
+#
+# Pattern for the welcome message, if not set welcome.txt and welcome_<locale>.txt files are read
+# Use a comma (,) character as a separator if more than one pattern is required
+FIRSTBOOT_WELCOME_PATTERNS=""
+
+## Type:        string
+## Default:     ""
+#
+# Directory from which 'license.txt' and 'license_<locale>.txt' are read
+# This are vendor-specific license texts
+FIRSTBOOT_LICENSE_DIR="/usr/share/firstboot/custom"
+
+## Type:        string
+## Default:     ""
+#
+# Directory from which 'license.txt' and 'license_<locale>.txt' are read
+# This is Novell specific license of the base product installed, it should
+# be already present on the system
+FIRSTBOOT_NOVELL_LICENSE_DIR=""
+
+## Type:        string
+## Default:     ""
+#
+# finish text file, containing the finish text in richtext format
+# enable firstboot_finish instead of inst_finish in the control file
+# (but preffered way is to define the text in the control file)
+FIRSTBOOT_FINISH_FILE="/usr/share/firstboot/custom/finish.txt"
+
+## Type:        yesno
+## Default:     "no"
+#
+# Show YaST Control Center Checkbox in finish dialog
+SHOW_Y2CC_CHECKBOX="yes"
+
+## Type:        string(halt,continue,abort)
+## Default:     "halt"
+#
+# What to do if the user did not accept the license
+LICENSE_REFUSAL_ACTION="halt"
+
+## Type:        string(reboot)
+## Default:     ""
+#
+# Action that should be done after the firstboot sequence finishes.
+FIRSTBOOT_FINISH_ACTION=""
+
+
+## Type:        string
+## Default:     ""
+#
+# Release Notes path. This directory should contain files in the form of
+# RELEASE-NOTES.{language}.rtf, for example /RELEASE-NOTES.en.rtf.
+# See /usr/share/doc/release-notes for examples
+FIRSTBOOT_RELEASE_NOTES_PATH=""

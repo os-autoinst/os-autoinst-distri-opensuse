@@ -1,0 +1,55 @@
+# SUSE's openQA tests
+#
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Summary: Validation module to check encrypted volumes.
+# Scenarios covered:
+# - Verify existence and content of '/etc/crypttab';
+# - Verify number of encrypted devices is correct;
+# - Verify the following for each encrypted device:
+#    - It is active;
+#    - Its properties are correct.
+#    - Storing and restoring for binary backups of LUKS header and keyslot areas.
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+package validate_encrypt;
+use Mojo::Base 'opensusebasetest';
+use scheduler 'get_test_suite_data';
+use validate_encrypt_utils;
+use testapi;
+use serial_terminal 'select_text_console';
+
+sub show_pbkdf {
+    my $device = shift;
+    my $keyslots = '"Slot \(.key): \(.value.type), \(.value.kdf.type)"';
+    my $cmd = "cryptsetup  luksDump $device --dump-json-metadata";
+    $cmd .= " | jq -r '.keyslots | to_entries[] | $keyslots '";
+    my $pbkdf = script_output($cmd);
+    record_info("pbkdf for $device", $pbkdf);
+}
+
+sub run {
+    select_text_console;
+    my $is_jq_installed = !script_run("rpm -q jq");
+    my $test_data = get_test_suite_data();
+    verify_crypttab_file_existence();
+    my $devices = parse_devices_in_crypttab();
+    verify_number_of_encrypted_devices($test_data->{crypttab}->{num_devices_encrypted}, scalar keys %{$devices});
+    foreach my $dev (sort keys %{$devices}) {
+        my $status = parse_cryptsetup_status($dev);
+        verify_cryptsetup_message($test_data->{cryptsetup}->{device_status}->{message}, $status->{message});
+        verify_cryptsetup_properties($test_data->{cryptsetup}->{device_status}->{properties}, $status->{properties});
+    }
+    foreach my $dev (sort keys %{$devices}) {
+        verify_restoring_luks_backups(
+            encrypted_device_path => $devices->{$dev}->{encrypted_device},
+            backup_file_info => $test_data->{backup_file_info},
+            backup_path => $test_data->{backup_path}
+        );
+
+        show_pbkdf($devices->{$dev}->{encrypted_device}) if $is_jq_installed;
+    }
+}
+
+1;

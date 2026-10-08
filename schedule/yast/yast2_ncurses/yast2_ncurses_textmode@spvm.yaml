@@ -1,0 +1,35 @@
+---
+name:           yast2_ncurses_textmode_pvm
+description:    >
+  Test for yast2 UI, ncurses only. Running on created textmode image.
+vars:
+  FADUMP: 1
+  YUI_REST_API: 1
+  SCC_ADDONS: desktop,sdk
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/scc_cleanup_reregister
+  - console/install_packages_simple
+  - console/firewalld_add_port
+  - console/setup_libyui_running_system
+  - console/yast2_lan
+  - console/yast2_i
+  - console/yast2_bootloader
+  - console/yast2_kdump_use_fadump
+test_data:
+  software:
+    patterns:
+      - apparmor
+      - base
+      - enhanced_base
+      - x11
+      - x11_yast
+      - yast2_basis
+  install_packages:
+    - libyui-rest-api
+  port: 30000-50000
+  zone: public

@@ -1,0 +1,12 @@
+---
+mapped_device: '/dev/mapper/cr-auto-1'
+device_status:
+  message: 'is active.'
+  properties:
+    type: 'LUKS1'
+    cipher: 'aes-xts-plain64'
+    key_location: 'dm-crypt'
+    mode: 'read/write'
+partitioning_deletion_entries:
+  - 'Delete partition'
+  - 'Delete GPT'

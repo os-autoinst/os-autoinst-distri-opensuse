@@ -1,0 +1,13 @@
+name: console_font_verification
+description: >
+  Standalone run of the openQA-agnostic console font test. It verifies
+  the vconsole configuration and the service that applies it: FONT and
+  KEYMAP in /etc/vconsole.conf, the font file on disk, localectl
+  consistency and systemd-vconsole-setup health. The rendered glyphs
+  are not compared: that needs a VGA screen and a needle and only
+  covers one adapter.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - console/oqa_agnostic/console_font_agnostic

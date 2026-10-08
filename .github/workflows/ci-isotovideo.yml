@@ -1,0 +1,15 @@
+---
+name: isotovideo
+# yamllint disable-line rule:truthy
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: "CI: Running isotovideo test"
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6
+    - name: Run isotovideo tests
+      run: make test-isotovideo
+    - name: Error in isotovideo
+      if: ${{ failure() }}
+      run: echo 'isotovideo failed, something modified the default schedule or the output; run locally to find out more.' && exit 1

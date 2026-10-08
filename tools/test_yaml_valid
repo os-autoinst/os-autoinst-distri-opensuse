@@ -1,0 +1,51 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use FindBin '$Bin';
+use Test::More;
+use YAML::PP;
+use JSON::Validator;
+use File::Basename;
+use YAML::PP::Schema::Include;
+
+my $schema_file = "$Bin/../t/schema/Schedule-1.yaml";
+my $validator = JSON::Validator->new;
+$validator = eval { $validator->load_and_validate_schema($schema_file) };
+if (my $err = $@) {
+    diag $err;
+    BAIL_OUT("Schema $schema_file invalid");
+}
+
+pass("Nothing to do") unless @ARGV;
+my $root_project_dir = dirname(__FILE__) . '/../';
+
+my $include = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
+my $ypp = YAML::PP->new(schema => ['Core', $include, 'Merge']);
+$include->yp($ypp);
+for my $file (@ARGV) {
+    my $data = eval {
+        $ypp->load_file($file);
+    };
+    if (my $err = $@) {
+        fail("$file has invalid yaml syntax");
+        diag "Error: $err";
+    }
+    else {
+        pass("$file has valid yaml syntax");
+    }
+    # Only include yamls related with schedule
+    # No need for cheking schema of yaml files under flows/
+    # (due to they are simple key which override with no more sctructure)
+    if ($file =~ m{schedule/} && $file !~ m{flows/}) {
+        my @errors = $validator->validate($data);
+        if (@errors) {
+            fail("$file has invalid schema");
+            diag "Error: @errors";
+        }
+        else {
+            pass("$file has valid schema");
+        }
+    }
+}
+
+done_testing();

@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: SUSE LLC
+# SPDX-License-Identifier: Apache-2.0
+#
+# Derived from hack/cert-manager/override-values.tpl.yaml in
+# https://github.com/trento-project/helm-charts, with the self-signed issuer
+# and with the TLS secret pinned to the ingress hostname, so Traefik serves
+# the cert-manager certificate instead of its own default one.
+# ${TRENTO_WEB_ORIGIN} is replaced by the test.
+
+trento-web:
+  ingress:
+    hosts:
+      - host: ${TRENTO_WEB_ORIGIN}
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls:
+      - secretName: trento-tls
+        hosts:
+          - ${TRENTO_WEB_ORIGIN}
+    annotations:
+      cert-manager.io/cluster-issuer: selfsigned-issuer
+
+trento-wanda:
+  ingress:
+    hosts:
+      - host: ${TRENTO_WEB_ORIGIN}
+        paths:
+          - path: /wanda
+            pathType: ImplementationSpecific
+    tls:
+      - secretName: trento-tls
+        hosts:
+          - ${TRENTO_WEB_ORIGIN}
+    annotations:
+      cert-manager.io/cluster-issuer: selfsigned-issuer
+
+trento-mcp-server:
+  ingress:
+    hosts:
+      - host: ${TRENTO_WEB_ORIGIN}
+        paths:
+          - path: /mcp
+            pathType: ImplementationSpecific
+    tls:
+      - secretName: trento-tls
+        hosts:
+          - ${TRENTO_WEB_ORIGIN}
+    annotations:
+      cert-manager.io/cluster-issuer: selfsigned-issuer

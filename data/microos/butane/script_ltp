@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# Simple openQA combustion script used for sle-micro or Minimal-VM starting from 15-SP6 and their opensuse counterparts
+# for LTP testing
+ 
+# initialize network before running the script
+# combustion: network
+set -euxo pipefail
+
+reboot_me() {
+
+cat << EOF > /etc/systemd/system/rebootme.service
+[Unit]
+Description=Reboot SUT
+
+After=multi-user.target systemd-user-sessions.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+User=root
+ExecStartPre=systemctl disable rebootme.service
+ExecStart=/sbin/reboot
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+}
+
+# Redirect output to the console
+exec > >(exec tee -a /dev/console) 2>&1
+
+# locale
+rm -f /etc/localtime
+systemd-firstboot --force --timezone=UTC --locale=en_US.UTF-8 --keymap=us
+echo 'FONT=eurlatgr.psfu' >> /etc/vconsole.conf
+
+# hostname
+echo "" > /etc/hostname
+
+# set root password
+echo 'root:$6$eEm2HpuzI7dfE4i7$dbYiTRLhrqVvwryR7zmMEcnrp13IqZ3mzLbsx9EeHAX7849PibGVgX5vdPuaeYYIO7hVfcboI9/JDpGiDZhHf/' | chpasswd -e
+
+# leave a marker that combustion configure the system
+echo Combustion was here > /usr/share/combustion-welcome
+curl conncheck.opensuse.org
+
+. /etc/sysconfig/bootloader
+if [ -z "${LOADER_TYPE##*grub2*}" ]; then
+    sed -i '/^GRUB_CMDLINE_LINUX_DEFAULT=/s/quiet/ignore_loglevel/' /etc/default/grub
+    grub2-mkconfig -o /boot/grub2/grub.cfg
+    reboot_me
+    systemctl daemon-reload
+    systemctl enable rebootme.service
+fi
+
+
+
+# close outputs and wait for tee to finish
+exec 1>&- 2>&-; wait;

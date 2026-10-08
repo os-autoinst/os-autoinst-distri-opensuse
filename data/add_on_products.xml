@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<add_on_products xmlns="http://www.suse.com/1.0/yast2ns"
+  xmlns:config="http://www.suse.com/1.0/configns">
+  <product_items config:type="list">
+    <product_item>
+      <name>SUSE Linux Enterprise Development Tools Module</name>
+      <url><![CDATA[ftp://openqa.suse.de/{{REPO_SLE_MODULE_DEVELOPMENT_TOOLS}}]]></url>
+      <priority config:type="integer">50</priority>
+      <ask_user config:type="boolean">true</ask_user>
+      <selected config:type="boolean">true</selected>
+      <check_name config:type="boolean">true</check_name>
+    </product_item>
+  </product_items>
+</add_on_products>

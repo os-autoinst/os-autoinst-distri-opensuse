@@ -1,0 +1,8 @@
+name:           qam-sles4sap_hana_supportserver.yml
+description:    >
+  Deploy a supportserver for hana cluster.
+schedule:
+  - support_server/login
+  - support_server/setup
+  - ha/barrier_init
+  - support_server/wait_children

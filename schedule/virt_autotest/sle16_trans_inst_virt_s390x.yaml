@@ -1,0 +1,17 @@
+name:           sle16_trans_inst_virt_s390x
+description:    >
+    Maintainer: Nan Zhang <nan.zhang@suse.com>, qe-virt@suse.de
+    SLE 16 ISO installation with virtualization patterns (kvm) and virtualization tests with qemu/kvm.
+schedule:
+    - installation/bootloader_zkvm
+    - installation/agama_reboot
+    - installation/first_boot
+    - transactional/host_config
+    - console/suseconnect_scc
+    - microos/services_enabled
+    - transactional/disable_timers
+    - qemu/info
+    - qemu/qemu
+    - console/journal_check
+    - console/coredump_collect
+    - shutdown/shutdown

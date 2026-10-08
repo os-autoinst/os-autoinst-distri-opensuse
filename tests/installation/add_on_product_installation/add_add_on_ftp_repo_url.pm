@@ -1,0 +1,21 @@
+# SUSE's openQA tests
+#
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Add a new add-on specifying repo URL, in particular FTP URL for Live Patching.
+# Pre-requisite: one or more add-ons has been added before this one.
+#
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'y2_installbase';
+use testapi 'get_var';
+
+sub run {
+    my $url = 'ftp://openqa.suse.de/' . get_var('REPO_SLE_MODULE_LIVE_PATCHING');
+    $testapi::distri->get_add_on_product_installation()->add_add_on_product();
+    $testapi::distri->get_add_on_product()->accept_current_media_type_selection();
+    $testapi::distri->get_repository_url()->add_repo({url => $url});
+}
+
+1;

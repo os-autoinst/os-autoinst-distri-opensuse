@@ -1,0 +1,32 @@
+name: autoyast_create_hdd_textmode
+description:    >
+  Test performs autoyast installation to generate qcow2 images used by dependent functional tests.
+conditional_schedule:
+  svirt_upload_assets:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
+    VIRSH_VMM_FAMILY:
+      xen:
+        - shutdown/svirt_upload_assets
+  version_specific:
+    VERSION:
+      'Tumbleweed':
+        - update/zypper_clear_repos
+        - console/zypper_ar
+        - console/zypper_ref
+vars:
+  DESKTOP: textmode
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - '{{version_specific}}'
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{svirt_upload_assets}}'

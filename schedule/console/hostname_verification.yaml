@@ -1,0 +1,17 @@
+name: hostname_verification
+description: >
+  Side-by-side run of the new openqa-agnostic hostname test and the
+  original hostname.pm for comparison and validation. The agnostic
+  test runs first for early visibility. It saves and restores the
+  hostname via fixture teardown, so console/hostname receives the
+  system in its original state. If the agnostic test is killed
+  mid-run (e.g., assert_script_run timeout), the hostname may be
+  left modified; console/hostname then overwrites it with "susetest"
+  which is the intended final state regardless.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - console/system_prepare
+  - console/oqa_agnostic/hostname_agnostic
+  - console/hostname

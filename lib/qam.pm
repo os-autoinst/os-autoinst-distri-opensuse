@@ -1,0 +1,263 @@
+# SUSE's openQA tests
+#
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+package qam;
+
+use strict;
+use warnings;
+
+use base "Exporter";
+use Exporter;
+
+use testapi;
+use utils qw(zypper_call handle_screen zypper_patches zypper_repos upload_y2logs);
+use JSON;
+use List::Util qw(max uniq);
+use version_utils qw(is_sle is_transactional);
+
+our @EXPORT
+  = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
+  add_extra_customer_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables add_repo_if_not_present
+  has_published_assets get_test_repos);
+
+sub capture_state {
+    my ($state, $y2logs) = @_;
+    if ($y2logs) {    #save y2logs if needed
+        upload_y2logs(file => "/tmp/y2logs_$state.tar.xz") unless is_sle('>=16');
+    }
+    #upload ip status
+    script_run("ip a | tee /tmp/ip_a_$state.log");
+    upload_logs("/tmp/ip_a_$state.log");
+    save_screenshot();
+    script_run("ip r | tee /tmp/ip_r_$state.log");
+    upload_logs("/tmp/ip_r_$state.log");
+    save_screenshot();
+    #upload dmesg
+    script_run("dmesg > /tmp/dmesg_$state.log");
+    upload_logs("/tmp/dmesg_$state.log");
+    #upload journal
+    script_run("journalctl -b -o short-precise > /tmp/journal_$state.log");
+    upload_logs("/tmp/journal_$state.log");
+}
+
+sub check_automounter {
+    my $ret = 1;
+    while ($ret) {
+        script_run(qq{[ \$(ls -ld /mounts | cut -d" " -f2) -gt 20 ]; echo automount-\$?- > /dev/$serialdev}, 0);
+        $ret = wait_serial(qr/automount-\d-/);
+        ($ret) = $ret =~ /automount-(\d)/;
+        if ($ret) {
+            script_run("rcypbind restart");
+            script_run("rcautofs restart");
+            sleep 5;
+        }
+    }
+}
+
+sub is_patch_needed {
+    my $patch = shift;
+    my $install = shift // 0;
+
+    return '' if !($patch);
+
+    my $patch_status = script_output("zypper -n info -t patch $patch");
+    if ($patch_status =~ /Status\s*:\s+[nN]ot\s[nN]eeded/) {
+        return $install ? $patch_status : 1;
+    }
+}
+
+sub add_repo_if_not_present {
+    my ($url, $name) = @_;
+    my $gpg = "";
+    $gpg = "-G" if (get_var('BUILD') =~ m/^MR:/ || get_var('MU_REPOS_NO_GPG_CHECK'));
+    my $system_repos = zypper_repos('-u');
+    zypper_call("--no-gpg-checks ar -f $gpg -n '$name' $url '$name'") unless grep { $_->{uri} eq $url } @$system_repos;
+}
+
+# https://progress.opensuse.org/issues/90522
+sub add_extra_customer_repositories {
+    my @repos = split(/,/, get_var('EXTRA_CUSTOMER_REPOS', ''));
+
+    for my $repo (@repos) {
+        my @repo_part = split(/;/, $repo);
+        my $url = $repo_part[1];
+        my $name = $repo_part[0];
+        add_repo_if_not_present($url, $name);
+    }
+}
+
+# Function that will add all test repos
+sub add_test_repositories {
+    my $counter = 0;
+
+    my $oldrepo = get_var('PATCH_TEST_REPO');
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
+
+    add_extra_customer_repositories if get_var('MAINT_TEST_REPO');
+
+    # shim update will fail with old grub2 due to old signature
+    if (get_var('MACHINE') =~ /uefi/ && !is_transactional) {
+        zypper_call('up grub2 grub2-x86_64-efi kernel-default');
+    }
+
+    # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
+    # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
+    # please be sure that the PATCH_TEST_REPO is empty.
+    @repos = split(',', $oldrepo) if ($oldrepo);
+
+    if (get_var("NO_ADD_MAINT_TEST_REPOS")) {
+        # If we don't want to add again (and duplicate) repositories that were already added during install,
+        # we still need to disable gpg check for all repositories.
+        zypper_call('--gpg-auto-import-keys ref', timeout => 1400, exitcode => [0, 106]);
+    } else {
+        for my $var (@repos) {
+            add_repo_if_not_present("$var", "TEST_$counter");
+            $counter++;
+        }
+    }
+
+    # refresh repositories, inf 106 is accepted because repositories with test
+    # can be removed before test start
+    # For sle16 staging tests, PR should be untrusted key
+    my $import_key = is_sle('>=16') ? '--gpg-auto-import-keys' : '';
+    zypper_call("$import_key ref", timeout => 1400, exitcode => [0, 106]);
+
+    # return the count of repos-1 because counter is increased also on last cycle
+    return --$counter;
+}
+
+sub disable_test_repositories {
+    my $count = scalar(shift);
+
+    record_info 'Disable update repos';
+    for my $i (0 .. $count) {
+        zypper_call("mr -d -G 'TEST_$i'");
+    }
+}
+
+sub enable_test_repositories {
+    my $count = scalar(shift);
+
+    record_info 'Enable update repos';
+    for my $i (0 .. $count) {
+        zypper_call("mr -e -G 'TEST_$i'");
+    }
+}
+
+# Function that will add all test repos to SSH guest
+sub ssh_add_test_repositories {
+    my $host = shift;
+    my $counter = 0;
+
+    my $oldrepo = get_var('PATCH_TEST_REPO');
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
+    # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
+    # please be sure that the PATCH_TEST_REPO is empty.
+    @repos = split(',', $oldrepo) if ($oldrepo);
+
+    for my $var (@repos) {
+        assert_script_run("ssh root\@$host 'zypper -n --no-gpg-checks ar -f -n TEST_$counter $var TEST_$counter'");
+        $counter++;
+    }
+    # refresh repositories, inf 106 is accepted because repositories with test
+    # can be removed before test start
+    my $ret = script_run("ssh root\@$host 'zypper -n --gpg-auto-import-keys ref'", 240);
+    die "Zypper failed with $ret" if ($ret != 0 && $ret != 106);
+}
+
+# Function that will remove all test repos
+sub remove_test_repositories {
+
+    type_string 'repos=($(zypper lr -e - | grep "name=TEST|baseurl=ftp" | cut -d= -f2)); if [ ${#repos[@]} -ne 0 ]; then zypper rr ${repos[@]}; fi';
+    send_key 'ret';
+}
+
+sub advance_installer_window {
+    my ($screenName) = @_;
+    my $build = get_var('BUILD');
+
+    send_key $cmd{next};
+    my %handlers;
+
+    $handlers{$screenName} = sub { 1 };
+    $handlers{'unable-to-create-repo'} = sub {
+        die 'Unable to create repository';
+    };
+    $handlers{'cannot-access-installation-media'} = sub {
+        send_key "alt-y";
+        return 0;
+    };
+
+    if ($build =~ m/^MR:/) {
+        $handlers{'import-untrusted-gpg-key'} = sub {
+            send_key "alt-t";
+            return 0;
+        };
+    }
+
+    unless (handle_screen([keys %handlers], \%handlers, assert => 0, timeout => 60)) {
+        send_key_until_needlematch $screenName, $cmd{next}, 6, 60;
+        record_soft_failure 'Retry most probably due to network problems poo#52319 or failed next click';
+    }
+}
+
+# Get list of patches
+sub get_patches {
+    my ($incident_id, $repo, $args) = @_;
+
+    # Split repo list into multiple arguments
+    $repo =~ s/,/ -r /g;
+    $args //= '';
+
+    # Search for patches by incident, exclude not needed
+    my $patches = zypper_patches("-r $repo $args");
+    my @patch_list;
+
+    for my $item (@$patches) {
+        push @patch_list, $item->{name} if 'needed' eq lc $item->{status} &&
+          (!defined($incident_id) || $item->{name} =~ m/$incident_id/);
+    }
+
+    return join(' ', @patch_list);
+}
+
+# Check variables for patch definition
+sub check_patch_variables {
+    my ($patch, $incident_id) = @_;
+
+    if ($patch && $incident_id) {
+        die('It is not possible to have defined INCIDENT_PATCH and INCIDENT_ID at the same time');
+    }
+    elsif (!$patch && !$incident_id) {
+        die("Missing INCIDENT_PATCH or INCIDENT_ID");
+    }
+}
+
+# Return count of PUBLISH_* job variables
+sub has_published_assets {
+    return scalar grep { m/^PUBLISH_/ } keys %bmwqemu::vars;
+}
+
+# Return list of all available repos
+sub get_test_repos {
+    # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
+    # Those two variables contain list of repositories separated by comma
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    # Add aggregate repos to @repos, if they are provided
+    # Test repos are expected to end in '_TEST_REPOS'
+    # These vars are set by qem-bot, e.g.
+    # https://github.com/openSUSE/qem-bot/blob/ecb7acc8badccce85969e05f368455390b1ab6eb/openqabot/types/aggregate.py#L104
+    my @test_repos = grep { /_TEST_REPOS$/ } keys %bmwqemu::vars;
+    for my $repo (@test_repos) {
+        if (my $value = get_var($repo)) {
+            push @repos, split(/,/, $value);
+        }
+    }
+    return uniq @repos;
+}
+
+1;

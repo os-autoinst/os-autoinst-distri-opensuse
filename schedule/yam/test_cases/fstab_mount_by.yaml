@@ -1,0 +1,42 @@
+---
+description: >
+  The test conducts installation and edits the mounting option of some partitions,
+  as specified by the test_data. After installation, it verifies that the
+  partitions are mounted by the expected option.
+name: fstab_mount_by
+schedule:
+  suggested_partitioning:
+    - installation/partitioning/new_partitioning_gpt
+  system_validation:
+    - console/validate_fstab
+test_data:
+  disks:
+    - name: vda
+      partitions:
+        - name: vda1
+          size: 8MiB
+          role: raw-volume
+          id: bios-boot
+        - name: vda2
+          role: operating-system
+          size: 8GiB
+          mounting_options:
+            should_mount: 1
+            mount_point: /
+          fstab_options:
+            mount_by: Device Name
+        - name: vda3
+          role: data
+          size: 10GiB
+          mounting_options:
+            should_mount: 1
+            mount_point: /home
+          fstab_options:
+            mount_by: UUID
+        - name: vda4
+          role: swap
+          mounting_options:
+            should_mount: 1
+            mount_point: swap
+          fstab_options:
+            mount_by: Device Path

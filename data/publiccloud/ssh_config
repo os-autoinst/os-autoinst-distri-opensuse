@@ -1,0 +1,11 @@
+BatchMode yes
+ControlMaster auto
+ControlPath /tmp/ssh_%r_%h_%p
+ControlPersist 86400
+HostKeyAlgorithms +ssh-rsa
+IdentityFile %SSH_KEY%
+LogLevel VERBOSE
+PasswordAuthentication no
+ConnectTimeout 15
+ServerAliveInterval 5
+ServerAliveCountMax 5

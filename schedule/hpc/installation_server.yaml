@@ -1,0 +1,83 @@
+---
+name: hpc_installation_server
+description:    >
+     Maintainer: qe-kernel
+     Installation scenario with HPC system role hpc-server and hpc-node.
+vars:
+  DESKTOP: textmode
+  INSTALLONLY: 1
+  PATTERNS: default
+  SLE_PRODUCT: hpc
+  HDDSIZEGB: 30
+conditional_schedule:
+  bootloader:
+    ARCH:
+      aarch64:
+        - installation/bootloader_uefi
+      x86_64:
+        - installation/bootloader
+  hostname_inst:
+    HPC:
+      server:
+        - installation/hostname_inst
+  user_settings:
+    HPC:
+      server:
+        - installation/user_settings
+  installation_node_conf:
+    SYSTEM_ROLE:
+      hpc-node:
+        - installation/user_settings_root
+  user_settings_root:
+    VERSION:
+      15-SP1:
+        - '{{installation_node_conf}}'
+      15-SP2:
+        - installation/user_settings_root
+      15-SP3:
+        - installation/user_settings_root
+      15-SP4:
+        - installation/user_settings_root
+      15-SP5:
+        - installation/user_settings_root
+      15-SP6:
+        - installation/user_settings_root
+  add_update_test_repo:
+    FLAVOR:
+      Server-DVD-HPC-Incidents:
+        - installation/add_update_test_repo
+  patch_and_reboot_inci:
+    FLAVOR:
+      Server-DVD-HPC-Incidents:
+        - qa_automation/patch_and_reboot
+schedule:
+  - installation/isosize
+  - '{{bootloader}}'
+  - installation/welcome
+  - installation/scc_registration
+  - '{{add_update_test_repo}}'
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - '{{hostname_inst}}'
+  - '{{user_settings}}'
+  - '{{user_settings_root}}'
+  - installation/resolve_dependency_issues
+  - installation/select_patterns
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - '{{patch_and_reboot_inci}}'
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

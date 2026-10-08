@@ -1,0 +1,16 @@
+<interface>
+  <name>xxx</name>
+  <description>Ethernet Card 0</description>
+
+  <ipv4:static>
+    <address>
+      <local>10.0.2.11/24</local>
+    </address>
+  </ipv4:static>
+
+  <ipv6:static>
+    <address>
+      <local>fd00:cafe:babe::11/64</local>
+    </address>
+  </ipv6:static>
+</interface>

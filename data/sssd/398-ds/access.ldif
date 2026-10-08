@@ -1,0 +1,14 @@
+#dn: uid=mary,ou=users,dc=sssdtest,dc=com
+dn: dc=sssdtest,dc=com
+changetype: modify
+add: aci
+aci: (target = "ldap:///ou=*,dc=sssdtest,dc=com")(targetattr="*") (version 3.0;
+ acl "Allow users to read and search attributes of own entry"; allow (search, read)
+ (userdn = "ldap:///all");)
+
+dn: ou=users,dc=sssdtest,dc=com
+changetype: modify
+replace: aci
+aci: (targetattr = "userPassword") (version 3.0;
+ acl "Allow users updating own userPassword";
+ allow (write) (userdn = "ldap:///self");)

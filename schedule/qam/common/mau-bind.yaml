@@ -1,0 +1,14 @@
+---
+name: mau-bind
+description: upstream bind testsuite
+schedule:
+- '{{zkvm_boot}}'
+- boot/boot_to_desktop
+- console/bind
+- console/coredump_collect
+conditional_schedule:
+  zkvm_boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+...

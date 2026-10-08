@@ -1,0 +1,15 @@
+name: security_swtpm
+description:    >
+    This is for the security_swtpm test.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{fips_setup}}'
+    - security/swtpm/swtpm_env_setup
+    - security/swtpm/swtpm_verify
+conditional_schedule:
+    fips_setup:
+        FIPS_ENABLED:
+            1:
+                - fips/fips_setup

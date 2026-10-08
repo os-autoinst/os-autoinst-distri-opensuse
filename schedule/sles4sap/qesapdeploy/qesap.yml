@@ -1,0 +1,16 @@
+---
+name: qe-sap-deployment
+description: |
+  Run qe-sap-deployment test
+vars:
+    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+    - boot/boot_to_desktop
+    - sles4sap/qesapdeployment/configure
+    - sles4sap/qesapdeployment/deploy
+    - sles4sap/qesapdeployment/test_system
+    - sles4sap/qesapdeployment/test_cluster
+    - sles4sap/qesapdeployment/test_mirror
+    - sles4sap/qesapdeployment/test_crash
+    - sles4sap/qesapdeployment/test_console_redirection
+    - sles4sap/qesapdeployment/destroy

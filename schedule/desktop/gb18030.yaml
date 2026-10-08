@@ -1,0 +1,8 @@
+---
+name: gb18030
+description: >
+    Maintainer: zcjia
+    Test GB18030-2005 standard certification
+schedule:
+    - boot/boot_to_desktop
+    - x11/gb18030

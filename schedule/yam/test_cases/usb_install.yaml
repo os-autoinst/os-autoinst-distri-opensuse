@@ -1,0 +1,9 @@
+---
+name: USBinstall
+description: >
+  Basic installation test with USB boot. Verification that usb repo is enabled
+  after first boot. Test covers both Online and Full medium installations.
+schedule:
+  system_validation:
+    - console/enable_usb_repo
+    - console/zypper_lr

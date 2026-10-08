@@ -1,0 +1,23 @@
+---
+disks:
+  - name: xvdb
+    table_type: gpt
+    allowed_unpartitioned: 0.00GB
+    partitions:
+      - name: xvdb2
+        formatting_options:
+          filesystem: ext4
+        mounting_options:
+          should_mount: 1
+          mount_point: /
+      - name: xvdb3
+        formatting_options:
+          filesystem: xfs
+        mounting_options:
+          should_mount: 1
+          mount_point: /home
+      - name: xvdb4
+        formatting_options:
+          filesystem: swap
+        mounting_options:
+          mount_point: SWAP

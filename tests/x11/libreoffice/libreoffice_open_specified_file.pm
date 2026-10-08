@@ -1,0 +1,56 @@
+# SUSE's openQA tests
+#
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: libreoffice
+# Summary: Case 1503881 - Verify LibreOffice opens specified file types correctly
+# - Download and uncompress libreoffise sample files from datadir
+# - Launch libreoffice
+# - Open test files of different formats and check
+# - Quit libreoffice
+# - Cleanup
+# Maintainer: Zhaocong Jia <zcjia@suse.com>
+
+use Mojo::Base 'x11test';
+use testapi;
+use utils;
+
+sub run {
+    my $self = shift;
+
+    # upload libreoffice specified files for testing
+    wait_still_screen;
+    $self->upload_libreoffice_specified_file();
+
+    # start libreoffice
+    $self->libreoffice_start_program('libreoffice');
+
+    # open test files of different formats
+    my $i = 0;
+    for my $tag (qw(doc docx fodg fodp fods fodt odf odg odp ods odt pdf pptx xlsx)) {
+        send_key "ctrl-o";
+        wait_still_screen 3;
+        send_key "ctrl-l";
+        save_screenshot;
+        type_string_slow "test.$tag\n";
+        wait_still_screen 3, 7;
+        $self->libreoffice_handle_welcome_popup;
+        $self->libreoffice_handle_tip_of_the_day;
+        assert_screen("libreoffice-test-$tag", 120);
+        # close document
+        send_key "ctrl-f4";
+        wait_still_screen(2);
+        if (check_screen("libreoffice-test-$tag")) {
+            record_info("bsc#1209179 ctrl+f4 can't close libreoffice document");
+            assert_and_click("close-document");
+        }
+        $i++;
+    }
+    send_key 'ctrl-q' unless check_screen 'generic-desktop', 0;
+
+    #clean up
+    $self->cleanup_libreoffice_recent_file();
+    $self->cleanup_libreoffice_specified_file();
+}
+1;

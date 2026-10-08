@@ -1,0 +1,14 @@
+---
+name: mau_extratests_yast2_ncurses
+description:    >
+  Testsuite maintained at https://gitlab.suse.de/qa-maintenance/qam-openqa-yml. Run
+  yast ncurses tests against aggregated test repo.
+schedule:
+  - boot/boot_to_desktop
+  - console/yast2_apparmor
+  - console/yast2_http
+  - console/yast2_nis
+  - console/yast2_ftp
+  - console/yast2_tftp
+  - console/yast2_lan_device_settings
+  - console/coredump_collect

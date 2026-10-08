@@ -1,0 +1,17 @@
+# SUSE's openQA tests
+#
+# Copyright 2022 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Disable import SSH host keys
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'y2_installbase';
+
+sub run {
+    $testapi::distri->get_installation_settings()->access_ssh_import_options();
+    $testapi::distri->get_ssh_import_settings()->disable_ssh_import();
+    $testapi::distri->get_ssh_import_settings()->accept();
+}
+
+1;

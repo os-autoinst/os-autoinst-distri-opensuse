@@ -1,0 +1,38 @@
+name: cc_audit_tests
+description:    >
+    This is for cc audit test.
+schedule:
+    - installation/bootloader_start
+    - '{{boot}}'
+    - console/consoletest_setup
+    - security/cc/cc_audit_test_setup
+    - '{{disable_root_ssh}}'
+    - security/cc/audit_tools
+    - security/cc/fail_safe
+    - security/cc/ip_eb_tables
+    - security/cc/kvm_svirt_apparmor
+    - security/cc/extended_apparmor_interface_trace_test
+    - security/cc/apparmor_negative_test
+    - '{{enable_root_ssh}}'
+    - security/selinux/selinux_setup
+    - security/cc/cc_selinux_setup
+    - '{{disable_root_ssh}}'
+    - security/cc/crypto
+    - security/cc/misc
+conditional_schedule:
+    boot:
+        ARCH:
+            s390x:
+                - boot/boot_to_desktop
+            x86_64:
+                - boot/boot_to_desktop
+            aarch64:
+                - security/boot_disk
+    disable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/disable_root_ssh
+    enable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/enable_root_ssh

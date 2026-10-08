@@ -1,0 +1,42 @@
+name: fips_crypt_core
+description:    >
+    This is for the crypt_core fips tests on SLE Micro.
+schedule:
+    - '{{boot}}'
+    - transactional/host_config
+    - console/suseconnect_scc
+    - security/selinux/selinux_setup
+    - '{{repo_setup}}'
+    - fips/fips_setup
+    - fips/openssl/openssl_fips_alglist
+    - fips/openssl/openssl_fips_hash
+    - fips/openssl/openssl_fips_cipher
+    - console/openssl_alpn
+    - fips/gnutls/gnutls_base_check
+    - fips/gnutls/gnutls_server
+    - fips/gnutls/gnutls_client
+    - fips/openssl/openssl_pubkey_rsa
+    - fips/openssl/openssl_pubkey_dsa
+    # dhparam only in ker mode
+    - '{{dhparam}}'
+    - fips/openssh/openssh_fips
+    # ssh disabled in env mode, see poo#125648
+    - '{{ssh}}'
+    - console/journal_check
+    - shutdown/shutdown
+conditional_schedule:
+    boot:
+        ENCRYPTED_IMAGE:
+            0:
+                - microos/disk_boot
+            1:
+                - jeos/firstrun
+    ssh:
+        TEST_SUITE_NAME:
+            fips_ker_mode_tests_crypt_core:
+                - console/sshd
+                - console/ssh_cleanup
+    dhparam:
+        TEST_SUITE_NAME:
+            fips_ker_mode_tests_crypt_core:
+                - fips/openssl/openssl_fips_dhparam

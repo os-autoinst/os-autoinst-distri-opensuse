@@ -1,0 +1,7 @@
+instance-id: openqa-cloud-init
+local-hostname: openqa-cloud-init
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true

@@ -1,0 +1,13 @@
+---
+disks:
+  - sda
+  - sdb
+  - sdc
+  - sdd
+lvm:
+  lvpath: /dev/root/root
+  pvname: /dev/md0
+raid1:
+  disk_to_fail: /dev/sdd2
+  level: raid1
+  name: /dev/md0

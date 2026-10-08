@@ -1,0 +1,17 @@
+---
+name: agama_encrypted_s390x
+description: >
+  Perform installation with encrypted filesystem on s390x.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/validate_encrypt
+test_data:
+  crypttab:
+    num_devices_encrypted: 2
+  <<: !include test_data/yast/encryption/default_enc_luks2.yaml

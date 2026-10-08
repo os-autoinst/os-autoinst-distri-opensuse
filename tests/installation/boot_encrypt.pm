@@ -1,0 +1,18 @@
+# SUSE's openQA tests
+#
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Unlock encrypted partitions during bootup after the bootloader
+#   passed, e.g. from plymouth
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'installbasetest';
+use utils;
+
+sub run {
+    unlock_if_encrypted(check_typed_password => 1) if need_unlock_after_bootloader;
+}
+
+1;

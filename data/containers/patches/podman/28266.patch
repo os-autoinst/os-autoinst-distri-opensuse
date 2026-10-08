@@ -1,0 +1,509 @@
+From a4d0fd8853ddb45873bfec337becd39862ec0dcb Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Wed, 11 Mar 2026 23:10:28 +0100
+Subject: [PATCH 1/4] test/e2e: Add linkat to seccomp profile
+
+Some architectures (i.e., arm64) do not implement the link(2) system
+call and ln(1) uses linkat(2) instead.
+
+Use the names array to block both syscalls so the tests works on all
+architectures.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/e2e/play_kube_test.go | 2 +-
+ test/e2e/run_test.go       | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/test/e2e/play_kube_test.go b/test/e2e/play_kube_test.go
+index ba663c07838..a084271a011 100644
+--- a/test/e2e/play_kube_test.go
++++ b/test/e2e/play_kube_test.go
+@@ -1518,7 +1518,7 @@ var (
+ 	defaultConfigMapName  = "testConfigMap"
+ 	defaultSecretName     = "testSecret"
+ 	defaultPVCName        = "testPVC"
+-	seccompLinkEPERM      = []byte(`{"defaultAction":"SCMP_ACT_ALLOW","syscalls":[{"name":"link","action":"SCMP_ACT_ERRNO"}]}`)
++	seccompLinkEPERM      = []byte(`{"defaultAction":"SCMP_ACT_ALLOW","syscalls":[{"names":["link","linkat"],"action":"SCMP_ACT_ERRNO"}]}`)
+ 	// CPU Period in ms
+ 	defaultCPUPeriod = 100
+ 	// Default secret in JSON. Note that the values ("foo" and "bar") are base64 encoded.
+diff --git a/test/e2e/run_test.go b/test/e2e/run_test.go
+index 192623f5386..ad156911e87 100644
+--- a/test/e2e/run_test.go
++++ b/test/e2e/run_test.go
+@@ -400,7 +400,7 @@ var _ = Describe("Podman run", func() {
+ 	})
+ 
+ 	forbidLinkSeccompProfile := func() string {
+-		in := []byte(`{"defaultAction":"SCMP_ACT_ALLOW","syscalls":[{"name":"link","action":"SCMP_ACT_ERRNO"}]}`)
++		in := []byte(`{"defaultAction":"SCMP_ACT_ALLOW","syscalls":[{"names":["link","linkat"],"action":"SCMP_ACT_ERRNO"}]}`)
+ 		jsonFile, err := podmanTest.CreateSeccompJSON(in)
+ 		if err != nil {
+ 			GinkgoWriter.Println(err)
+
+From e5f61281fff78bdd5416b4de3118a32fdc019e50 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 12 Mar 2026 00:10:14 +0100
+Subject: [PATCH 2/4] test/e2e: skip LINUX32 personality check on non-amd64
+ architectures
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/e2e/run_test.go | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/test/e2e/run_test.go b/test/e2e/run_test.go
+index ad156911e87..bd79eaac16f 100644
+--- a/test/e2e/run_test.go
++++ b/test/e2e/run_test.go
+@@ -2262,6 +2262,9 @@ WORKDIR /madethis`, BB)
+ 	})
+ 
+ 	It("podman run check personality support", func() {
++		if podmanTest.Host.Arch != "amd64" {
++			Skip("test only valid on amd64")
++		}
+ 		session := podmanTest.Podman([]string{"run", "--personality=LINUX32", "--name=testpersonality", ALPINE, "uname", "-a"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+
+From a5dbe484d3e522338f783730989d5ebbbbc305c9 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 12 Mar 2026 14:09:04 +0100
+Subject: [PATCH 3/4] test/e2e: Introduce SkipIfNotAMD64 helper
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/e2e/common_test.go | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/test/e2e/common_test.go b/test/e2e/common_test.go
+index 9e77f3dbc3b..6f4b4a77009 100644
+--- a/test/e2e/common_test.go
++++ b/test/e2e/common_test.go
+@@ -1788,3 +1788,9 @@ func makeTempDirInDir(dir string) string {
+ func skipWithoutDevNullb0() {
+ 	SkipIfNotExist("use modprobe null_blk nr_devices=1 to create it", "/dev/nullb0")
+ }
++
++func SkipIfNotAMD64() {
++	if podmanTest.Host.Arch != "amd64" {
++		Skip("test only valid on amd64")
++	}
++}
+
+From cd2f122fb4027331ce738adb6263cd4c9a221524 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 12 Mar 2026 14:32:35 +0100
+Subject: [PATCH 4/4] test/e2e: Skip some tests on non-amd64 architectures
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/e2e/healthcheck_run_test.go |  7 +++++++
+ test/e2e/history_test.go         | 11 +++++++----
+ test/e2e/images_test.go          |  4 ++++
+ test/e2e/manifest_test.go        |  1 +
+ test/e2e/play_kube_test.go       |  9 ++++++++-
+ test/e2e/prune_test.go           |  3 +++
+ test/e2e/pull_test.go            |  9 +++++++++
+ test/e2e/rmi_test.go             |  4 ++++
+ test/e2e/run_aardvark_test.go    |  4 ++++
+ test/e2e/run_seccomp_test.go     |  1 +
+ test/e2e/run_test.go             | 10 ++++++----
+ test/e2e/volume_plugin_test.go   |  1 +
+ 12 files changed, 55 insertions(+), 9 deletions(-)
+
+diff --git a/test/e2e/healthcheck_run_test.go b/test/e2e/healthcheck_run_test.go
+index 0b256c298aa..c75484362ca 100644
+--- a/test/e2e/healthcheck_run_test.go
++++ b/test/e2e/healthcheck_run_test.go
+@@ -23,6 +23,7 @@ var _ = Describe("Podman healthcheck run", func() {
+ 	})
+ 
+ 	It("podman disable healthcheck with --no-healthcheck on valid container", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28269
+ 		session := podmanTest.Podman([]string{"run", "-dt", "--no-healthcheck", "--name", "hc", HEALTHCHECK_IMAGE})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -32,6 +33,7 @@ var _ = Describe("Podman healthcheck run", func() {
+ 	})
+ 
+ 	It("podman run/create override image healthcheck configuration", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28269
+ 		podmanTest.PodmanExitCleanly("run", "-dt", "--name", "hc", "--health-start-period", "10s", "--health-interval", "10s", "--health-timeout", "10s", "--health-retries", "2", HEALTHCHECK_IMAGE)
+ 		hc := podmanTest.PodmanExitCleanly("container", "inspect", "--format", "{{.Config.Healthcheck.StartPeriod}}--{{.Config.Healthcheck.Interval}}--{{.Config.Healthcheck.Timeout}}--{{.Config.Healthcheck.Retries}}", "hc")
+ 		Expect(hc.OutputToString()).To(Equal("10s--10s--10s--2"))
+@@ -46,6 +48,7 @@ var _ = Describe("Podman healthcheck run", func() {
+ 	})
+ 
+ 	It("podman disable healthcheck with --no-healthcheck must not show starting on status", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28269
+ 		session := podmanTest.Podman([]string{"run", "-dt", "--no-healthcheck", "--name", "hc", HEALTHCHECK_IMAGE})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -77,6 +80,7 @@ var _ = Describe("Podman healthcheck run", func() {
+ 	})
+ 
+ 	It("podman healthcheck from image's config (not container config)", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28269
+ 		// Regression test for #12226: a health check may be defined in
+ 		// the container or the container-config of an image.
+ 		session := podmanTest.Podman([]string{"create", "-q", "--name", "hc", "quay.io/libpod/healthcheck:config-only", "ls"})
+@@ -89,6 +93,7 @@ var _ = Describe("Podman healthcheck run", func() {
+ 	})
+ 
+ 	It("podman disable healthcheck with --health-cmd=none on valid container", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28269
+ 		session := podmanTest.Podman([]string{"run", "-dt", "--health-cmd", "none", "--name", "hc", HEALTHCHECK_IMAGE})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -124,6 +129,7 @@ var _ = Describe("Podman healthcheck run", func() {
+ 	})
+ 
+ 	It("podman healthcheck that should fail", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28269
+ 		session := podmanTest.Podman([]string{"run", "-q", "-dt", "--name", "hc", "quay.io/libpod/badhealthcheck:latest"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -134,6 +140,7 @@ var _ = Describe("Podman healthcheck run", func() {
+ 	})
+ 
+ 	It("podman healthcheck on stopped container", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28269
+ 		session := podmanTest.Podman([]string{"run", "--name", "hc", HEALTHCHECK_IMAGE, "ls"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+diff --git a/test/e2e/history_test.go b/test/e2e/history_test.go
+index 872f3ec6daa..d5e624f7872 100644
+--- a/test/e2e/history_test.go
++++ b/test/e2e/history_test.go
+@@ -65,10 +65,13 @@ var _ = Describe("Podman history", func() {
+ 		// the second line in the alpine history contains a command longer than 45 chars
+ 		Expect(len(lines[1])).To(BeNumerically(">", 45))
+ 
+-		session = podmanTest.Podman([]string{"history", "--no-trunc", "--format", "{{.Size}}", ALPINE})
+-		session.WaitWithDefaultTimeout()
+-		Expect(session).Should(ExitCleanly())
+-		Expect(session.OutputToStringArray()).To(Equal([]string{"0B", "5.84MB"}))
++		// Size is different on other architectures
++		if podmanTest.Host.Arch == "amd64" {
++			session = podmanTest.Podman([]string{"history", "--no-trunc", "--format", "{{.Size}}", ALPINE})
++			session.WaitWithDefaultTimeout()
++			Expect(session).Should(ExitCleanly())
++			Expect(session.OutputToStringArray()).To(Equal([]string{"0B", "5.84MB"}))
++		}
+ 	})
+ 
+ 	It("podman history with json flag", func() {
+diff --git a/test/e2e/images_test.go b/test/e2e/images_test.go
+index 2019ac04720..1892121d379 100644
+--- a/test/e2e/images_test.go
++++ b/test/e2e/images_test.go
+@@ -35,6 +35,7 @@ var _ = Describe("Podman images", func() {
+ 	})
+ 
+ 	It("podman images with multiple tags", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		// tag "docker.io/library/alpine:latest" to "foo:{a,b,c}"
+ 		podmanTest.AddImageToRWStore(ALPINE)
+ 		session := podmanTest.Podman([]string{"tag", ALPINE, "foo:a", "foo:b", "foo:c"})
+@@ -160,6 +161,7 @@ var _ = Describe("Podman images", func() {
+ 	})
+ 
+ 	It("podman images filter reference", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		result := podmanTest.Podman([]string{"images", "-q", "-f", "reference=quay.io/libpod/*"})
+ 		result.WaitWithDefaultTimeout()
+ 		Expect(result).Should(ExitCleanly())
+@@ -249,6 +251,7 @@ WORKDIR /test
+ 	})
+ 
+ 	It("podman pull by digest and list --all", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		// Prevent regressing on issue #7651: error parsing name that includes a digest
+ 		// component as if were a name that includes tag component.
+ 		digestPullAndList := func(noneTag bool) {
+@@ -352,6 +355,7 @@ WORKDIR /test
+ 	})
+ 
+ 	It("podman images --all flag", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		dockerfile := `FROM quay.io/libpod/alpine:latest
+ RUN mkdir hello
+ RUN touch test.txt
+diff --git a/test/e2e/manifest_test.go b/test/e2e/manifest_test.go
+index 718698d7315..62e973c025c 100644
+--- a/test/e2e/manifest_test.go
++++ b/test/e2e/manifest_test.go
+@@ -680,6 +680,7 @@ RUN touch /file
+ 	})
+ 
+ 	It("push --rm to local directory", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28273
+ 		SkipIfRemote("manifest push to dir not supported in remote mode")
+ 		session := podmanTest.Podman([]string{"manifest", "create", "foo"})
+ 		session.WaitWithDefaultTimeout()
+diff --git a/test/e2e/play_kube_test.go b/test/e2e/play_kube_test.go
+index a084271a011..b971057dd9d 100644
+--- a/test/e2e/play_kube_test.go
++++ b/test/e2e/play_kube_test.go
+@@ -4433,8 +4433,9 @@ o: {{ .Options.o }}`)
+ 	})
+ 
+ 	It("persistentVolumeClaim - image based", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28272
+ 		volName := "myVolWithStorage"
+-		imageName := "quay.io/libpod/alpine_nginx:latest"
++		imageName := NGINX_IMAGE
+ 		pvc := getPVC(withPVCName(volName),
+ 			withPVCAnnotations(util.VolumeDriverAnnotation, "image"),
+ 			withPVCAnnotations(util.VolumeImageAnnotation, imageName),
+@@ -5752,6 +5753,7 @@ spec:
+ 	})
+ 
+ 	It("without Ports, publish in command line - curl should succeed", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28272
+ 		err := writeYaml(publishPortsPodWithoutPorts, kubeYaml)
+ 		Expect(err).ToNot(HaveOccurred())
+ 
+@@ -5780,6 +5782,7 @@ spec:
+ 		})
+ 
+ 		It("should publish containerPort with --publish-all", func() {
++			SkipIfNotAMD64() // https://github.com/containers/podman/issues/28272
+ 			SkipIfRootless("rootlessport can't expose privileged port 80")
+ 			err := writeYaml(publishPortsPodWithContainerPort, kubeYaml)
+ 			Expect(err).ToNot(HaveOccurred())
+@@ -5790,6 +5793,7 @@ spec:
+ 	})
+ 
+ 	It("with privileged containers ports and publish in command line - curl should succeed", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28272
+ 		err := writeYaml(publishPortsPodWithContainerPort, kubeYaml)
+ 		Expect(err).ToNot(HaveOccurred())
+ 
+@@ -5798,6 +5802,7 @@ spec:
+ 	})
+ 
+ 	It("with Host Ports - curl should succeed", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28272
+ 		err := writeYaml(publishPortsPodWithContainerHostPort, kubeYaml)
+ 		Expect(err).ToNot(HaveOccurred())
+ 
+@@ -5806,6 +5811,7 @@ spec:
+ 	})
+ 
+ 	It("with Host Ports and publish in command line - curl should succeed only on overriding port", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28272
+ 		err := writeYaml(publishPortsPodWithContainerHostPort, kubeYaml)
+ 		Expect(err).ToNot(HaveOccurred())
+ 
+@@ -5815,6 +5821,7 @@ spec:
+ 	})
+ 
+ 	It("multiple publish ports", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28272
+ 		err := writeYaml(publishPortsPodWithoutPorts, kubeYaml)
+ 		Expect(err).ToNot(HaveOccurred())
+ 
+diff --git a/test/e2e/prune_test.go b/test/e2e/prune_test.go
+index 20419f84291..b2daa3e3e34 100644
+--- a/test/e2e/prune_test.go
++++ b/test/e2e/prune_test.go
+@@ -180,6 +180,7 @@ var _ = Describe("Podman prune", func() {
+ 	})
+ 
+ 	It("podman image prune unused images", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		podmanTest.AddImageToRWStore(ALPINE)
+ 		podmanTest.AddImageToRWStore(BB)
+ 
+@@ -199,6 +200,7 @@ var _ = Describe("Podman prune", func() {
+ 	})
+ 
+ 	It("podman system image prune unused images", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		useCustomNetworkDir(podmanTest, tempdir)
+ 		podmanTest.AddImageToRWStore(ALPINE)
+ 		podmanTest.BuildImage(pruneImage, "alpine_bash:latest", "true")
+@@ -392,6 +394,7 @@ var _ = Describe("Podman prune", func() {
+ 	})
+ 
+ 	It("podman system prune - with dangling images true", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		useCustomNetworkDir(podmanTest, tempdir)
+ 		session := podmanTest.Podman([]string{"pod", "create"})
+ 		session.WaitWithDefaultTimeout()
+diff --git a/test/e2e/pull_test.go b/test/e2e/pull_test.go
+index b807c07056b..93c8c290832 100644
+--- a/test/e2e/pull_test.go
++++ b/test/e2e/pull_test.go
+@@ -16,6 +16,7 @@ import (
+ 
+ var _ = Describe("Podman pull", func() {
+ 	It("podman pull multiple images with/without tag/digest", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28273
+ 		session := podmanTest.Podman([]string{"pull", "-q", "busybox:musl", "alpine", "alpine:latest", "quay.io/libpod/cirros", "quay.io/libpod/testdigest_v2s2@sha256:755f4d90b3716e2bf57060d249e2cd61c9ac089b1233465c5c2cb2d7ee550fdb"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -38,6 +39,7 @@ var _ = Describe("Podman pull", func() {
+ 	})
+ 
+ 	It("podman pull with tag --quiet", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28273
+ 		session := podmanTest.Podman([]string{"pull", "-q", "quay.io/libpod/testdigest_v2s2:20200210"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -54,6 +56,7 @@ var _ = Describe("Podman pull", func() {
+ 	})
+ 
+ 	It("podman pull without tag", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28273
+ 		session := podmanTest.Podman([]string{"pull", "-q", "quay.io/libpod/testdigest_v2s2"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -135,6 +138,7 @@ var _ = Describe("Podman pull", func() {
+ 	})
+ 
+ 	It("podman pull by digest", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28273
+ 		session := podmanTest.Podman([]string{"pull", "-q", "quay.io/libpod/testdigest_v2s2@sha256:755f4d90b3716e2bf57060d249e2cd61c9ac089b1233465c5c2cb2d7ee550fdb"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -150,6 +154,7 @@ var _ = Describe("Podman pull", func() {
+ 	})
+ 
+ 	It("podman pull check all tags", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28273
+ 		session := podmanTest.Podman([]string{"pull", "-q", "--all-tags", "quay.io/libpod/testdigest_v2s2"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -176,6 +181,7 @@ var _ = Describe("Podman pull", func() {
+ 	})
+ 
+ 	It("podman pull by digest (image list)", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28273
+ 		session := podmanTest.Podman([]string{"pull", "-q", "--arch=arm64", ALPINELISTDIGEST})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -219,6 +225,7 @@ var _ = Describe("Podman pull", func() {
+ 	})
+ 
+ 	It("podman pull by instance digest (image list)", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28273
+ 		SkipIfRemote("podman-remote does not support disabling external imagestore")
+ 
+ 		session := podmanTest.Podman([]string{"pull", "-q", "--arch=arm64", ALPINEARM64DIGEST})
+@@ -263,6 +270,7 @@ var _ = Describe("Podman pull", func() {
+ 	})
+ 
+ 	It("podman pull by tag (image list)", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28273
+ 		SkipIfRemote("podman-remote does not support disabling external imagestore")
+ 
+ 		session := podmanTest.Podman([]string{"pull", "-q", "--arch=arm64", ALPINELISTTAG})
+@@ -321,6 +329,7 @@ var _ = Describe("Podman pull", func() {
+ 	pullChunkedTests()
+ 
+ 	It("podman pull from docker-archive", func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28273
+ 		SkipIfRemote("podman-remote does not support pulling from docker-archive")
+ 
+ 		podmanTest.AddImageToRWStore(CIRROS_IMAGE)
+diff --git a/test/e2e/rmi_test.go b/test/e2e/rmi_test.go
+index db24cb64b63..69f0edc2cea 100644
+--- a/test/e2e/rmi_test.go
++++ b/test/e2e/rmi_test.go
+@@ -88,6 +88,7 @@ var _ = Describe("Podman rmi", func() {
+ 	})
+ 
+ 	It("podman rmi image that is a parent of another image", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		podmanTest.AddImageToRWStore(CIRROS_IMAGE)
+ 		session := podmanTest.Podman([]string{"run", "--name", "c_test", CIRROS_IMAGE, "true"})
+ 		session.WaitWithDefaultTimeout()
+@@ -119,6 +120,7 @@ var _ = Describe("Podman rmi", func() {
+ 	})
+ 
+ 	It("podman rmi image that is created from another named imaged", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		podmanTest.AddImageToRWStore(ALPINE)
+ 		session := podmanTest.Podman([]string{"create", "--name", "c_test1", ALPINE, "true"})
+ 		session.WaitWithDefaultTimeout()
+@@ -151,6 +153,7 @@ var _ = Describe("Podman rmi", func() {
+ 	})
+ 
+ 	It("podman rmi with cached images", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		podmanTest.AddImageToRWStore(CIRROS_IMAGE)
+ 		dockerfile := fmt.Sprintf(`FROM %s
+ 		RUN mkdir hello
+@@ -218,6 +221,7 @@ var _ = Describe("Podman rmi", func() {
+ 	})
+ 
+ 	It("podman rmi -a with parent|child images", func() {
++		SkipIfNotAMD64() // List of images is different
+ 		podmanTest.AddImageToRWStore(CIRROS_IMAGE)
+ 		dockerfile := fmt.Sprintf(`FROM %s AS base
+ RUN touch /1
+diff --git a/test/e2e/run_aardvark_test.go b/test/e2e/run_aardvark_test.go
+index cf39e2cbfc4..7ca2471a087 100644
+--- a/test/e2e/run_aardvark_test.go
++++ b/test/e2e/run_aardvark_test.go
+@@ -12,6 +12,10 @@ import (
+ )
+ 
+ var _ = Describe("Podman run networking", func() {
++	BeforeEach(func() {
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28272
++	})
++
+ 	It("Aardvark Test 1: One container", func() {
+ 		netName := createNetworkName("Test")
+ 		session := podmanTest.Podman([]string{"network", "create", netName})
+diff --git a/test/e2e/run_seccomp_test.go b/test/e2e/run_seccomp_test.go
+index 77f1e73d77d..a0eda85fa84 100644
+--- a/test/e2e/run_seccomp_test.go
++++ b/test/e2e/run_seccomp_test.go
+@@ -46,6 +46,7 @@ var _ = Describe("Podman run", func() {
+ 	})
+ 
+ 	It("podman run --seccomp-policy image (block all syscalls)", func() {
++		SkipIfNotAMD64() // FIXME: This test fails on arm64
+ 		// This image has seccomp profiles that blocks all syscalls.
+ 		// The intention behind blocking all syscalls is to prevent
+ 		// regressions in the future.  The required syscalls can vary
+diff --git a/test/e2e/run_test.go b/test/e2e/run_test.go
+index bd79eaac16f..8e4887d63b2 100644
+--- a/test/e2e/run_test.go
++++ b/test/e2e/run_test.go
+@@ -459,10 +459,12 @@ var _ = Describe("Podman run", func() {
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session.OutputToString()).To(Not(BeEmpty()))
+ 		Expect(session).Should(ExitCleanly())
+-		session = podmanTest.Podman([]string{"exec", "maskCtr2", "ls", "/proc/acpi"})
+-		session.WaitWithDefaultTimeout()
+-		Expect(session.OutputToString()).To(Not(BeEmpty()))
+-		Expect(session).Should(ExitCleanly())
++		if podmanTest.Host.Arch == "amd64" {
++			session = podmanTest.Podman([]string{"exec", "maskCtr2", "ls", "/proc/acpi"})
++			session.WaitWithDefaultTimeout()
++			Expect(session.OutputToString()).To(Not(BeEmpty()))
++			Expect(session).Should(ExitCleanly())
++		}
+ 		session = podmanTest.Podman([]string{"exec", "maskCtr2", "sh", "-c", "awk '$5 ~ /\\/sys\\/fs\\/cgroup/ && $6 ~ /^rw,|,rw,|,rw$|^rw$/ { print }' /proc/self/mountinfo | grep ."})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+diff --git a/test/e2e/volume_plugin_test.go b/test/e2e/volume_plugin_test.go
+index b4df0cd07e5..01dc4fbf9ec 100644
+--- a/test/e2e/volume_plugin_test.go
++++ b/test/e2e/volume_plugin_test.go
+@@ -18,6 +18,7 @@ var _ = Describe("Podman volume plugins", func() {
+ 		os.Setenv("CONTAINERS_CONF", "config/containers.conf")
+ 		SkipIfRemote("Volume plugins only supported as local")
+ 		SkipIfRootless("Root is required for volume plugin testing")
++		SkipIfNotAMD64() // https://github.com/containers/podman/issues/28270
+ 		err = os.MkdirAll("/run/docker/plugins", 0o755)
+ 		Expect(err).ToNot(HaveOccurred())
+ 	})

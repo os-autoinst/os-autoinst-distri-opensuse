@@ -1,0 +1,12 @@
+[Unit]
+Description=nginx container quadlet file
+
+[Container]
+Image=registry.opensuse.org/opensuse/nginx:latest
+ContainerName=nginx-Quadlet
+PublishPort=80:80
+Volume=/home/nginx/nginx.conf:/etc/nginx/nginx.conf:ro,Z
+Volume=/home/nginx/index.html:/usr/share/nginx/html/index.html:ro,Z
+
+[Install]
+WantedBy=multi-user.target

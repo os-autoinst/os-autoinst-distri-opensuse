@@ -1,0 +1,45 @@
+name: fips_ker_mode_textmode_extra
+description:    >
+    This is for FIPS testing of extra modules in kernel mode on a textmode system.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - fips/fips_setup
+    - fips/curl_fips_rc4_seed
+    - console/gpg
+    - console/journald_fss
+    - console/git
+    - console/openvswitch_ssl
+    - console/chrony
+    - console/cups
+    - console/curl_https
+    - console/wget_https
+    - console/w3m_https
+    - console/curl_ipv6
+    - console/wget_ipv6
+    - console/apache_ssl
+    - security/vsftpd/vsftpd_setup
+    - security/vsftpd/vsftpd
+    - security/vsftpd/lftp
+    - console/ca_certificates_mozilla
+    - console/unzip
+    - console/rsync
+    - console/oqa_agnostic/sudo_agnostic
+    - console/supportutils
+    - console/mdadm
+    - console/quota
+    - console/rpcbind
+    - console/timezone
+    - console/procps
+    - console/kmod
+    - console/suse_module_tools
+    - console/gd
+    - console/coredump_collect
+    - console/ovn
+    - console/firewalld
+    - console/nginx
+    - console/gdb
+    - console/sysctl
+    - console/clamav
+    - security/oqa_agnostic/go_post_quantum

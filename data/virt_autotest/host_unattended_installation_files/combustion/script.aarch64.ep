@@ -1,0 +1,30 @@
+#!/bin/bash
+# combustion: network
+
+grub2_config() {
+    file=/etc/default/grub
+    sed -i 's/^\s*GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=15/g' $file
+    sed -i -r 's/^(\s|#)*GRUB_TERMINAL=.*$/GRUB_TERMINAL="gfxterm console"/g' $file
+    sed -i -r 's/^(\s|#)*GRUB_TERMINAL_INPUT=.*$/GRUB_TERMINAL_INPUT="gfxterm console"/g' $file
+    sed -i -r 's/^(\s|#)*GRUB_TERMINAL_OUTPUT=.*$/GRUB_TERMINAL_OUTPUT="gfxterm console"/g' $file
+    sed -i 's/console=tty0//g' $file
+    sed -i 's/console=tty[^ ]*/console={{SERIALCONSOLE}},115200/g' $file
+    echo "DEBUG: now $file is,"
+    cat $file
+    grub2-mkconfig -o /boot/grub2/grub.cfg
+}
+
+# Redirect output to the console
+exec > >(exec tee -a /dev/{{SERIALCONSOLE}}) 2>&1
+
+# Configure grub2 in the system
+grub2_config
+
+# Keyboard
+systemd-firstboot --force --keymap=us
+
+# Leave a marker
+echo "Configured aarch64 machine with combustion" > /etc/issue.d/combustion
+
+# Close outputs and wait for tee to finish.
+exec 1>&- 2>&-; wait;

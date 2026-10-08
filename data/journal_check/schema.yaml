@@ -1,0 +1,84 @@
+# JSON Schema for bug_refs.json.
+# 
+# Schema is checked by t/52_journal_check_bug_refs.t
+---
+$id: schema.yaml
+$schema: http://json-schema.org/draft-04/schema#
+title: journal_check bug references
+description: >
+    Known journal messages for tests/console/journal_check.pm. Each top-level
+    key identifies one known issue
+type: object
+minProperties: 1
+
+additionalProperties:
+  $ref: '#/definitions/entry'
+
+definitions:
+
+  entry:
+    type: object
+    additionalProperties: false
+    required:
+    - description
+    - products
+    - type
+
+    properties:
+
+      description:
+        type: string
+        minLength: 1
+        description: >
+            A Perl regular expression, matched against each journalctl line.
+            Alternatives may be combined with "|".
+
+      products:
+        type: object
+        minProperties: 1
+        additionalProperties: false
+        description: >
+            Which products the entry applies to, structured as a
+            map of DISTRI to VERSION. See bug_refs.json for examples.
+        properties:
+          opensuse:
+            $ref: '#/definitions/versions'
+          sle:
+            $ref: '#/definitions/versions'
+          microos:
+            $ref: '#/definitions/versions'
+          sle-micro:
+            $ref: '#/definitions/versions'
+          leap-micro:
+            $ref: '#/definitions/versions'
+
+      type:
+        description: >
+            How journal_check.pm reacts to a match. "bug" records a soft
+            failure, "ignore" only writes a diagnostic line to the autoinst
+            log, and "feature" records an informational step that does not
+            affect the job result.
+        enum:
+        - bug
+        - ignore
+        - feature
+      
+      arch:
+        type: "array"
+        items: {
+          "type": "string"
+        }
+        description: >
+            Optional array of architectures the element should match to.
+            The element will only be applied to the defined architectures otherwise
+            it is ignored.
+
+  versions:
+    type: array
+    minItems: 1
+    uniqueItems: true
+    description: >
+        openQA VERSION values truncated at the first colon (e.g. for Tumbleweed:Stating)
+    items:
+      type: string
+      minLength: 1

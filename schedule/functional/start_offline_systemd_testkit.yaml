@@ -1,0 +1,8 @@
+---
+name: Start_systemd_testkit
+description: >
+    Maintainer: QE-core
+    Execute the systemd in offline mode
+schedule:
+    - boot/boot_to_desktop
+    - console/start_systemd_testkit_offline

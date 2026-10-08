@@ -1,0 +1,12 @@
+---
+name: 'Commit message check'
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+  push:
+    branches:
+      - '!master'  # we must not fix commit messages when they already reached master
+
+jobs:
+  check-commit-message:
+    uses: os-autoinst/os-autoinst-common/.github/workflows/base-commit-message-checker.yml@e9a35c74028cb8f1e64a4d787d5751dd7b0790c8  # master

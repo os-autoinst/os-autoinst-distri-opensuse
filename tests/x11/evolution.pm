@@ -1,0 +1,47 @@
+# SUSE's openQA tests
+#
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: evolution
+# Summary: Startup of evolution with check of first-startup dialogs
+# - Start evolution and check if it is running
+# - Handle evolution first time wizard
+# - Close evolution
+# Maintainer: QE Core <qe-core@suse.de>
+
+use Mojo::Base 'x11test';
+use testapi;
+use version_utils "is_gnome_next";
+
+sub run {
+    my @tags = qw(test-evolution-1 evolution-default-client-ask);
+    push(@tags, 'evolution-preview-release') if is_gnome_next;
+    x11_start_program('evolution', target_match => \@tags);
+    my $times = scalar(@tags) - 1;
+
+    unless (match_has_tag('test-evolution-1')) {
+        for (0 .. $times) {
+            if (match_has_tag('evolution-default-client-ask')) {
+                assert_and_click 'evolution-default-client-agree';
+            }
+            elsif (match_has_tag('evolution-preview-release')) {
+                send_key 'alt-o';
+            }
+            wait_still_screen;    # avoid race condition caused by asserting multitags
+            assert_screen \@tags;
+        }
+        assert_screen 'test-evolution-1';
+    }
+
+    #close assistant
+    send_key 'alt-f4';
+
+    assert_screen(['generic-desktop', 'evolution-main-window'], timeout => 30);
+    if (match_has_tag 'evolution-main-window') {
+        assert_and_click "close_evolution";
+    }
+}
+
+1;

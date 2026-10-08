@@ -1,0 +1,19 @@
+name: multipath_lvm_textmode
+
+description:
+    Prepare image with multipath and lvm enabled using autoyast installation for kernel testing.
+
+vars:
+    AUTOYAST: autoyast_sle15/create_hdd/create_hdd_multipath_lvm_textmode_%ARCH%.xml
+
+schedule:
+    - autoyast/prepare_profile
+    - installation/bootloader_start
+    - autoyast/installation
+    - installation/first_boot
+    - console/system_prepare
+    - console/hostname
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown

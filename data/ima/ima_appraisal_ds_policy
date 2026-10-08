@@ -1,0 +1,45 @@
+# PROC_SUPER_MAGIC
+dont_measure fsmagic=0x9fa0
+dont_appraise fsmagic=0x9fa0
+# SYSFS_MAGIC
+dont_measure fsmagic=0x62656572
+dont_appraise fsmagic=0x62656572
+# DEBUGFS_MAGIC
+dont_measure fsmagic=0x64626720
+dont_appraise fsmagic=0x64626720
+# TMPFS_MAGIC
+dont_measure fsmagic=0x01021994
+dont_appraise fsmagic=0x01021994
+# RAMFS_MAGIC
+dont_appraise fsmagic=0x858458f6
+# DEVPTS_SUPER_MAGIC
+dont_measure fsmagic=0x1cd1
+dont_appraise fsmagic=0x1cd1
+# BINFMTFS_MAGIC
+dont_measure fsmagic=0x42494e4d
+dont_appraise fsmagic=0x42494e4d
+# SECURITYFS_MAGIC
+dont_measure fsmagic=0x73636673
+dont_appraise fsmagic=0x73636673
+# SELINUX_MAGIC
+dont_measure fsmagic=0xf97cff8c
+dont_appraise fsmagic=0xf97cff8c
+# CGROUP_SUPER_MAGIC
+dont_measure fsmagic=0x27e0eb
+dont_appraise fsmagic=0x27e0eb
+# CGROUP2_SUPER_MAGIC
+dont_measure fsmagic=0x63677270
+dont_appraise fsmagic=0x63677270
+# NSFS_MAGIC
+dont_measure fsmagic=0x6e736673
+dont_appraise fsmagic=0x6e736673
+
+appraise func=BPRM_CHECK fowner=0 appraise_type=imasig
+appraise func=BPRM_CHECK euid=0 appraise_type=imasig
+appraise func=FILE_MMAP fowner=0 mask=MAY_EXEC appraise_type=imasig
+appraise func=FILE_MMAP euid=0 mask=MAY_EXEC appraise_type=imasig
+appraise func=MODULE_CHECK appraise_type=imasig
+appraise func=FIRMWARE_CHECK appraise_type=imasig
+# this is only for newer kernels that support loading policies
+# from file by writing the file path to the ima sysfs node
+appraise func=POLICY_CHECK appraise_type=imasig

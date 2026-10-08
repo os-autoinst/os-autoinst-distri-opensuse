@@ -1,0 +1,10 @@
+name: sysstat_verification
+description: >
+  Side-by-side run of the original console/sysstat module and the new
+  openQA-agnostic sysstat test.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - console/sysstat
+  - console/oqa_agnostic/sysstat_agnostic

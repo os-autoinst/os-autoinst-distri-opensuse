@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+    </bootloader>
+    <report>
+      <errors>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </errors>
+      <messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </messages>
+      <warnings>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </warnings>
+      <yesno_messages>
+        <log config:type="boolean">true</log>
+        <show config:type="boolean">true</show>
+        <timeout config:type="integer">0</timeout>
+      </yesno_messages>
+    </report>
+    <networking>
+      <keep_install_network config:type="boolean">true</keep_install_network>
+    </networking>
+    <partitioning config:type="list">
+    <drive>
+      <device>/dev/vda</device>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+      <enable_snapshots config:type="boolean">false</enable_snapshots>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <size>70%</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <mount>/home</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <size>max</size>
+        </partition>
+      </partitions>
+    </drive>
+    </partitioning>
+    <classes config:type="list">
+      <class>
+        <class_name>general</class_name>
+        <configuration>users.xml</configuration>
+      </class>
+      <class>
+        <class_name>general</class_name>
+        <configuration>software.xml</configuration>
+      </class>
+      <class>
+        <class_name>swap</class_name>
+        <configuration>smallswap.xml</configuration>
+        <dont_merge config:type="list">
+          <element>partition</element>
+        </dont_merge>
+      </class>      
+    </classes>
+</profile>

@@ -1,0 +1,13 @@
+---
+name: slem-extensions_and_modules
+description: >
+  Testing the yast installation with enabling the available SLE Micro extensions and modules, e.g. phub, live..
+vars:
+  YUI_REST_API: 1
+schedule:
+  addons:
+    - installation/module_registration/register_extensions_and_modules
+    - installation/module_registration/import_untrusted_gnpupg_key
+  system_validation:
+    - console/textinfo
+    - transactional/check_phub

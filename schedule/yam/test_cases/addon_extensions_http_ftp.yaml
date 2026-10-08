@@ -1,0 +1,18 @@
+---
+name: addon_extensions_http_ftp
+description: |
+  Test verifies that extensions can be added as addons via http and ftp.
+schedule:
+  add_on_product:
+    - installation/add_on_product/add_add_on_http_repo_url
+    - installation/add_on_product_installation/add_add_on_ftp_repo_url
+    - installation/add_on_product_installation/accept_add_on_installation
+  system_role:
+    - installation/system_role/select_role_text_mode
+  system_preparation:
+    - console/system_prepare
+    - console/consoletest_setup
+    - console/zypper_ref
+  system_validation:
+    - console/validate_addon_extension_repo_http
+    - console/validate_addon_extension_repo_ftp

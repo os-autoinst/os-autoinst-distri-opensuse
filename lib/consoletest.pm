@@ -1,0 +1,79 @@
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+package consoletest;
+use base "opensusebasetest";
+
+use strict;
+use warnings;
+use testapi;
+use known_bugs;
+use version_utils qw(is_public_cloud);
+use Utils::Logging qw(export_logs_basic export_logs_desktop record_avc_selinux_alerts);
+use utils;
+
+=head1 consoletest
+
+C<consoletest> - Base class for all console tests
+
+=cut
+
+=head2 post_run_hook
+
+Method executed when run() finishes.
+
+=cut
+
+sub post_run_hook {
+    my ($self) = @_;
+
+    # start next test in home directory
+    assert_script_run "cd";
+
+    $self->record_avc_selinux_alerts();
+    # clear screen to make screen content ready for next test
+    $self->clear_and_verify_console;
+}
+
+=head2 post_fail_hook
+
+Method executed when run() finishes and the module has result => 'fail'
+
+=cut
+
+sub post_fail_hook {
+    my ($self) = @_;
+    return if get_var('NOLOGS');
+    $self->SUPER::post_fail_hook;
+    $self->record_avc_selinux_alerts();
+    # at this point the instance is shutdown
+    return if is_public_cloud();
+    # Remaining log functions are executed in Utils::Logging::export_logs()
+    # called in opensusebasetest::post_fail_hook()
+    eval { select_console('log-console') };
+    if ($@) {
+        record_info('console error', "Could not switch to log-console: $@", result => 'fail');
+        return;
+    }
+    show_oom_info;
+    show_tasks_in_blocked_state;
+}
+
+=head2 use_wicked_network_manager
+
+ use_wicked_network_manager();
+
+switch network manager to wicked.
+
+=cut
+
+sub use_wicked_network_manager {
+    zypper_call("in wicked");
+    assert_script_run "systemctl disable NetworkManager --now";
+    assert_script_run "systemctl enable --force wicked --now";
+    assert_script_run "systemctl start wickedd.service";
+    assert_script_run "systemctl start wicked.service";
+    assert_script_run qq{systemctl status wickedd.service | grep \"active \(running\)\"};
+}
+
+1;

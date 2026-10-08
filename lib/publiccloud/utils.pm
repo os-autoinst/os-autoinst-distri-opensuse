@@ -1,0 +1,926 @@
+# SUSE's openQA tests
+#
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Public cloud utilities
+# Maintainer: QE-C team <qa-c@suse.de>
+
+package publiccloud::utils;
+
+use base Exporter;
+use Exporter;
+use File::Basename;
+use Mojo::UserAgent;
+use Mojo::URL;
+use Mojo::JSON 'encode_json';
+use Carp qw(croak);
+use Socket qw(AF_INET AF_INET6 inet_pton);
+use Time::Piece;
+use Time::Seconds;
+
+use strict;
+use warnings;
+use testapi;
+use utils;
+use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_sle_micro check_version);
+use transactional qw(process_reboot);
+use registration qw(get_addon_fullname add_suseconnect_product %ADDONS_REGCODE);
+use maintenance_smelt qw(is_embargo_update);
+use publiccloud::zypper ();
+
+# Indicating if the openQA port has been already allowed via SELinux policies
+my $openqa_port_allowed = 0;
+
+our @EXPORT = qw(
+  additional_repos
+  deregister_addon
+  define_secret_variable
+  get_credentials
+  validate_repo
+  is_byos
+  is_ondemand
+  is_ec2
+  is_ec2_xen
+  is_ecs
+  is_azure
+  is_gce
+  is_container_host
+  is_hardened
+  is_cloudinit_supported
+  check_dns
+  registercloudguest
+  register_addon
+  register_addons_in_pc
+  gcloud_install
+  get_ssh_key_algo
+  get_ssh_private_key_path
+  permit_root_login
+  prepare_ssh_tunnel
+  add_additional_authorized_keys
+  allow_openqa_port_selinux
+  ssh_allow_openqa_port_selinux
+  ssh_update_transactional_system
+  create_script_file
+  install_in_venv
+  venv_activate
+  get_python_exec
+  detect_worker_ip
+  calculate_custodian_ttl
+  pc_data_url
+);
+
+# Check if we are a BYOS test run
+sub is_byos() {
+    return is_public_cloud && get_var('FLAVOR') =~ /byos/i;
+}
+
+# Check if we are a OnDemand test run
+sub is_ondemand() {
+    # By convention OnDemand images are not marked explicitly.
+    # Check all the other flavors, and if they don't match, it must be on_demand.
+    return is_public_cloud && (!is_byos());    # When introducing new flavors, add checks here accordingly.
+}
+
+# Check if we are on an AWS test run
+sub is_ec2() {
+    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+}
+
+# check is this is a EC2 ECS instance
+sub is_ecs() {
+    return is_public_cloud && get_var('FLAVOR') =~ /-ECS-/i;
+}
+
+sub is_ec2_xen {
+    # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html -> Xen-based instances
+    return is_public_cloud && is_ec2 && get_var("PUBLIC_CLOUD_INSTANCE_TYPE") =~ /^(m1|m2|m3|m4|t1|t2|c1|c3|c4|r3|r4|x1|x1e|d2|h1|i2|i3|f1|g3|p2|p3)/;
+}
+
+# Check if we are on an Azure test run
+sub is_azure() {
+    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+}
+
+# Check if we are on an GCP test run
+sub is_gce() {
+    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+}
+
+sub is_container_host() {
+    return is_public_cloud && get_var('FLAVOR') =~ 'CHOST';
+}
+
+sub is_hardened() {
+    return is_public_cloud && get_var('FLAVOR') =~ 'Hardened';
+}
+
+sub is_cloudinit_supported {
+    return ((is_azure || is_ec2) && !is_sle_micro);
+}
+
+# Get the current UTC timestamp as YYYY/mm/dd HH:MM:SS
+sub utc_timestamp {
+    my @weekday = ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat");
+    my ($sec, $min, $hour, $day, $mon, $year, $wday, $yday, $isdst) = gmtime(time);
+    $year = $year + 1900;
+    return sprintf("%04d/%02d/%02d %02d:%02d:%02d", $year, $mon, $day, $hour, $min, $sec);
+}
+
+
+=head2 ssh_add_suseconnect_product
+
+    ssh_add_suseconnect_product($remote, $name, [program => $program, [version => $version, [arch => $arch, [params => $params, [timeout => $timeout, [retries => $retries, [delay => $delay]]]]]]]);
+
+Register addon in the SUT
+=cut
+
+sub ssh_add_suseconnect_product {
+    my ($remote, $name, %args) = @_;
+    if ($args{program} eq 'registercloudguest') {
+        script_retry(sprintf("ssh %s sudo %s %s", $remote, $args{program}, $args{params}), delay => $args{delay}, retry => $args{retries}, timeout => $args{timeout});
+    } else {
+        script_retry(sprintf("ssh %s sudo %s -p %s/%s/%s %s", $remote, $args{program}, $name, $args{version}, $args{arch}, $args{params}), delay => $args{delay}, retry => $args{retries}, timeout => $args{timeout});
+    }
+}
+
+sub register_addon {
+    my ($remote, $addon) = @_;
+
+    my $arch = get_var('PUBLIC_CLOUD_ARCH') // "x86_64";
+    $arch = "aarch64" if ($arch eq "arm64");
+    my $timestamp = utc_timestamp();
+    record_info($addon, "Going to register '$addon' addon\nUTC: $timestamp");
+    my $cmd_time = time();
+    my ($timeout, $retries, $delay) = (300, 3, 120);
+    my $program = get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
+
+    assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
+    assert_script_run 'source /tmp/os-release';
+
+    if ($addon =~ /ltss/) {
+        my $name = get_addon_fullname($addon);
+        ssh_add_suseconnect_product($remote, $name, program => $program, version => '${VERSION_ID}', arch => $arch, params => "-r " . $ADDONS_REGCODE{$name}, timeout => $timeout, retries => $retries, delay => $delay);
+    } elsif (is_ondemand) {
+        record_info($addon, 'This is on demand image, we will not register this addon.');
+        return;
+    } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
+        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => 'SUSEConnect', version => '`echo ${VERSION} | cut -d- -f1`', arch => $arch, params => '', timeout => $timeout, retries => $retries, delay => $delay);
+    } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
+        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => 'SUSEConnect', version => '${VERSION_ID}', arch => $arch, params => '', timeout => $timeout, retries => $retries, delay => $delay);
+    } else {
+        if ($addon =~ /nvidia/i) {
+            (my $version = get_version_id(dst_machine => $remote)) =~ s/^(\d+).*/$1/m;
+            ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => 'SUSEConnect', version => $version, arch => $arch, params => '', timeout => $timeout, retries => $retries, delay => $delay);
+        } else {
+            ssh_add_suseconnect_product($remote, get_addon_fullname($addon), program => 'SUSEConnect', version => '${VERSION_ID}', arch => $arch, params => '', timeout => $timeout, retries => $retries, delay => $delay);
+        }
+    }
+    record_info('SUSEConnect time', 'The command SUSEConnect -r ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
+}
+
+=head2 ssh_remove_suseconnect_product
+
+    ssh_remove_suseconnect_product($name, [$version, [$arch, [$params]]]);
+
+Deregister addon in SUT
+=cut
+
+sub ssh_remove_suseconnect_product {
+    my ($remote, $name, $version, $arch, $params) = @_;
+    assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
+    assert_script_run 'source /tmp/os-release';
+    script_retry(sprintf("ssh $remote sudo SUSEConnect -d -p $name/$version/$arch $params", $remote, $name, $version, $arch, $params), retry => 5, delay => 60, timeout => 180);
+}
+
+sub deregister_addon {
+    my ($remote, $addon) = @_;
+
+    my $arch = get_var('PUBLIC_CLOUD_ARCH', 'x86_64');
+    $arch = "aarch64" if ($arch eq "arm64");
+    my $timestamp = utc_timestamp();
+    record_info($addon, "Going to deregister '$addon' addon\nUTC: $timestamp");
+    my $cmd_time = time();
+    my ($timeout, $retries, $delay) = (300, 3, 120);
+
+    assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
+    assert_script_run 'source /tmp/os-release';
+
+    if ($addon =~ /ltss/) {
+        # ssh_remove_suseconnect_product($remote, $name, $version, $arch, $params, $timeout, $retries, $delay)
+        ssh_remove_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r " . get_required_var('SCC_REGCODE_LTSS'), $timeout, $retries, $delay);
+    } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
+        ssh_remove_suseconnect_product($remote, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`', $arch, '', $timeout, $retries, $delay);
+    } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
+        ssh_remove_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, '', $timeout, $retries, $delay);
+    } else {
+        ssh_remove_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch, '', $timeout, $retries, $delay);
+    }
+    record_info('SUSEConnect time', 'The command SUSEConnect -d ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
+}
+
+sub registercloudguest {
+    my ($instance) = @_;
+    my $regcode = get_required_var('SCC_REGCODE');
+    my $suseconnect = get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
+
+    # Check what version of registercloudguest binary we use, chost images have none pre-installed
+    my $version = $instance->ssh_script_output(cmd => 'rpm -q --queryformat "%{VERSION}\n" cloud-regionsrv-client', proceed_on_failure => 1);
+    if ($version =~ /cloud-regionsrv-client is not installed/) {
+        die 'cloud-regionsrv-client should be installed' if !is_container_host;
+    }
+
+    my $custom_smt = '';
+    if ((my $smt_ip = get_var('PUBLIC_CLOUD_SMT_IP')) && (my $smt_fqdn = get_var('PUBLIC_CLOUD_SMT_FQDN')) && (my $smt_fp = get_var('PUBLIC_CLOUD_SMT_FP'))) {
+        $custom_smt = "--smt-ip $smt_ip --smt-fqdn $smt_fqdn --smt-fp $smt_fp";
+    }
+
+    my $cmd_time = time();
+    $instance->ssh_script_retry(cmd => "sudo $suseconnect $custom_smt -r $regcode", timeout => 420, retry => 3, delay => 120);
+    record_info('registration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
+
+    # If the SSH master socket is active, exit it, so the next SSH command will (re)login
+    if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {
+        assert_script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
+    }
+}
+
+=head2 check_dns
+
+    check_dns($instance);
+    check_dns($instance, retry => 12, delay => 10);
+    check_dns($instance, die => 0);
+
+Check name resolution on the instance before it registers (poo#207630):
+C</etc/resolv.conf> must name a nameserver, and C<scc.suse.com>, or the host in
+C<PUBLIC_CLOUD_DNS_CHECK_HOST>, must resolve.
+
+C<retry> and C<delay> control retries for each check (defaults: 6 and 10 seconds).
+These are not a strict overall deadline: command execution also takes time.
+
+A resolution that needed retries is recorded with the time it took. On failure
+the resolver and network state is recorded, then the test dies. Set C<die>
+to 0 to record failure details and continue.
+
+=cut
+
+sub check_dns {
+    my ($instance, %args) = @_;
+    my $die = $args{die} // 1;
+    my $host = get_var('PUBLIC_CLOUD_DNS_CHECK_HOST', 'scc.suse.com');
+    die "PUBLIC_CLOUD_DNS_CHECK_HOST '$host' is not a host name" if $host !~ /^[A-Za-z0-9.-]+$/;
+
+    # Each check uses the configured retries and delay; die => 0 allows persistent
+    # failures to be diagnosed below before optionally dying. A late success is
+    # recorded with its duration.
+    my %retry = (
+        retry => $args{retry} // 6,
+        delay => $args{delay} // 10,
+        timeout => 30,
+        die => 0,
+    );
+    my $problem;
+    my $start = time();
+    if ($instance->ssh_script_retry(cmd => q(test -s /etc/resolv.conf && grep -Eq '^[[:space:]]*nameserver[[:space:]]+[^[:space:]]+' /etc/resolv.conf), %retry)) {
+        $problem = '/etc/resolv.conf is missing, empty or names no nameserver after ' . (time() - $start) . ' seconds';
+    } elsif ($instance->ssh_script_retry(cmd => "getent ahosts $host", %retry)) {
+        $problem = "$host did not resolve within " . (time() - $start) . ' seconds';
+    } elsif ((my $took = time() - $start) >= 10) {
+        record_info('DNS late', "resolv.conf and $host were ready only after $took seconds");
+    }
+    return unless $problem;
+
+    my @diag = ('ls -l /etc/resolv.conf', 'cat /etc/resolv.conf', 'ip a', 'ip r',
+        'sudo systemctl --no-pager status systemd-resolved NetworkManager wicked cloud-init', 'resolvectl status',
+        "getent ahosts $host",
+        'sudo journalctl -b --no-pager -u NetworkManager -u wicked -u systemd-resolved | tail -n 50');
+    my $out = $instance->ssh_script_output(cmd => '(' . join('; ', map { "echo '# $_'; $_" } @diag) . ') 2>&1', timeout => 120, proceed_on_failure => 1);
+    record_info('DNS diagnostics', $out, result => 'fail');
+    die "DNS check failed: $problem" if $die;
+    record_info("DNS FAIL, it's always DNS", $problem, result => 'fail');
+}
+
+sub register_addons_in_pc {
+    my ($instance, %args) = @_;
+    # pc_refresh() below can take several minutes on many aggregated repos.
+    my $timeout = $args{timeout} // 900;
+    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    my $remote = $instance->username . '@' . $instance->public_ip;
+    # Refresh repos. publiccloud::zypper::pc_refresh always uses plain zypper
+    # (never transactional-update, which does not support repo actions, see
+    # poo#195920). Accept all exit codes and inspect the result here so we
+    # can diagnose the failure.
+    my $ret = publiccloud::zypper::pc_refresh(
+        $instance,
+        timeout => $timeout,
+        exitcode => [
+            publiccloud::zypper::EXIT_OK,
+            publiccloud::zypper::EXIT_NO_REPOS,
+            publiccloud::zypper::EXIT_LOCKED,
+        ],
+    );
+    if ($ret == publiccloud::zypper::EXIT_NO_REPOS) {
+        # "No enabled repositories" is a symptom with (at least) two causes:
+        # the system was never registered, or it was registered and the
+        # repos were dropped afterwards. Collect the evidence to tell them
+        # apart. Only the second case is bsc#1245651, which is closed but
+        # still reachable on images shipping cloud-regionsrv-client < 11.0.0,
+        # see poo#205101.
+        record_info('repos (lr)', $instance->ssh_script_output(
+                cmd => 'sudo zypper lr -u', proceed_on_failure => 1));
+        my $reg = $instance->ssh_script_output(
+            cmd => 'sudo SUSEConnect -s', proceed_on_failure => 1);
+        record_info('SUSEConnect -s', $reg);
+        die 'No enabled repos: the system is not registered'
+          if ($reg =~ /Not Registered/m || $reg !~ /\S/);
+        die 'No enabled repos on registered system (bsc#1245651)';
+    }
+    die 'System management is locked by the application with pid xxx (/usr/bin/zypper)' if $ret == publiccloud::zypper::EXIT_LOCKED;
+    for my $addon (@addons) {
+        next if ($addon =~ /^\s+$/);
+        register_addon($remote, $addon);
+    }
+    record_info('repos (lr)', $instance->ssh_script_output(cmd => "sudo zypper lr"));
+    record_info('repos (ls)', $instance->ssh_script_output(cmd => "sudo zypper ls"));
+}
+
+# Validation for update repos
+sub validate_repo {
+    my ($maintrepo) = @_;
+    if (is_sle_micro('>=6.0') || is_sle('>=16') || get_var("PUBLIC_CLOUD_XFS")) {
+        record_info("Product Increments", "Can't validate repository");
+        return 1;
+    }
+    if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g) {
+        my ($incident, $type) = ($2, $1);
+        die "We did not detect incident number for URL \"$maintrepo\". We detected \"$incident\"" unless $incident =~ /\d+/;
+        if (is_embargo_update($incident, $type)) {
+            record_info("EMBARGOED", "The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"");
+            script_run("echo 'The repository \"$maintrepo\" belongs to embargoed incident number \"$incident\"'");
+            return 0;
+        }
+        return 1;
+    }
+    die "Unexpected URL \"$maintrepo\"";
+}
+
+=head2 get_credentials
+    get_credentials(url_suffix => 'some_csp.json'[, namespace => 'some_name', output_json => './local_credentials.json'])
+
+Get credentials from the Public Cloud micro service, which requires user
+and password. The resulting json will be optionally stored in a file.
+This function also get input from these variables:
+ - PUBLIC_CLOUD_CREDENTIALS_URL
+ - _SECRET_PUBLIC_CLOUD_CREDENTIALS_USER
+ - _SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD
+ 
+=over
+
+=item B<url_suffix> - last part of the micro service url
+
+=item B<output_json> - (optional) save the credential to json file with provided filename.
+
+=item B<namespace> - (optional) credential namespace on the micro service. If not provided read from PUBLIC_CLOUD_NAMESPACE
+
+=back
+=cut
+
+sub get_credentials {
+    my (%args) = @_;
+    croak 'Missing mandatory url_suffix argument' unless $args{url_suffix};
+    $args{namespace} //= get_required_var('PUBLIC_CLOUD_NAMESPACE');
+
+    my $base_url = get_required_var('PUBLIC_CLOUD_CREDENTIALS_URL');
+    my $user = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_USER');
+    my $pwd = get_required_var('_SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD');
+    my $url = $base_url . '/' . $args{namespace} . '/' . $args{url_suffix};
+
+    my $url_auth = Mojo::URL->new($url)->userinfo("$user:$pwd");
+    # Force the usage of IPv4 because we use IP address whitelisting. For unknown reasons both Domain and LocalAddr are required.
+    my $ua = Mojo::UserAgent->new(socket_options => {Domain => AF_INET, LocalAddr => '0.0.0.0'});
+    $ua->insecure(1);
+    my $tx = $ua->get($url_auth);
+    my $res = $tx->result;
+    die("Fetching CSP credentials failed: " . $res->message) unless ($res->is_success);
+    my $data_structure = $res->json;
+    if ($args{output_json}) {
+        # Note: tmp files are job-specific files in the pool directory on the worker and get cleaned up after job execution
+        save_tmp_file('creds.json', encode_json($data_structure));
+        assert_script_run('curl ' . autoinst_url . '/files/creds.json -o ' . $args{output_json});
+    }
+    return $data_structure;
+}
+
+=head2 gcloud_install
+    gcloud_install($url, $dir, $timeout)
+
+This function is used to install the gcloud CLI
+for the GKE Google Cloud.
+
+From $url we get the full package and install it
+in $dir local folder as a subdir of /root.
+Defaults are available for a simple call without parameters:
+    gcloud_install()
+
+=cut
+
+sub gcloud_install {
+    my %args = @_;
+    my $url = $args{url} || 'sdk.cloud.google.com';
+    my $dir = $args{dir} || 'google-cloud-sdk';
+    my $timeout = $args{timeout} || 700;
+
+    # WARNING:  Python 3.6.x is no longer officially supported by the Google Cloud CLI
+    # and may not function correctly. Please use Python version 3.8 and up.
+    my @pkgs = qw(curl tar gzip);
+    my $py_version = is_sle(">=16.0") ? "3" : get_var('PYTHON_VERSION', '3.11');
+    my $py_pkg_version = $py_version =~ s/\.//gr;
+    push @pkgs, 'python' . $py_pkg_version;
+    add_suseconnect_product(get_addon_fullname('python3')) if (is_sle('15-SP6+') && is_sle("<16.0"));
+
+    publiccloud::zypper::pc_install_packages_local(\@pkgs, timeout => $timeout);
+
+    assert_script_run("export CLOUDSDK_PYTHON=/usr/bin/python$py_version");
+    assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
+    assert_script_run("curl $url | bash", $timeout);
+    assert_script_run("echo . /root/$dir/completion.bash.inc >> ~/.bashrc");
+    assert_script_run("echo . /root/$dir/path.bash.inc >> ~/.bashrc");
+    assert_script_run("source ~/.bashrc");
+
+    record_info('GCE', script_output('gcloud version'));
+}
+
+=head2 get_ssh_key_algo
+
+    my $algo = get_ssh_key_algo();
+
+Returns the SSH key algorithm used for public cloud testing.
+
+The openQA setting B<PUBLIC_CLOUD_SSH_KEY_ALGO> overrides the default when set.
+Supported values are C<rsa> or C<ed25519>.
+
+The default is C<ed25519> except for Azure and for C<PUBLIC_CLOUD_LTP>
+runs where it is C<rsa>.
+
+=cut
+
+sub get_ssh_key_algo {
+    my $algo = get_var('PUBLIC_CLOUD_SSH_KEY_ALGO');
+    if ($algo) {
+        die "Unsupported PUBLIC_CLOUD_SSH_KEY_ALGO" unless grep { $_ eq $algo } qw(rsa ed25519);
+        return $algo;
+    }
+    # Paramiko needs to be updated for ed25519 https://stackoverflow.com/a/60791079
+    return (is_azure() || get_var('PUBLIC_CLOUD_LTP')) ? 'rsa' : 'ed25519';
+}
+
+=head2 get_ssh_private_key_path
+
+    my $path = get_ssh_private_key_path();
+
+Returns the path of the SSH private key used for public cloud testing.
+
+=cut
+
+sub get_ssh_private_key_path {
+    return '~/.ssh/id_' . get_ssh_key_algo();
+}
+
+sub permit_root_login {
+    my ($instance) = @_;
+
+    # Skip setting root password for img_proof, because it expects the root password to NOT be set
+    $instance->ssh_assert_script_run(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd root)) unless (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS'));
+
+    # Copy SSH settings for remote root
+    $instance->ssh_assert_script_run('sudo install -o root -g root -m 0700 -dD /root/.ssh');
+    $instance->ssh_assert_script_run(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
+}
+
+sub prepare_ssh_tunnel {
+    my ($instance) = @_;
+
+    # Create the ssh alias
+    assert_script_run(sprintf(q(echo -e 'Host sut\n  Hostname %s' >> ~/.ssh/config), $instance->public_ip));
+
+    # Create remote user and set him a password
+    my $path = (is_sle('>15') && is_sle('<15-SP3')) ? '/usr/sbin/' : '';
+    $instance->ssh_assert_script_run("test -d /home/$testapi::username || sudo ${path}useradd -m $testapi::username");
+    $instance->ssh_assert_script_run(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd $testapi::username));
+
+    # Copy SSH settings for remote user
+    $instance->ssh_assert_script_run("sudo install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
+    $instance->ssh_assert_script_run("sudo install -o $testapi::username -g users -m 0644 ~/.ssh/authorized_keys /home/$testapi::username/.ssh/");
+
+    # Copy SSH settings also for local user
+    assert_script_run("install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
+    assert_script_run("install -o $testapi::username -g users -m 0600 ~/.ssh/* /home/$testapi::username/.ssh/");
+
+    # Permit root passwordless login and TCP forwarding over SSH
+    if (is_sle('>=16') || is_sle_micro('>=6.0')) {
+        $instance->ssh_assert_script_run(q(echo "PermitRootLogin without-password" | sudo tee /etc/ssh/sshd_config.d/10-root-login.conf));
+        $instance->ssh_assert_script_run(q(echo "AllowTcpForwarding yes" | sudo tee /etc/ssh/sshd_config.d/10-tcp-forwarding.conf)) if (is_hardened());
+    } else {
+        $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
+        $instance->ssh_assert_script_run('sudo sed -i "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (is_hardened());
+    }
+    $instance->ssh_assert_script_run('sudo systemctl reload sshd');
+    $instance->wait_for_ssh();
+    record_info('sshd -G', $instance->ssh_script_output('sudo sshd -G', proceed_on_failure => 1));
+
+    permit_root_login($instance);
+
+    # Create log file for ssh tunnel
+    my $ssh_sut = '/var/tmp/ssh_sut.log';
+    assert_script_run "touch $ssh_sut; chmod 777 $ssh_sut";
+}
+
+
+sub add_additional_authorized_keys {
+    my ($instance) = @_;
+    my $keys_source = get_var('PUBLIC_CLOUD_AUTHORIZED_KEYS');
+    return unless $keys_source;
+
+    # Accept either a URL (fetched with curl on the remote) or a base64-encoded string.
+    # Encode a key with: PUBLIC_CLOUD_AUTHORIZED_KEYS=$(base64 -w0 ~/.ssh/id_ed25519.pub)
+    if ($keys_source =~ m{^https?://}) {
+        $instance->ssh_script_run(cmd => qq(curl -sLSf '$keys_source' | tee -a ~/.ssh/authorized_keys));
+    } else {
+        $instance->ssh_script_run(cmd => qq(echo "$keys_source" | base64 -d | tee -a ~/.ssh/authorized_keys));
+    }
+}
+
+
+sub allow_openqa_port_selinux {
+    # not needed to perform multiple times, also semanage would fail.
+    return if ($openqa_port_allowed);
+
+    # Additional packages required for semanage
+    publiccloud::zypper::pc_install_packages_local(['policycoreutils-python-utils']);
+    # allow ssh tunnel port (to openQA)
+    my $upload_port = get_required_var('QEMUPORT') + 1;
+    assert_script_run("semanage port -a -t ssh_port_t -p tcp $upload_port");
+    process_reboot(trigger => 1) if (is_transactional);
+    $openqa_port_allowed = 1;
+}
+
+# Indicating if the openQA port has been already allowed via SELinux policies, for
+# ssh_allow_openqa_port_selinux() -- kept separate from $openqa_port_allowed since this
+# is a distinct call site with its own lifecycle.
+my $ssh_openqa_port_allowed = 0;
+
+=head2 ssh_allow_openqa_port_selinux
+
+    ssh_allow_openqa_port_selinux($instance);
+
+Same purpose as C<allow_openqa_port_selinux> (allow the reverse-tunnel/upload port through
+SELinux's C<ssh_port_t> restriction on SLE Micro), but addressed explicitly via C<$instance>'s
+SSH methods instead of relying on a currently-selected interactive console. This lets it run
+*before* the interactive ssh tunnel is established (poo#207027/#206808): any reboot it triggers
+then takes C<softreboot()>'s simple, untunneled path instead of the tunneled leave/reconnect
+dance, which the interactive tunnel needs but is fragile around reboots.
+
+Exclusively for C<ssh_interactive_start.pm>; C<enable_selinux.pm> keeps using the
+console-based C<allow_openqa_port_selinux> unchanged.
+
+=cut
+
+sub ssh_allow_openqa_port_selinux {
+    my ($instance) = @_;
+    # not needed to perform multiple times, also semanage would fail.
+    return if ($ssh_openqa_port_allowed);
+
+    # Additional packages required for semanage. pc_pkg_call dispatches to pc_transactional_call
+    # (which reboots right away, needed since semanage isn't usable until then) on transactional
+    # systems, or a plain zypper install otherwise -- unlike pc_transactional_call directly, this
+    # keeps the function usable on non-transactional publiccloud images too.
+    publiccloud::zypper::pc_pkg_call($instance, 'in policycoreutils-python-utils');
+    # allow ssh tunnel port (to openQA)
+    my $upload_port = get_required_var('QEMUPORT') + 1;
+    $instance->ssh_assert_script_run("sudo semanage port -a -t ssh_port_t -p tcp $upload_port");
+    $instance->softreboot() if (is_transactional);
+    $ssh_openqa_port_allowed = 1;
+}
+
+
+=head2 ssh_update_transactional_system
+
+ssh_update_transactional_system($host);
+
+Connect to the remote host C<$instance> using ssh and update the system by
+running C<zypper update> twice, in transactional mode. The first run will update the package manager,
+the second run will update the system.
+Transactional systems like SLE micro used C<transactional_update up> and reboot. 
+
+=cut
+
+sub ssh_update_transactional_system {
+    my ($instance) = @_;
+    my $cmd_name = 'transactional update';
+
+    # First run: may update the packager itself.
+    my $t0 = time();
+    publiccloud::zypper::pc_transactional_call($instance, 'up', timeout => 1500);
+    record_info($cmd_name, "The command $cmd_name took " . (time() - $t0) . ' seconds.');
+
+    # Second run: full system update. Treat reboot-needed (102) and the
+    # extra "reboot scheduled" (103) as success; transactional_call already
+    # accepts these by default.
+    $t0 = time();
+    publiccloud::zypper::pc_transactional_call($instance, 'up', timeout => 6000);
+    record_info($cmd_name, "The second command $cmd_name took " . (time() - $t0) . ' seconds.');
+}
+
+
+=head2 get_python_exec
+
+get_python_exec()
+
+Returns the Python executable name for public cloud purposes. As of now, it returns "python3.11" by default.
+
+=cut
+
+sub get_python_exec {
+    my $version = '3.11';
+    return "python$version";
+}
+
+=head2 create_script_file
+
+create_script_file($filename, $fullpath, $content)
+
+Creates a script file with the given content, downloads it from the autoinst URL, and makes it executable.
+This is useful for creating scripts that can be run on the public cloud instance.
+
+=cut
+
+sub create_script_file {
+    my ($filename, $fullpath, $content) = @_;
+    save_tmp_file($filename, $content);
+    assert_script_run(sprintf('curl -o "%s" "%s/files/%s"', $fullpath, autoinst_url, $filename));
+    assert_script_run(sprintf('chmod +x %s', $fullpath));
+}
+
+=head2 install_in_venv
+
+install_in_venv($binary, %args)
+
+Installs a Python package in a virtual environment. The package can be specified either by a requirements.txt file or by a list of pip packages.
+The function creates a virtual environment, installs the specified package(s), and creates a wrapper script to run the binary within the virtual environment.
+
+=cut
+
+sub install_in_venv {
+    my ($binary, %args) = @_;
+
+    die("Missing binary name") unless $binary;
+    die("Need to define path to requirements.txt or list of packages")
+      unless $args{pip_packages} || $args{requirements};
+
+    my $venv = venv_create($binary);
+    venv_activate($venv);
+
+    my $what_to_install = venv_prepare_install_source($binary, \%args);
+    venv_install_packages($what_to_install);
+
+    venv_record_installed_packages($venv);
+    venv_deactivate();
+
+    my $script = venv_generate_runner_script($binary, $venv);
+    my $fullpath = "$venv/bin/$binary-run-in-venv";
+
+    create_script_file($binary, $fullpath, $script);
+    assert_script_run(sprintf('ln -s %s /usr/bin/%s', $fullpath, $binary));
+
+    return $venv;
+}
+
+=head2 venv_create
+
+venv_create($binary)
+
+Creates a Python virtual environment in the home directory of the root user.
+The virtual environment is named after the binary, prefixed with ".venv_".
+
+=cut
+
+sub venv_create {
+    my ($binary) = @_;
+    my $python_exec = get_python_exec();
+    my $venv = "/root/.venv_$binary";
+
+    assert_script_run("$python_exec -m venv $venv");
+    return $venv;
+}
+
+=head2 venv_activate
+
+venv_activate($venv)
+
+Activates the Python virtual environment specified by C<$venv>.
+
+=cut
+
+sub venv_activate {
+    my ($venv) = @_;
+    assert_script_run("source '$venv/bin/activate'");
+}
+
+=head2 venv_prepare_install_source
+
+venv_prepare_install_source($binary, $args_ref)
+
+Prepares the source for installation in the virtual environment.
+If the C<requirements> argument is defined, it fetches a requirements.txt file from the
+autoinst URL and returns the path to that file.
+If not, it returns the list of pip packages to install.
+
+=cut
+
+sub venv_prepare_install_source {
+    my ($binary, $args_ref) = @_;
+    if (defined $args_ref->{requirements}) {
+        my $url = sprintf('%s/data/publiccloud/venv/%s.txt', autoinst_url(), $binary);
+        my $dst = "/tmp/$binary.txt";
+        assert_script_run("curl -f -v $url > $dst");
+        return "-r $dst";
+    }
+    return $args_ref->{pip_packages};
+}
+
+=head2 venv_install_packages
+
+venv_install_packages($install_target)
+
+Installs the specified package(s) in the virtual environment using pip.
+This function takes a string that can be either a path to a requirements.txt file or a list of pip packages.
+
+=cut
+
+sub venv_install_packages {
+    my ($install_target) = @_;
+    my $timeout = 15 * 60;
+    assert_script_run("pip install --force-reinstall $install_target", timeout => $timeout);
+}
+
+=head2 venv_record_installed_packages
+
+venv_record_installed_packages($venv)
+Records the installed packages in the virtual environment by running `pip freeze`.
+
+=cut
+
+sub venv_record_installed_packages {
+    my ($venv) = @_;
+    record_info($venv, script_output('pip freeze'));
+}
+
+=head2 venv_deactivate
+
+venv_deactivate()
+
+Deactivates the currently active Python virtual environment.
+
+=cut
+
+sub venv_deactivate {
+    assert_script_run('deactivate');
+}
+
+=head2 venv_generate_runner_script
+
+venv_generate_runner_script($binary, $venv)
+
+Generates a shell script that activates the virtual environment and runs the specified binary.
+This script checks if the binary exists in the virtual environment and exits with an error if it does not.
+
+=cut
+
+sub venv_generate_runner_script {
+    my ($binary, $venv) = @_;
+    return <<"EOT";
+#!/bin/sh
+. "$venv/bin/activate"
+if [ ! -e "$venv/bin/$binary" ]; then
+   echo "Missing $binary in virtualenv $venv"
+   deactivate
+   exit 2
+fi
+$binary "\$@"
+exit_code=\$?
+deactivate
+exit \$exit_code
+EOT
+}
+
+=head2 detect_worker_ip
+
+    detect_worker_ip($proceed_on_failure)
+
+    Detects the current openQA worker's public IPs (ipv4/6) and returns them as
+    an array of suitable CIDR strings(/32 or /128 for ipv4/6, respectively).
+    The function uses http://checkip.amazonaws.com and falls back to https://ifconfig.me
+    if the first attempt fails.
+    Optionally accepts proceed_on_failure => 1 to return undef instead of dying.
+
+    Return:
+    - worker ip, if retrieved
+    - undef otherwise (if proceed_on_failure is set)
+
+=cut
+
+sub detect_worker_ip {
+    my (%args) = @_;
+    my $ip;
+    for my $url ('http://checkip.amazonaws.com', 'https://ifconfig.me') {
+        $ip = script_output("curl -q -fsS --max-time 10 $url",
+            timeout => 15, proceed_on_failure => 1);
+        $ip =~ s/^\s+|\s+$//g;
+        next unless $ip && (inet_pton(AF_INET, $ip) || inet_pton(AF_INET6, $ip));
+        return $ip;
+    }
+    return undef if $args{proceed_on_failure};
+    die "Worker IP could not be determined - return was $ip";
+}
+
+=head2 calculate_custodian_ttl
+
+
+calculate_custodian_ttl($ttl_in_seconds)
+
+This function adds the following tags to public cloud objects: custodian_ttl
+custodian_ttl is calculated by adding the $ttl_in_seconds to the current time and formatting it in ISO 8601
+This tag is needed to compare TTL vs Creation time in Cloud Custodian.
+
+=cut
+
+sub calculate_custodian_ttl {
+    my ($ttl_in_seconds) = @_;
+
+    # Unix time in seconds
+    my $now_timestamp = time();
+    my $expiration_timestamp = $now_timestamp + $ttl_in_seconds;
+
+    # Convert to UTC
+    my $expiration_time = gmtime($expiration_timestamp);
+
+    # convert to proper format
+    my $custodian_expiration_date = $expiration_time->strftime("%Y-%m-%dT%H:%M:%SZ");
+
+    return $custodian_expiration_date;
+}
+
+=head2 pc_data_url
+
+  pc_data_url($path);
+
+returns the URL to download osado artifact much like testapi::data_url
+
+Note: Use with curl -L to follow redirects.
+
+=cut
+
+sub pc_data_url {
+    my $path = shift;
+    # Note: We can't use CASEDIR because internally is a local path in vars.json
+    my $git_url = get_required_var("TEST_GIT_URL");
+    my $commit = get_required_var("TEST_GIT_HASH");
+
+    # Convert the ssh URL "git@github.com:foobar" into "https://github.com/foobar" for curl/wget consumption
+    $git_url =~ s{^.*@([^:]+):}{https://$1/};
+
+    # Strip .git suffix
+    $git_url =~ s{\.git$}{};
+
+    return "$git_url/raw/$commit/data/$path" if ($git_url =~ m{^https?://(?:www\.)?github\.com});
+    return "$git_url/-/raw/$commit/$path" if ($git_url =~ m{^https?://(?:www\.)?gitlab\.});
+    # Assume Gitea (used by src.suse.de & src.opensuse.org)
+    return "$git_url/src/commit/$commit/$path";
+}
+
+=head2 additional_repos
+
+additional_repos();
+
+This function returns a list of additional repos
+relevant to the Public Cloud job
+
+=cut
+
+sub additional_repos {
+    my @repos = ();
+
+    # Add repo for xfstests
+    if (get_var("PUBLIC_CLOUD_XFS")) {
+        my $version = get_required_var("VERSION");
+        my $prefix = "";
+        $prefix = "SLE" if is_sle;
+        $prefix = "SLES" if is_sle(">=16.0");
+        $prefix = "SL-Micro" if is_sle_micro(">=6.0");
+        die "Unsupported product for QA:Head" unless $prefix;
+        push @repos, "https://dist.suse.de/ibs/QA:/Head/$prefix-$version/";
+    }
+    return @repos;
+}
+
+1;

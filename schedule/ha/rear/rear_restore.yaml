@@ -1,0 +1,6 @@
+---
+name: rear_restore
+description: >
+  Restore ReaR backup files.
+schedule:
+  - ha/rear_restore

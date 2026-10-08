@@ -1,0 +1,19 @@
+---
+name: Agama unattended lvm with TPM FDE
+description: >
+  Perform Agama unattended installation with TPM FDE on LVM.
+  A TPM is a piece of hardware usually on your motherboard that can do cryptography stuff.
+  Secure Boot is a mode of UEFI firmwares. What we want to do is to store the key to decrypt
+  the partition in the TPM.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_lvm
+  - console/validate_encrypt
+  - yam/validate/validate_tpm_fde
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  <<: !include test_data/yast/encryption/default_enc_luks2.yaml

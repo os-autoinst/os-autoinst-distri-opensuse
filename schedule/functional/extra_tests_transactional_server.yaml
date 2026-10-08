@@ -1,0 +1,16 @@
+---
+name: extra_tests_transactional_server
+description: >
+    Maintainer: zluo
+    transactional server for SLES 15-SP3
+    boot transactional server as serverrole and run some transactional tests
+schedule:
+    - boot/boot_to_desktop
+    - console/zypper_ref
+    - console/update_alternatives
+    - console/java
+    - transactional/filesystem_ro
+    - transactional/transactional_update
+    - transactional/rebootmgr
+    - transactional/health_check
+    - console/zypper_log_packages

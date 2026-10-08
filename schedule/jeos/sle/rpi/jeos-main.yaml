@@ -1,0 +1,51 @@
+---
+description: 'Main RPi test suite. Maintainer: dheidler.'
+name: 'jeos-main@aarch64 ( qemu )'
+schedule:
+  - jeos/firstrun
+  - jeos/image_info
+  - jeos/record_machine_id
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - jeos/host_config
+  - jeos/diskusage
+  - jeos/build_key
+  - console/prjconf_excluded_rpms
+  - console/suseconnect_scc
+  - jeos/glibc_locale
+  - console/check_network
+  - console/system_state
+  - console/consoletest_setup
+  - locale/keymap_or_locale
+  - console/apache
+  - console/dns_srv
+  - console/postgresql_server
+  - console/shibboleth
+  - console/apache_ssl
+  - console/apache_nss
+  - console/hostname
+  - console/installation_snapshots
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - console/yast2_lan
+  - console/curl_https
+  - console/glibc_sanity
+  - update/zypper_up
+  - console/console_reboot
+  - console/zypper_in
+  - console/yast2_i
+  - console/yast2_bootloader
+  - console/vim
+  - console/firewall_enabled
+  - console/kdump_disabled
+  - console/slp
+  - console/sshd_running
+  - console/sshd
+  - console/ssh_cleanup
+  - console/mtab
+  - console/mariadb_srv
+  - console/rsync
+  - console/zypper_lifecycle
+  - console/orphaned_packages_check
+  - console/consoletest_finish

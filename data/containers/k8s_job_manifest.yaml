@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test
+spec:
+  template:
+    spec:
+      containers:
+      - name: JOB_NAME
+        image: IMAGE
+        command: [ CMD ]
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: 256Mi
+          requests:
+            cpu: "0.1"
+            memory: 128Mi
+      restartPolicy: Never
+

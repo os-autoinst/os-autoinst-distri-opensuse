@@ -1,0 +1,8 @@
+name:           nfs_functional_tests
+description:    >
+    Create a supportserver for multimachine cluster tests
+schedule:
+    - support_server/login
+    - support_server/setup
+    - kernel/nfs_barriers
+    - support_server/wait_children

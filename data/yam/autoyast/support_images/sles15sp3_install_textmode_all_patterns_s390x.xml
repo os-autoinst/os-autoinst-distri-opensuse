@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader t="map">
+    <global t="map">
+      <secure_boot>false</secure_boot>
+      <terminal>console</terminal>
+      <timeout t="integer">-1</timeout>
+      <trusted_grub>false</trusted_grub>
+    </global>
+    <loader_type>grub2</loader_type>
+  </bootloader>
+  <dasd t="map">
+    <devices t="list"/>
+    <format_unformatted t="boolean">false</format_unformatted>
+  </dasd>
+  <general t="map">
+    <cio_ignore t="boolean">false</cio_ignore>
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <partitioning t="list">
+    <drive t="map">
+      <device>/dev/disk/by-path/ccw-0.0.0000</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots t="boolean">true</enable_snapshots>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">ext2</filesystem>
+          <format t="boolean">true</format>
+          <mount>/boot/zipl</mount>
+          <mountby t="symbol">path</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>314572800</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">true</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <format t="boolean">true</format>
+          <mount>/</mount>
+          <mountby t="symbol">path</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <quotas t="boolean">true</quotas>
+          <resize t="boolean">false</resize>
+          <size>max</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">swap</filesystem>
+          <format t="boolean">true</format>
+          <mount>swap</mount>
+          <mountby t="symbol">path</mountby>
+          <partition_id t="integer">130</partition_id>
+          <partition_nr t="integer">3</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>2148515328</size>
+        </partition>
+      </partitions>
+      <type t="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>firewalld</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>kdump</service>
+        <service>kdump-early</service>
+        <service>systemd-remount-fs</service>
+      </enable>
+      <on_demand t="list">
+        <listentry>virtlockd</listentry>
+      </on_demand>
+    </services>
+  </services-manager>
+  <software t="map">
+    <install_recommended t="boolean">true</install_recommended>
+    <instsource/>
+    <packages t="list">
+      <package>yast2-x11</package>
+      <package>xorg-x11-server</package>
+      <package>xorg-x11-fonts</package>
+      <package>xorg-x11-Xvnc</package>
+      <package>wicked</package>
+      <package>snapper</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>openssh</package>
+      <package>kexec-tools</package>
+      <package>kdump</package>
+      <package>icewm</package>
+      <package>grub2</package>
+      <package>glibc</package>
+      <package>firewalld</package>
+      <package>e2fsprogs</package>
+      <package>btrfsprogs</package>
+      <package>autoyast2</package>
+    </packages>
+    <patterns t="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basesystem</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>dhcp_dns_server</pattern>
+      <pattern>directory_server</pattern>
+      <pattern>documentation</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>file_server</pattern>
+      <pattern>fips</pattern>
+      <pattern>fonts</pattern>
+      <pattern>gateway_server</pattern>
+      <pattern>hwcrypto</pattern>
+      <pattern>kvm_server</pattern>
+      <pattern>kvm_tools</pattern>
+      <pattern>lamp_server</pattern>
+      <pattern>mail_server</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>ofed</pattern>
+      <pattern>print_server</pattern>
+      <pattern>sap_server</pattern>
+      <pattern>sw_management</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>yast2_desktop</pattern>
+      <pattern>yast2_server</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <suse_register t="map">
+    <addons t="list">
+      <addon t="map">
+        <arch>s390x</arch>
+        <name>sle-module-basesystem</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+      </addon>
+      <addon t="map">
+        <arch>s390x</arch>
+        <name>sle-module-server-applications</name>
+        <reg_code/>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+      </addon>
+      <!-- workaround for bug 1216116 -->
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+      </addon>
+    </addons>
+    <do_registration t="boolean">true</do_registration>
+    <install_updates t="boolean">true</install_updates>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <reg_server>https://scc.suse.com</reg_server>
+    <slp_discovery t="boolean">false</slp_discovery>
+  </suse_register>
+  <users t="list">
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>bernhard</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$eA4bSUR/8ahZbdR4$NfMpaoY.ltJVlJeRCuiMu5P.ADxyCNLvLXcSuxdCwVLzQ6Z.j6GdwVJuFzOAMrSe.mimkjJfr.oq14B4x.NqC0</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$ywoDzBS/8yNKlkbq$VssZfo8IdxnHVfxfHmiCBqXEBFypwGZYDCvWwS..NVN2OmS9AVz/8009EgAxkPgA519znf4B20hHNEWGBPdqd/</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

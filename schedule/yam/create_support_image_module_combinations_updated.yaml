@@ -1,0 +1,17 @@
+name: create_support_image_module_combinations_updated
+description:    >
+  Create support images with module combinations.
+conditional_schedule:
+  svirt_upload_assets:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - update/patch_sle
+  - console/scc_deregistration
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{svirt_upload_assets}}'

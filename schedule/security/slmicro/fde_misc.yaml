@@ -1,0 +1,19 @@
+name: fde_regen_key
+description:    >
+    This is for the fde_regen_key test on SLE Micro.
+schedule:
+    - '{{boot}}'
+    - transactional/host_config
+    - console/suseconnect_scc
+    - security/selinux/selinux_setup
+    - security/tpm2/tpm2_verify_presence
+    - security/tpm2/tpm2_fail_key_unsealing.pm
+    - security/fde_regenerate_key
+    - console/journal_check
+conditional_schedule:
+    boot:
+        ENCRYPTED_IMAGE:
+            0:
+                - microos/disk_boot
+            1:
+                - jeos/firstrun

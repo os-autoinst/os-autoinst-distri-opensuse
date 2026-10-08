@@ -1,0 +1,9 @@
+name:           boot_to_snapshot
+description:    >
+    Test booting to automatically created snapshots.
+vars:
+    BOOT_TO_SNAPSHOT: 1
+schedule:
+    - boot/boot_to_desktop
+    - console/snapper_zypp
+    - installation/boot_into_snapshot

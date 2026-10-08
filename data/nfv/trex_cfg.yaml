@@ -1,0 +1,16 @@
+- port_limit: 2
+  version: 2
+  interfaces: ['PORT_0', 'PORT_1']
+  port_info:
+      - ip: 1.1.1.1
+        default_gw: 2.2.2.2
+      - ip: 2.2.2.2
+        default_gw: 1.1.1.1
+
+  platform:
+      master_thread_id: 0
+      latency_thread_id: 23
+      dual_if:
+        - socket: 0
+          threads: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]
+

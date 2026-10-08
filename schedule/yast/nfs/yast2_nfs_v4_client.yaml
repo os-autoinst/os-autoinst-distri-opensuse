@@ -1,0 +1,7 @@
+---
+name:          yast2_nfs_v4_client
+description:    >
+  Multimachine nfs v4 test, client side. Configures an export with the yast module, and validates that the exported FS is working. Maintainer jrivrain@suse.com.
+schedule:
+  - boot/boot_to_desktop
+  - console/yast2_nfs4_client

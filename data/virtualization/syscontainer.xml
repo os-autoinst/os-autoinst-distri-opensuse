@@ -1,0 +1,40 @@
+<domain type='lxc'>
+  <name>guest</name>
+  <memory unit='MiB'>256</memory>
+  <currentMemory unit='MiB'>256</currentMemory>
+  <vcpu placement='static'>1</vcpu>
+  <resource>
+    <partition>/machine</partition>
+  </resource>
+  <os>
+    <type arch='x86_64'>exe</type>
+    <init>/sbin/init</init>
+  </os>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <devices>
+    <filesystem type='mount' accessmode='passthrough'>
+      <source dir='/tmp/rootfs'/>
+      <target dir='/'/>
+    </filesystem>
+    <filesystem type='mount' accessmode='passthrough'>
+      <source dir='/etc/resolv.conf'/>
+      <target dir='/etc/resolv.conf'/>
+    </filesystem>
+    <interface type='network'>
+      <source network='default'/>
+      <ip address='192.168.122.5' family='ipv4' prefix='24'/>
+      <route address='0.0.0.0' prefix='0' gateway='192.168.122.1'/>
+    </interface>
+    <console type='pty'>
+      <target type='lxc' port='0'/>
+    </console>
+    <hostdev mode='capabilities' type='misc'>
+      <source>
+        <char>/dev/ttyS0</char>
+      </source>
+    </hostdev>
+  </devices>
+</domain>

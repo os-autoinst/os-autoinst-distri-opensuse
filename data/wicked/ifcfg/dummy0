@@ -1,0 +1,5 @@
+NAME='Dummy link'
+STARTMODE='auto'
+BOOTPROTO='static'
+ 
+LLADDR='__macaddr__'

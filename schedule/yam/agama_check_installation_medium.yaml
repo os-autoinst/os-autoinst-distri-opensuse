@@ -1,0 +1,7 @@
+---
+name: agama_check_installation_medium
+description: >
+  Test suite triggers installation medium integrity check and verifies that is successful by checking logs.
+schedule:
+  - yam/agama/boot_agama
+  - yam/validate/validate_medium_integrity

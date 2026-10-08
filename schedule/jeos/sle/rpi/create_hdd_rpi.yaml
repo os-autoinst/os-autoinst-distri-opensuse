@@ -1,0 +1,7 @@
+---
+description: 'Prepare rpi image to do dhcp and ssh. Maintainer: dheidler.'
+name: 'create_hdd_rpi@aarch64 ( qemu )'
+schedule:
+  - jeos/firstrun
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

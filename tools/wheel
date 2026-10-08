@@ -1,0 +1,35 @@
+#!/usr/bin/python3
+
+import os
+import sys
+import subprocess
+
+import yaml
+
+if not os.path.exists('wheels.yaml'):
+	print("No wheels.yaml found!\nExiting.", file=sys.stderr)
+	sys.exit()
+
+wheels_raw = yaml.safe_load(open('wheels.yaml'))
+wheels_schema = yaml.safe_load(open('os-autoinst/schema/Wheels-01.yaml'))
+
+if '--verify' in sys.argv:
+	import jsonschema
+	jsonschema.validate(instance=wheels_raw, schema=wheels_schema)
+
+wheels = {}
+for wheel in wheels_raw['wheels']:
+	if not wheel.startswith('http'):
+		wheel = f'https://github.com/{wheel}'
+	wheels[wheel.rsplit('/', 1)[1]] = wheel
+
+if '--fetch' in sys.argv:
+	for wdir, wheel in wheels.items():
+		if not os.path.exists(wdir):
+			print(f"Checking out {wheel}", file=sys.stderr)
+			subprocess.run(['git', 'clone', wheel], stdout=sys.stderr)
+		else:
+			print(f"Updating {wdir}", file=sys.stderr)
+			subprocess.run(['git', '-C', wdir, 'pull', '--rebase'], stdout=sys.stderr)
+
+print(':'.join(map(lambda w: f"{w}/lib", wheels.keys())))

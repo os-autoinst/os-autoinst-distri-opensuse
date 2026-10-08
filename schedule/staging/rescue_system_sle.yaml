@@ -1,0 +1,10 @@
+---
+name:           rescue_system_sle
+description:    >
+  Boot installation medium into rescue mode and test mounting
+  a SLES installation.
+vars:
+  AGAMA: '1'
+schedule:
+  - yam/agama/boot_agama
+  - installation/rescuesystem_validate_sle

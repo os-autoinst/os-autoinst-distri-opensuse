@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on t="map">
+    <add_on_products t="list">
+      <listentry t="map">
+        <media_url>cd:/</media_url>
+        <product>sle-module-desktop-applications</product>
+        <product_dir>/Module-Desktop-Applications</product_dir>
+      </listentry>
+      <listentry t="map">
+        <media_url>cd:/</media_url>
+        <product>sle-module-basesystem</product>
+        <product_dir>/Module-Basesystem</product_dir>
+      </listentry>
+      <listentry t="map">
+        <media_url>cd:/</media_url>
+        <product>sle-module-server-applications</product>
+        <product_dir>/Module-Server-Applications</product_dir>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  <bootloader t="map">
+    <global t="map">
+      <timeout t="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <enable t="list">
+        <service>sshd</service>
+      </enable>
+      <on_demand t="list"/>
+    </services>
+  </services-manager>
+  <software>
+    <install_recommended t="boolean">true</install_recommended>
+    <packages t="list">
+      <package>autoyast2</package>
+    </packages>
+    <patterns t="list">
+      <pattern>base</pattern>
+      <pattern>minimal_base</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <users t="list">
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <password_settings t="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$.N86vYKuQteL0GYY$bJ21i0aJFgdnrwLGI3mc4u.dmYUH0Jf2gcmZPA0PJQr6WaQkLt/DojjsKxadG31ZwWam/cqSjmREls8WWKG7Q0</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <password_settings t="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$JqTWoXNwcwQ1356j$bT7n.1B52Us/pFvz6MaI6a6Wtb41iSvTELWgDvlA1s5wCuZ.SafTgqdJogP4/yHxSoNxcmknojKnGA8C9zbR81</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

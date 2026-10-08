@@ -1,0 +1,107 @@
+package grub_utils;
+
+use base Exporter;
+use Exporter;
+
+use strict;
+use warnings;
+use opensusebasetest qw(handle_uefi_boot_disk_workaround);
+use testapi;
+use Utils::Architectures;
+use utils;
+use version_utils qw(is_sle is_livecd get_bootloader is_agama is_leap is_bootloader_sdboot);
+use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
+use Utils::Backends;
+
+our @EXPORT = qw(
+  grub_test
+);
+
+=head2
+
+  grub_test();
+
+Handle grub menu after reboot
+    - Handle grub2 to boot from hard disk (opposed to installation)
+    - Handle passphrase for encrypted disks
+    - Handle booting of snapshot or XEN, acconding to BOOT_TO_SNAPSHOT or XEN
+    - Append kernel options if set with GRUB_KERNEL_OPTION_APPEND
+=cut
+
+sub grub_test {
+    my $timeout = get_var('GRUB_TIMEOUT', 200);
+
+    reconnect_mgmt_console if is_pvm;
+    handle_installer_medium_bootup();
+    unlock_bootloader;
+    # get_bootloader returns the name of the bootloaders
+    # which is conveniently the same names we use for
+    # their tags
+    my $bootloader_tag = get_bootloader();
+    assert_screen($bootloader_tag, $timeout);
+    assert_screen('grub2_timeout') if get_var('AGAMA_PROFILE_OPTIONS', '') =~ /bootloader_timeout/;
+    stop_grub_timeout;
+    boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
+    send_key_until_needlematch("bootmenu-xen-kernel", 'down', 11, 5) if get_var('XEN');
+    if (get_var('GRUB_KERNEL_OPTION_APPEND'))
+    {
+        append_kernel_options(get_var('GRUB_KERNEL_OPTION_APPEND')) unless get_var("BOOT_TO_SNAPSHOT");
+    }
+    else {
+        # avoid timeout for booting to HDD
+        send_key 'ret';
+    }
+    # Avoid return key not received occasionally for hyperv-uefi and vmware-uefi guests at first boot
+    send_key 'ret' if ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('VIRSH_VMM_FAMILY', 'vmware')) && get_var('UEFI'));
+}
+
+=head2 handle_installer_medium_bootup
+
+Due to pre-installation setup, qemu boot order is always booting from CD-ROM.
+=cut
+
+sub handle_installer_medium_bootup {
+    return unless (check_var("BOOTFROM", "d") || (get_var('UEFI') && get_var('USBBOOT')));
+    return if (check_var("BOOTFROM", "c") && !(is_sle || is_leap("<16.0")));
+    assert_screen 'inst-bootmenu', 180;
+
+    # Layout of live is different from installation media
+    # Agama has same layout of live
+    my $key = is_livecd() || get_var("AGAMA") ? 'down' : 'up';
+    send_key_until_needlematch 'inst-bootmenu-boot-harddisk', $key;
+    send_key 'ret';
+
+    # use firmware boot manager of aarch64 to boot upgraded system
+    'opensusebasetest'->handle_uefi_boot_disk_workaround() if (is_aarch64);
+}
+
+sub append_kernel_options {
+    my ($options) = @_;
+
+    if (is_bootloader_sdboot()) {
+        send_key "e";
+        assert_screen "systemd-boot-edit-cmdline";
+        send_key "end";
+
+        type_string " " . $options;
+
+        save_screenshot;
+        send_key "ret";    # Boot
+        return;
+    }
+
+    # Code for grub2 and grub2-bls
+    send_key 'e';
+    check_screen "linux-line-selected", 2;
+    # Move to end of kernel boot parameters line
+    send_key_until_needlematch "linux-line-selected", "down", 26;
+    send_key "end";
+
+    assert_screen "linux-line-matched";
+    type_string " " . $options;
+
+    save_screenshot;
+    send_key 'ctrl-x';
+}
+
+1;

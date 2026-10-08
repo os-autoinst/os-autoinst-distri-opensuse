@@ -1,0 +1,28 @@
+#cloud-config
+
+# set locale
+locale: en_US.UTF-8
+
+# set timezone
+timezone: UTC
+
+users:
+ - default
+ - name: bernhard
+   groups: users
+   lock_passwd: false
+
+# set root password and create bernhard user
+chpasswd:
+  list: |
+    root:%PASSWORD%
+    bernhard:%PASSWORD%
+  expire: False
+
+# (1)   set keymap
+# (2-3) set it the way jeos-firstboot does
+runcmd:
+ - localectl set-keymap us
+
+system_info:
+  distro: sles

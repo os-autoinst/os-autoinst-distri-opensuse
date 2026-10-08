@@ -1,0 +1,39 @@
+name: cc_ipsec
+description: >
+    This is for ipsec test in CC system role
+schedule:
+    - installation/bootloader_start
+    - security/boot_disk
+    - '{{remove_bridge_network}}'
+    - '{{setup_multimachine}}'
+    - security/cc/cc_audit_test_setup
+    - security/eal4/setup_eal4_env
+    - '{{disable_root_ssh}}'
+    - '{{cc_ipsec}}'
+conditional_schedule:
+    remove_bridge_network:
+        ARCH:
+            aarch64:
+                - security/cc/remove_bridge_network
+            x86_64:
+                - security/cc/remove_bridge_network
+    setup_multimachine:
+        ARCH:
+            aarch64:
+                - network/setup_multimachine
+            x86_64:
+                - network/setup_multimachine
+    cc_ipsec:
+        HOSTNAME:
+            server:
+                - security/cc/ipsec/ipsec_server
+                - security/cc/ipsec/ipsec_certificate
+            client:
+                - security/cc/ipsec/ipsec_client
+                - security/cc/ipsec/weak_ipsec_ciphers
+                - security/cc/ipsec/ipsec_ciphers
+                - security/cc/ipsec/ipsec_certificate
+    disable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/disable_root_ssh

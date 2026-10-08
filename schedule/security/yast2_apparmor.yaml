@@ -1,0 +1,11 @@
+name: yast2_apparmor
+description:    >
+    This is for the yast2_apparmor test.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/yast2_apparmor/settings_disable_enable_apparmor
+    - security/yast2_apparmor/settings_toggle_profile_mode
+    - security/yast2_apparmor/scan_audit_logs_ncurses
+    - security/yast2_apparmor/manually_add_profile_ncurses

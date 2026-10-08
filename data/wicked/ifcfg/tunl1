@@ -1,0 +1,9 @@
+STARTMODE='auto'
+BOOTPROTO='static'
+NAME='IPIP Tunnel Interface'
+
+TUNNEL='ipip'
+
+TUNNEL_LOCAL_IPADDR='local_ip'
+TUNNEL_REMOTE_IPADDR='remote_ip'
+IPADDR='tunnel_ip/24'

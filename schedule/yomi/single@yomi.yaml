@@ -1,0 +1,15 @@
+name: single@yomi
+description: >-
+  Install openSUSE in a single HD system using Yomi.
+vars:
+  TEST: single
+  BOOT_HDD_IMAGE: 1
+test_data:
+  from_factory: 1
+schedule:
+  - boot/boot_to_desktop
+  - yomi/yomi_formula
+  - yomi/fetch_iso
+  - yomi/start_qemu
+  - yomi/yomi_scenario
+  - yomi/stop_qemu

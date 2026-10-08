@@ -1,0 +1,9 @@
+name:           RPi_flash_firmware
+description:    >
+    Copy required files to uSD card to chain boot on USB with latest firmware and u-boot with generalhw backend for RPi2 and RPi3.
+    Usage: Schedule this test suite before your actual test (e.g. jeos) by adding START_DIRECTLY_AFTER_TEST=RPi_flash_firmware
+    to your test (jeos).
+schedule:
+    - jeos/prepare_firstboot
+    - jeos/firstrun
+    - jeos/flash_rpi_firmware_workaround

@@ -1,0 +1,48 @@
+# SUSE's openQA tests
+#
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Prepare UI toolkit tests
+# Maintainer: Dominik Heidler <dheidler@suse.de>
+
+use Mojo::Base 'x11test';
+use testapi;
+use utils;
+use version_utils;
+use registration qw(add_suseconnect_product register_product);
+
+sub run {
+    select_console 'root-console';
+
+    my $qt5_devel = 'libQt5Core-devel libQt5Gui-devel libQt5Widgets-devel';
+    my $qt6_devel = 'qt6-core-devel qt6-gui-devel qt6-widgets-devel';    # devel packages for Qt6 are not L3 supported in SLES
+
+    if (is_sle) {
+        $qt6_devel = '';    # devel packages for Qt6 are not L3 supported in SLES - See https://bugzilla.suse.com/show_bug.cgi?id=1217337
+        assert_script_run 'source /etc/os-release';
+        if (get_var 'ADDONURL_SDK') {
+            zypper_call('ar ' . get_var('ADDONURL_SDK') . ' sdk-repo');
+            zypper_call('ref');
+        }
+        elsif (is_sle '>=15') {
+            add_suseconnect_product('sle-module-development-tools');
+        }
+        else {
+            # for historical reasons we don't register SLE12 systems in openqa by default
+            register_product();
+            add_suseconnect_product('sle-sdk');
+        }
+    }
+
+    zypper_call "in gcc gcc-c++ tcl tk xmessage fltk-devel motif-devel gtk2-devel gtk3-devel gtk4-devel java java-devel $qt5_devel $qt6_devel";
+
+    select_console 'x11';
+}
+
+sub test_flags {
+    return {milestone => 1, fatal => 1};
+}
+
+
+1;

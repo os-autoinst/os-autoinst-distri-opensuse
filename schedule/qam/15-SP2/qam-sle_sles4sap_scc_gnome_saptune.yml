@@ -1,0 +1,7 @@
+name:           qam-sle_sles4sap_scc_gnome_saptune
+description:    >
+  Test saptune on top of sles4sap gnome image.
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/saptune

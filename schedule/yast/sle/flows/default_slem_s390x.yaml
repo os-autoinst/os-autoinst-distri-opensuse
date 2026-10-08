@@ -1,0 +1,44 @@
+---
+# Default ordered sequence of steps for sle15sp4 with maintenance updates
+bootloader:
+  - installation/bootloader_start
+setup_libyui:
+  - installation/setup_libyui
+# access_beta_distribution:
+#   - installation/access_beta_distribution
+license_agreement:
+  - installation/licensing/accept_license
+disk_activation: []
+registration:
+  - installation/registration/register_via_scc
+addons: []
+ntp_configuration:
+  - yam/ntp_configuration
+authentication:
+  - installation/authentication/root_simple_pwd
+software:
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+booting:
+  - installation/disable_grub_timeout
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
+installation_settings:
+  - installation/launch_installation
+installation:
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+timeout:
+  - installation/performing_installation/stop_timeout_system_reboot_now
+installation_logs:
+  - installation/logs_from_installation_system
+confirm_reboot:
+  - installation/reboot_after_installation
+reconnect:
+  - boot/reconnect_mgmt_console
+grub: []
+first_login:
+  - installation/first_boot
+system_validation: []
+shutdown:
+  - shutdown/shutdown

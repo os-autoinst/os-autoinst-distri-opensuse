@@ -1,0 +1,18 @@
+name: scap_workbench
+description:    >
+    This is for scap_workbench test
+vars:
+    QEMURAM: 4096
+    QEMUCPUS: 2
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - x11/disable_screensaver
+    - security/scap_workbench/scap_workbench
+conditional_schedule:
+    bootloader:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+            ppc64le:
+                - installation/bootloader_start

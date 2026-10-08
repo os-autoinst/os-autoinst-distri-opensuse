@@ -1,0 +1,53 @@
+---
+name: autoyast_mini
+description: >
+  The schedule for the common installation with AutoYaST control file.
+  Could be used by variety of AutoYaST test suites with different set of openQA
+  variables. The variables are specified in Job Group or in Test Suite settings.
+vars:
+  AUTOYAST_PREPARE_PROFILE: 1
+  AUTOYAST_CONFIRM: 1
+  DESKTOP: textmode
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/first_boot
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - update/zypper_up
+  - console/zypper_in
+  - console/zypper_log
+  - console/orphaned_packages_check
+  - autoyast/verify_cloned_profile
+test_data:
+  disks:
+    - name: vda
+      table_type: gpt
+      partitions:
+        - name: vda2
+          formatting_options:
+            filesystem: btrfs
+          mounting_options:
+            mount_point: /
+        - name: vda3
+          formatting_options:
+            filesystem: xfs
+          mounting_options:
+            mount_point: /home
+        - name: vda4
+          formatting_options:
+            filesystem: swap
+          mounting_options:
+            mount_point: '[SWAP]'
+  <<: !include test_data/yast/autoyast/profiles/mini_s390x.yaml

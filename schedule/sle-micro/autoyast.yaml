@@ -1,0 +1,34 @@
+name:           sle_micro_autoyast
+description:    >
+    Maintainer: jalausuch@suse.com, qa-c@suse.de.
+    SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  maintenance:
+    FLAVOR:
+      'DVD-Updates':
+        - transactional/install_updates
+  host_config:
+    ARCH:
+      's390x':
+        - transactional/host_config
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/logs
+  - console/textinfo
+  - '{{host_config}}'
+  - '{{maintenance}}'
+  - microos/networking
+  - microos/libzypp_config
+  - microos/one_line_checks
+  - microos/services_enabled
+  - microos/cockpit_service
+  - transactional/filesystem_ro
+  - transactional/transactional_update
+  - transactional/rebootmgr
+  - transactional/health_check
+  - console/journal_check
+  - shutdown/shutdown

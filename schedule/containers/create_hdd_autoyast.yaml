@@ -1,0 +1,40 @@
+---
+name: create_hdd_autoyast
+description:    >
+    Maintainer: qa-c@suse.de.
+    HDD creation for container tests in product QA
+conditional_schedule:
+    grub_set_bootargs:
+        ARCH:
+            's390x':
+                - shutdown/grub_set_bootargs
+    svirt_upload_assets:
+        ARCH:
+            's390x':
+                - shutdown/svirt_upload_assets
+    fips:
+        FIPS:
+            '1':
+                - fips/fips_setup
+    k3s_helm_install:
+        INSTALL_K3S:
+            '1':
+                - containers/k3s_helm_install
+
+schedule:
+    - autoyast/prepare_profile
+    - installation/bootloader_start
+    - autoyast/installation
+    - autoyast/console
+    - autoyast/login
+    - autoyast/logs
+    - autoyast/save_y2logs
+    - '{{grub_set_bootargs}}'
+    - containers/install_updates
+    - console/system_prepare
+    - '{{fips}}'
+    - containers/bci_prepare
+    - '{{k3s_helm_install}}'
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
+    - '{{svirt_upload_assets}}'

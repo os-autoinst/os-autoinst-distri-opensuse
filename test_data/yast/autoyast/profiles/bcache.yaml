@@ -1,0 +1,28 @@
+---
+profile:
+  partitioning:
+    drive:
+      - device: /dev/vda
+        type: CT_DISK
+        partitions:
+          __count: 4
+          partition:
+            - mount: /boot
+              filesystem: ext3
+            - mount: swap
+              filesystem: swap
+            - bcache_backing_for: /dev/bcache0
+      - device: /dev/vdb
+        disklabel: none
+        type: CT_DISK
+        partitions:
+          partition:
+            bcache_caching_for:
+              listentry: /dev/bcache0
+      - device: /dev/bcache0
+        bcache_options:
+          cache_mode: writethrough
+        type: CT_BCACHE
+        partitions:
+          partition:
+            mount: /

@@ -1,0 +1,130 @@
+# SUSE's openQA tests
+#
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: pacemaker-cts
+# Summary: Execute the pacemaker-cts cluster exerciser to test a whole
+# cluster.
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+use Mojo::Base 'haclusterbasetest';
+use Mojo::JSON 'encode_json';
+use lockapi;
+use testapi;
+use utils qw(systemctl exec_and_insert_password);
+use hacluster;
+use version_utils qw(is_transactional package_version_cmp);
+use package_utils qw(install_package);
+use transactional qw(trup_call trup_apply);
+
+sub run {
+    my $cts_bin = '/usr/share/pacemaker/tests/cts/CTSlab.py';
+    my $log = '/tmp/cts_cluster_exerciser.log';
+    my $cluster_name = get_cluster_name;
+    my $results_file = '/tmp/cts_cluster_exerciser.results';
+    my $node_01 = choose_node(1);
+    my $node_02 = choose_node(2);
+    my $stonith_type = 'external/sbd';
+    my $stonith_args = 'pcmk_delay_max=30,pcmk_off_action=reboot,action=reboot';
+    my $test_ip = '10.0.2.20';
+    my $timeout = 60 * 90;
+
+    # Wait until Pacemaker cts test is initialized
+    barrier_wait("PACEMAKER_CTS_INIT_$cluster_name");
+
+    install_package('pacemaker-cts', trup_apply => 1);
+    save_screenshot;
+    # Get package version
+    my $pacemaker_cts_package_version = script_output("rpm -q --qf '%{VERSION}\n' pacemaker-cts");
+    # Compare package version
+    if (package_version_cmp($pacemaker_cts_package_version, '2.1.6') >= 0) {
+        $cts_bin = '/usr/share/pacemaker/tests/cts-lab';
+    }
+
+    # Pacemaker cts software must be started from the client server
+    if (check_var('PACEMAKER_CTS_TEST_ROLE', 'client')) {
+
+        foreach my $node ($node_01, $node_02) {
+            add_to_known_hosts($node);
+            exec_and_insert_password("ssh-copy-id -f root\@$node");
+        }
+
+        # Start pacemaker cts cluster exerciser
+        my $cts_start_time = time;
+
+        my @cmd_seq = (
+            $cts_bin, '--nodes', "'$node_01 $node_02'", '--test-ip-base', $test_ip,
+            '--no-unsafe-tests', '--outputfile', $log, '--once'
+        );
+
+        # Don't do stonith test since this one reboots a node randomly
+        # and it's very difficult to handle in MM scenario.
+        my $comment_stonith_test = q{sed -i '/AllTestClasses.append(StonithdTest)/ s/^/#/' $(rpm -ql pacemaker-cts|grep CTStests.py)};
+        $comment_stonith_test = q{sed -i '/StonithdTest,/ s/^/#/' $(rpm -ql pacemaker-cts|grep tests/__init__.py)}
+          if (package_version_cmp($pacemaker_cts_package_version, '2.1.6') >= 0);
+
+        if (is_transactional) {
+            # On Immutable systems we need to do more than commenting the test in the python script
+            trup_call "run $comment_stonith_test";
+            trup_apply;
+        } else {
+            assert_script_run $comment_stonith_test;
+        }
+
+        if (package_version_cmp($pacemaker_cts_package_version, '3.0.1') >= 0) {
+            push @cmd_seq, '--fencing-agent', $stonith_type, '--fencing-params', $stonith_args;
+        } else {
+            push @cmd_seq, '--stonith-type', $stonith_type, '--stonith-args', $stonith_args,
+              '--no-loop-tests', '--at-boot 1';
+        }
+
+        my $retval = script_run(join(' ', @cmd_seq), $timeout);
+        record_info 'CTS failed', "$cts_bin exited with retval=[$retval]" if ($retval);
+        my $cts_end_time = time;
+
+        # Parse the logs to get a better overview in openQA
+        my $cmd = q|awk '($5 == "Test" && $6 != "Summary" && substr($6, length($6), 1) == ":") {print}' | . $log;
+        my $output = script_output $cmd;
+
+        my %results;
+
+        $results{tests} = [];
+        $results{info} = {};
+        $results{summary} = {};
+
+        $results{info}->{timestamp} = time;
+        $results{info}->{distro} = "";
+        $results{info}->{results_file} = "";
+        $results{summary}->{num_tests} = 0;
+        $results{summary}->{passed} = 0;
+        $results{summary}->{duration} = $cts_end_time - $cts_start_time;
+
+        foreach my $line (split("\n", $output)) {
+            my %aux = ();
+            next unless ($line =~ /Test ([^:]+)/);
+            $results{summary}->{num_tests}++;
+            $aux{name} = lc($1);
+            $line =~ /'failure': ([0-9]+)/;
+            my $failure = $1;
+            $line =~ /'auditfail': ([0-9]+)/;
+            my $auditfail = $1;
+            $aux{outcome} = ($failure == 0 and $auditfail == 0) ? 'passed' : 'failed';
+            $aux{test_index} = 0;
+            push @{$results{tests}}, \%aux;
+            $results{summary}->{passed}++ if ($aux{outcome} eq 'passed');
+        }
+
+        my $json = encode_json \%results;
+        assert_script_run "echo '$json' > $results_file";
+
+        # Upload pacemaker cts log
+        parse_extra_log(IPA => $results_file);
+        upload_logs $log;
+    }
+
+    # Synchronize all the nodes
+    barrier_wait("PACEMAKER_CTS_CHECKED_$cluster_name");
+}
+
+1;

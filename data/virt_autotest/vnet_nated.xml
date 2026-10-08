@@ -1,0 +1,10 @@
+<network>
+ <name>vnet_nated</name>
+ <bridge name="virbr8"/>
+ <forward mode="nat"/>
+ <ip address="192.168.128.1" netmask="255.255.255.0">
+   <dhcp>
+     <range start="192.168.128.2" end="192.168.128.254"/>
+   </dhcp>
+ </ip>
+</network>

@@ -1,0 +1,20 @@
+name: agama_install_baremetal_fips
+description:    >
+    Use Agama to install SLE16 on bare metal and then
+    enable FIPS.
+schedule:
+    - '{{boot}}'
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - console/hostname
+    - console/system_prepare
+    - console/consoletest_setup
+conditional_schedule:
+    boot:
+        IPXE:
+            1:
+                - installation/bootloader_start
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader

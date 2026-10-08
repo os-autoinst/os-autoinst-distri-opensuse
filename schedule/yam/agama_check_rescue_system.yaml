@@ -1,0 +1,7 @@
+---
+name: agama_check_rescue_system
+description: >
+  Test suite triggers rescue system and checks if rescue operation would be possible
+schedule:
+  - yam/agama/boot_agama
+  - yam/validate/validate_rescue_system

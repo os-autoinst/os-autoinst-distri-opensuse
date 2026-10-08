@@ -1,0 +1,21 @@
+---
+name: migration_autoyast
+schedule:
+  - boot/boot_to_desktop
+  - migration/record_disk_info
+  - yam/migration/setup_registration
+  - yam/migration/setup_upgrade_env
+  - yam/migration/reboot_to_boot_screen
+  - autoyast/prepare_profile
+  - installation/bootloader
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/zypper_lr

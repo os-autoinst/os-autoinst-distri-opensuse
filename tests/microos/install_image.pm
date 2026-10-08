@@ -1,0 +1,154 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Install SL Micro image on bare metal disk
+# Maintainer: Petr Cervinka <pcervinka@suse.com>
+
+use Mojo::Base 'opensusebasetest';
+use testapi;
+use utils;
+
+use Utils::Backends;
+use Utils::Architectures 'is_x86_64';
+use power_action_utils 'power_action';
+use serial_terminal 'select_serial_terminal';
+
+sub get_disk_by_wwn {
+    my $wwn = shift;
+    $wwn =~ s/^wwn-//;
+
+    my $name;
+    my $output = script_output('lsblk -d -o name,wwn');
+    for my $line (split /\n/, $output) {
+        if ($line =~ /\Q$wwn\E$/) {
+            ($name) = split(/\s+/, $line);
+            return $name;
+        }
+    }
+    die "WWN ${wwn} not found in\n${output}";
+}
+
+sub get_serial_console_params {
+    my ($tty, $speed) = split(/,/, get_required_var('IPXE_CONSOLE'));
+    my ($unit) = $tty =~ /(\d+)$/;
+    return ($tty, $unit, $speed);
+}
+
+sub run {
+    select_serial_terminal;
+
+    # Use image name from HDD_1 variable
+    my $image = get_required_var('HDD_1');
+    # List all available disk devices
+    record_info('Available disks', script_output('lsblk -o name,wwn,type'));
+    # Use target disk supplied by the variable, find by WWN or use sda by default
+    my $wwn = get_var('INSTALL_DISK_WWN');
+    my $device = get_var("MICRO_INSTALL_IMAGE_TARGET_DEVICE", $wwn ? "/dev/" . get_disk_by_wwn($wwn) : "/dev/sda");
+    # Use partition prefix for nvme devices
+    my $prefix = $device =~ /nvme/ ? "p" : "";
+    # SL Micro x86_64 image has three partitions, aarch64 and ppc64le images have only two partitions
+    my $root_partition_id = is_x86_64 ? 3 : 2;
+    my $root_partition = "${device}" . $prefix . $root_partition_id;
+    # New partition id for ignition will be directly after root partition
+    my $ignition_partition_id = $root_partition_id + 1;
+    my $ignition_partition = "${device}" . $prefix . $ignition_partition_id;
+    record_info("Device information", "Device: ${device}\nRoot partition: ${root_partition}\nIgnition partition: ${ignition_partition}");
+
+    # Mount nfs share with images
+    assert_script_run("mount -o ro,noauto,nofail,nolock -t nfs openqa.suse.de:/var/lib/openqa/share /mnt");
+    # Image can be in hdd/fixed or hdd, search it, use first one and prefer fixed directory
+    my $image_file = script_output("find /mnt/factory/hdd/fixed /mnt/factory/hdd -maxdepth 1 -name $image -print -quit");
+    die "$image does not exist" unless $image_file =~ /\Q$image\E$/;
+    # Recognize if it is compressed image or not and dd image to disk
+    if ($image_file =~ /\.xz$/) {
+        assert_script_run("xzcat ${image_file} | dd of=${device} bs=65536 status=progress", timeout => 300);
+    } else {
+        assert_script_run("dd if=${image_file} of=${device} bs=65536 status=progress", timeout => 300);
+    }
+    assert_script_run("sync");
+    assert_script_run("umount /mnt");
+
+    my $device_layout = script_output("lsblk");
+    record_info("Device layout", ${device_layout});
+
+    # Modify disk to be able to correctly boot and login
+    assert_script_run("mount ${root_partition} /mnt");
+    assert_script_run("btrfs property set /mnt ro false");
+    # Upload original grub configuration
+    upload_logs("/mnt/etc/default/grub", failok => 1);
+    my $grub_file = '/mnt/etc/default/grub';
+    if (is_x86_64) {
+        my ($tty, $unit, $speed) = get_serial_console_params;
+        # Set correct serial console to be able to see login in first boot
+        assert_script_run("sed -i 's/console=ttyS0,115200/console=${tty},${speed}/g' /mnt/boot/grub2/grub.cfg");
+        # Set permanent grub configuration
+        assert_script_run("sed -i 's/console=ttyS0,115200/console=${tty},${speed}/g' ${grub_file}");
+    }
+
+    # Set grub terminal on x86_64 bare metal with UEFI to serial
+    my $grub_terminal_io = is_ipmi && get_var('IPXE_UEFI') && is_x86_64 ? 'serial' : 'console';
+    assert_script_run("sed -i 's/GRUB_TERMINAL_INPUT=\".*\"/GRUB_TERMINAL_INPUT=\"${grub_terminal_io}\"/g' $grub_file");
+    assert_script_run("sed -i 's/GRUB_TERMINAL_OUTPUT=\".*\"/GRUB_TERMINAL_OUTPUT=\"${grub_terminal_io}\"/g' $grub_file");
+
+    # Set GRUB_SERIAL_COMMAND on x86_64 UEFI systems only
+    if (get_var('IPXE_UEFI') && is_x86_64) {
+        my ($tty, $unit, $speed) = get_serial_console_params;
+        my $grub_line = "GRUB_SERIAL_COMMAND=\"serial --speed=$speed --unit=$unit --word=8 --parity=no --stop=1\"";
+        my $grub_content = script_output("cat $grub_file");
+        if ($grub_content =~ /^GRUB_SERIAL_COMMAND/m) {
+            assert_script_run("sed -i 's|^GRUB_SERIAL_COMMAND=.*|$grub_line|' $grub_file");
+        } else {
+            assert_script_run("echo '$grub_line' >> $grub_file");
+        }
+    }
+
+    # Enable root login with password
+    assert_script_run("echo 'PermitRootLogin yes' > /mnt/etc/ssh/sshd_config.d/root.conf");
+    assert_script_run("btrfs property set /mnt ro true");
+    assert_script_run("umount /mnt");
+
+    # Setup ignition parition on the end of the same disk and resize root partition to use all the space
+    # script_output recommended in https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/20253/files#r1776549682
+    script_output("printf \"fix\n\" | parted ---pretend-input-tty ${device} print");
+    assert_script_run("parted ${device} --script mkpart primary ext4 98% 100%");
+    assert_script_run("parted ${device} --script print");
+    assert_script_run("mkfs.ext4 -F ${ignition_partition}");
+    assert_script_run("e2label ${ignition_partition} ignition");
+    assert_script_run("mount ${ignition_partition} /mnt/");
+    assert_script_run("mkdir /mnt/ignition");
+    assert_script_run("curl -v -o /mnt/ignition/config.ign " . data_url("microos/ignition/config.ign"));
+    assert_script_run('umount /mnt');
+
+    # Resize root filesystem to maximum size to use all space up to partition with ignition
+    assert_script_run("parted ${device} --script resize ${root_partition_id} 98%");
+    assert_script_run("mount ${root_partition} /mnt");
+    assert_script_run("btrfs filesystem resize max /mnt");
+    assert_script_run("umount /mnt");
+    my $final_disk_layout = script_output("parted ${device} --script print");
+    record_info("INFO", "${image} was installed on ${device}. System is going to be rebooted.\n\nFinal disk layout:\n ${final_disk_layout}");
+
+    # Register UEFI boot entry after dd
+    if (get_var('IPXE_UEFI')) {
+        my $distri = get_var('DISTRI');
+        my $efi_loader = is_x86_64 ? '\\EFI\\BOOT\\bootx64.efi' : '\\EFI\\BOOT\\bootaa64.efi';
+        remove_efiboot_entry(boot_entry => $distri);
+        assert_script_run("efibootmgr --create --disk ${device} --part 2 --label '${distri}' --loader '${efi_loader}'");
+        record_info('efiboot information', script_output('efibootmgr -v'));
+    }
+
+    # We have to use force option to reboot command as installer doesn't have fully running systemd environment
+    power_action("reboot", textmode => 1, force => 1);
+
+    # We can't use reconnect_mgmt_console as it expects fully configured grub, which we don't have at this stage yet
+    select_console "sol", await_console => 0 if is_ipmi;
+    select_console 'powerhmc-ssh', await_console => 0 if is_pvm_hmc;
+    assert_screen("linux-login", 600);
+}
+
+sub test_flags {
+    return {fatal => 1};
+}
+
+1;

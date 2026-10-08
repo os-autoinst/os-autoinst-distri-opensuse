@@ -1,0 +1,31 @@
+name: tls_389ds_sssd
+description:    >
+    This is for 389ds and sssd authentication before and after migration check
+vars:
+    ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+    UPGRADE_TARGET_VERSION: '%VERSION%'
+schedule:
+    - '{{tls_389ds}}'
+conditional_schedule:
+    tls_389ds:
+        HOSTNAME:
+            server:
+                - migration/version_switch_origin_system
+                - installation/isosize
+                - installation/bootloader
+                - migration/online_migration/online_migration_setup
+                - console/consoletest_setup
+                - network/setup_multimachine
+                - migration/online_migration/register_system
+                - migration/online_migration/zypper_patch
+                - console/389ds/tls_389ds_server
+                - migration/version_switch_upgrade_target
+                - migration/online_migration/pre_migration
+                - migration/online_migration/zypper_migration
+                - migration/online_migration/post_migration
+                - console/389ds/tls_389ds_server
+            client:
+                - boot/boot_to_desktop
+                - console/consoletest_setup
+                - network/setup_multimachine
+                - console/389ds/tls_389ds_sssd_client

@@ -1,0 +1,24 @@
+name: agama_install_kdump
+description:    >
+    Install the system and proceed with kdump using the IPXE setup or PowerVM HMC backend.
+
+vars:
+    LTP_BAREMETAL: '1'
+
+schedule:
+    - '{{boot}}'
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - kernel/update_kernel
+    - console/system_prepare
+    - kernel/kdump
+
+conditional_schedule:
+    boot:
+        IPXE:
+            1:
+                - installation/bootloader_start
+        BACKEND:
+            pvm_hmc:
+                - installation/bootloader

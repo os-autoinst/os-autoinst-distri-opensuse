@@ -1,0 +1,40 @@
+# SUSE's openQA tests
+#
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: lock package test mainly used for migration testsuite - poo#17206
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+package lock_package;
+use Mojo::Base 'consoletest';
+use testapi;
+use serial_terminal 'select_text_console';
+use utils;
+
+our $locked_pkg_info = [];
+
+sub run {
+    select_text_console;
+
+    # Packages to be locked is comma-separated
+    my @pkgs = split(/,/, get_var('LOCK_PACKAGE'));
+    my $version_str = '';
+    zypper_install_available @pkgs;
+    for my $pkg (@pkgs) {
+        # Save each package's name, version and release info to variable
+        my $fullname = script_output "rpm -q $pkg";
+        push @$locked_pkg_info, {name => $pkg, fullname => $fullname};
+        $version_str = $version_str ? join(',', $version_str, $fullname) : $fullname;
+
+        # Add a lock for each package
+        zypper_call "al $pkg";
+    }
+    set_var('LOCK_PACKAGE_VERSIONS', $version_str);
+}
+
+sub test_flags {
+    return {fatal => 1};
+}
+
+1;

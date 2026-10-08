@@ -1,0 +1,51 @@
+---
+name: autoyast_bcache
+description: |
+  Test installation with AY profile for bcache.
+  One contains bios boot partition, /boot and not formatted native linux partition.
+  Bcache uses not formatted native linux partition as backing device and second disk as a whole as caching device.
+vars:
+  AUTOYAST: yam/autoyast/bcache.xml
+  AUTOYAST_PREPARE_PROFILE: 1
+  DESKTOP: textmode
+  NUMDISKS: 2
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/clone
+  - autoyast/repos
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
+  - console/verify_bcache_partitioning
+  - autoyast/verify_cloned_profile
+test_data:
+  backingdev: vda4
+  disks:
+  - name: vda
+    partitions:
+      - name: vda3
+        formatting_options:
+          filesystem: ext3
+        mounting_options:
+          mount_point: /boot
+      - name: vda4
+        formatting_options:
+          filesystem: bcache
+      - name: bcache0p1
+        formatting_options:
+          filesystem: btrfs
+        mounting_options:
+          mount_point: /
+  - name: vdb
+    table_type: bcache
+    formatting_options:
+      filesystem: bcache
+  - name: bcache0
+  <<: !include test_data/yast/autoyast/profiles/bcache.yaml

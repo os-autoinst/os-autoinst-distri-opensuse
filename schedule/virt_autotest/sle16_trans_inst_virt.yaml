@@ -1,0 +1,33 @@
+name:           sle16_trans_inst_virt
+description:    >
+    Maintainer: Nan Zhang <nan.zhang@suse.com>, qe-virt@suse.de
+    SLE 16 ISO installation with virtualization patterns (kvm) and virtualization tests with qemu/kvm.
+schedule:
+    - '{{boot_install}}'
+    - transactional/host_config
+    - console/suseconnect_scc
+    - microos/services_enabled
+    - transactional/disable_timers
+    - qemu/info
+    - qemu/qemu
+    - '{{qemu_kvm}}'
+    - console/journal_check
+    - console/coredump_collect
+    - shutdown/shutdown
+conditional_schedule:
+    boot_install:
+        AGAMA:
+            0:
+                - installation/bootloader_uefi
+                - microos/selfinstall
+            1:
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+                - installation/grub_test
+                - installation/first_boot
+    qemu_kvm:
+        ARCH:
+            x86_64:
+                - qemu/kvm
+            aarch64:
+                - qemu/kvm

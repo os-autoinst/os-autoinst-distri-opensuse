@@ -1,0 +1,6 @@
+name: build_nested_hdd
+description:    >
+    Build a nested L2 image for libvirt/kvm tests
+schedule:
+    - boot/boot_to_desktop
+    - security/cc/build_nested_hdd

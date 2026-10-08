@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ns0:oval_definitions xmlns:ns0="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:ns1="http://oval.mitre.org/XMLSchema/oval-common-5" xmlns:ns2="http://oval.mitre.org/XMLSchema/oval-definitions-5#independent" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://oval.mitre.org/XMLSchema/oval-definitions-5 oval-definitions-schema.xsd                       http://oval.mitre.org/XMLSchema/oval-common-5 oval-common-schema.xsd                       http://oval.mitre.org/XMLSchema/oval-definitions-5#independent independent-definitions-schema.xsdi">
+
+  <ns0:generator>
+    <ns1:schema_version>5.11</ns1:schema_version>
+    <ns1:timestamp>2017-10-09T12:00:00</ns1:timestamp>
+  </ns0:generator>
+
+  <ns0:definitions>
+    <ns0:definition id="oval:no_direct_root_logins:def:1" class="compliance" version="1">
+      <ns0:metadata>
+        <ns0:title>Direct root Logins Not Allowed</ns0:title>
+        <ns0:description>Detailed description...</ns0:description>
+        <ns0:reference ref_id="no_direct_root_logins"/>
+      </ns0:metadata>
+      <ns0:criteria operator="AND">
+        <ns0:criterion comment="serial ports /etc/securetty" test_ref="oval:no_direct_root_logins:tst:1"/>
+        <ns0:criterion comment="serial ports /etc/securetty" test_ref="oval:etc_securetty_exists:tst:2"/>
+      </ns0:criteria>
+    </ns0:definition>
+    <ns0:definition class="compliance" id="oval:rule_misc_sysrq:def:1" version="1">
+      <ns0:metadata>
+        <ns0:title>sysctl kernel.sysrq must be 0</ns0:title>
+        <ns0:description>sysctl kernel.sysrq must be 0</ns0:description>
+      </ns0:metadata>
+      <ns0:criteria>
+        <ns0:criterion test_ref="oval:rule_misc_sysrq:tst:1" comment="sysctl kernel.sysrq must be 0"/>
+      </ns0:criteria>
+    </ns0:definition>
+  </ns0:definitions>
+
+  <ns0:tests>
+    <ns2:textfilecontent54_test id="oval:no_direct_root_logins:tst:1" check="all" check_existence="all_exist" comment="no entries in /etc/securetty" version="1">
+      <ns2:object object_ref="oval:no_direct_root_logins:obj:1"/>
+    </ns2:textfilecontent54_test>
+    <ns2:textfilecontent54_test id="oval:etc_securetty_exists:tst:2" check="all" check_existence="all_exist" comment="/etc/securetty file exists" version="1">
+      <ns2:object object_ref="oval:etc_securetty_exists:obj:2"/>
+    </ns2:textfilecontent54_test>
+
+    <ns2:textfilecontent54_test id="oval:rule_misc_sysrq:tst:1" version="1" check="at least one" comment="sysctl kernel.sysrq must be 0" check_existence="at_least_one_exists">
+      <ns2:object object_ref="oval:rule_misc_sysrq:obj:1"/>
+      <ns2:state state_ref="oval:rule_misc_sysrq:ste:1"/>
+    </ns2:textfilecontent54_test>
+  </ns0:tests>
+
+  <ns0:objects>
+    <ns2:textfilecontent54_object id="oval:no_direct_root_logins:obj:1" comment="no entries /etc/securetty" version="1">
+      <ns2:filepath>/etc/securetty</ns2:filepath>
+      <ns2:pattern operation="pattern match">^$</ns2:pattern>
+      <ns2:instance datatype="int" operation="greater than or equal">1</ns2:instance>
+    </ns2:textfilecontent54_object>
+    <ns2:textfilecontent54_object id="oval:etc_securetty_exists:obj:2" comment="/etc/securetty file exists" version="1">
+      <ns2:filepath>/etc/securetty</ns2:filepath>
+      <ns2:pattern operation="pattern match">^.*$</ns2:pattern>
+      <ns2:instance datatype="int">1</ns2:instance>
+    </ns2:textfilecontent54_object>
+    <ns2:textfilecontent54_object id="oval:rule_misc_sysrq:obj:1" version="1" comment="Non-comment lines in /proc/sys/kernel/sysrq">
+      <ns2:filepath>/proc/sys/kernel/sysrq</ns2:filepath>
+      <ns2:pattern operation="pattern match">^[[:space:]]*([^#[:space:]].*[^[:space:]]?)[[:space:]]*$</ns2:pattern>
+      <ns2:instance datatype="int" operation="greater than or equal">1</ns2:instance>
+    </ns2:textfilecontent54_object>
+  </ns0:objects>
+
+  <ns0:states>
+    <ns2:textfilecontent54_state id="oval:rule_misc_sysrq:ste:1" version="1" comment="The match of 0">
+      <ns2:subexpression operation="pattern match">0</ns2:subexpression>
+    </ns2:textfilecontent54_state>
+  </ns0:states>
+
+</ns0:oval_definitions>

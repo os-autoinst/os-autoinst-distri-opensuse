@@ -1,0 +1,18 @@
+---
+name: firefox_print
+description: >
+    Maintainer: grace.wang@suse.com
+    Test Firefox print function
+schedule:
+    - boot/boot_to_desktop
+    - x11/window_system
+    - x11/disable_screensaver
+    - x11/firefox/firefox_printing_testpage
+    - x11/firefox/firefox_printing_alignment
+    - x11/firefox/firefox_printing_indentation
+    - x11/firefox/firefox_printing_PortraitLandscape
+    - x11/firefox/firefox_printing_list
+    - x11/firefox/firefox_printing_formats
+    - x11/firefox/firefox_printing_pdf
+    - x11/firefox/firefox_printing_frames
+    - x11/firefox/firefox_printing_images

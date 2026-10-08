@@ -1,0 +1,15 @@
+name: security_check_kernel_config
+description:    >
+    This is for the security_check_kernel_config test.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{stack_sle}}'
+    - security/check_kernel_config/CONFIG_FORTIFY_SOURCE
+    - security/check_kernel_config/dm_crypt
+conditional_schedule:
+    stack_sle:
+        DISTRI:
+            sle:
+                - security/check_kernel_config/CC_STACKPROTECTOR_STRONG

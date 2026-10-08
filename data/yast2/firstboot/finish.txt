@@ -1,0 +1,2 @@
+<b>All done !</b> Settings applied.<br />
+<b><u>The system</u></b> <i> should </i>start now.

@@ -1,0 +1,7 @@
+---
+name: deploy_sleperf
+description: >
+  Maintainer: jtang@suse.com
+  Deploy and run sleperf for Diamond Assurance
+schedule:
+  - kernel_performance/da_perf

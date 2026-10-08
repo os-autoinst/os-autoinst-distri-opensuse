@@ -1,0 +1,50 @@
+---
+<<: !include test_data/qam/QR/15-SP4/raid/raid_disks_prep_boot.yaml
+mds:
+  - raid_level: 5
+    name: md0
+    chunk_size: '64 KiB'
+    devices:
+      - vda2
+      - vdb2
+      - vdc2
+      - vdd2
+    partition:
+      role: operating-system
+      formatting_options:
+        should_format: 1
+      mounting_options:
+        should_mount: 1
+  - raid_level: 1
+    name: md1
+    chunk_size: '64 KiB'
+    devices:
+      - vda3
+      - vdb3
+      - vdc3
+      - vdd3
+    device_selection_step: 2
+    partition:
+      role: data
+      formatting_options:
+        should_format: 1
+        filesystem: ext4
+      mounting_options:
+        should_mount: 1
+        mount_point: '/boot'
+  - raid_level: 0
+    name: md2
+    chunk_size: '64 KiB'
+    devices:
+      - vda4
+      - vdb4
+      - vdc4
+      - vdd4
+    device_selection_step: 1
+    partition:
+      role: swap
+      formatting_options:
+        should_format: 1
+      filesystem: swap
+      mounting_options:
+        should_mount: 1

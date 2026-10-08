@@ -1,0 +1,27 @@
+# SUSE's Apache+SSL tests
+#
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+#
+# Summary: Enable SSL module on Apache2 server
+#          calls setup_apache2 with mode = SSL (lib/apachetest.pm)
+#
+# Maintainer: QE Security <none@suse.de>
+# Tags: poo#65375, poo#67309, poo#101782
+
+use Mojo::Base 'consoletest';
+use testapi;
+use apachetest;
+use utils 'clear_console';
+use serial_terminal 'select_serial_terminal';
+
+sub run {
+    select_serial_terminal;
+    setup_apache2(mode => 'SSL');
+}
+
+sub test_flags {
+    return {fatal => 0};
+}
+
+1;

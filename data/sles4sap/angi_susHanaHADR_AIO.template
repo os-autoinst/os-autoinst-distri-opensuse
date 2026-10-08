@@ -1,0 +1,20 @@
+[ha_dr_provider_sushanasr]
+provider = susHanaSR
+path = /usr/share/SAPHanaSR-angi/
+execution_order = 1
+
+[ha_dr_provider_sustkover]
+provider = susTkOver
+path = /usr/share/SAPHanaSR-angi/
+execution_order = 2
+
+[ha_dr_provider_suschksrv]
+provider = susChkSrv
+path = /usr/share/SAPHanaSR-angi/
+execution_order = 3
+action_on_lost=stop
+
+[trace]
+ha_dr_sushanasr = info
+ha_dr_suschksrv = info
+ha_dr_sustkover = info

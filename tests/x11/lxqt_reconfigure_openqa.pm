@@ -1,0 +1,29 @@
+# SUSE's openQA tests
+#
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Other Desktop Environments: LXQt
+#          Update the openQA internal configuration after the DE has been installed
+# Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
+
+use Mojo::Base 'x11test';
+use testapi;
+use utils;
+
+sub run {
+    my $self = shift;
+
+    set_var("DESKTOP", "lxqt");
+
+    # LXQt uses sddm as window manager, which has the user preselected
+    set_var('DISPLAYMANAGER', 'sddm');
+    # sddm asks straight for PW with only one user; there is no need to type the username
+    set_var('DM_NEEDS_USERNAME', 0);
+    # sddm might use a different tty for the session
+    console('x11')->set_tty(get_x11_console_tty());
+
+    $self->result('ok');
+}
+
+1;

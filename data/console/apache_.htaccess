@@ -1,0 +1,5 @@
+AuthType Basic
+AuthName "only joe must get in!"
+AuthUserFile /srv/www/vhosts/localhost/authtest/.htpasswd
+Require valid-user
+

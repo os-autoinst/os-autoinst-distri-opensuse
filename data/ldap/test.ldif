@@ -1,0 +1,193 @@
+dn: cn=boss,ou=Groups,dc=green,dc=com
+member: cn=Manager,dc=green,dc=com
+member: cn=Felipa Andrade,ou=LAB Technical,ou=People,dc=geeko,dc=com
+member: cn=Puca Almeida,ou=Green Corporation,ou=People,dc=green,dc=com
+member: cn=Fredo Almeida,ou=LAB Technical,ou=People,dc=green,dc=com
+member: cn=Otavio Augustus,ou=Green Corporation,ou=People,dc=green,dc=com
+member: cn=Pedro de Lara,ou=Green Corporation,ou=People,dc=green,dc=com
+member: cn=Gugu Liberato,ou=LAB Technical,ou=People,dc=green,dc=com
+member: cn=Josiane Fernanda,ou=Green Corporation,ou=People,dc=green,dc=com
+member: cn=Julius Cesar,ou=Green Corporation,ou=People,dc=green,dc=com
+member: cn=Julius Pompeu,ou=Green Corporation,ou=People,dc=green,dc=com
+owner: cn=Manager,dc=green,dc=com
+cn: All Staff
+description: Fiction Corporate, not real
+objectClass: groupOfNames
+
+dn: cn=Green Corporation Managers, ou=Groups,dc=green,dc=com
+member: cn=Manager,dc=green,dc=com
+member: cn=Julius Cesar,ou=Green Corporation,ou=People,dc=green,dc=com
+member: cn=Pedro de Lara,ou=Green Corporation,ou=People,dc=green,dc=com
+member: cn=Puca Almeida,ou=Green Corporation,ou=People,dc=green,dc=com
+member: cn=Josiane Fernanda,ou=Green Corporation,ou=People,dc=green,dc=com
+member: cn=Otavio Augustus,ou=Green Corporation,ou=People,dc=green,dc=com
+member: cn=Julius Pompeu,ou=Green Corporation,ou=People,dc=green,dc=com
+owner: cn=Manager,dc=green,dc=com
+description: All Managers
+cn: Green Corporation Managers
+objectClass: groupOfNames
+
+dn: ou=Green Corporation,ou=People,dc=green,dc=com
+objectClass: organizationalUnit
+ou: Green Corporation
+
+dn: cn=Felipa Andrade,ou=LAB Technical,ou=People,dc=green,
+ dc=com
+objectClass: OpenLDAPperson
+cn: Felipa Andrade
+cn: F Andrade
+sn: Felipa
+uid: bjensen
+title: Princiapl ManageR
+postalAddress: Alfeneiros Street, $ England
+userPassword: green
+mail: felipa@green.com
+description: Principal Manager of LAB
+homePhone: +1 555 5555 5555
+telephoneNumber: +1 1234 123 123
+
+dn: cn=Cladius Ptlomeu,ou=LAB Technical,ou=People,dc=green,dc=com
+objectClass: OpenLDAPperson
+cn: Cladius Ptlomeu
+sn: Claudius
+uid: cptlomeu
+userPassword: green
+description: Sales Manager
+title: Sales Manager
+postalAddress: Alfeneiros Street, $ England
+mail: cptlomeu@green.com
+homePhone: +1 555 5555 5555
+telephoneNumber: +1 1234 123 123
+
+dn: cn=Julius Cesar,ou=Green Corporation,ou=People,dc=green,dc=com
+objectClass: OpenLDAPperson
+cn: Julius Cesar
+sn: Cesar
+uid: cesar
+title: office boy
+postalAddress: Green Corporation 
+description: young boy
+mail: boy@green.com
+homePhone: +1 555 5555 5555
+telephoneNumber: +1 1234 123 123
+
+dn: dc=green,dc=com
+objectClass: top
+objectClass: organization
+objectClass: domainRelatedObject
+objectClass: dcObject
+dc: green 
+l: Rome, Italy
+st: Coliseu
+o: Green, Inc.
+o: Green
+description: The Green Corporation, Inc.
+associatedDomain: green.com
+
+dn: ou=Groups,dc=green,dc=com
+objectClass: organizationalUnit
+ou: Groups
+
+dn: ou=LAB Technical,ou=People,dc=green,dc=com
+objectClass: organizationalUnit
+ou: Laboratory Technical
+description: Laboratory Technical of the cience
+
+dn: cn=IT ,ou=Groups,dc=green,dc=com
+owner: cn=Manager,dc=green,dc=com
+description: All IT people 
+cn: IT 
+objectClass: groupOfUniqueNames
+uniqueMember: cn=Manager,dc=green,dc=com
+uniqueMember: cn=Cladius Ptlomeu,ou=LAB Technical,ou=People,dc=
+ example,dc=com
+uniqueMember: cn=Gugu Liberato,ou=LAB Technical,ou=People,
+ dc=green,dc=com
+uniqueMember: cn=Fredo Almeida,ou=LAB Technical,ou=People,dc=geeko
+ ple,dc=com
+
+dn: cn=Pedro de Lara,ou=Green Corporation,ou=People,dc=green,dc=com
+objectClass: OpenLDAPperson
+cn: Pedro de Lara
+cn: Pedro Lara
+cn: Pedro
+sn: Lara
+uid: pedrol
+postalAddress: Green Corporation 
+userPassword: green
+homePostalAddress: Alfeneiros Street, $ England
+mail: pedrol@green.com
+
+dn: cn=Gugu Liberato,ou=LAB Technical,ou=People,dc=green,dc=com
+objectClass: OpenLDAPperson
+cn: Gugu Liberato
+sn: gugu
+uid: gugu
+title: Developer
+mail: gugu@green.de
+
+dn: cn=Puca Almeida,ou=Green Corporation,ou=People,dc=green,dc=com
+objectClass: OpenLDAPperson
+cn: Puca Almeida
+sn: puca
+uid: puca
+title: Programmer Analyst
+mail: never@green.com
+homePhone: +1 555 5555 5555
+telephoneNumber: +1 1234 123 123
+
+dn: cn=Josiane Fernanda,ou=Green Corporation,ou=People,dc=green,dc=com
+objectClass: OpenLDAPperson
+cn: Josiane Fernanda
+cn: J Fernanda
+sn: Fernanda
+uid: jfer
+postalAddress: Anywhere street, $ Neverend $ 12345
+title: Director
+mail: jfer@green.com
+homePhone: +1 555 5555 5555
+telephoneNumber: +1 1234 123 123
+
+dn: cn=Fredo Almeida,ou=LAB Technical,ou=People,dc=green,dc=com
+objectClass: OpenLDAPperson
+cn: Fredo Almeida
+cn: F Almeida
+sn: Fredo
+uid: fredo
+postalAddress: Anywhere street, $ Neverend $ 12345
+mail: fredo@green.com
+homePhone: +1 555 5555 5555
+telephoneNumber: +1 1234 123 123
+
+dn: cn=Manager,dc=green,dc=com
+objectClass: person
+cn: Manager
+cn: Directory Manager
+sn: Manager
+description: Manager of LAB
+userPassword: suse
+
+dn: cn=Otavio Augustus,ou=Green Corporation,ou=People,dc=green,dc=com
+objectClass: OpenLDAPperson
+cn: Otavio Augustus
+cn: O Augustus
+sn: Otavio
+uid: Augustus
+postalAddress: Anywhere street, $ Neverend $ 12345
+title: Director
+mail: augustus@green.com
+
+dn: ou=People,dc=green,dc=com
+objectClass: organizationalUnit
+objectClass: extensibleObject
+ou: People
+uidNumber: 0
+gidNumber: 0
+
+dn: cn=Julius Pompeu,ou=Green Corporation,ou=People,dc=green,dc=com
+objectClass: OpenLDAPperson
+cn: Julius Pompeu
+sn: julius
+uid: julius
+title: Secretary
+mail: julius@green.com

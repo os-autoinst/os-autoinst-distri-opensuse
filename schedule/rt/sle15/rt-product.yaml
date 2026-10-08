@@ -1,0 +1,34 @@
+---
+description: 'The default installation of RT product in GUI. Upload the installed system for further validation testing.'
+name: 'rt-product@64bit ( qemu )'
+vars:
+  EXTRABOOTPARAMS: startshell=1
+schedule:
+  - installation/bootloader
+  - rt/add_product
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/exit_startshell
+  - installation/grub_test
+  - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

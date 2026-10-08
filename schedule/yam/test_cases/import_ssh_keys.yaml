@@ -1,0 +1,19 @@
+---
+name:           import_ssh_keys
+description:    >
+  Test import of SSH keys from previous installation
+schedule:
+  bootloader:
+    - boot/boot_to_desktop
+    - x11/ssh_key_check
+    - x11/reboot_and_install
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  installation_settings:
+    - installation/ssh_host_key_settings/import_ssh_host_keys
+    - installation/launch_installation
+  system_validation:
+    - installation/ssh_host_key_settings/verify_ssh_key_imported
+    - shutdown/shutdown

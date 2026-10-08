@@ -1,0 +1,38 @@
+name:    rmt_host_migration
+description:    >
+     Test rmt server before and after migration
+vars:
+  DESKTOP: gnome
+  BOOT_HDD_IMAGE: 1
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+schedule:
+  - migration/version_switch_origin_system
+  - '{{online_migration_test}}'
+  - '{{remove_ltss}}'
+  - console/rmt/rmt_host_migration
+  - migration/version_switch_upgrade_target
+  - migration/online_migration/pre_migration
+  - '{{migration_method}}'
+  - migration/online_migration/post_migration
+  - console/rmt/rmt_host_migration
+
+conditional_schedule:
+  remove_ltss:
+    REGRESSION_LTSS:
+      1:
+        - migration/online_migration/register_without_ltss
+  migration_method:
+    MIGRATION_METHOD:
+      yast:
+        - migration/online_migration/yast2_migration
+      zypper:
+        - migration/online_migration/zypper_migration
+  online_migration_test:
+    ONLINE_MIGRATION:
+      1:
+        - installation/isosize
+        - installation/bootloader
+        - migration/online_migration/online_migration_setup
+        - migration/online_migration/register_system
+        - migration/online_migration/zypper_patch

@@ -1,0 +1,108 @@
+From 31a13788baa03a18ce69cc56268242c43d18e04b Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Mon, 1 Jun 2026 18:35:42 +0200
+Subject: [PATCH] tests/integration: fix seccomp tests on big-endian
+ architectures
+
+The hardcoded architecture list was little-endian only, causing
+seccomp_arch_add() to fail with -EDOM on s390x.
+
+Drop it.  It's optional and libseccomp automatically adds the native
+architecture when the filter is created.
+
+Fixes: https://github.com/opencontainers/runc/issues/4835
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/integration/seccomp.bats                        | 6 ------
+ tests/integration/testdata/seccomp_syscall_test1.json | 7 -------
+ tests/integration/testdata/seccomp_syscall_test2.json | 7 -------
+ 3 files changed, 20 deletions(-)
+
+diff --git a/tests/integration/seccomp.bats b/tests/integration/seccomp.bats
+index 160ad16183a..be370f57f81 100644
+--- a/tests/integration/seccomp.bats
++++ b/tests/integration/seccomp.bats
+@@ -43,7 +43,6 @@ function teardown() {
+ 			| .process.noNewPrivileges = false
+ 			| .linux.seccomp = {
+ 				"defaultAction":"SCMP_ACT_ALLOW",
+-				"architectures":["SCMP_ARCH_X86","SCMP_ARCH_X32","SCMP_ARCH_X86_64","SCMP_ARCH_AARCH64","SCMP_ARCH_ARM"],
+ 				"syscalls":[{"names":["mkdir","mkdirat"], "action":"SCMP_ACT_ERRNO"}]
+ 			}'
+ 
+@@ -57,7 +56,6 @@ function teardown() {
+ 			| .process.noNewPrivileges = false
+ 			| .linux.seccomp = {
+ 				"defaultAction":"SCMP_ACT_ALLOW",
+-				"architectures":["SCMP_ARCH_X86","SCMP_ARCH_X32","SCMP_ARCH_X86_64","SCMP_ARCH_AARCH64","SCMP_ARCH_ARM"],
+ 				"syscalls":[{"names":["mkdir","mkdirat"], "action":"SCMP_ACT_ERRNO", "errnoRet": 100}]
+ 			}'
+ 
+@@ -96,7 +94,6 @@ function flags_value() {
+ 			| .process.noNewPrivileges = false
+ 			| .linux.seccomp = {
+ 				"defaultAction":"SCMP_ACT_ALLOW",
+-				"architectures":["SCMP_ARCH_X86","SCMP_ARCH_X32","SCMP_ARCH_X86_64","SCMP_ARCH_AARCH64","SCMP_ARCH_ARM"],
+ 				"syscalls":[{"names":["mkdir", "mkdirat"], "action":"SCMP_ACT_ERRNO"}]
+ 			}'
+ 
+@@ -161,7 +158,6 @@ function flags_value() {
+ 			| .process.rlimits = [{"type": "RLIMIT_CORE", "soft": 0, "hard": 0}]
+ 			| .linux.seccomp = {
+ 				"defaultAction":"SCMP_ACT_ALLOW",
+-				"architectures":["SCMP_ARCH_X86","SCMP_ARCH_X32","SCMP_ARCH_X86_64","SCMP_ARCH_AARCH64","SCMP_ARCH_ARM"],
+ 				"syscalls":[{"names":["mkdir","mkdirat"], "action":"SCMP_ACT_KILL"}]
+ 			}'
+ 
+@@ -174,7 +170,6 @@ function flags_value() {
+ 	update_config '   .process.args = ["/bin/true"]
+ 			| .linux.seccomp = {
+ 				"defaultAction":"SCMP_ACT_ALLOW",
+-				"architectures":["SCMP_ARCH_X86","SCMP_ARCH_X32","SCMP_ARCH_X86_64","SCMP_ARCH_AARCH64","SCMP_ARCH_ARM"],
+ 				"syscalls":[{"names":["mkdir","mkdirat"], "action":"SCMP_ACT_KILL"}]
+ 			}
+ 			| .process.rlimits = [{"type": "RLIMIT_CORE", "soft": 0, "hard": 0}]
+@@ -196,7 +191,6 @@ function flags_value() {
+ 			| .process.noNewPrivileges = false
+ 			| .linux.seccomp = {
+ 				"defaultAction":"SCMP_ACT_ALLOW",
+-				"architectures":["SCMP_ARCH_X86","SCMP_ARCH_X32","SCMP_ARCH_X86_64","SCMP_ARCH_AARCH64","SCMP_ARCH_ARM"],
+ 				"syscalls":[{"names":["close_range", "fsopen", "fsconfig", "fspick", "openat2", "open_tree", "move_mount", "mount_setattr"], "action":"SCMP_ACT_ERRNO", "errnoRet": 38}]
+ 			}'
+ 
+diff --git a/tests/integration/testdata/seccomp_syscall_test1.json b/tests/integration/testdata/seccomp_syscall_test1.json
+index 9e8e8aec44e..2c6c80b262e 100644
+--- a/tests/integration/testdata/seccomp_syscall_test1.json
++++ b/tests/integration/testdata/seccomp_syscall_test1.json
+@@ -1,12 +1,5 @@
+ {
+ 	"defaultAction": "SCMP_ACT_ERRNO",
+-	"architectures": [
+-		"SCMP_ARCH_X86",
+-		"SCMP_ARCH_X32",
+-		"SCMP_ARCH_X86_64",
+-		"SCMP_ARCH_AARCH64",
+-		"SCMP_ARCH_ARM"
+-	],
+ 	"syscalls": [
+ 		{
+ 			"action": "SCMP_ACT_ALLOW",
+diff --git a/tests/integration/testdata/seccomp_syscall_test2.json b/tests/integration/testdata/seccomp_syscall_test2.json
+index f9fb11a431e..24c812a3ec0 100644
+--- a/tests/integration/testdata/seccomp_syscall_test2.json
++++ b/tests/integration/testdata/seccomp_syscall_test2.json
+@@ -1,13 +1,6 @@
+ {
+ 	"defaultAction": "SCMP_ACT_ERRNO",
+ 	"defaultErrnoRet": 6,
+-	"architectures": [
+-		"SCMP_ARCH_X86",
+-		"SCMP_ARCH_X32",
+-		"SCMP_ARCH_X86_64",
+-		"SCMP_ARCH_AARCH64",
+-		"SCMP_ARCH_ARM"
+-	],
+ 	"syscalls": [
+ 		{
+ 			"action": "SCMP_ACT_ALLOW",

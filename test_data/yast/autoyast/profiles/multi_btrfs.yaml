@@ -1,0 +1,78 @@
+---
+profile:
+  partitioning:
+    drive:
+      - device: /dev/vda
+        disklabel: gpt
+        partitions:
+          __count: 3
+          partition:
+            - filesystem: swap
+              mount: swap
+        type: CT_DISK
+      - device: /dev/vdb
+        disklabel: gpt
+        partitions:
+          __count: 1
+          partition:
+            partition_nr: 1
+        type: CT_DISK
+      - device: /dev/vdc
+        disklabel: none
+        partitions:
+          __count: 1
+          partition:
+            create: 'false'
+        type: CT_DISK
+      - device: /dev/vdd
+        disklabel: gpt
+        partitions:
+          __count: 1
+          partition:
+            crypt_method: luks1
+        type: CT_DISK
+      - label:
+          _descendant: any
+          __text: root_multi_btrfs
+        btrfs_options:
+          data_raid_level: raid0
+          metadata_raid_level: raid1
+        disklabel: none
+        enable_snapshots: 'false'
+        partitions:
+          partition:
+            - filesystem: btrfs
+              label: root_multi_btrfs
+              mount: /
+              subvolumes:
+                subvolume:
+                  - copy_on_write: 'true'
+                    path: tmp
+                  - copy_on_write: 'true'
+                    path: usr/local
+                  - copy_on_write: 'true'
+                    path: home
+                  - copy_on_write: 'true'
+                    path: root
+                  - copy_on_write: 'true'
+                    path: srv
+                  - copy_on_write: 'false'
+                    path: var
+                  - copy_on_write: 'true'
+                    path: opt
+              subvolumes_prefix: '@'
+        type: CT_BTRFS
+      - label:
+          _descendant: any
+          __text: test_multi_btrfs
+        btrfs_options:
+          data_raid_level: raid0
+          metadata_raid_level: raid1
+        disklabel: none
+        partitions:
+          partition:
+            - filesystem: btrfs
+              label: test_multi_btrfs
+              mount: /test
+              subvolumes_prefix: ''
+        type: CT_BTRFS

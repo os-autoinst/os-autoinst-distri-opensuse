@@ -1,0 +1,32 @@
+name: autoyast_create_hdd_textmode_libyui
+description:    >
+  Test performs autoyast installation to generate qcow images used by dependent functional tests.
+conditional_schedule:
+  svirt_upload_assets:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
+vars:
+  AUTOYAST: autoyast_sle15/create_hdd/create_hdd_textmode_%ARCH%.xml
+  DESKTOP: textmode
+  SCC_ADDONS: desktop,dev
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - console/scc_cleanup_reregister
+  - console/install_packages_simple
+  - console/firewalld_add_port
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{svirt_upload_assets}}'
+test_data:
+  install_packages:
+    - libyui-rest-api
+  port: 30000-50000
+  zone: public

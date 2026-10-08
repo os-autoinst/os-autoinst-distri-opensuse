@@ -1,0 +1,7 @@
+<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<service>
+  <short>NFS kernel-server test</short>
+  <description>The nfs-kernel-server workaround</description>
+  <port protocol=\"tcp\" port=\"2049\"/>
+  <port protocol=\"udp\" port=\"2049\"/>
+</service>

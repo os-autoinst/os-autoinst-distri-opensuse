@@ -1,0 +1,79 @@
+#!/bin/bash
+# combustion: network
+# 
+# To be provisioned:
+#   01) set localization and timezone
+#   02) set root password
+#   03) add new user qevirt
+#   04) add ssh public keys for root and qevirt
+#   05) set hostname
+#   06) add customized sshd config
+#   07) enable and restart sshd
+#   08) test networking
+#   09) do registration
+#   10) refresh repositories
+#   11) leave a marker
+
+### set pipefail and enable debug
+set -euo pipefail
+set -x
+set -v
+
+# redirect output to the console
+exec > >(exec tee -a /dev/console) 2>&1
+
+### set locale, keyboard and timezone
+rm -f /etc/localtime
+systemd-firstboot --force --timezone=UTC --locale=en_US.UTF-8 --keymap=us
+echo "FONT=eurlatgr.psfu" >> /etc/vconsole.conf
+
+### set password for root
+echo 'root:$6$LZQfIH8bS4JYwAQq$VIdGS2fnED6CSySnb5jJm8O6FUXWgjG3keN2I0c6Td4nLrwxUxratkJq0cKMuo1OMTwUYpQ7EyP2GnZ2pL.ut.' | chpasswd -e
+
+### add new user qevirt
+useradd --create-home --uid 1001 --comment "QE Virtualization Functional Test" --no-user-group --gid users qevirt
+echo 'qevirt:$6$0Tcx/pXefxOSvZEi$ukUmR.j7/sTbv10LwbesHD8CurSkr/2pkstXeWuErA7TBxeB2nLQwOKFKQJnlqJuVzNWg1E6ovKl6ajAZRtKt.' | chpasswd -e
+
+### add ssh public keys
+mkdir -p /root/.ssh
+echo "##Authorized-Keys##" >> /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+mkdir -p /home/qevirt/.ssh
+echo "##Authorized-Keys##" >> /home/qevirt/.ssh/authorized_keys
+chmod 600 /home/qevirt/.ssh/authorized_keys
+
+### set hostname
+echo "##FQDN##" > /etc/hostname
+
+### add customized sshd config
+cat << EOF > /etc/ssh/sshd_config.d/01-qe-virtualization-functional.conf
+PermitRootLogin yes
+PubkeyAuthentication yes
+PasswordAuthentication yes
+PermitEmptyPasswords no
+EOF
+
+### enable and restart sshd service
+systemctl enable sshd.service
+systemctl stop sshd.service
+systemctl start sshd.service
+
+### test networking
+curl conncheck.opensuse.org
+
+### do registration
+if command -v SUSEConnect 2>&1 >/dev/null; then
+    SUSEConnect -r ##Registration-Code## --url ##Registration-Server##
+fi
+
+### refresh and list respositories
+if zypper repos 2>&1 >/dev/null; then
+    zypper --non-interactive --gpg-auto-import-keys refresh
+    zypper repos --details
+fi
+
+### leave a marker
+echo "Configured with combustion" > /etc/issue.d/combustion
+
+### close outputs and wait for tee to finish
+exec 1>&- 2>&-; wait;

@@ -1,0 +1,56 @@
+{
+  "ignition": {
+    "version": "3.2.0"
+  },
+  "passwd": {
+    "users": [
+      {
+        "name": "root",
+        "passwordHash": "$5$yWyONd1vdHjF/ZUp$HDJnaXL8B/zPAenwqBLUiPJfAw/L.emrVoSHX/LjkwA"
+      },
+      {
+        "name": "qevirt",
+        "passwordHash": "$2a$10$EGcS6zo6jG4YxMxmIMZiE.x/vf5nkn2dP.hH8YEbSPI1rUO1zZQyK"
+      }
+    ]
+  },
+  "storage": {
+    "filesystems": [
+      {
+        "device": "/dev/disk/by-label/ROOT",
+        "format": "btrfs",
+        "mountOptions": [
+          "subvol=/@/home"
+        ],
+        "path": "/home",
+        "wipeFilesystem": false
+      }
+    ],
+    "files": [
+      {
+        "path": "/etc/ssh/sshd_config",
+        "mode": 420,
+        "overwrite": true,
+        "contents": {
+          "source": "data:text/plain;charset=utf-8;base64,IyAgICAgICAkT3BlbkJTRDogc3NoZF9jb25maWcsdiAxLjEwNCAyMDIxLzA3LzAyIDA1OjExOjIxIGR0dWNrZXIgRXhwICQKCiMgVGhpcyBpcyB0aGUgc3NoZCBzZXJ2ZXIgc3lzdGVtLXdpZGUgY29uZmlndXJhdGlvbiBmaWxlLiAgU2VlCiMgc3NoZF9jb25maWcoNSkgZm9yIG1vcmUgaW5mb3JtYXRpb24uCgojIFRoaXMgc3NoZCB3YXMgY29tcGlsZWQgd2l0aCBQQVRIPS91c3IvYmluOi9iaW46L3Vzci9zYmluOi9zYmluCgojIFRvIG1vZGlmeSB0aGUgc3lzdGVtLXdpZGUgc3NoZCBjb25maWd1cmF0aW9uLCBjcmVhdGUgYSAiKi5jb25mIiBmaWxlIHVuZGVyCiMgIi9ldGMvc3NoL3NzaGRfY29uZmlnLmQvIiB3aGljaCB3aWxsIGJlIGF1dG9tYXRpY2FsbHkgaW5jbHVkZWQgYmVsb3cuCiMgRG9uJ3QgZWRpdCB0aGlzIGNvbmZpZ3VyYXRpb24gZmlsZSBpdHNlbGYgaWYgcG9zc2libGUgdG8gYXZvaWQgdXBkYXRlCiMgcHJvYmxlbXMuCkluY2x1ZGUgL2V0Yy9zc2gvc3NoZF9jb25maWcuZC8qLmNvbmYKCiMgVGhlIHN0cmF0ZWd5IHVzZWQgZm9yIG9wdGlvbnMgaW4gdGhlIGRlZmF1bHQgc3NoZF9jb25maWcgc2hpcHBlZCB3aXRoCiMgT3BlblNTSCBpcyB0byBzcGVjaWZ5IG9wdGlvbnMgd2l0aCB0aGVpciBkZWZhdWx0IHZhbHVlIHdoZXJlCiMgcG9zc2libGUsIGJ1dCBsZWF2ZSB0aGVtIGNvbW1lbnRlZC4gIFVuY29tbWVudGVkIG9wdGlvbnMgb3ZlcnJpZGUgdGhlCiMgZGVmYXVsdCB2YWx1ZS4KSW5jbHVkZSAvdXNyL2V0Yy9zc2gvc3NoZF9jb25maWcuZC8qLmNvbmYKCiNQb3J0IDIyCiNBZGRyZXNzRmFtaWx5IGFueQojTGlzdGVuQWRkcmVzcyAwLjAuMC4wCiNMaXN0ZW5BZGRyZXNzIDo6CgojSG9zdEtleSAvZXRjL3NzaC9zc2hfaG9zdF9yc2Ffa2V5CiNIb3N0S2V5IC9ldGMvc3NoL3NzaF9ob3N0X2VjZHNhX2tleQojSG9zdEtleSAvZXRjL3NzaC9zc2hfaG9zdF9lZDI1NTE5X2tleQoKIyBDaXBoZXJzIGFuZCBrZXlpbmcKI1Jla2V5TGltaXQgZGVmYXVsdCBub25lCgojIExvZ2dpbmcKI1N5c2xvZ0ZhY2lsaXR5IEFVVEgKI0xvZ0xldmVsIElORk8KCiMgQXV0aGVudGljYXRpb246CgojTG9naW5HcmFjZVRpbWUgMm0KUGVybWl0Um9vdExvZ2luIHllcwojU3RyaWN0TW9kZXMgeWVzCiNNYXhBdXRoVHJpZXMgNgojTWF4U2Vzc2lvbnMgMTAKClB1YmtleUF1dGhlbnRpY2F0aW9uIHllcwoKIyBUaGUgZGVmYXVsdCBpcyB0byBjaGVjayBib3RoIC5zc2gvYXV0aG9yaXplZF9rZXlzIGFuZCAuc3NoL2F1dGhvcml6ZWRfa2V5czIKIyBidXQgdGhpcyBpcyBvdmVycmlkZGVuIHNvIGluc3RhbGxhdGlvbnMgd2lsbCBvbmx5IGNoZWNrIC5zc2gvYXV0aG9yaXplZF9rZXlzCkF1dGhvcml6ZWRLZXlzRmlsZSAgICAgIC5zc2gvYXV0aG9yaXplZF9rZXlzCgojQXV0aG9yaXplZFByaW5jaXBhbHNGaWxlIG5vbmUKCiNBdXRob3JpemVkS2V5c0NvbW1hbmQgbm9uZQojQXV0aG9yaXplZEtleXNDb21tYW5kVXNlciBub2JvZHkKCiMgRm9yIHRoaXMgdG8gd29yayB5b3Ugd2lsbCBhbHNvIG5lZWQgaG9zdCBrZXlzIGluIC9ldGMvc3NoL3NzaF9rbm93bl9ob3N0cwojSG9zdGJhc2VkQXV0aGVudGljYXRpb24gbm8KIyBDaGFuZ2UgdG8geWVzIGlmIHlvdSBkb24ndCB0cnVzdCB+Ly5zc2gva25vd25faG9zdHMgZm9yCiMgSG9zdGJhc2VkQXV0aGVudGljYXRpb24KI0lnbm9yZVVzZXJLbm93bkhvc3RzIG5vCiMgRG9uJ3QgcmVhZCB0aGUgdXNlcidzIH4vLnJob3N0cyBhbmQgfi8uc2hvc3RzIGZpbGVzCiNJZ25vcmVSaG9zdHMgeWVzCgojIFRvIGRpc2FibGUgdHVubmVsZWQgY2xlYXIgdGV4dCBwYXNzd29yZHMsIGNoYW5nZSB0byBubyBoZXJlIQpQYXNzd29yZEF1dGhlbnRpY2F0aW9uIHllcwpQZXJtaXRFbXB0eVBhc3N3b3JkcyBubwoKIyBDaGFuZ2UgdG8gbm8gdG8gZGlzYWJsZSBzL2tleSBwYXNzd29yZHMKI0tiZEludGVyYWN0aXZlQXV0aGVudGljYXRpb24geWVzCgojIEtlcmJlcm9zIG9wdGlvbnMKI0tlcmJlcm9zQXV0aGVudGljYXRpb24gbm8KI0tlcmJlcm9zT3JMb2NhbFBhc3N3ZCB5ZXMKI0tlcmJlcm9zVGlja2V0Q2xlYW51cCB5ZXMKI0tlcmJlcm9zR2V0QUZTVG9rZW4gbm8KCiMgR1NTQVBJIG9wdGlvbnMKI0dTU0FQSUF1dGhlbnRpY2F0aW9uIG5vCiNHU1NBUElDbGVhbnVwQ3JlZGVudGlhbHMgeWVzCiNHU1NBUElTdHJpY3RBY2NlcHRvckNoZWNrIHllcwojR1NTQVBJS2V5RXhjaGFuZ2Ugbm8KCiMgU2V0IHRoaXMgdG8gJ3llcycgdG8gZW5hYmxlIFBBTSBhdXRoZW50aWNhdGlvbiwgYWNjb3VudCBwcm9jZXNzaW5nLAojIGFuZCBzZXNzaW9uIHByb2Nlc3NpbmcuIElmIHRoaXMgaXMgZW5hYmxlZCwgUEFNIGF1dGhlbnRpY2F0aW9uIHdpbGwKIyBiZSBhbGxvd2VkIHRocm91Z2ggdGhlIEtiZEludGVyYWN0aXZlQXV0aGVudGljYXRpb24gYW5kCiMgUGFzc3dvcmRBdXRoZW50aWNhdGlvbi4gIERlcGVuZGluZyBvbiB5b3VyIFBBTSBjb25maWd1cmF0aW9uLAojIFBBTSBhdXRoZW50aWNhdGlvbiB2aWEgS2JkSW50ZXJhY3RpdmVBdXRoZW50aWNhdGlvbiBtYXkgYnlwYXNzCiMgdGhlIHNldHRpbmcgb2YgIlBlcm1pdFJvb3RMb2dpbiBwcm9oaWJpdC1wYXNzd29yZCIuCiMgSWYgeW91IGp1c3Qgd2FudCB0aGUgUEFNIGFjY291bnQgYW5kIHNlc3Npb24gY2hlY2tzIHRvIHJ1biB3aXRob3V0CiMgUEFNIGF1dGhlbnRpY2F0aW9uLCB0aGVuIGVuYWJsZSB0aGlzIGJ1dCBzZXQgUGFzc3dvcmRBdXRoZW50aWNhdGlvbgojIGFuZCBLYmRJbnRlcmFjdGl2ZUF1dGhlbnRpY2F0aW9uIHRvICdubycuClVzZVBBTSB5ZXMKCiNBbGxvd0FnZW50Rm9yd2FyZGluZyB5ZXMKI0FsbG93VGNwRm9yd2FyZGluZyB5ZXMKI0dhdGV3YXlQb3J0cyBubwpYMTFGb3J3YXJkaW5nIHllcwojWDExRGlzcGxheU9mZnNldCAxMAojWDExVXNlTG9jYWxob3N0IHllcwojUGVybWl0VFRZIHllcwpQcmludE1vdGQgbm8KVENQS2VlcEFsaXZlIHllcwojUGVybWl0VXNlckVudmlyb25tZW50IG5vCiNDb21wcmVzc2lvbiBkZWxheWVkCkNsaWVudEFsaXZlSW50ZXJ2YWwgNjAKQ2xpZW50QWxpdmVDb3VudE1heCA0ODAKI1VzZUROUyBubwojUGlkRmlsZSAvcnVuL3NzaGQucGlkCiNNYXhTdGFydHVwcyAxMDozMDoxMDAKI1Blcm1pdFR1bm5lbCBubwojQ2hyb290RGlyZWN0b3J5IG5vbmUKI1ZlcnNpb25BZGRlbmR1bSBub25lCgojIG5vIGRlZmF1bHQgYmFubmVyIHBhdGgKI0Jhbm5lciBub25lCgojIG92ZXJyaWRlIGRlZmF1bHQgb2Ygbm8gc3Vic3lzdGVtcwpTdWJzeXN0ZW0gICAgICAgc2Z0cCAgICAvdXNyL2xpYmV4ZWMvc3NoL3NmdHAtc2VydmVyCgojIFRoaXMgZW5hYmxlcyBhY2NlcHRpbmcgbG9jYWxlIGVudmlyb21lbnQgdmFyaWFibGVzIExDXyogTEFORywgc2VlIHNzaGRfY29uZmlnKDUpLgpBY2NlcHRFbnYgTEFORyBMQ19DVFlQRSBMQ19OVU1FUklDIExDX1RJTUUgTENfQ09MTEFURSBMQ19NT05FVEFSWSBMQ19NRVNTQUdFUwpBY2NlcHRFbnYgTENfUEFQRVIgTENfTkFNRSBMQ19BRERSRVNTIExDX1RFTEVQSE9ORSBMQ19NRUFTVVJFTUVOVApBY2NlcHRFbnYgTENfSURFTlRJRklDQVRJT04gTENfQUxMCgojIEV4YW1wbGUgb2Ygb3ZlcnJpZGluZyBzZXR0aW5ncyBvbiBhIHBlci11c2VyIGJhc2lzCiNNYXRjaCBVc2VyIGFub25jdnMKIyAgICAgICBYMTFGb3J3YXJkaW5nIG5vCiMgICAgICAgQWxsb3dUY3BGb3J3YXJkaW5nIG5vCiMgICAgICAgUGVybWl0VFRZIG5vCiMgICAgICAgRm9yY2VDb21tYW5kIGN2cyBzZXJ2ZXI="
+        }
+      },
+      {
+        "path": "/etc/locale.conf",
+        "mode": 420,
+        "overwrite": true,
+        "contents": {
+          "source": "data:,LANG=en_US.UTF-8"
+        }
+      }
+    ]
+  },
+  "systemd": {
+    "units": [
+      {
+        "name": "sshd.service",
+        "enabled": true
+      }
+    ]
+  }
+}

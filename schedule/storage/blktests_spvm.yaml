@@ -1,0 +1,10 @@
+name:           blktests_spvm
+description:    >
+    Executing blktests, the upstream testsuite
+vars:
+    DESKTOP: textmode
+    BOOT_HDD_IMAGE: 1
+schedule:
+    - installation/bootloader
+    - boot/boot_to_desktop
+    - kernel/blktests

@@ -1,0 +1,80 @@
+#!/bin/sh -e
+
+usage="Detect test modules usage in the schedules, inluding main.pm and yaml schedules.
+
+Usage: $(basename "$0") { -a | -m MODULES } | -h
+
+    -h|--help                 show this help text
+    -a|--all                  check all test modules
+    -m|--modules MODULES      check provided list (module names must contain 'tests/', i.e. relative path)"
+
+if [ $# -eq 0 ]; then
+    echo "$usage"
+    exit 1
+fi
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -h|--help)
+            echo "$usage"
+            exit
+            ;;
+        -a|--all)
+            MODULES=$(git ls-files "*tests/*.pm")
+            break
+            ;;
+        -m|--modules)
+            shift
+            MODULES=${@}
+            break
+            ;;
+        *)
+            echo "$usage"
+            exit 1
+            ;;
+    esac
+done
+
+for test in $MODULES ; do
+    # Don't check non-existing modules it as it was either renamed or removed
+    # also check only for tests in tests/ directory
+    git ls-files "*$test*" | grep -q ^tests/ || continue
+
+    echo "check $test" >&2
+
+    t=$(basename $test | sed -e 's@\.pm$@@')
+    t_dir=$(dirname $test | sed -e 's@tests/\(.*\)$@\1@')
+    git grep -E "(- $t_dir/$t|loadtest.*$t|load_testdir.*$t_dir|^use (base )?\"?$t\"?)" | grep -qv ".(pm|yaml):\s*#" || echo "$test module is not used in any schedule"
+done | \
+    # Whitelist
+
+    # Some tests are loaded dynamically via CONTAINER_TESTS or BATS_PACKAGE
+    grep -v 'containers' |\
+
+    # https://progress.opensuse.org/issues/31750
+    grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls)' |\
+
+    # Tests are loaded dynamically
+    grep -vE '(qa_automation|hpc|caasp/stack_admin|wicked)' |\
+
+    # based on test variable content
+    # Requested by nadvornik, used in sle11 tests
+    grep -v 'slepos' |\
+
+    # Loaded dynamically by AUTOYAST_VERIFY_MODULE
+    grep -v 'verify_firewalld' |\
+
+    # https://progress.opensuse.org/issues/32302
+    grep -v 'zypper_moo' |\
+
+    # Most tests are loaded via APPTESTS
+    grep -v 'sles4sap' |\
+
+    # Scheduled with s390x_tests/consoletest_${testset}${tc}
+    grep -v 's390x_tests' |\
+
+    # running on a development job group https://openqa.suse.de/group_overview/616
+    grep -v 'velociraptor_client_event_collect' |\
+
+    grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls|qa_automation/|hpc/|slepos/|caasp/stack_admin|wicked|sles4sap/|s390x_tests/)' \
+    && { exit 1; } || { exit 0; }

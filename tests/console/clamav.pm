@@ -1,0 +1,154 @@
+# SUSE's openQA tests
+#
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+#
+# Package: clamav
+# Summary: check freshclam and clamscan against some fake virus samples
+# - refresh the database using freshclam
+# - change user vscan to root in clamd.conf (clamd runs as root)
+# - start clamd and freshclam using systemctl
+# - check that clamscan is able to recognize a fake virus
+# - check that clamscan is able to recognize an EICAR virus pdf, txt and zip format
+# - check that clamdscan is able to recognize an EICAR virus pdf, txt and zip format
+#
+# NOTE: As the vendor states, clamav needs at least 2GB of RAM to work smooth.
+# To avoid interference and overload the openQA, the test is extracted from its
+# original location and executed on its own dedicated test suites, qam-clamav
+# for maintenance and extra_tests_clamav in functional.
+#
+# Maintainer: QE Security <none@suse.de>
+# Tags: TC1595169, poo#46880, poo#65375, poo#80182
+
+use Mojo::Base 'consoletest';
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use Utils::Architectures;
+use utils;
+use package_utils 'install_package';
+use transactional 'reboot_on_changes';
+use version_utils qw(is_jeos is_opensuse is_sle);
+
+my $test_dir = "/var/lib/clamav/eicar_test_files";
+
+sub scan_and_parse {
+    my ($cmd) = @_;
+    my $log_file = "$cmd.log";
+
+    script_run "$cmd -i --log=$log_file $test_dir", 900;
+    validate_script_output "cat $log_file", sub {
+        /Infected files:\s+3/ && /Eicar.*FOUND/;
+    };
+    script_run "rm -f $log_file";
+}
+
+sub run {
+    select_serial_terminal;
+
+    install_package('clamav', trup_reboot => 1);
+    zypper_call('info clamav');
+    # Create a random file
+    assert_script_run "dd if=/dev/urandom of=/usr/local/bin/maybeavirus bs=1M count=1";
+    assert_script_run "chmod +x /usr/local/bin/maybeavirus";
+
+    # Check Clamav version
+    # Jira ID SLE-16780: upgrade Clamav SLE
+    my $current_ver = script_output("rpm -q --qf '%{version}' clamav");
+    record_info("Clamav_ver", "Current Clamav package version: $current_ver");
+
+    if (is_sle('>=15-SP3') && ($current_ver < 0.101)) {
+        record_soft_failure("jsc#SLE-16780: upgrade Clamav SLE feature is not yet released");
+    }
+    # Softfail until BSC1258122 resolved
+    elsif (get_var('FIPS_ENABLED') && (is_sle('=15-SP5') || is_sle('=15-SP4'))) {
+        record_soft_failure("Softfail clamav on SLE 15.4 and 15.5 due to bsc#1258122");
+        return;
+    }
+
+    # Initialize and download ClamAV database
+    # First from local mirror, it's much faster, then from official clamav db
+    my $host = is_sle() ? 'openqa.oqa.prg2.suse.org' : 'openqa.opensuse.org';
+    assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/fixed/cvd' /etc/freshclam.conf");
+    assert_script_run('freshclam', timeout => 300);
+
+    # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
+    # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile
+    if (is_jeos && !(is_opensuse && is_aarch64)) {
+        assert_script_run("mkdir -p /var/lib/swap");
+        assert_script_run("dd if=/dev/zero of=/var/lib/swap/swapfile bs=1M count=512");
+        assert_script_run("mkswap /var/lib/swap/swapfile");
+        assert_script_run("swapon /var/lib/swap/swapfile");
+        my $swaps = script_output("cat /proc/swaps");
+        die "Swapfile was not created succesfully" unless ($swaps =~ "swapfile");
+    }
+
+    # Verify the database
+    assert_script_run 'sigtool -i /var/lib/clamav/main.cvd';
+    assert_script_run 'sigtool -i /var/lib/clamav/bytecode.cvd';
+    # CLD files are uncompressed and unsigned versions of the CVD that have had CDIFFs applied
+    assert_script_run 'sigtool -i /var/lib/clamav/daily.cvd || sigtool -i /var/lib/clamav/daily.cld';
+
+    # Clamd start timeout sometimes. The default systemd timeout is 90s,
+    # override it with a longer duration in runtime.
+    my $runtime_dir = '/run/systemd/system/clamd.service.d';
+    assert_script_run "mkdir -p $runtime_dir";
+    assert_script_run "echo -e \'[Service]\\nTimeoutSec=400\' > $runtime_dir/override.conf";
+    systemctl('daemon-reload');
+
+    # Start the deamons
+    script_run("sed -i 's/User vscan/User root/g' /etc/clamd.conf");
+    systemctl('start clamd', timeout => 400);
+    systemctl('start freshclam');
+
+    # Create md5, sha1 and sha256 Hash-based signatures
+    # Assume /usr/local/bin/maybeavirus is an virus program and add its
+    # signature to viruses database, then scan the virus
+    #
+    # Base hashes always allowed
+    my @hashes = qw(sha1 sha256);
+    # MD5 is not allowed in FIPS mode
+    push @hashes, 'md5' unless check_var('FIPS_ENABLED', '1');
+    for my $alg (@hashes) {
+        assert_script_run "sigtool --$alg /usr/local/bin/maybeavirus > test.hdb";
+        # https://progress.opensuse.org/issues/183761#note-45
+        wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
+        enter_cmd "clamscan -d test.hdb  /usr/local/bin/maybeavirus | tee /dev/$serialdev";
+        die "Virus scan result was not expected" unless (wait_serial qr/maybeavirus\.UNOFFICIAL FOUND.*Known viruses: 1/ms);
+    }
+
+    # test 3 different file formats containing the EICAR signature
+    assert_script_run "mkdir -p $test_dir";
+    for my $ext (qw(pdf txt zip)) {
+        my $asset = "eicar_test_files/eicar.$ext";
+        my $dest = "$test_dir/eicar.$ext";
+        assert_script_run("curl -f -o $dest " . data_url($asset));
+    }
+
+    scan_and_parse "clamscan";
+    scan_and_parse "clamdscan";
+
+    # Clean up
+    script_run "rm -f /usr/local/bin/maybeavirus";
+    script_run "rm -f test.hdb";
+    script_run "rm -rf eicar_test_files/";
+    systemctl('stop clamd freshclam', timeout => 500);
+}
+
+sub post_run_hook {
+    assert_script_run("swapoff /var/lib/swap/swapfile") if is_jeos && !(is_opensuse && is_aarch64);
+    systemctl('stop clamd', timeout => 500);
+    systemctl('stop freshclam');
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_logs('/etc/freshclam.conf');
+
+}
+
+sub test_flags {
+    return {fatal => 0};
+}
+
+1;

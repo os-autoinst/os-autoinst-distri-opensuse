@@ -1,0 +1,32 @@
+---
+name: autoyast_sles4sap_hana
+description: >
+  AutoYaST installation of SAP HANA.
+
+  A 2nd HDD of 140GB is needed on a HANA server with 32GB of RAM.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_sles4sap.xml.ep
+  AUTOYAST_PREPARE_PROFILE: '1'
+  AY_EXPAND_VARS: INSTANCE_ID,INSTANCE_SID,SCC_REGCODE_SLES4SAP,INSTANCE_PASSWORD,HANA
+  INSTANCE_ID: '42'
+  INSTANCE_SID: 'QA0'
+  INSTANCE_PASSWORD: 'Linux_123'
+  HDDSIZEGB_2: '140'
+  NUMDISKS: '2'
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/hana_test
+  - autoyast/verify_cloned_profile

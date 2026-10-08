@@ -1,0 +1,23 @@
+disks:
+  - name: vda
+    partitions:
+      - size: 2MiB
+        role: raw-volume
+        id: bios-boot
+      - role: raw-volume
+        id: linux-lvm
+        encrypt_device: 1
+lvm:
+  volume_groups:
+  - name: vg-system
+    devices:
+      - /dev/vda2
+    logical_volumes:
+      - name: lv-swap
+        size: 2000MiB
+        role: swap
+      - name: lv-root
+        role: operating-system
+crypttab:
+  num_devices_encrypted: 1
+<<: !include test_data/qam/QR/15-SP4/encryption/default_enc.yaml

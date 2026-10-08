@@ -1,0 +1,8 @@
+name: yast2_users
+description:    >
+    This is for the yast2_users test.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/yast2_users/add_users

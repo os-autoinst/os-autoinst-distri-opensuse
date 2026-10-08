@@ -1,0 +1,9 @@
+input,expected
+ö,a
+ae,ae
+ä,z
+å,å
+ø,ä
+æ,æ
+z,ö
+a,ø

@@ -1,0 +1,92 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Helper class for Azure connection and authentication
+#
+# Maintainer: QE-C team <qa-c@suse.de>
+
+package publiccloud::azure_client;
+use Mojo::Base -base;
+use testapi;
+use utils;
+use publiccloud::utils;
+use version_utils qw(is_sle);
+
+has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
+has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
+has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
+has credentials_file_content => undef;
+has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
+
+sub init {
+    my ($self, %args) = @_;
+    $args{namespace} //= get_required_var('PUBLIC_CLOUD_NAMESPACE');
+    my $data = get_credentials(url_suffix => 'azure.json', namespace => $args{namespace});
+    $self->subscription($data->{subscription_id});
+    define_secret_variable("ARM_SUBSCRIPTION_ID", $self->subscription);
+    define_secret_variable("ARM_CLIENT_ID", $data->{client_id});
+    define_secret_variable("ARM_CLIENT_SECRET", $data->{client_secret});
+    define_secret_variable("ARM_TENANT_ID", $data->{tenant_id});
+    define_secret_variable("ARM_TEST_LOCATION", $self->region);
+    $self->credentials_file_content("{" . $/
+          . '"clientId": "' . $data->{client_id} . '", ' . $/
+          . '"clientSecret": "' . $data->{client_secret} . '", ' . $/
+          . '"subscriptionId": "' . $self->subscription . '", ' . $/
+          . '"tenantId": "' . $data->{tenant_id} . '", ' . $/
+          . '"activeDirectoryEndpointUrl": "https://login.microsoftonline.com", ' . $/
+          . '"resourceManagerEndpointUrl": "https://management.azure.com/", ' . $/
+          . '"activeDirectoryGraphResourceId": "https://graph.windows.net/", ' . $/
+          . '"sqlManagementEndpointUrl": "https://management.core.windows.net:8443/", ' . $/
+          . '"galleryEndpointUrl": "https://gallery.azure.com/", ' . $/
+          . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
+          . '}');
+    if (is_sle(">=16")) {
+        my $debug = "az-cli-debug.txt";
+        script_run("PILOT_DEBUG=1 bash -c 'time -p az --help' &> $debug");
+        record_info("az cli time", script_output("tail -n 3 $debug", proceed_on_failure => 1));
+        upload_logs($debug, failok => 1);
+        script_run("rpm -qi az-cli-cmd");
+    }
+    record_info("az version", script_output("az version"));
+
+    $self->az_login();
+    assert_script_run("az account set --subscription \$ARM_SUBSCRIPTION_ID");
+}
+
+sub az_login {
+    my ($self) = @_;
+    # Remove survey and telemetry messages which can mangle JSON outputs.
+    assert_script_run('az config set core.survey_message=false core.collect_telemetry=no --only-show-errors --output json', timeout => 240);
+    my $login_cmd = "while ! az login --service-principal -u \$ARM_CLIENT_ID -p \$ARM_CLIENT_SECRET -t \$ARM_TENANT_ID -o none 1>/dev/null 2>&1; do sleep 10; done";
+
+    assert_script_run($login_cmd, timeout => 5 * 60);
+}
+
+=head2 configure_podman
+
+Configure the podman to access the cloud provider registry
+=cut
+
+sub configure_podman {
+    my ($self) = @_;
+
+    my $login_cmd = sprintf(q(while ! az acr login --name '%s'; do sleep 10; done),
+        $self->container_registry);
+    assert_script_run($login_cmd);
+}
+
+=head2 get_container_image_full_name
+
+Returns the full name of the container image in ACR registry
+C<tag> Tag of the container
+=cut
+
+sub get_container_image_full_name {
+    my ($self, $tag) = @_;
+    my $full_name_prefix = sprintf('%s.azurecr.io', $self->container_registry);
+    return "$full_name_prefix/$tag";
+}
+
+1;

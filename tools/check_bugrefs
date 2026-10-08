@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+import configparser
+import os.path
+import requests
+import sys
+
+config = configparser.ConfigParser()
+config.read(os.path.expanduser('~/.oscrc'))
+user = config.get('https://api.opensuse.org', 'user')
+password = config.get('https://api.opensuse.org', 'pass')
+# give bugids as new line separated list on stdin
+ids = [bugid.rstrip() for bugid in sys.stdin]
+url = 'https://%s:%s@apibugzilla.suse.com/jsonrpc.cgi?method=Bug.get&params=[{"ids":[%s]}]' % (user, password, ','.join(ids))
+status_dict = {i['id']: i['status'] for i in requests.get(url).json()['result']['bugs']}
+for k, v in sorted(status_dict.items()):
+    print('%s: %s' % (k, v))

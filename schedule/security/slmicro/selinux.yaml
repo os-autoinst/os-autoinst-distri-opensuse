@@ -1,0 +1,36 @@
+name: selinux
+description: >
+    This is for SElinux test
+schedule:
+    - '{{boot_s390}}'
+    - '{{boot_non_s390}}'
+    - transactional/host_config
+    - console/suseconnect_scc
+    - security/selinux/selinux_setup
+    - security/selinux/sestatus
+    - security/selinux/semanage_fcontext
+    - security/selinux/semanage_boolean
+    - security/selinux/fixfiles
+    - security/selinux/print_se_context
+    - security/selinux/audit2allow
+    - security/selinux/semodule
+    - security/selinux/setsebool
+    - security/selinux/restorecon
+    - security/selinux/chcon
+    - security/selinux/chcat
+    - security/selinux/set_get_enforce
+    - security/selinux/selinuxexeccon
+    - console/journal_check
+    - shutdown/shutdown
+conditional_schedule:
+    boot_s390:
+        ARCH:
+            s390x:
+                - installation/bootloader_start
+                - boot/boot_to_desktop
+    boot_non_s390:
+        ENCRYPTED_IMAGE:
+            0:
+                - microos/disk_boot
+            1:
+                - jeos/firstrun

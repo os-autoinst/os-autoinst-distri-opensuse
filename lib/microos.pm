@@ -1,0 +1,59 @@
+# SUSE's openQA tests
+#
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+package microos;
+
+use base Exporter;
+use Exporter;
+
+use strict;
+use warnings;
+use testapi;
+use utils qw(need_unlock_after_bootloader unlock_if_encrypted);
+use version_utils qw(is_microos is_selfinstall get_default_bootloader);
+use power_action_utils 'power_action';
+use Utils::Architectures qw(is_aarch64);
+use Utils::Backends qw(is_ipmi);
+
+our @EXPORT = qw(microos_reboot microos_login);
+
+# Assert login prompt and login as root
+sub microos_login {
+    my $login_timeout = (is_aarch64 || is_selfinstall) ? 300 : 150;
+    assert_screen [qw(linux-login-microos linux-login)], $login_timeout;
+
+    if (is_microos 'VMX') {
+        # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
+        my $key = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'alt-f2' : 'ctrl-alt-f2';
+        # First attempts to select tty2 are ignored - bsc#1035968
+        send_key_until_needlematch 'tty2-selected', $key, 11, 30;
+    }
+
+    select_console 'root-console';
+
+    # Don't match linux-login-microos twice
+    assert_script_run 'clear';
+}
+
+# Process reboot with an option to trigger it
+sub microos_reboot {
+    my $trigger = shift // 0;
+    # aka expected_grub from process_reboot
+    my $bootloader_expected = shift // 1;
+    power_action('reboot', observe => !$trigger, keepconsole => 1);
+
+    if ($bootloader_expected) {
+        # sol console has to be selected for ipmi backend before asserting grub needle.
+        select_console 'sol', await_console => 0 if is_ipmi();
+
+        assert_screen(get_default_bootloader(), 300);
+        send_key('ret') unless get_var('KEEP_GRUB_TIMEOUT');
+        unlock_if_encrypted if need_unlock_after_bootloader;
+    }
+
+    microos_login;
+}
+
+1;

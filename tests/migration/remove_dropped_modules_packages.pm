@@ -1,0 +1,20 @@
+# SUSE's openQA tests
+#
+# Copyright 2022 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Register again is system is un-registered on SCC side, then
+# remove -release packages from dropped modules before installation to avoid related warnings.
+
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'y2_installbase';
+use testapi;
+use migration;    #
+
+sub run {
+    select_console 'root-console';
+    remove_dropped_modules_packages if (get_var('DROPPED_MODULES'));
+}
+
+1;

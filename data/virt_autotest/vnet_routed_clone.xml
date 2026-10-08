@@ -1,0 +1,10 @@
+<network>
+ <name>vnet_routed_clone</name>
+ <bridge name="virbr3"/>
+ <forward mode="route"/>
+ <ip address="192.168.130.1" netmask="255.255.255.0">
+  <dhcp>
+      <range start="192.168.130.2" end="192.168.130.254" />
+  </dhcp>
+ </ip>
+</network>

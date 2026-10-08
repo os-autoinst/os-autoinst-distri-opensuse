@@ -1,0 +1,95 @@
+# SUSE's openQA tests
+#
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Helper class for amazon connection and authentication
+#
+# Maintainer: QE-C team <qa-c@suse.de>
+
+package publiccloud::aws_client;
+use Mojo::Base -base;
+use testapi;
+use utils;
+use version_utils 'is_sle';
+use publiccloud::utils;
+
+has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
+has aws_account_id => undef;
+has container_registry => sub { get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing') };
+has username => sub { get_var('PUBLIC_CLOUD_USER', 'ec2-user') };
+
+sub _check_credentials {
+    my ($self) = @_;
+
+    my $max_tries = 6;
+    for my $i (1 .. $max_tries) {
+        my $out = script_output('aws ec2 describe-images --dry-run', 300, proceed_on_failure => 1);
+        return 1 if ($out !~ /AuthFailure/m && $out !~ /"aws configure"/m);
+        sleep 30;
+    }
+
+    return;
+}
+
+sub init {
+    my ($self, %params) = @_;
+
+    my $data = get_credentials(url_suffix => 'aws.json');
+
+    assert_script_run('export AWS_DEFAULT_REGION="' . $self->region . '"');
+    define_secret_variable("AWS_ACCESS_KEY_ID", $data->{access_key_id});
+    define_secret_variable("AWS_SECRET_ACCESS_KEY", $data->{secret_access_key});
+    if (is_sle('>=16')) {
+        # This is a workaround for `aws-cli` test on SLES16 until the 'flake' container accepts above environment variables
+        assert_script_run('mkdir -p ~/.aws');
+        # CAVEAT: Use the bash environment variables to prevent credential leaks.
+        assert_script_run('printf "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY\nregion=$AWS_DEFAULT_REGION\n" > ~/.aws/credentials');
+        my $debug = "aws-cli-debug.txt";
+        script_run("PILOT_DEBUG=1 bash -c 'time -p aws --help' &> $debug");
+        record_info("aws cli time", script_output("tail -n 3 $debug", proceed_on_failure => 1));
+        upload_logs($debug, failok => 1);
+        script_run("rpm -qi aws-cli-cmd");
+    }
+
+    # Disable pager (see poo#133226 - EC2: WARNING: terminal is not fully functional)
+    assert_script_run('export AWS_PAGER=""');
+
+    record_info("aws version", script_output("aws --version"));
+
+    die('Credentials are invalid') unless ($self->_check_credentials());
+
+    # AWS STS is the secure token service, which is used for those credentials
+    $self->aws_account_id(script_output("aws sts get-caller-identity | jq -r '.Account'"));
+    die("Cannot get the UserID") unless ($self->aws_account_id);
+    die("The UserID doesn't have the correct format: $self->{user_id}") unless $self->aws_account_id =~ /^\d{12}$/m;
+}
+
+=head2 get_container_image_full_name
+
+Returns the full name of the container image in ECR registry
+C<tag> Tag of the container
+=cut
+
+sub get_container_image_full_name {
+    my ($self, $tag) = @_;
+    my $full_name_prefix = sprintf('%s.dkr.ecr.%s.amazonaws.com', $self->aws_account_id, $self->region);
+
+    return "$full_name_prefix/" . $self->container_registry . ":$tag";
+}
+
+=head2 configure_podman
+
+Configure the podman to access the cloud provider registry
+=cut
+
+sub configure_podman {
+    my ($self) = @_;
+    my $full_name_prefix = sprintf('%s.dkr.ecr.%s.amazonaws.com', $self->aws_account_id, $self->region);
+
+    assert_script_run("aws ecr get-login-password --region "
+          . $self->region
+          . " | podman login --username AWS --password-stdin $full_name_prefix");
+}
+
+1;

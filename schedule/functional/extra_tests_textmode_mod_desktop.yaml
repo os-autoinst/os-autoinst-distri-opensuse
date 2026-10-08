@@ -1,0 +1,21 @@
+name:           extra_tests_textmode_mod_desktop
+description:    >
+    Maintainer: dheidler.
+    Extra tests about CLI software in desktop applications module
+conditional_schedule:
+    tests_requiring_soundcard:
+        ARCH:
+            aarch64:
+                - console/aplay
+                - console/wavpack
+        MACHINE:
+            64bit:
+                - console/aplay
+                - console/wavpack
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - '{{tests_requiring_soundcard}}'
+    - console/zypper_log_packages

@@ -1,0 +1,17 @@
+# SUSE's openQA tests
+#
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Activates a device in DASD disk management page
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'y2_installbase';
+
+sub run {
+    my $dasd_disk_management = $testapi::distri->get_dasd_disk_management();
+    $dasd_disk_management->activate_device('0.0.0150');
+    $dasd_disk_management->accept_configuration();
+}
+
+1;

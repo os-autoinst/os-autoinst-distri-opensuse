@@ -1,0 +1,21 @@
+name:           sle_micro_default
+description:    >
+  Maintainer: QE Yam <qe-yam at suse de>
+  SUSE Linux Enterprise Micro installation on aarch64
+schedule:
+  - installation/bootloader_uefi
+  - installation/welcome
+  - installation/scc_registration
+  - installation/ntp_config_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - microos/disk_boot
+  - console/textinfo
+  - microos/cockpit_service
+  - shutdown/shutdown

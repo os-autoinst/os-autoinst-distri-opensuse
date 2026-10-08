@@ -1,0 +1,15 @@
+openssl_conf = openssl_init
+
+[openssl_init]
+providers = provider_sect
+
+[provider_sect]
+default = default_sect
+oqs = oqs_sect
+
+[default_sect]
+activate = 1
+
+[oqs_sect]
+activate = 1
+module = /usr/lib64/ossl-modules/oqsprovider.so

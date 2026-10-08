@@ -1,0 +1,154 @@
+# SUSE's openQA tests
+#
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: openssh expect netcat-openbsd psmisc shadow coreutils
+# Summary: Test to verify sshd starts and accepts connections.
+#  We need this test to succeed for followup tests using ssh localhost
+#  This regression test has also an interactive part (in VirtIO console)
+#   * Systemd unit is checked
+#   * The default port is checked on both IPv4 and IPv6
+#   * Password authentication is tested
+#   * Publik key authentication is tested
+#   * SSH Interactive mode is tested using VirtIO console
+#   * Utilities ssh-keygen and ssh-copy-id are used
+#   * Local and remote port forwarding are tested
+#   * The SCP is tested by copying various files
+#
+# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Tags: poo#65375, poo#68200, poo#104415
+
+use Mojo::Base 'consoletest';
+use testapi qw(is_serial_terminal :DEFAULT);
+use serial_terminal 'select_serial_terminal';
+use utils qw(systemctl exec_and_insert_password zypper_call random_string clear_console);
+use Utils::Architectures 'is_ppc64le';
+use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap is_opensuse is_public_cloud);
+use services::sshd;
+use ssh_crypto_policy;
+
+# The test disables the firewall, if true reenable afterwards.
+my $reenable_firewall = 0;
+
+sub run {
+    my $self = shift;
+    select_serial_terminal;
+
+    my $ssh_testman = "sshboy";
+    services::sshd::prepare_test_data();
+    # Stop the firewall if it's available
+    if (is_upgrade && check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
+        record_info("SuSEfirewall2 not available", "bsc#1090178: SuSEfirewall2 service is not available after upgrade from SLES11 SP4 to SLES15");
+    }
+    elsif (script_run('systemctl is-active ' . $self->firewall) == 0) {
+        $reenable_firewall = 1;
+        systemctl('stop ' . $self->firewall);
+    }
+
+    # Restart sshd and check it's status
+    my $ret = systemctl('restart sshd', ignore_failure => 1);
+    my $fips_enabled = script_output('cat /proc/sys/crypto/fips_enabled', proceed_on_failure => 1) eq '1';
+
+    systemctl 'status sshd';
+    services::sshd::ssh_basic_check();
+
+    # poo#80716 Test all available ciphers, key exchange algorithms, host key algorithms and mac algorithms.
+    assert_script_run "echo 'sshd.pm: Testing cryptographic policies' | logger";
+    test_cryptographic_policies(remote_user => $ssh_testman);
+
+    # do the sshd test cleanup
+    services::sshd::do_ssh_cleanup();
+}
+
+sub test_cryptographic_policies {
+    my %args = @_;
+    my $remote_user = $args{remote_user};
+
+    # TODO: This does not work for Tumbleweed because of nmap
+    # See pull request #11930 for more details
+    my @crypto_params = (["Ciphers", "cipher", "-c "], ["KexAlgorithms", "kex", "-o kexalgorithms="], ["MACS", "mac", "-m "]);
+    push(@crypto_params, ["HostKeyAlgorithms", "key", "-o UpdateHostKeys=no -o HostKeyAlgorithms="]) unless (is_opensuse);
+    my @policies;
+
+    # Create an array of the different cryptographic policies that will be tested
+    for my $i (0 .. $#crypto_params) {
+        my $obj = ssh_crypto_policy->new(name => $crypto_params[$i][0], query => $crypto_params[$i][1], cmd_option => $crypto_params[$i][2]);
+        push(@policies, $obj);
+    }
+
+    # Add all available algorithms to sshd_config
+    foreach my $policy (@policies) {
+        $policy->add_to_sshd_config();
+    }
+
+    record_info("Restart sshd", "Restart sshd.service");
+    assert_script_run("cp /etc/ssh/sshd_config /tmp/sshd_config");
+    # Bsc#1239976 Curl is not installed by default in minimal system role on aarch64
+    upload_logs("/tmp/sshd_config") if (script_run("which curl") == 0);
+    systemctl("restart sshd");
+
+    # Add all the ssh public key hashes as known hosts
+    assert_script_run("ssh-keyscan -H localhost > ~/.ssh/known_hosts");
+
+    # Test all the policies
+    foreach my $policy (@policies) {
+        $policy->test_algorithms(remote_user => $remote_user);
+    }
+}
+
+sub check_journal {
+    # bsc#1175310 bsc#1181308 - Detect serious errors as they can be invisible because sshd may silently recover
+    # bsc#1223178 - [Build 80.1] openQA test fails in sshd: Segfault or fatal journal entry detected in journal
+    if (script_run("journalctl -b -u sshd.service | grep -A6 -B24 'segfault\\|fatal'") == 0) {
+        my $journalctl = script_output("journalctl -b -u sshd.service | grep -E 'segfault|fatal'", proceed_on_failure => 1);
+        if (is_sle('<15') && $journalctl =~ /diffie-hellman-group1-sha1/) {
+            record_info("diffie-hellman-group1-sha1", "Expected message - bsc#1185584 diffie-hellman-group1-sha1 is not enabled on this product");
+        } elsif (is_ppc64le && $journalctl =~ /Timeout before authentication/) {
+            record_info("Timeout before authentication", "bsc#1223178 - [Build 80.1] openQA test fails in sshd: Segfault or fatal journal entry detected in journal");
+        } else {
+            die("Please check the journalctl! Segfault or fatal journal entry detected.");
+        }
+    }
+}
+
+sub post_run_hook {
+    my $self = shift;
+    $self->cleanup();
+    $self->SUPER::post_run_hook;
+}
+
+sub post_fail_hook {
+    my $self = shift;
+
+    # If the test fails in interactive mode (via script_start_io), we need to make sure to close it here
+    if (get_var('SUBSHELL_NOT_AS_ROOT', 0)) {
+        script_run "ps -aux";
+        script_run "env";
+        enter_cmd('exit');
+        script_finish_io(timeout => 300, exitcodes => [0]);
+    }
+
+    $self->cleanup();
+    $self->SUPER::post_fail_hook;
+}
+
+sub cleanup() {
+    my $self = shift;
+    systemctl('start ' . $self->firewall) if $reenable_firewall;
+    # eval guards against a wedged console timing out the upload/cat below.
+    eval { upload_logs('/tmp/ssh_log0', failok => 1) };
+    record_info('sshd cleanup', "upload of /tmp/ssh_log0 failed: $@") if $@;
+    # ssh_log0 is uploaded above already, so it's excluded here to avoid duplication.
+    eval { script_run('cat /tmp/ssh_log[12]', timeout => 30) };
+    record_info('sshd cleanup', "cat /tmp/ssh_log[12] failed: $@") if $@;
+    script_run('rm -f /tmp/ssh_log*');
+    check_journal();
+}
+
+sub test_flags {
+    return is_public_cloud() ? {milestone => 0, no_rollback => 1} : {milestone => 1, fatal => 1};
+}
+
+1;

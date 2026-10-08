@@ -1,0 +1,35 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: post-quantum TLS
+# desc: Verifies post-quantum TLS 1.3 connection using X25519MLKEM768
+# steps:
+#   - generate self-signed certificate
+#   - start TLS server and client with post-quantum cipher suite
+#   - verify server receives message from client
+#   - verify TLS 1.3 connection established with post-quantum cipher
+# author: <emil.miler@suse.com>
+# maintainer: QE Security <none@suse.de>
+# expected: no errors raised, connection succeed
+# platform: Tumbleweed
+# tags: security tls post-quantum pq
+# ---
+# METADATA_END
+
+set -e
+
+case "${1:-}" in
+clean)
+    rm -f cert.pem key.pem
+    ;;
+"")
+    openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:secp384r1 \
+        -keyout key.pem -out cert.pem -days 365 -nodes \
+        -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" 2>/dev/null || true
+    go run .
+    ;;
+*)
+    echo "Usage: $0 [clean]"
+    exit 1
+    ;;
+esac

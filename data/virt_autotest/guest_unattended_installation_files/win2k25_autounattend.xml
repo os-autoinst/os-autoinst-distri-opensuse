@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+    <servicing></servicing>
+    <settings pass="windowsPE">
+        <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          <DiskConfiguration>
+            <Disk wcm:action="add">
+	      <DiskID>0</DiskID>
+              <WillWipeDisk>true</WillWipeDisk>
+              <CreatePartitions>
+                <!-- Windows RE Tools partition -->
+                <CreatePartition wcm:action="add">
+                  <Order>1</Order>
+                  <Type>Primary</Type>
+                  <Size>300</Size>
+                </CreatePartition>
+                <!-- System partition (ESP) -->
+                <CreatePartition wcm:action="add">
+                  <Order>2</Order>
+                  <Type>EFI</Type>
+                  <Size>100</Size>
+                </CreatePartition>
+                <!-- Microsoft reserved partition (MSR) -->
+                <CreatePartition wcm:action="add">
+                  <Order>3</Order>
+                  <Type>MSR</Type>
+                  <Size>128</Size>
+                </CreatePartition>
+                <!-- Windows partition -->
+                <CreatePartition wcm:action="add">
+                  <Order>4</Order>
+                  <Type>Primary</Type>
+                  <Extend>true</Extend>
+                </CreatePartition>
+              </CreatePartitions>
+
+              <ModifyPartitions>
+                <!-- Windows RE Tools partition -->
+                <ModifyPartition wcm:action="add">
+                  <Order>1</Order>
+                  <PartitionID>1</PartitionID>
+                  <Label>WINRE</Label>
+                  <Format>NTFS</Format>
+                  <TypeID>de94bba4-06d1-4d40-a16a-bfd50179d6ac</TypeID>
+                </ModifyPartition>
+                <!-- System partition (ESP) -->
+                <ModifyPartition wcm:action="add">
+                  <Order>2</Order>
+                  <PartitionID>2</PartitionID>
+                  <Format>FAT32</Format>
+                  <Label>System</Label>
+                </ModifyPartition>
+                <!-- MSR partition does not need to be modified -->
+                <ModifyPartition wcm:action="add">
+                  <Order>3</Order>
+                  <PartitionID>3</PartitionID>
+                </ModifyPartition>
+                <!-- Windows partition -->
+                <ModifyPartition wcm:action="add">
+                  <Order>4</Order>
+                  <PartitionID>4</PartitionID>
+                  <Format>NTFS</Format>
+                  <Label>Windows</Label>
+                  <Letter>C</Letter>
+                </ModifyPartition>
+              </ModifyPartitions>
+            </Disk>
+            <WillShowUI>OnError</WillShowUI>
+          </DiskConfiguration>
+
+          <ImageInstall>
+            <OSImage>
+              <InstallTo>
+                <DiskID>0</DiskID>
+                <PartitionID>4</PartitionID>
+              </InstallTo>
+              <WillShowUI>OnError</WillShowUI>
+              <InstallFrom>
+                <MetaData wcm:action="add">
+                  <Key>/IMAGE/NAME</Key>
+                  <Value>Windows Server 2025 Datacenter (Desktop Experience)</Value>
+                </MetaData>
+              </InstallFrom>
+            </OSImage>
+          </ImageInstall>
+
+          <UserData>
+            <ProductKey>
+              <!-- KMS Client Setup Keys for win2025 Data Center -->
+              <Key>D764K-2NDRG-47T6Q-P8T8W-YP6DF</Key>
+              <WillShowUI>OnError</WillShowUI>
+            </ProductKey>
+            <AcceptEula>true</AcceptEula>
+            <FullName>Virtualization Team</FullName>
+            <Organization>SUSE Inc</Organization>
+          </UserData>
+        </component>
+        <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SetupUILanguage>
+                <UILanguage>en-US</UILanguage>
+            </SetupUILanguage>
+            <InputLocale>en-US</InputLocale>
+            <SystemLocale>en-US</SystemLocale>
+            <UILanguage>en-US</UILanguage>
+            <UILanguageFallback>en-US</UILanguageFallback>
+            <UserLocale>en-US</UserLocale>
+        </component>
+    </settings>
+    <settings pass="oobeSystem">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <UserAccounts>
+                <AdministratorPassword>
+                    <Value>##Domain-Password##</Value>
+                    <PlainText>true</PlainText>
+                </AdministratorPassword>
+            </UserAccounts>
+            <AutoLogon>
+                <Password>
+                    <Value>##Domain-Password##</Value>
+                    <PlainText>true</PlainText>
+                </Password>
+                <Enabled>true</Enabled>
+                <LogonCount>2</LogonCount>
+                <Username>Administrator</Username>
+            </AutoLogon>
+            <OOBE>
+                <HideEULAPage>true</HideEULAPage>
+                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+                <NetworkLocation>Home</NetworkLocation>
+                <ProtectYourPC>1</ProtectYourPC>
+                <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+                <HideLocalAccountScreen>true</HideLocalAccountScreen>
+                <SkipUserOOBE>true</SkipUserOOBE>
+                <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+            </OOBE>
+            <FirstLogonCommands>
+                <!-- Enable ICMP for answering ping -->
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>netsh advfirewall firewall add rule name="All ICMP V4" dir=in action=allow protocol=icmpv4 </CommandLine>
+                    <Description>Enable ICMP</Description>
+                    <Order>1</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+
+                <!-- Enable openssh -->
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>powershell -Command "Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0 ; Start-Service sshd ; Set-Service -Name sshd -StartupType 'Automatic' ; New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22"</CommandLine>
+                    <Order>2</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+            </FirstLogonCommands>
+            <ShowWindowsLive>false</ShowWindowsLive>
+        </component>
+    </settings>
+    <settings pass="specialize">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" >
+            <OEMInformation>
+                <HelpCustomized>false</HelpCustomized>
+            </OEMInformation>
+            <ComputerName>virt-2k25</ComputerName>
+            <TimeZone>Mountain Standard Time</TimeZone>
+            <RegisteredOwner></RegisteredOwner>
+        </component>
+        <component name="Microsoft-Windows-Security-SPP-UX" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SkipAutoActivation>true</SkipAutoActivation>
+        </component>
+        <component name="Microsoft-Windows-Security-Licensing-SLC-UX" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SkipAutoActivation>true</SkipAutoActivation>
+        </component>
+        <component name="Networking-MPSSVC-Svc" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <PublicProfile_EnableFirewall>false</PublicProfile_EnableFirewall>
+        </component>
+        <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <!-- Enable serial console after reboot before network started -->
+            <RunSynchronous>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <Path>cmd /c bcdedit /ems on &amp;&amp; bcdedit /emssettings EMSPORT:1 EMSBAUDRATE:115200</Path>
+                </RunSynchronousCommand>
+            </RunSynchronous>
+        </component>
+    </settings>
+</unattend>

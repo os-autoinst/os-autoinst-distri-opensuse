@@ -1,0 +1,12 @@
+---
+name: yast2_ui_devel
+description: >
+  Test suite executes upstream YaST cli tests for yast2-network and
+  yast2-http-server YaST modules.
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/yast2_cmdline
+  - console/coredump_collect

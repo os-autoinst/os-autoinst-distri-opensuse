@@ -1,0 +1,9 @@
+name:           prepare_migration
+description:    >
+  Preparation schedule to boot existing image, clean SCC registration to
+  make sure that SCC status is cleared from previous migration tests.
+schedule:
+  - boot/boot_to_desktop
+  - rt/prepare_migration
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

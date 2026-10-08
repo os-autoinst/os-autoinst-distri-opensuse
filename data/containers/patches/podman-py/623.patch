@@ -1,0 +1,78 @@
+From d196f80b3b617c28d914b237a8896a93e4708945 Mon Sep 17 00:00:00 2001
+From: Nicola Sella <nsella@redhat.com>
+Date: Tue, 3 Feb 2026 15:42:27 +0100
+Subject: [PATCH] Conditionally skip root only tests
+
+Signed-off-by: Nicola Sella <nsella@redhat.com>
+---
+ podman/tests/integration/test_container_create.py |  8 ++++----
+ podman/tests/utils.py                             | 10 ++++++++++
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/podman/tests/integration/test_container_create.py b/podman/tests/integration/test_container_create.py
+index c45b5a9b..3da51879 100644
+--- a/podman/tests/integration/test_container_create.py
++++ b/podman/tests/integration/test_container_create.py
+@@ -1,11 +1,10 @@
+ import unittest
+ import re
+-import os
+ import pytest
+ 
+ import podman.tests.integration.base as base
+ from podman import PodmanClient
+-from podman.tests.utils import PODMAN_VERSION
++from podman.tests.utils import PODMAN_VERSION, is_root
+ 
+ # @unittest.skipIf(os.geteuid() != 0, 'Skipping, not running as root')
+ 
+@@ -279,7 +278,7 @@ def test_container_shm_size(self):
+         """Test passing shared memory size"""
+         self._test_memory_limit('shm_size', 'ShmSize')
+ 
+-    @pytest.mark.skipif(os.geteuid() != 0, reason='Skipping, not running as root')
++    @pytest.mark.skipif(not is_root(), reason='Skipping, rootless user')
+     @pytest.mark.skipif(
+         PODMAN_VERSION >= (5, 6, 0),
+         reason="Test against this feature in Podman 5.6.0  or greater https://github.com/containers/podman/pull/25942",
+@@ -356,7 +355,7 @@ def test_container_mounts(self):
+ 
+             self.assertEqual(container.attrs.get('State', dict()).get('ExitCode', 256), 0)
+ 
+-    @pytest.mark.skipif(os.geteuid() != 0, reason='Skipping, not running as root')
++    @pytest.mark.skipif(not is_root(), reason='Skipping, rootless user')
+     @pytest.mark.skipif(
+         PODMAN_VERSION < (5, 6, 0),
+         reason="Test against this feature before Podman 5.6.0 https://github.com/containers/podman/pull/25942",
+@@ -397,6 +396,7 @@ def test_container_mounts_without_rw_as_default(self):
+                 f"size={mount['size']},rprivate,nosuid,nodev,tmpcopyup",
+             )
+ 
++    @pytest.mark.skipif(not is_root(), reason='Skipping, rootless user')
+     def test_container_devices(self):
+         devices = ["/dev/null:/dev/foo", "/dev/zero:/dev/bar"]
+         container = self.client.containers.create(
+diff --git a/podman/tests/utils.py b/podman/tests/utils.py
+index 545c278a..ea11e54f 100644
+--- a/podman/tests/utils.py
++++ b/podman/tests/utils.py
+@@ -1,3 +1,4 @@
++import os
+ import pathlib
+ import csv
+ import re
+@@ -28,5 +29,14 @@ def podman_version() -> tuple[int, ...]:
+     return tuple(int(x) for x in version.split("."))
+ 
+ 
++def is_root() -> bool:
++    """Check if the current user is root.
++
++    Returns:
++        True if running as root (uid == 0), False otherwise.
++    """
++    return os.geteuid() == 0
++
++
+ OS_RELEASE = freedesktop_os_release()
+ PODMAN_VERSION = podman_version()

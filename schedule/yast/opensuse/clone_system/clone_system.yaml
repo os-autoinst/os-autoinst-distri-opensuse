@@ -1,0 +1,13 @@
+---
+name: clone_system
+description: >
+  For Tumbleweed. Test suite triggers `yast clone_system` command and checks that profile is
+  generated and no error reported by YaST. No validation of the profile is done.
+vars:
+  DESKTOP: gnome
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/yast2_clone_system
+  - console/consoletest_finish

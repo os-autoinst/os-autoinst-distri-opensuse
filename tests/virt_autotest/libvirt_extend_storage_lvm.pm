@@ -1,0 +1,154 @@
+# SUSE's openQA tests
+#
+# Copyright 2022 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+#
+# Summary: Virtualization Extend LVM Storage pool / volume test
+#
+# Test flow:
+# - Check a additional free hard disk
+# - Wipe hard disk clean
+# - Partition test disk
+# - Create a pv and display result
+# - Create a vg named 'lvm_vg' and display result
+# - Create a storage pool (lv) named 'guest_image_lvm'
+# - Create a logical volume (lv) size 1G
+# - Attach a logical volume (lv) to guest systems
+# - Clone a logical volume (lv)
+# - Cleanup
+# Maintainer: Leon Guo <xguo@suse.com>
+
+use Mojo::Base 'virt_feature_test_base';
+use virt_autotest::virtual_storage_utils;
+use virt_autotest::utils;
+use virt_autotest::common;
+use testapi;
+use utils;
+use virt_utils;
+use version_utils 'is_sle';
+
+our $lvm_vg_name = 'lvm_vg';
+our $lvm_pool_name = 'guest_image_lvm';
+sub run_test {
+    my ($self) = @_;
+
+    record_info "Prepare Guest Systems";
+    foreach (keys %virt_autotest::common::guests) {
+        start_guests() unless is_guest_online($_);
+    }
+    ## Prepare Virtualization LVM Storage Pool Source
+    my $lvm_disk = $self->prepare_lvm_storage_pool_source();
+
+    ## About LVM volume group storage pool management
+    # Use an LVM Volume Group (VG) as a storage pool named 'guest_image_lvm'
+    record_info "LVM Storage Pool define";
+    assert_script_run "virsh pool-define-as $lvm_pool_name logical --source-name $lvm_vg_name --target /dev/lvm_vg";
+    # Basic Virtualization LVM Storage Management
+    my $lvm_vol_size = '1G';
+    virt_storage_management($lvm_pool_name, size => $lvm_vol_size);
+
+    ## Cleanup
+    # Destroy the LVM volume group storage pool
+    destroy_virt_storage_pool($lvm_pool_name, lvm => 1, lvmdisk => $lvm_disk);
+}
+
+# Prepare Virtualization LVM Storage Pool source
+sub prepare_lvm_storage_pool_source {
+    ## Physical Hard Disk preparation
+    # Check with all existed Hard disks
+    my ($dev, $lvm_disk_name, $disk_type, $disk_name);
+    my @disks = split(/\n/, script_output("lsblk -n -l -o NAME -d -e 7,11"));
+    my $scalar = @disks;
+    #NOTE: Requires at least 2 physical hard disks for LVM Storage test
+    if (($scalar eq 1) || get_var('KEEP_DISKS')) {
+        record_info("WARNING", "Requires at least 2 physical hard disks for LVM Storage test\n", result => 'softfail');
+        return;
+    }
+    # Use a unused hard disk for LVM volumes
+    $dev = "/dev/";
+    foreach my $disk (@disks) {
+        if (script_run("set -o pipefail;findmnt -n -o SOURCE / | grep $disk") != 0 and get_hard_disk_size($disk) >= 20) {
+            $lvm_disk_name = $dev . $disk;
+            last;
+        }
+    }
+
+    if ($lvm_disk_name) {
+        record_info "Assign a New Disk:", "$lvm_disk_name";
+        # Wipe Hard Disk Clean via dd for assigned a new full disk
+        wipe_hard_disk($lvm_disk_name);
+        ## About LVM volumes management
+        # Create a Volume Group (VG) with LVM named 'lvm_vg'
+        $disk_type = ($lvm_disk_name =~ "nvme") ? "p" : "";
+        $disk_name = $lvm_disk_name . $disk_type;
+        remove_volume_group(disk => "${disk_name}1", vg => "${lvm_vg_name}");
+        create_volume_group($lvm_disk_name);
+        return ($lvm_disk_name);
+    }
+    else {
+        record_info("Full information about block devices on host", script_output("lsblk --all --output-all"));
+        die("Failed to find spare hard disk with 20G or more size");
+    }
+}
+
+#Get disk size in gigabytes
+sub get_hard_disk_size {
+    my $hard_disk_name = shift;
+
+    my $hard_disk_size = script_output("blockdev --getsize64 /dev/$hard_disk_name");
+    return $hard_disk_size / (1024**3);
+}
+
+# Wipe Hard Disk Clean via dd
+sub wipe_hard_disk {
+    my $hard_disk_name = shift;
+    my $timeout = 180;
+    record_info("Wipe Hard Drive $hard_disk_name forcibly");
+    assert_script_run("dd if=/dev/zero of=$hard_disk_name count=1M", timeout => 1500, fail_message => "Failed to wipe hard disk clean on $hard_disk_name");
+    record_info("Remove GPT signature $hard_disk_name forcibly");
+    script_run("sgdisk --zap-all $hard_disk_name", timeout => $timeout);
+    assert_script_run 'fdisk -l $hard_disk_name';
+    save_screenshot;
+}
+
+# Reomve volume group associated with a disk partition
+sub remove_volume_group {
+    my %args = @_;
+    $args{disk} //= '';
+    $args{vg} //= '';
+    die("Neither disk nor vg should be empty") unless ($args{disk} and $args{vg});
+
+    my $timeout = 180;
+    record_info("Reomve vg $args{vg} forcibly");
+    script_run("vgremove -f -y $args{vg}", timeout => $timeout);
+
+    record_info("Remove physical volume $args{disk} forcibly");
+    script_run("pvremove -f -y $args{disk}", timeout => $timeout);
+
+    if (script_run("vgdisplay $args{vg}", timeout => $timeout) == 0 or script_run("pvdisplay $args{disk}", timeout => $timeout) == 0) {
+        die("Either vg $args{vg} or pv $args{disk} still exists after removing");
+    }
+    save_screenshot;
+}
+
+# Create a Volume Group with LVM
+sub create_volume_group {
+    my $lvm_disk_name = shift;
+    my $timeout = 180;
+    # Create new disk partition for LVM volumes
+    record_info "Create new disk partition for LVM volumes";
+    assert_script_run 'echo -e "g\nn\n\n\n+20G\nt\n8e\np\nw" | fdisk ' . $lvm_disk_name;
+    # Enable NVME Hard Drive Support
+    $lvm_disk_name = ($lvm_disk_name =~ "nvme") ? "${lvm_disk_name}p" : $lvm_disk_name;
+    # Create a Physical Volume (PV) with LVM
+    record_info "Create a Physical Volume";
+    validate_script_output("pvcreate ${lvm_disk_name}1", sub { m/successfully created/ }, $timeout);
+    validate_script_output("pvdisplay", sub { m/${lvm_disk_name}1/ }, $timeout);
+    # Create a Volume Group (VG) with LVM named 'lvm_vg'
+    record_info "Create a Volume Group";
+    validate_script_output("vgcreate $lvm_vg_name ${lvm_disk_name}1", sub { m/successfully created/ }, $timeout);
+    validate_script_output("vgdisplay ${lvm_vg_name}", sub { m/${lvm_vg_name}/ }, $timeout);
+    save_screenshot;
+}
+
+1;

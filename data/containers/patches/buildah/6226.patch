@@ -1,0 +1,37 @@
+From ab8fc6deeba090ad64b87476ecfa3c7a1e0cecda Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 12 Jun 2025 15:19:57 +0200
+Subject: [PATCH] bud,run: runc does not support keep-groups
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/bud.bats | 2 +-
+ tests/run.bats | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tests/bud.bats b/tests/bud.bats
+index a858a2d843e..0f25e518ec6 100644
+--- a/tests/bud.bats
++++ b/tests/bud.bats
+@@ -7425,7 +7425,7 @@ _EOF
+   run_buildah build --group-add $id $WITH_POLICY_JSON ${TEST_SCRATCH_DIR}
+   expect_output --substring "$id"
+ 
+-  if is_rootless && has_supplemental_groups; then
++  if is_rootless && has_supplemental_groups && ! [[ $OCI =~ runc ]]; then
+      run_buildah build --group-add keep-groups $WITH_POLICY_JSON ${TEST_SCRATCH_DIR}
+      expect_output --substring "65534"
+   fi
+diff --git a/tests/run.bats b/tests/run.bats
+index c5722c750e8..bb0733287f6 100644
+--- a/tests/run.bats
++++ b/tests/run.bats
+@@ -262,7 +262,7 @@ function configure_and_check_user() {
+ 	run_buildah run $cid id -G
+ 	expect_output --substring "$id"
+ 
+-	if is_rootless && has_supplemental_groups; then
++	if is_rootless && has_supplemental_groups && ! [[ $OCI =~ runc ]]; then
+ 	   run_buildah from --group-add keep-groups --quiet --pull=false $WITH_POLICY_JSON alpine
+ 	   cid=$output
+ 	   run_buildah run $cid id -G

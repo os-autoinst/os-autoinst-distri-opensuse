@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <!-- Reg code HACK!!!-->
+    <!--><reg_code>{{SCC_REGCODE_RT}}</reg_code><-->
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-desktop-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-development-tools</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <!-- HACK!!! Should be added in normal installation
+      <addon>
+        <name>sle-module-rt</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      END OF HACK!!!<-->
+    </addons>
+  </suse_register>
+  <!-- REPO HACK!!!-->
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE:/SLE-15-SP4:/Update:/Products:/SLERT/standard/</media_url>
+        <alias>REPO_MODULE_RT</alias>
+        <product>Module-RT-POOL</product>
+        <product_dir>/</product_dir>
+        <priority config:type="integer">85</priority>
+        <name>Latest RT packages from IBS</name>
+        <confirm_license config:type="boolean">false</confirm_license>
+        <ask_on_error config:type="boolean">false</ask_on_error>
+      </listentry>
+      <listentry>
+        <media_url>http://openqa.suse.de/assets/repo/SLE-15-SP4-Module-RT-POOL-x86_64-CURRENT</media_url>
+        <alias>SLE_RT_OPENQA</alias>
+        <product>SLE_RT_TEST_OPENQA</product>
+        <product_dir>/</product_dir>
+        <priority config:type="integer">86</priority>
+        <name>Latest RT packages from IBS2</name>
+        <confirm_license config:type="boolean">false</confirm_license>
+        <ask_on_error config:type="boolean">false</ask_on_error>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  <!-- END OF HACK!!!-->
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+      <append>ignore_loglevel</append>
+    </global>
+  </bootloader>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <software>
+    <products config:type="list">
+    <!-- HACK!!! -->
+        <!--product>SLE_RT</product-->
+      <product>SLES</product>
+    <!-- END OF HACK!!!-->
+    </products>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <!--kernel>kernel-rt</kernel-->
+    <packages config:type="list">
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-development-tools-release</package>
+      <package>sle-module-basesystem-release</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basesystem</pattern>
+      <!--pattern>documentation</pattern-->
+      <!--pattern>enhanced_base</pattern-->
+      <pattern>minimal_base</pattern>
+      <!-- HACK!!!-->
+      <pattern>rt_sles</pattern>
+      <!-- END OF HACK!!!-->
+    </patterns>
+  </software>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <password_settings>
+        <inact>-1</inact>
+        <max>99999</max>
+        <min>0</min>
+        <warn>7</warn>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$gdDHoMtVLjs4CCzf$2tSvAdgvqrKo84pA59bEjZRh7IGMfv4u0Yl4hrRzPgFPWLd8RXWdn/boT7yM3K3BlTk57qyR0TZ/nMb9rlpzx1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

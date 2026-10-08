@@ -1,0 +1,19 @@
+name:           agama_pmu_baremetal
+description:    >
+    Install bare metal with Agama, then run the openQA PMU NMI load test
+    (pmu_nmi_load, poo#114460) followed by the KVM PMU kselftests. Set
+    KSELFTEST_COLLECTION=kvm and KSELFTEST_TESTS to the KVM PMU tests of
+    the architecture. For x86_64 and aarch64 only.
+vars:
+    INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+    DESKTOP: textmode
+    LTP_BAREMETAL: '1'
+schedule:
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - kernel/update_kernel
+    - kernel/pmu_nmi_load
+    - kernel/kselftests_prepare
+    - kernel/kselftests_run

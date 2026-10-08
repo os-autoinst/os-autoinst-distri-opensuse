@@ -1,0 +1,25 @@
+--- FM509.f	2002-04-30 11:46:54.000000000 +0200
++++ FM509.f.new	2018-06-15 13:24:06.435447979 +0200
+@@ -369,22 +369,6 @@ C
+ 20150      IVFAIL = IVFAIL + 1                                          03680509
+            WRITE (I02,80018) IVTNUM, CVCOMP, CVCORR                     03690509
+  0151      CONTINUE                                                     03700509
+-C                                                                       03710509
+-CT016*  TEST 016   ****  FCVS PROGRAM 509  ****                         03720509
+-C                                                                       03730509
+-           IVTNUM = 16                                                  03740509
+-           CVCOMP = ' '                                                 03750509
+-           CVCORR = 'IFTHROUN                      '                    03760509
+-      CALL SN512(C1N001(5)(2:9),CVCOMP)                                 03770509
+-           IVCOMP = 0                                                   03780509
+-           IF (CVCOMP.EQ.'IFTHROUN                      ') IVCOMP = 1   03790509
+-40160      IF (IVCOMP - 1) 20160, 10160, 20160                          03800509
+-10160      IVPASS = IVPASS + 1                                          03810509
+-           WRITE (I02,80002) IVTNUM                                     03820509
+-           GO TO 0161                                                   03830509
+-20160      IVFAIL = IVFAIL + 1                                          03840509
+-           WRITE (I02,80018) IVTNUM, CVCOMP, CVCORR                     03850509
+- 0161      CONTINUE                                                     03860509
+ C                                                                       03870509
+ CBB** ********************** BBCSUM0  **********************************03880509
+ C**** WRITE OUT TEST SUMMARY                                            03890509

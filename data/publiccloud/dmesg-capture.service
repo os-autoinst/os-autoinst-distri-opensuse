@@ -1,0 +1,15 @@
+[Unit]
+Description=Capture kernel ring buffer to /var/log/dmesg
+Documentation=man:dmesg(1)
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c 'exec dmesg -wT >> /var/log/dmesg'
+Restart=always
+RestartSec=2
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=multi-user.target

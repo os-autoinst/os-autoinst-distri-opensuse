@@ -1,0 +1,7 @@
+[mysqld]
+port             = 3315
+datadir          = /var/lib/mysql/node2/databases
+pid-file         = /var/lib/mysql/node2/databases/mysqld.pid
+socket           = /run/mysql/node2mysql.sock
+log-error        = /var/log/mysql/node2/mysqld.log
+secure_file_priv = /var/lib/mysql-files

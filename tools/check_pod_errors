@@ -1,0 +1,39 @@
+#!/bin/bash
+<< 'heredoc_pod_error_rule'
+The script checks that no POD error are present in any changed file.
+heredoc_pod_error_rule
+
+libs_files=$(git ls-files lib/ | grep '.pm$' | xargs echo)
+tmpfile=$(mktemp)
+tmperrorfile=$(mktemp)
+
+success=1
+if test -n "$libs_files"; then
+    for libfile in $libs_files; do
+        perldoc -T -D "${libfile}" 2>/dev/null 1>"$tmpfile"
+        grep -q "POD ERRORS" "$tmpfile" || continue
+
+        success=0
+        # search if the perdoc output is reporting any error
+        error_line=$(grep -n "POD ERRORS" "$tmpfile" | sed -n '$s/:.*//p')
+        # extract the error message from perldoc output
+        sed -n "$error_line,\$"p "$tmpfile" > "$tmperrorfile"
+        if [[ -n "${GITHUB_ACTIONS}" ]]; then
+            echo "::error file=${libfile}::perldoc ERRORS"
+            # add a notification for each error in the file
+            awk '/Around line/ {          # search for lines containing "Around line"
+                   match($0, /[0-9]+/);   # extract the line number of the error
+                   getline nextline;      # read the error description from the next line
+                   gsub(/^[ \t]+/, "", nextline);  # remove leading whitespace from the error message
+                   print "::error file='"${libfile}"',line="substr($0, RSTART, RLENGTH)"::"nextline;  # print in a github action compliant way
+                }' "$tmperrorfile"
+        else
+            echo "ERROR in file ${libfile}"
+            cat "$tmperrorfile"
+        fi
+    done
+else
+    echo "No lib files.";
+fi
+[ $success = 1 ] && echo "POD ERROR CHECK SUCCESS" && exit 0
+exit 1

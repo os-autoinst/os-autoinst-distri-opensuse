@@ -1,0 +1,13 @@
+---
+profile:
+  partitioning:
+    drive:
+      - device: /dev/sda
+      - device: /dev/md0
+        raid_options:
+          raid_type: raid1
+        partitions:
+          partition:
+            - mount: /
+            - mount: /data
+      - device: /dev/sdb

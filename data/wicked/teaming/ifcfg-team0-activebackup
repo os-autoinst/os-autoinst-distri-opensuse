@@ -1,0 +1,9 @@
+STARTMODE=auto
+BOOTPROTO=static
+
+TEAM_RUNNER=activebackup
+TEAM_PORT_DEVICE=iface0
+TEAM_PORT_DEVICE_1=iface1
+
+IPADDR='ipaddr4'
+IPADDR6='ipaddr6'

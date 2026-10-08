@@ -1,0 +1,16 @@
+---
+device: vda
+table_type: gpt
+subvolume:
+  cow:
+    - /root
+    - /tmp
+    - /usr/local
+    - /.snapshots
+    - /srv
+    - /opt
+  no_cow:
+    - /var
+file_system:
+  /home: xfs
+  /: btrfs

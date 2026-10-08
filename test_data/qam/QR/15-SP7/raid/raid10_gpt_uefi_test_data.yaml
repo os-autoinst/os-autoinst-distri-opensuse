@@ -1,0 +1,80 @@
+disks:
+  - name: vda
+    partitions:
+      - size: 300mb
+        role: raw-volume
+        formatting_options:
+          should_format: 1
+          filesystem: fat
+        mounting_options:
+          should_mount: 1
+          mount_point: '/boot/efi'
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: vdb
+    partitions:
+      - size: 300mb
+        role: raw-volume
+        id: efi
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: vdc
+    partitions:
+      - size: 300mb
+        role: raw-volume
+        id: efi
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: vdd
+    partitions:
+      - size: 300mb
+        role: raw-volume
+        id: efi
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+mds:
+  - raid_level: 10
+    name: md0
+    chunk_size: '64 KiB'
+    devices:
+      - vda2
+      - vdb2
+      - vdc2
+      - vdd2
+    partition:
+      role: operating-system
+      formatting_options:
+        should_format: 1
+      mounting_options:
+        should_mount: 1
+  - raid_level: 0
+    name: md1
+    chunk_size: '64 KiB'
+    devices:
+      - vda3
+      - vdb3
+      - vdc3
+      - vdd3
+    partition:
+      role: swap
+      formatting_options:
+        should_format: 1
+        filesystem: swap
+      mounting_options:
+        should_mount: 1

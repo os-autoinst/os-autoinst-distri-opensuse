@@ -1,0 +1,19 @@
+name:           textmode_extra_tests_development
+description:    >
+    Extra CLI tests for software development related things
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - console/gcc
+    - console/gdb
+    - console/valkey
+    - console/java
+    - console/golang
+    - console/rust
+    - console/ruby
+    - console/git
+    - console/libgit2
+    - console/sqlite3
+    - console/apache2_php_fpm
+    - console/nginx

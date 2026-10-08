@@ -1,0 +1,36 @@
+name:           extra_tests_in_textmode_phub
+description:    >
+    Maintainer: qe-core
+    Extra tests about software in package hub
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/add_phub_extension
+    - console/vmstat
+    - console/libjpeg_turbo
+    - console/libgit2
+    - console/apache2_php_fpm
+    - '{{libaom}}'
+    - '{{libvorbis}}'
+    - console/zziplib
+    - network/cifs
+    - '{{wpa_supplicant}}'
+    - console/coredump_collect  # For coredumps during the suite. Please put near end.
+    - console/zypper_log_packages  # Records packages installed in the suite. Please put at end.
+conditional_schedule:
+    libaom:
+        ARCH:
+            x86_64:
+                - console/libaom
+            aarch64:
+                - console/libaom
+    libvorbis:
+        ARCH:
+            x86_64:
+                - console/libvorbis
+            aarch64:
+                - console/libvorbis
+    wpa_supplicant:
+        ARCH:
+            x86_64:
+                - console/wpa_supplicant

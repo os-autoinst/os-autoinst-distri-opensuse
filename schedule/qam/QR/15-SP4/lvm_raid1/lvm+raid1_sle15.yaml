@@ -1,0 +1,33 @@
+---
+name:           lvm+raid1@64bit
+description:    >
+  Validation of partitioning for raid1 on lvm
+  Installation of RAID1 using expert partitioner.
+vars:
+  RAIDLEVEL: 1
+  LVM: 1
+  YUI_REST_API: 1
+test_data:
+  <<: !include test_data/qam/QR/15-SP3/lvm_raid1/lvm+raid1.yaml
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/setup_raid1_lvm
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_lvm_raid1

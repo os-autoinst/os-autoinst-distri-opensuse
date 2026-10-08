@@ -1,0 +1,15 @@
+name: vendor_affirmation_validation_rt
+description: >
+    Vendor affirmation with the RT kernel on SLE Micro
+schedule:
+    - installation/bootloader_uefi
+    - microos/disk_boot
+    - transactional/host_config
+    - rt/rt_is_realtime
+    - console/suseconnect_scc
+    - fips/fips_setup
+    - fips/openssl/openssl_fips_hash
+    - fips/gnutls/gnutls_base_check
+    - console/import_gpg_keys
+    - console/gpg
+    - fips/mozilla_nss/nss_smoke

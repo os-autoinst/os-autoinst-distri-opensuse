@@ -1,0 +1,12 @@
+---
+name: sles4sap_cloud_netconfig
+description: |
+  cloud-netconfig test in sles4sap context
+vars:
+    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+    - boot/boot_to_desktop
+    - sles4sap/cloud_netconfig/deploy
+    - sles4sap/cloud_netconfig/sanity
+    - sles4sap/cloud_netconfig/test
+    - sles4sap/cloud_netconfig/destroy

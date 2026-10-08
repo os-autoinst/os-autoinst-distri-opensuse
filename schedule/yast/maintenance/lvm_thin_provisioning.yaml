@@ -1,0 +1,16 @@
+---
+name: lvm_thin_provisioning
+vars:
+  DUD_ADDONS: sdk
+  YUI_REST_API: 1
+schedule:
+  suggested_partitioning:
+    - installation/partitioning/new_partitioning_gpt
+  system_preparation:
+    - console/system_prepare
+    - console/hostname
+    - console/force_scheduled_tasks
+  system_validation:
+    - shutdown/grub_set_bootargs
+    - console/lvm_thin_check
+...

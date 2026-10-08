@@ -1,0 +1,73 @@
+From fdb5ac5e8fb0c8241d079ef86a7c6ec1e2a1232b Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Mon, 6 Oct 2025 12:43:06 +0200
+Subject: [PATCH 1/2] test/system: run_podman ? needs quoting
+
+Bash will expand a signle ? to a file name which consists of a single
+char, and thus if you have a file named "a" in the cwd it will add a as
+argument which causes podman a ... to be executed which clearly fails
+the test.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/system/030-run.bats  | 2 +-
+ test/system/130-kill.bats | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/test/system/030-run.bats b/test/system/030-run.bats
+index 5c4fdc44c4..a0cce8389e 100644
+--- a/test/system/030-run.bats
++++ b/test/system/030-run.bats
+@@ -1638,7 +1638,7 @@ search               | $IMAGE           |
+            "$command --authfile=nonexistent-path"
+ 
+         if [[ "$command" != "logout" ]]; then
+-           REGISTRY_AUTH_FILE=$bogus run_podman ? $command $args
++           REGISTRY_AUTH_FILE=$bogus run_podman '?' $command $args
+            assert "$output" !~ "credential file is not accessible" \
+               "$command REGISTRY_AUTH_FILE=nonexistent-path"
+ 
+diff --git a/test/system/130-kill.bats b/test/system/130-kill.bats
+index 8a50ba2f53..28f2be9d5c 100644
+--- a/test/system/130-kill.bats
++++ b/test/system/130-kill.bats
+@@ -114,7 +114,7 @@ load helpers
+     run_podman run --rm -d --name $cname $IMAGE top
+     run_podman kill $cname
+     is "$output" $cname
+-    run_podman ? wait $cname
++    run_podman '?' wait $cname
+ }
+ 
+ # bats test_tags=ci:parallel
+
+From 3e774ee28544447856ab1297941b1e46c68d18d0 Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Mon, 6 Oct 2025 12:48:47 +0200
+Subject: [PATCH 2/2] test/system: actually wait for container removal
+
+podman wait by default waits for exit not removal as the man page
+documents.
+
+Fixes: 3a98b6dc0e ("test: Wait for killed container to avoid leak")
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/system/130-kill.bats | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/test/system/130-kill.bats b/test/system/130-kill.bats
+index 28f2be9d5c..5ce67abb57 100644
+--- a/test/system/130-kill.bats
++++ b/test/system/130-kill.bats
+@@ -114,7 +114,9 @@ load helpers
+     run_podman run --rm -d --name $cname $IMAGE top
+     run_podman kill $cname
+     is "$output" $cname
+-    run_podman '?' wait $cname
++    # Wait for the container to get removed to avoid the leak check from triggering,
++    # since it might have already been removed here ignore the exit code check.
++    run_podman '?' wait --condition=removing $cname
+ }
+ 
+ # bats test_tags=ci:parallel

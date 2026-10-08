@@ -1,0 +1,16 @@
+Wicked testing in openQA follows earlier test approach done in wicked-testsuite.
+Please see: https://github.com/openSUSE/wicked-testsuite
+
+Tests in wicked-testsuite are organized in 9 different groups:
+https://github.com/openSUSE/wicked-testsuite/tree/master/features
+wicked_1_basic.feature
+wicked_2_advanced.feature
+wicked_3_physical.feature
+wicked_4_combinations.feature
+wicked_5_startandstop.feature
+wicked_6_ipv6.feature
+wicked_7_settings.feature
+wicked_8_scripts.feature
+wicked_9_aggregation.feature
+
+OpenQA wicked testing follows that structure.

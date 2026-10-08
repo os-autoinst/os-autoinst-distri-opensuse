@@ -1,0 +1,28 @@
+---
+name: dud_development_tools
+description: >
+  Same as dud_sdk, but due to bsc#1080292 we cannot use ISO.  FTP url is used
+  instead. Limitation is that we use x86_64 url, as cannot create DUD in the
+  runtime, so test cannot be executed on other architectures.
+  Also development tools module requires desktop applications module as a
+  dependency, so DESKTOP is set to gnome.
+schedule:
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  add_on_product:
+    - installation/add_on_product_installation/add_additional_products
+    - installation/add_on_product_installation/accept_add_on_installation
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  system_validation:
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - console/validate_dud_addon_repos
+    - console/orphaned_packages_check
+test_data:
+  dud_repos:
+    # repos here should correspond with repos in 'data/add_on_products.xml'
+    REPO_SLE_MODULE_DEVELOPMENT_TOOLS:
+      Enabled: 'Yes'
+      Autorefresh: 'On'

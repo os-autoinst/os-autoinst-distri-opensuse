@@ -1,0 +1,36 @@
+---
+name: lvm_thin_provisioning
+description: >
+  Complete OS deployment with unencrypted LVM drive management. Test creates
+  2 LVM and BIOS boot partitions. Thin pool and thin lv reside on the second
+  LVM partition, where /home (XFS) is being mounted. Partitioning is validated
+  in the booted system after the installation.
+vars:
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
+  - installation/partitioning
+  - installation/partitioning/new_partitioning_gpt
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - console/lvm_thin_check

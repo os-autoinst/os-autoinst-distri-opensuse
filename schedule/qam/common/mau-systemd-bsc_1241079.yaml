@@ -1,0 +1,9 @@
+---
+name: mau-extratests-systemd-bsc_1241079
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/systemd_bsc_1241079
+...

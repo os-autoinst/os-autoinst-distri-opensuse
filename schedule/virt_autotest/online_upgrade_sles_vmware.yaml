@@ -1,0 +1,23 @@
+name:           online_upgrade_sles_vmware
+description:    >
+    Maintainer: nan.zhang@suse.com, qe-virt@suse.de
+    Online migration test against SLES base image
+schedule:
+    - migration/version_switch_origin_system
+    - installation/isosize
+    - '{{bootloader}}'
+    - installation/bootloader
+    - migration/online_migration/online_migration_setup
+    - migration/online_migration/register_system
+    - migration/online_migration/zypper_patch
+    - migration/version_switch_upgrade_target
+    - migration/online_migration/pre_migration
+    - migration/online_migration/zypper_migration
+    - migration/online_migration/post_migration
+conditional_schedule:
+    bootloader:
+        VIRSH_VMM_FAMILY:
+            vmware:
+                - installation/bootloader_svirt
+            hyperv:
+                - installation/bootloader_hyperv

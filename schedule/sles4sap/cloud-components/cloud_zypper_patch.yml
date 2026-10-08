@@ -1,0 +1,13 @@
+---
+name: cloud_zypper_patch
+description: |
+  Create a VM in the cloud, connect a repo, run zypper patch
+vars:
+    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+    - boot/boot_to_desktop
+    - sles4sap/cloud_zypper_patch/deploy
+    - sles4sap/cloud_zypper_patch/network_peering
+    - sles4sap/cloud_zypper_patch/add_repo
+    - sles4sap/cloud_zypper_patch/zypper_patch
+    - sles4sap/cloud_zypper_patch/destroy

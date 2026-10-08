@@ -1,0 +1,10 @@
+---
+name: agama_minimal_unattended
+description: >
+  Mininal unattended installation
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_minimal_system

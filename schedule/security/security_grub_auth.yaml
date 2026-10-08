@@ -1,0 +1,8 @@
+name: security_grub_auth
+description:    >
+    This is for the security_grub_auth test.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/grub_auth/grub_authorization

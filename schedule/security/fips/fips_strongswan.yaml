@@ -1,0 +1,25 @@
+name: fips_strongswan
+description:    >
+    This is for testing strongswan in fips mode
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - network/setup_multimachine
+    - console/consoletest_setup
+    - '{{repo_setup}}'
+    - fips/fips_setup
+    - '{{strongswan}}'
+conditional_schedule:
+    repo_setup:
+        BETA:
+            1:
+                - security/test_repo_setup
+        FLAVOR:
+            Online-QR:
+                - security/test_repo_setup
+    strongswan:
+        HOSTNAME:
+            server:
+                - fips/strongswan/strongswan_server
+            client:
+                - fips/strongswan/strongswan_client

@@ -1,0 +1,31 @@
+---
+name: selinux
+conditional_schedule:
+  versions:
+    VERSION:
+      "15-SP2":
+      - security/selinux/semanage_boolean
+      - security/selinux/fixfiles
+      - security/selinux/print_se_context
+      - security/selinux/audit2allow
+      "12-SP5":
+      - security/selinux/print_se_context
+      - security/selinux/audit2allow
+      - security/selinux/semanage_boolean
+  chcat:
+    VERSION:
+      "15-SP2":
+      - security/selinux/chcat
+schedule:
+- boot/boot_to_desktop
+- security/selinux/selinux_setup
+- security/selinux/sestatus
+- security/selinux/selinux_smoke
+- security/selinux/enforcing_mode_setup
+- security/selinux/semanage_fcontext
+- '{{versions}}'
+- security/selinux/semodule
+- security/selinux/setsebool
+- security/selinux/restorecon
+- security/selinux/chcon
+- '{{chcat}}'

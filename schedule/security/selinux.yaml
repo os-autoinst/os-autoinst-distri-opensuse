@@ -1,0 +1,68 @@
+name: selinux
+description: >
+    This is for SElinux test
+schedule:
+    - '{{bootloader_zkvm}}'
+    - '{{sle_os_boot}}'
+    - '{{alp_boot}}'
+    - '{{scc_slem}}'
+    - security/selinux/selinux_setup
+    - security/selinux/sestatus
+    - '{{sle_os_tests}}'
+    - security/selinux/semanage_fcontext
+    - security/selinux/semanage_boolean
+    - security/selinux/fixfiles
+    - security/selinux/print_se_context
+    - security/selinux/audit2allow
+    - security/selinux/semodule
+    - security/selinux/setsebool
+    - security/selinux/restorecon
+    - security/selinux/chcon
+    - security/selinux/chcat
+    - security/selinux/set_get_enforce
+    - security/selinux/selinuxexeccon
+    - security/selinux/setroubleshootd
+    - '{{alp_shutdown}}'
+conditional_schedule:
+    bootloader_zkvm:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+            ppc64le:
+                - installation/bootloader_start
+    sle_os_boot:
+        DISTRI:
+            sle:
+                - boot/boot_to_desktop
+            opensuse:
+                - boot/boot_to_desktop
+    alp_boot:
+        ENCRYPTED_IMAGE:
+            0:
+                - microos/disk_boot
+                - transactional/host_config
+            1:
+                - jeos/firstrun
+                - transactional/host_config
+    scc_slem:
+        DISTRI:
+            sle-micro:
+                - console/suseconnect_scc
+            alp:
+                - console/suseconnect_scc
+    sle_os_tests:
+        DISTRI:
+            sle:
+                - security/selinux/selinux_smoke
+                - security/selinux/enforcing_mode_setup
+            opensuse:
+                - security/selinux/selinux_smoke
+                - security/selinux/enforcing_mode_setup
+    alp_shutdown:
+        DISTRI:
+            alp:
+                - console/journal_check
+                - shutdown/shutdown
+            sle-micro:
+                - console/journal_check
+                - shutdown/shutdown

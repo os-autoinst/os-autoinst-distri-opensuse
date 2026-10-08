@@ -1,0 +1,26 @@
+---
+name:          nis_server
+description:    >
+  Multimachine nis test, server side. Configures a nis server and creates a nfs export.
+schedule:
+  - boot/boot_to_desktop
+  - x11/nis_server
+  - x11/nis_server_validate
+test_data:
+  maps: 11
+  nis_domain: nis.openqa.suse.de
+  nfs_domain: nfs.openqa.suse.de
+  username: nis_user
+  password: nots3cr3t
+  map_names:
+    - auto
+    - ethers
+    - group
+    - hosts
+    - netgroup
+    - networks
+    - passwd
+    - protocols
+    - rpc
+    - services
+    - shadow

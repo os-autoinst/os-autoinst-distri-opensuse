@@ -1,0 +1,27 @@
+{
+    "location": "westus",
+    "properties": {
+        "jobTemplateInstance": {
+            "templateTags": [],
+            "selections": [
+                {
+                    "casePriority": [
+                        0,
+                        1
+                    ]
+                }
+            ],
+            "region": [
+                "westeurope"
+            ],
+            "vmSize": [],
+            "concurrency": 4
+        },
+        "image": {
+            "type": "shared_gallery",
+            "gallery": "<IMAGE_GALLERY_NAME>",
+            "definition": "<IMAGE_NAME>",
+            "version": "<IMAGE_VERSION>"
+        }
+    }
+}

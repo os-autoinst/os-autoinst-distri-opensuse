@@ -1,0 +1,129 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: usb_nic
+# Summary: Simple smoke test for testing USB drive connected to system
+# Maintainer: LSG QE Kernel <kernel-qa@suse.de>
+
+use Mojo::Base 'opensusebasetest';
+use testapi;
+use serial_terminal;
+use utils;
+use package_utils 'install_package';
+use version_utils 'is_sle';
+use Kernel::usb;
+
+sub md5sum {
+    my ($file) = @_;
+    my ($md5) = split /\s/, script_output "md5sum $file";
+    return $md5;
+}
+
+sub run {
+    my ($self) = @_;
+
+    select_serial_terminal;
+    check_usb_devices;
+
+    my $lsscsi_out = script_output 'lsscsi -v -t 2>/dev/null';
+
+    my $device;
+    if ($lsscsi_out =~ /usb:.*(\/dev\/\w+)/) {
+        $device = $1;
+    }
+
+    die "No USB storage device found in lsscsi output" unless $device;
+
+    record_info("USB Found", "Using device: $device");
+    # create filesystem, mountpoint and temporary file
+    my $tmp = script_output 'mktemp -d';
+    my $file = "$tmp/file";
+    my $mountpoint = "$tmp/mount";
+    my $file_copy = "$mountpoint/file";
+
+    assert_script_run "mkdir $mountpoint";
+    assert_script_run "chgrp disk $mountpoint";
+    assert_script_run "chmod 777 $mountpoint";
+
+    assert_script_run "mkfs.ext4 -F $device";
+    assert_script_run "mount -t ext4 $device $mountpoint";
+
+    assert_script_run "dd if=/dev/urandom of=$file bs=1M count=16";
+    my $md5_orig = md5sum $file;
+    assert_script_run "cp $file $file_copy";
+
+    # unmount and flush slab and page cache
+    assert_script_run "umount $mountpoint";
+    assert_script_run "echo 3 > /proc/sys/vm/drop_caches";
+
+    # remount and check md5sum
+    assert_script_run "mount -t ext4 $device $mountpoint";
+    my $md5_copy = md5sum $file_copy;
+    die "MD5 sum mismatch: $md5_orig != $md5_copy" unless $md5_orig eq $md5_copy;
+    assert_script_run("umount $mountpoint");
+
+
+    if (@{zypper_search('lklfuse')}) {
+        install_package('lklfuse', trup_apply => 1);
+        assert_script_run "usermod -a -G disk bernhard";
+
+        select_user_serial_terminal;
+        $mountpoint = "/home/bernhard/mount";
+        $file = "/home/bernhard/file";
+        $file_copy = "$mountpoint/file2";
+
+        assert_script_run "dd if=/dev/urandom of=$file bs=1M count=15";
+        $md5_orig = md5sum $file;
+        assert_script_run "mkdir -p $mountpoint";
+        assert_script_run "lklfuse $device $mountpoint -o type=ext4";
+        my $mounts = script_output "mount";
+        die "$mountpoint not found in mtab!" unless $mounts =~ /\Q$mountpoint\E/;
+        assert_script_run "cp $file $file_copy";
+        assert_script_run "sync";
+        record_info "Drive contents", script_output("ls $mountpoint");
+        assert_script_run "fusermount -u $mountpoint";
+        assert_script_run "sync";
+        # make sure the file doesn't exist after unmointing, this would mean the device wasn't mounted
+        assert_script_run "! [ -f $file_copy ]";
+        assert_script_run "lklfuse $device $mountpoint -o type=ext4";
+        record_info "Drive contents", script_output("ls $mountpoint");
+        my $md5_copy = md5sum $file_copy;
+        die "MD5 sum mismatch: $md5_orig != $md5_copy" unless $md5_orig eq $md5_copy;
+        assert_script_run "sync";
+        script_run "fusermount -u $mountpoint";
+
+    } elsif (is_sle('16+')) {
+        die "running on SLE16+ but lklfuse package is missing";
+    }
+}
+
+sub test_flags {
+    return {fatal => 0};
+}
+
+1;
+
+=head1 Description
+
+Smoke test for a USB storage device connected to the SUT. The first USB disk
+reported by C<lsscsi> is formatted as ext4 and mounted. A random file is
+written to it, the drive is unmounted, the page cache is dropped, and after
+remounting the file's MD5 sum is checked against the original.
+
+If the C<lklfuse> package is available, it is installed and the same check is
+run again as the unprivileged user, this time mounting the drive with lklfuse.
+On SLE 16+ the test fails if lklfuse is missing.
+
+B<Warning:> the test wipes the USB drive it finds.
+
+=head1 Configuration
+
+=head2 REQUIRED_USB_DEVICES
+
+Optional comma-separated list of C<vendor:product> USB IDs, for example
+C<0781:5567>, that must be connected to the SUT. Missing devices are reported
+as a failure, but the test keeps going.
+
+=cut

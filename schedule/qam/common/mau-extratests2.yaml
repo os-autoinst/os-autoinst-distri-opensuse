@@ -1,0 +1,195 @@
+---
+name: mau-extratests2
+description: Second set of CLI extratests
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/dnsmasq
+  - console/ca_certificates_mozilla
+  - console/unzip
+  - console/rsync
+  - console/shells
+  - console/oqa_agnostic/sudo_agnostic
+  - console/dstat
+  - x11/evolution/evolution_prepare_servers
+  - console/supportutils
+  - console/mdadm
+  - console/quota
+  - console/vhostmd
+  - console/rpcbind
+  - console/timezone
+  - console/procps
+  - console/iotop
+  - console/kmod
+  - console/suse_module_tools
+  - console/aaa_base
+  - console/gd
+  - console/vsftpd
+  - network/samba/samba_adcli
+  - console/pciutils
+  - '{{version_specific}}'
+  - console/coredump_collect
+conditional_schedule:
+  version_specific:
+    VERSION:
+      '16.0':
+        - console/pkcon
+        - '{{fwupd}}'
+        - console/rust
+        - console/gcc
+        - console/ndctl
+        - console/curl_ipv6
+        - console/wget_ipv6
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/nginx
+        - console/libgcrypt
+        - console/zziplib
+        - console/journald_fss
+        - console/valgrind
+        - console/valkey
+        - console/sevenzip
+        - console/ds389_advanced_functional
+      15-SP7:
+        - console/pkcon
+        - '{{fwupd}}'
+        - console/rust
+        - console/gcc
+        - console/ndctl
+        - console/curl_ipv6
+        - console/wget_ipv6
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/libgcrypt
+        - console/zziplib
+        - console/journald_fss
+        - console/nginx
+        - '{{arch_specific}}'
+        - console/valgrind
+        - console/valkey
+        - console/sevenzip
+        - console/ds389_advanced_functional
+      15-SP6:
+        - console/pkcon
+        - '{{fwupd}}'
+        - console/rust
+        - console/gcc
+        - console/ndctl
+        - console/curl_ipv6
+        - console/wget_ipv6
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/libgcrypt
+        - console/zziplib
+        - console/journald_fss
+        - console/nginx
+        - '{{arch_specific}}'
+        - console/valgrind
+        - console/valkey
+        - console/sevenzip
+        - console/ds389_advanced_functional
+      15-SP5:
+        - console/pkcon
+        - '{{fwupd}}'
+        - console/rust
+        - console/gcc
+        - console/ndctl
+        - console/curl_ipv6
+        - console/wget_ipv6
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/libgcrypt
+        - console/zziplib
+        - console/journald_fss
+        - console/nginx
+        - '{{arch_specific}}'
+        - console/valgrind
+        - console/sevenzip
+        - console/ds389_advanced_functional
+      15-SP4:
+        - console/pkcon
+        - '{{fwupd}}'
+        - console/rust
+        - console/gcc
+        - console/ndctl
+        - console/curl_ipv6
+        - console/wget_ipv6
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/libgcrypt
+        - console/zziplib
+        - console/journald_fss
+        - console/nginx
+        - '{{arch_specific}}'
+        - console/valgrind
+        - console/ds389_advanced_functional
+      15-SP3:
+        - console/curl_ipv6
+        - console/wget_ipv6
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/libgcrypt
+        - console/zziplib
+        - console/journald_fss
+        - console/nginx
+        - '{{arch_specific}}'
+        - console/valgrind
+      15-SP2:
+        - console/curl_ipv6
+        - console/wget_ipv6
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/libgcrypt
+        - console/zziplib
+        - console/journald_fss
+        - console/nginx
+        - '{{arch_specific}}'
+        - console/valgrind
+      12-SP5:
+        - console/curl_ipv6
+        - console/wget_ipv6
+        - console/osinfo_db
+        - console/libgcrypt
+        - console/zziplib
+        - '{{arch_specific}}'
+        - console/valgrind
+        - '{{arch_12sp5}}'
+        - '{{arch_systemtap}}'
+      12-SP3:
+        - console/osinfo_db
+        - console/journald_fss
+        - '{{arch_specific}}'
+  arch_specific:
+    ARCH:
+      x86_64:
+        - console/mutt
+  arch_12sp5:
+    ARCH:
+      x86_64:
+        - console/journald_fss
+      aarch64:
+        - console/journald_fss
+  arch_systemtap:
+    ARCH:
+      x86_64:
+        - console/systemtap
+      s390x:
+        - console/systemtap
+  fwupd:
+    ARCH:
+      x86_64:
+        - console/fwupd
+      aarch64:
+        - console/fwupd
+      ppc64le:
+        - console/fwupd
+...

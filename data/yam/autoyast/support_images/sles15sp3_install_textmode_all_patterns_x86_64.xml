@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader t="map">
+    <global t="map">
+      <timeout t="integer">-1</timeout>
+    </global>
+    <loader_type>grub2</loader_type>
+  </bootloader>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <partitioning t="list">
+    <drive t="map">
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots t="boolean">true</enable_snapshots>
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <format t="boolean">false</format>
+          <partition_id t="integer">263</partition_id>
+          <partition_nr t="integer">1</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>8388608</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">true</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <format t="boolean">true</format>
+          <mount>/</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">131</partition_id>
+          <partition_nr t="integer">2</partition_nr>
+          <quotas t="boolean">true</quotas>
+          <resize t="boolean">false</resize>
+          <size>max</size>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">swap</filesystem>
+          <format t="boolean">true</format>
+          <mount>swap</mount>
+          <mountby t="symbol">uuid</mountby>
+          <partition_id t="integer">130</partition_id>
+          <partition_nr t="integer">3</partition_nr>
+          <resize t="boolean">false</resize>
+          <size>2148515328</size>
+        </partition>
+      </partitions>
+      <type t="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>firewalld</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>systemd-remount-fs</service>
+      </enable>
+      <on_demand t="list">
+        <listentry>virtlockd</listentry>
+      </on_demand>
+    </services>
+  </services-manager>
+  <software t="map">
+    <install_recommended t="boolean">true</install_recommended>
+    <instsource/>
+    <packages t="list">
+      <package>wicked</package>
+      <package>snapper</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>openssh</package>
+      <package>kexec-tools</package>
+      <package>grub2</package>
+      <package>glibc</package>
+      <package>firewalld</package>
+      <package>e2fsprogs</package>
+      <package>btrfsprogs</package>
+      <package>autoyast2</package>
+    </packages>
+    <patterns t="list">
+      <pattern>32bit</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>apparmor-32bit</pattern>
+      <pattern>base</pattern>
+      <pattern>base-32bit</pattern>
+      <pattern>basesystem</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>dhcp_dns_server</pattern>
+      <pattern>directory_server</pattern>
+      <pattern>documentation</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>enhanced_base-32bit</pattern>
+      <pattern>file_server</pattern>
+      <pattern>fips</pattern>
+      <pattern>fonts</pattern>
+      <pattern>gateway_server</pattern>
+      <pattern>kvm_server</pattern>
+      <pattern>kvm_tools</pattern>
+      <pattern>lamp_server</pattern>
+      <pattern>mail_server</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>minimal_base-32bit</pattern>
+      <pattern>ofed</pattern>
+      <pattern>oracle_server</pattern>
+      <pattern>print_server</pattern>
+      <pattern>sap_server</pattern>
+      <pattern>sw_management</pattern>
+      <pattern>sw_management-32bit</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11-32bit</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>xen_server</pattern>
+      <pattern>xen_tools</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>yast2_desktop</pattern>
+      <pattern>yast2_server</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <suse_register t="map">
+    <addons t="list">
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <!-- workaround for bug 1216116 -->
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <release_type>nil</release_type>
+        <version>15.3</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+      </addon>
+    </addons>
+    <do_registration t="boolean">true</do_registration>
+    <install_updates t="boolean">true</install_updates>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <reg_server>https://scc.suse.com</reg_server>
+    <slp_discovery t="boolean">false</slp_discovery>
+  </suse_register>
+  <users t="list">
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>bernhard</fullname>
+      <gid>100</gid>
+      <home>/home/bernhard</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>$6$sck/xeFlNDBmt/Tg$Bj.3cfegPczbw111tX3fiOKVPgOKBMAYnO3O5E4RBZukcR97wksNNtzvAHWlhHIoB/rX.W28/.3B4NwICpMtd.</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <authorized_keys t="list"/>
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <home_btrfs_subvolume t="boolean">false</home_btrfs_subvolume>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$nMjAVdq.43BVSb0K$k/cGPyVLAFovl5vfT5Y6yU8L8u.yJW40Rzc.zJLhaIMpPG3pSwFBgkoysJI2QL5/FFrO/jI7FjBp5JHgxzvj00</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

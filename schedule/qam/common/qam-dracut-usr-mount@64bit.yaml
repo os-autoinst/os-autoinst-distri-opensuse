@@ -1,0 +1,14 @@
+---
+name: qam-dracut-usr-mount
+description:
+vars:
+  COLLECT_COREDUMPS: '1'
+  TEST: qam-dracut-usr-mount
+  DRACUT_TEST: TEST-03-USR-MOUNT
+schedule:
+- boot/boot_to_desktop
+- console/prepare_test_data
+- console/consoletest_setup
+- console/dracut_enhanced
+- console/coredump_collect
+...

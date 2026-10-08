@@ -1,0 +1,22 @@
+---
+name: Check file size
+# yamllint disable-line rule:truthy
+on: [push, pull_request]
+jobs:
+  check-file-size:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+    - name: Checkout Branch
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6
+    - name: Create empty needles directory to avoid dangling symlink that would cause the next step to fail
+      run: mkdir products/opensuse/needles
+    - name: "Check for oversized files"
+      uses: freenet-actions/check-file-size@e32a6ba9009792429cca4b2c3b392630f7986a05  # v2.0.0
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        max_size: 14000
+        fail_on_find: true
+        post_comment: false

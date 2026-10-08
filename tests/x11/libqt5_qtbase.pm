@@ -1,0 +1,68 @@
+# SUSE's openQA tests
+#
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: libqt5-qttools yast2-installation gcc gcc-c++ libQt5Core-devel libQt5Gui-devel libQt5Network-devel libQt5Widgets-devel
+# Summary: libqt5-qtbase: testing of the qtbase libraries
+# - Install and launch Qt Designer
+# - Create default UI elements, run design preview
+# - Open Yast2 release notes (that uses Qt)
+# - Compile and launch an app - tests qmake, QtNetwork features etc
+# Maintainer: Timo Jyrinki <tjyrinki@suse.de>
+
+use Mojo::Base 'x11test';
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use utils;
+use x11utils qw(ensure_unlocked_desktop default_gui_terminal);
+use version_utils 'is_sle';
+use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
+use Utils::Architectures 'is_aarch64';
+use main_common qw(is_updates_tests);
+
+sub run {
+    if (is_sle('>=15-sp4') && !main_common::is_updates_tests) {
+        select_serial_terminal;
+        # Activating development-tools module to install libqt5-qttools package
+        add_suseconnect_product("sle-module-development-tools");
+    }
+
+    select_console('x11');
+    ensure_installed("libqt5-qttools yast2-installation", timeout => 180);
+    # performance issue (see poo#125873) impacts only aarch64 workers on OSD
+    designer_qt5() unless (is_aarch64 && is_sle);
+    release_notes() unless (is_aarch64 && is_sle);
+    compile_qt5();
+}
+
+sub designer_qt5 {
+    my $timeout = '90';
+    x11_start_program("designer-qt5", target_match => "designer-qt5-start", match_timeout => $timeout);
+    assert_and_click("designer-qt5-start", timeout => $timeout);
+    assert_screen("designer-qt5-main", $timeout);
+    wait_screen_change { send_key "ctrl-r" };    # run the design preview
+    assert_screen("designer-qt5-preview", $timeout);
+    send_key "alt-f4";    # close preview
+    send_key "alt-f4";    # close program
+}
+
+sub compile_qt5 {
+    ensure_installed "gcc gcc-c++ libQt5Core-devel libQt5Gui-devel libQt5Network-devel libQt5Widgets-devel", timeout => 400;
+    x11_start_program(default_gui_terminal);
+    assert_script_run 'cd data';
+    assert_script_run 'tar xvf libqt5-qtbase.tar.gz';
+    assert_script_run 'cd libqt5-qtbase';
+    assert_script_run 'qmake-qt5';
+    assert_script_run 'make';
+    assert_script_run './libqt5-qtbase';
+    enter_cmd "exit";
+}
+
+sub release_notes {
+    x11_start_program('/usr/sbin/yast2 inst_release_notes', target_match => 'inst_release_notes');
+    send_key "alt-l";    # make sure it was closed ('Close' button shortcut)
+    send_key "alt-f4";    # close program
+}
+
+1;

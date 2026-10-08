@@ -1,0 +1,13 @@
+STARTMODE='auto'
+BOOTPROTO='static'
+NAME='Ethernet Card 0'
+
+IPADDR='10.0.2.11'
+BROADCAST='10.0.2.255'
+NETMASK='255.255.255.0'
+NETWORK='10.0.2.0'
+
+IPADDR6='fd00:cafe:babe::11/64'
+
+
+USERCONTROL='no'

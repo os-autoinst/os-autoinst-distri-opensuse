@@ -1,0 +1,19 @@
+---
+name: mau_extratests_yast_cmd
+description:    >
+  Testsuite maintained at https://gitlab.suse.de/qa-maintenance/qam-openqa-yml. Run
+  yast command-line tests against aggregated test repo.
+schedule:
+  - boot/boot_to_desktop
+  - yast2_cmd/yast_lan
+  - yast2_cmd/yast_timezone
+  - yast2_cmd/yast_tftp_server
+  - yast2_cmd/yast_ftp_server
+  - yast2_cmd/yast_users
+  - yast2_cmd/yast_sysconfig
+  - yast2_cmd/yast_nfs_server
+  - yast2_cmd/yast_nfs_client
+  - yast2_cmd/yast_dns_server
+  - yast2_cmd/yast_lang
+  - yast2_cmd/yast_storage
+  - console/coredump_collect

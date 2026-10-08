@@ -1,0 +1,5 @@
+[localhost]
+# Note that '/' is replaced with '%%2f'.
+uri = ldapi://%%2fvar%%2frun%%2fslapd-localhost.socket 
+basedn = dc=example,dc=com
+binddn = cn=Directory Manager

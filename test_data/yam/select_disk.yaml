@@ -1,0 +1,5 @@
+guided_partitioning:
+  disks:
+    - vda
+unused_disks:
+  - vdb

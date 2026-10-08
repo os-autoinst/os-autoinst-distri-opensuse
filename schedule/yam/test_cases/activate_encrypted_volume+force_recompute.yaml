@@ -1,0 +1,29 @@
+---
+description: >
+  Conduct installation activating encrypted partitions, but creating encrypted
+  lvm setup from scratch. Using pre-partitioned disk image to validate encrypted
+  partitions activation and that we can re-ecnrypt the disk.
+name: activate_encrypted_volume+force_recompute
+vars:
+  ENCRYPT: 1
+  ENCRYPT_FORCE_RECOMPUTE: 1
+  LVM: 1
+  YUI_REST_API: 1
+schedule:
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_probing:
+    - installation/system_probing/activate_encrypted_volume
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  guided_partitioning:
+    - installation/partitioning/select_guided_setup
+    - installation/partitioning/guided_setup/accept_default_hard_disks_selection
+    - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
+    - installation/partitioning/guided_setup/accept_default_fs_options
+  first_login:
+    - installation/boot_encrypt
+    - installation/first_boot
+  system_validation:
+    - console/validate_lvm
+    - console/validate_encrypt

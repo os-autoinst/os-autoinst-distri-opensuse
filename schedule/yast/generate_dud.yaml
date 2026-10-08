@@ -1,0 +1,11 @@
+name:           generate_dud
+description:    >
+  Generate DUD dynamically:
+  - (1) Boot an image where module phub can be added successfully
+        (repo is consolidated for the product) allowing to install mkdud
+        (from a product not under development).
+  - (2) Create DUD expanding variables using values configured for the product.
+  - (3) Upload the DUD as an asset to be used by a chained job.
+schedule:
+  - boot/boot_to_desktop
+  - console/generate_dud

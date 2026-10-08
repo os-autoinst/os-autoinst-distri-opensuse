@@ -1,0 +1,16 @@
+---
+name: Agama resize partitions unattended
+description: >
+  Perform Agama resize partitions unattended installation with encryption.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - yam/agama/boot_encrypted_partitions
+  - installation/first_boot
+  - console/validate_encrypt
+  - console/validate_partition_table
+  - console/validate_blockdevices
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  <<: !include test_data/yast/encryption/default_enc_luks2.yaml

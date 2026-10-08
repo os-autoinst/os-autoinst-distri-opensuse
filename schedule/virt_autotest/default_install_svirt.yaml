@@ -1,0 +1,45 @@
+name:           default_install_svirt
+description:    >
+    Maintainer: nan.zhang@suse.com, qe-virt@suse.de
+    Default GUI installation test
+schedule:
+    - installation/isosize
+    - '{{bootloader}}'
+    - installation/welcome
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - '{{serial_console}}'
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/grub_test
+    - installation/first_boot
+conditional_schedule:
+    bootloader:
+        VIRSH_VMM_FAMILY:
+            vmware:
+                - installation/bootloader_svirt
+                - '{{uefi}}'
+            hyperv:
+                - installation/bootloader_hyperv
+                - '{{uefi}}'
+    uefi:
+        UEFI:
+            1:
+                - installation/bootloader_uefi
+            0:
+                - installation/bootloader
+    serial_console:
+        UEFI:
+            0:
+                - installation/add_serial_console

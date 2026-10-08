@@ -1,0 +1,24 @@
+name: apparmor_profile
+description:    >
+    This is for the apparmor_profile and mau-apparmor_profile tests.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - '{{prepare}}'
+    - security/apparmor_profile/usr_sbin_smbd
+    - security/apparmor_profile/apache2_changehat
+    - security/apparmor_profile/usr_sbin_dovecot
+    - security/apparmor_profile/usr_sbin_traceroute
+    - '{{is_sle}}'
+    - security/apparmor_profile/mailserver_setup
+    - security/apparmor_profile/usr_lib_dovecot
+conditional_schedule:
+    prepare:
+        TEST:
+            mau-apparmor_profile:
+                - security/apparmor/aa_prepare
+    is_sle:
+        DISTRI:
+            sle:
+                - security/apparmor_profile/usr_sbin_nscd

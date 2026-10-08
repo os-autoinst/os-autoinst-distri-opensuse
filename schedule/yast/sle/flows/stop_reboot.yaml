@@ -1,0 +1,4 @@
+---
+# Stop timeout after installation when popup 'The system will reboot now...' appears
+stop_timeout_system_reboot:
+  - installation/performing_installation/stop_timeout_system_reboot_now

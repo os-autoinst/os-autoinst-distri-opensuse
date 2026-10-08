@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+    <mode>
+      <confirm config:type="boolean"><%= $get_var->('AUTOYAST_CONFIRM') ? 'true' : 'false' %></confirm>
+    </mode>
+  </general>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <bootloader>
+    <device_map config:type="list">
+      <device_map_entry>
+        <firmware>hd0</firmware>
+        <linux>/dev/vda</linux>
+      </device_map_entry>
+    </device_map>
+    <global>
+      <timeout config:type="integer">1</timeout>
+      <append> splash=verbose </append>
+    </global>
+  </bootloader>
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+
+    <addons config:type="list">
+      <addon>
+        <!-- SUSE Linux Enterprise Software Development Kit -->
+        <name>sle-sdk</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      % if ($is_ltss) {
+      <addon>
+        <!-- SUSE Linux Enterprise Server LTSS -->
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+      </addon>
+      %}
+    </addons>
+  </suse_register>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/vda</device>
+      <disklabel>msdos</disklabel>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <filesystem config:type="symbol">swap</filesystem>
+          <mount>swap</mount>
+        </partition>
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <filesystem config:type="symbol">ext4</filesystem>
+          <mount>/</mount>
+        </partition>
+      </partitions>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>{{PASSWORD}}</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>{{PASSWORD}}</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

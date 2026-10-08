@@ -1,0 +1,28 @@
+name: selinux_jeos
+description: >
+    This is a SElinux test for JeOS Tumbleweed
+schedule:
+    - installation/bootloader_uefi
+    - jeos/firstrun
+    - console/force_scheduled_tasks
+    - console/journal_check
+    - update/zypper_clear_repos
+    - console/zypper_ar
+    - console/zypper_ref
+    - console/consoletest_setup
+    - security/selinux/selinux_setup
+    - security/selinux/sestatus
+    - security/selinux/selinux_smoke
+    - security/selinux/enforcing_mode_setup
+    - security/selinux/semanage_fcontext
+    - security/selinux/semanage_boolean
+    - security/selinux/fixfiles
+    - security/selinux/print_se_context
+    - security/selinux/audit2allow
+    - security/selinux/semodule
+    - security/selinux/setsebool
+    - security/selinux/restorecon
+    - security/selinux/chcon
+    - security/selinux/chcat
+    - security/selinux/set_get_enforce
+    - security/selinux/selinuxexeccon

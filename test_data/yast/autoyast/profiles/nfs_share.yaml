@@ -1,0 +1,18 @@
+---
+profile:
+  partitioning:
+    drive:
+      - device: openqa.suse.de:/var/lib/openqa/share
+        disklabel: none
+        partitions:
+          partition:
+            create: 'false'
+            mount: /test
+        type: CT_NFS
+  services-manager:
+    services:
+      enable:
+        service:
+          - nfs
+          - rpc-statd
+          - rpcbind

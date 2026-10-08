@@ -1,0 +1,18 @@
+name:       snapper_cleanup_timeline
+description:   >
+  Test performs checks for the functionality of snapper cleanup timeline algorithm.
+schedule:
+  - boot/boot_to_desktop
+  - console/snapper_cleanup_timeline
+test_data:
+  snapper_config:
+    SPACE_LIMIT: "0.5"
+    FREE_LIMIT: "0.2"
+    TIMELINE_LIMIT_DAILY: "0-10"
+    TIMELINE_LIMIT_WEEKLY: "0-10"
+    TIMELINE_LIMIT_MONTHLY: "0-10"
+    TIMELINE_LIMIT_YEARLY: "0-10"
+    TIMELINE_LIMIT_HOURLY: "0-10"
+    TIMELINE_MIN_AGE: "0"
+    TIMELINE_CREATE: "no"
+    TIMELINE_CLEANUP: "no"

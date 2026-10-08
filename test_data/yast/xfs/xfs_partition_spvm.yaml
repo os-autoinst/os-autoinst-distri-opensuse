@@ -1,0 +1,24 @@
+---
+guided_partitioning:
+  filesystem_options:
+    root_filesystem_type: xfs
+disks:
+  - name: sda
+    table_type: gpt
+    allowed_unpartitioned: 0.00GB
+    partitions:
+      - name: sda2
+        formatting_options:
+          filesystem: xfs
+        mounting_options:
+          mount_point: /
+      - name: sda3
+        formatting_options:
+          filesystem: xfs
+        mounting_options:
+          mount_point: /home
+      - name: sda4
+        formatting_options:
+          filesystem: swap
+        mounting_options:
+          mount_point: SWAP

@@ -1,0 +1,49 @@
+---
+name: sles4sap_mau-extratests
+description: CLI extratests for SLES for SAP FIPS Vendor Affirmation
+schedule:
+  - boot/boot_to_desktop
+  - fips/fips_setup
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - sles4sap/patterns
+  - fips/gnutls/gnutls_base_check
+  - fips/mozilla_nss/nss_smoke.pm
+  - fips/openssl/openssl_fips_alglist
+  - fips/openssl/openssl_fips_hash
+  - fips/openssl/openssl_fips_cipher
+  - console/gpg
+  - console/libgcrypt
+  - console/curl_ipv6
+  - console/wget_ipv6
+  - console/ca_certificates_mozilla
+  - console/unzip
+  - console/rsync
+  - console/shells
+  - console/dstat
+  - console/supportutils
+  - console/mdadm
+  - console/quota
+  - console/vhostmd
+  - console/rpcbind
+  - console/timezone
+  - console/procps
+  - console/iotop
+  - console/kmod
+  - console/suse_module_tools
+  - console/aaa_base
+  - console/gd
+  - console/vsftpd
+  - console/coredump_collect
+  - console/osinfo_db
+  - console/ovn
+  - console/firewalld
+  - console/zziplib
+  - console/nginx
+  - console/sysctl
+  - '{{arch_specific}}'
+conditional_schedule:
+  arch_specific15_sp4:
+    ARCH:
+      x86_64:
+        - console/oqa_agnostic/ansible_agnostic

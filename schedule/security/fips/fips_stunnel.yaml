@@ -1,0 +1,19 @@
+name: stunntl fips test
+description: >
+    Update stunnel to 5.59
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - network/setup_multimachine
+    - console/consoletest_setup
+    - '{{repo_setup}}'
+    - fips/fips_setup
+    - fips/stunnel
+conditional_schedule:
+    repo_setup:
+        BETA:
+            1:
+                - security/test_repo_setup
+        FLAVOR:
+            Online-QR:
+                - security/test_repo_setup

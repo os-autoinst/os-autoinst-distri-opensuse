@@ -1,0 +1,16 @@
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Summary: Test module to activate encrypted volume.
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'y2_installbase';
+use testapi;
+
+sub run {
+    my $encrypted_volume = $testapi::distri->get_encrypted_volume_activation();
+    $encrypted_volume->enter_volume_encryption_password($password);
+    $encrypted_volume->accept_password();
+}
+
+1;

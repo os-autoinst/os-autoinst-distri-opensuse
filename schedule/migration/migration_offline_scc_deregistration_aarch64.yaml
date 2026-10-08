@@ -1,0 +1,46 @@
+name: migration_offline_scc_deregistration_aarch64.yaml
+description: |
+  This is for offline migraiton tests with deregistration on aarch64.
+vars:
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+schedule:
+  - migration/version_switch_origin_system
+  - boot/boot_to_desktop
+  - update/patch_sle
+  - console/check_system_info
+  - migration/record_disk_info
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - installation/isosize
+  - installation/bootloader_uefi
+  - installation/welcome
+  - installation/upgrade_select
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - migration/post_upgrade
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/zypper_lr
+  - console/check_os_release
+  - console/check_system_info
+  - console/hostname
+  - console/force_scheduled_tasks
+  - '{{scc_deregistration}}'
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+conditional_schedule:
+  scc_deregistration:
+    SCC_DEREGISTER:
+      1:
+        - console/scc_deregistration

@@ -1,0 +1,231 @@
+# Copyright SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Summary: sssd test with 389-ds as provider
+#
+# Set up 389-ds in container and run test cases below:
+# 1. nss_sss test: look up user identity with id: uid and gid
+# 2. pam_sss test: ssh login localhost as remote user.
+# 3. write permission test: change remote user password with passwd
+# 4. sssd-sudo test: Sudo run command as another remote user with sudoers rules defined in server
+# 5. offline test: shutdown server, run test cases above again
+#
+# Detailed testcases: https://bugzilla.suse.com/tr_show_case.cgi?case_id=1768710
+#
+# Maintainer: qe-core <qe-core@suse.com>
+
+package sssd_389ds_functional;
+use Mojo::Base 'consoletest';
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use utils;
+use version_utils qw(is_opensuse is_tumbleweed is_sle is_leap);
+use package_utils 'install_package';
+use registration qw(add_suseconnect_product get_addon_fullname register_product cleanup_registration);
+use feature 'signatures';
+no warnings 'experimental::signatures';
+
+my $conf_dir = "/tmp/sssd_configs";
+
+sub install_dependencies($container_engine) {
+    zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16') || is_leap('>=16.0'));
+    my $openldap2_client = (is_sle('>=16') || is_leap('>=16.0')) ? 'openldap2_6-client' : 'openldap2-client';
+    install_package("sssd sssd-ldap $openldap2_client sshpass $container_engine", trup_reboot => 1);
+    record_info('bsc#1259250', 'Checking if sssd.conf is present after fresh install');
+    my $sssd_path = ((is_sle('>=16.0') || is_leap('>=16.0') || is_tumbleweed) ? "/usr/etc/sssd/sssd.conf" : "/etc/sssd/sssd.conf");
+    assert_script_run("test -f $sssd_path", fail_message => "bsc#1259250 sssd.conf is not present after fresh install");
+    systemctl("enable --now $container_engine") if ($container_engine eq "docker");
+    return $container_engine;
+}
+
+sub setup_389ds_container ($container_engine) {
+
+    my $pkgs = "awk systemd 389-ds openssl";
+    my $tag = "";
+    if (is_opensuse) {
+        $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/factory/totest/containers/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
+    }
+    else {
+        $tag = 'registry.suse.com/suse/sle15:15.7';
+    }
+
+    assert_script_run("mkdir /tmp/sssd && cd /tmp/sssd");
+
+    my @artifacts = qw(user_389.ldif access.ldif instance_389.inf sssd.conf nsswitch.conf config);
+    push(@artifacts, "Dockerfile_$container_engine");
+
+    my $data_url = sprintf("sssd/398-ds/{%s}", join(',', @artifacts));
+    assert_script_run("curl --remote-name-all " . data_url($data_url));
+
+    assert_script_run(qq($container_engine build -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$container_engine .), timeout => 600);
+
+    script_run(qq($container_engine rm -f ds389_container));
+
+    my $container_run_389_ds = "$container_engine run -itd --shm-size=256m --name ds389_container --hostname ldapserver";
+    $container_run_389_ds .= " --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:rw --restart=always" if ($container_engine eq "docker");
+
+    assert_script_run("$container_run_389_ds ds389_image");
+
+    script_retry("$container_engine inspect -f '{{.State.Running}}' ds389_container | grep true", retry => 60, delay => 1, fail_message => "Cannot start container");
+
+    assert_script_run("$container_engine exec ds389_container chown dirsrv:dirsrv /var/lib/dirsrv");
+    assert_script_run("$container_engine exec ds389_container sed -n '/ldapserver/p' /etc/hosts >> /etc/hosts");
+    assert_script_run("$container_engine exec ds389_container dscreate from-file /tmp/instance_389.inf");
+    assert_script_run('ldapadd -x -H ldap://ldapserver -D "cn=Directory Manager" -w opensuse -f user_389.ldif');
+    assert_script_run('ldapadd -x -H ldap://ldapserver -D "cn=Directory Manager" -w opensuse -f access.ldif');
+}
+
+sub configure_sssd_client ($container_engine, $run_as_user = 'root') {
+    systemctl("stop nscd.service nscd.socket", ignore_failure => 1);
+    systemctl("disable --now nscd.service") unless (is_sle('>=16') || is_leap('>=16.0') || is_tumbleweed);
+    systemctl("stop sssd.service");
+
+    assert_script_run('mkdir -p /etc/sssd/');
+    assert_script_run("$container_engine cp ds389_container:/etc/dirsrv/slapd-frist389/ca.crt /etc/sssd/ldapserver.crt");
+    assert_script_run("install --mode 0644 -D $conf_dir/nsswitch.conf /etc/nsswitch.conf");
+    assert_script_run("install --mode 0600 -D $conf_dir/sssd.conf /etc/sssd/sssd.conf");
+    assert_script_run("rm -f /var/log/sssd/*.log /var/lib/sss/db/*.ldb");
+    assert_script_run("sed -i '/config_file_version/d' /etc/sssd/sssd.conf");
+    assert_script_run("sed -i '/\\[sssd\\]/a config_file_version = 2' /etc/sssd/sssd.conf");
+
+    if ($run_as_user eq 'sssd') {
+        # Ensure files are owned by sssd user
+        assert_script_run("getent group sssd || groupadd -r sssd");
+        assert_script_run("getent passwd sssd || useradd -r -g sssd -d /var/lib/sss -s /sbin/nologin -c 'User for sssd' sssd");
+        record_info('Config', 'Configuring SSSD to run as unprivileged user');
+        assert_script_run("rm -rf /var/lib/sss/db/* /var/lib/sss/mc/*");
+        assert_script_run("chmod 0750 /var/lib/sss/db /var/lib/sss/pipes");
+        assert_script_run("chown -R sssd:sssd /etc/sssd /var/lib/sss /var/log/sssd");
+        # Create systemd override
+        assert_script_run("mkdir -p /etc/systemd/system/sssd.service.d");
+        my $override = "[Service]\nUser=sssd\nGroup=sssd\nSupplementaryGroups=";
+        assert_script_run("echo -e \"$override\" > /etc/systemd/system/sssd.service.d/override.conf");
+    } else {
+        record_info('Config', 'Configuring SSSD to run as root');
+        # Ensure root ownership (or default)
+        assert_script_run("rm -f /etc/systemd/system/sssd.service.d/override.conf");
+        assert_script_run("chown -R root:root /etc/sssd /var/lib/sss /var/log/sssd /etc/sssd/sssd.conf");
+        assert_script_run("chown -R sssd:sssd /var/lib/sss /var/log/sssd") if is_tumbleweed;
+        assert_script_run("chmod 0600 /etc/sssd/sssd.conf");
+        assert_script_run("chmod 0750 /var/lib/sss/db /var/log/sssd");
+        # Clear cache for clean state
+        assert_script_run("rm -rf /var/lib/sss/db/* /var/lib/sss/mc/*");
+    }
+
+    systemctl("daemon-reload");
+
+    my $real_ip = script_output("$container_engine inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ds389_container");
+    assert_script_run("sed -i '/ldapserver/d' /etc/hosts");
+    assert_script_run("echo '$real_ip ldapserver' >> /etc/hosts");
+    my $net_check = script_run("ping -c 1 ldapserver");
+    if ($net_check != 0) {
+        record_info("Net Fix", "Ldapserver unreachable. Restarting container...");
+        assert_script_run("$container_engine restart ds389_container");
+        script_retry("ping -c 1 ldapserver", retry => 5, delay => 2);
+    }
+    script_run("systemctl enable --now sssd.service");
+}
+
+sub change_and_verify_password ($user, $old_pass, $new_pass) {
+    # Change password
+    script_retry("sshpass -p '$old_pass' ssh -o StrictHostKeyChecking=no $user\@localhost 'echo -e \"$old_pass\\n$new_pass\\n$new_pass\" | passwd'", retry => 3, delay => 10);
+
+    # Verify password change
+    validate_script_output("ldapwhoami -x -H ldap://ldapserver -D uid=$user,ou=users,dc=sssdtest,dc=com -w $new_pass", sub { m/$user/ });
+
+    # Verify login with new password
+    assert_script_run("sshpass -p '$new_pass' ssh -o StrictHostKeyChecking=no $user\@localhost 'echo \"Password changed successfully!\" > /tmp/passwd_change_verified'");
+    validate_script_output('cat /tmp/passwd_change_verified', sub { m/Password changed successfully/ });
+}
+
+sub run ($self) {
+    select_serial_terminal;
+
+    my $container_engine = "podman";
+    if (is_sle('<16')) {
+        # https://progress.opensuse.org/issues/195848 https://progress.opensuse.org/issues/131498#note-5
+        if (get_var('FLAVOR') =~ /-TERADATA$/ && check_var('VERSION', '15-SP4')) {
+            register_product;
+            assert_script_run('SUSEConnect -p PackageHub/15.4/x86_64');
+            zypper_call('in sshpass');
+            cleanup_registration;
+        }
+        $container_engine = "docker" if is_sle("<15-SP5");
+        is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
+    }
+    # on SLE we need packagehub for sshpass, let's enable it
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('<16.1');
+    # SLE16.1 not yet has a Package Hub workarond
+    zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa_head', no_gpg_check => 1) if is_sle('>16.0');
+
+    install_dependencies($container_engine);
+    assert_script_run("mkdir -p $conf_dir");
+    my @artifacts = qw(user_389.ldif access.ldif instance_389.inf sssd.conf nsswitch.conf config);
+    my $data_url = sprintf("sssd/398-ds/{%s}", join(',', @artifacts));
+    assert_script_run("cd $conf_dir && curl -L --remote-name-all " . data_url($data_url));
+
+    setup_389ds_container($container_engine);
+    for my $user_mode ('root', 'sssd') {
+        # Skip logic: sssd mode is not supported on SLE versions older than 15-SP6
+        if ($user_mode eq 'sssd' && (is_sle('<15-sp6') || is_tumbleweed)) {
+            record_info("Skip", "Skipping sssd mode: SLE version is older than 15-SP6");
+            next;
+        }
+        record_info("Test Mode", "Running functional tests as: $user_mode");
+        my $status = script_output("$container_engine inspect -f '{{.State.Running}}' ds389_container");
+        if ($status =~ /false/) {
+            record_info("Container Fix", "Container was down, attempting restart");
+            assert_script_run("$container_engine start ds389_container");
+            script_retry("$container_engine inspect -f '{{.State.Running}}' ds389_container | grep true", retry => 10, delay => 2);
+        }
+        configure_sssd_client($container_engine, $user_mode);
+
+        # Identity verification
+        validate_script_output("id alice", sub { m/uid=9998\(alice\)/ });
+        assert_script_run("pam-config -a --sss --mkhomedir");
+
+        run_online_tests($container_engine);
+        run_offline_tests($container_engine);
+    }
+}
+
+sub run_online_tests ($container_engine) {
+    select_console 'root-console';
+
+    user_test();
+
+    # Change password of remote user 'alice'
+    change_and_verify_password('alice', 'open5use', 'n0vell88');
+
+    # Sudo run a command as another user
+    assert_script_run("echo 'Defaults !targetpw' >/etc/sudoers.d/notargetpw");
+    assert_script_run("sshpass -p 'open5use' ssh -o StrictHostKeyChecking=no mary\@localhost 'echo open5use | sudo -S -l > /tmp/sudouser'");
+    validate_script_output('cat /tmp/sudouser', sub { m#/usr/bin/cat# });
+
+    assert_script_run(qq(su -c 'echo "file read only by owner alice" > hello && chmod 600 hello' -l alice));
+    sudo_user_test();
+
+    # Change back password of remote user 'alice'
+    change_and_verify_password('alice', 'n0vell88', 'open5use');
+}
+
+sub run_offline_tests ($container_engine) {
+
+    assert_script_run("$container_engine stop ds389_container");
+
+    validate_script_output("id alice", sub { m/uid=9998\(alice\)/ });
+    user_test();
+    sudo_user_test();
+}
+
+sub user_test {
+    assert_script_run("sshpass -p 'open5use' ssh -o StrictHostKeyChecking=no mary\@localhost 'whoami > /tmp/mary'");
+    validate_script_output('cat /tmp/mary', sub { m/mary/ });
+}
+
+sub sudo_user_test {
+    assert_script_run("sshpass -p 'open5use' ssh -o StrictHostKeyChecking=no mary\@localhost 'echo open5use | sudo -S -u alice /usr/bin/cat /home/alice/hello > /tmp/readonly'");
+    validate_script_output('cat /tmp/readonly', sub { m/file read only by owner alice/ });
+}
+
+1;

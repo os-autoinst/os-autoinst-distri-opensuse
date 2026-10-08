@@ -1,0 +1,21 @@
+<interface>
+  <name>xxx</name>
+  <description>Ethernet Card 0</description>
+
+  <!-- no Zeroconf testing for the time being -->
+  <ipv4:dhcp>
+    <enabled>true</enabled>
+    <defer-timeout>10</defer-timeout>
+    <acquire-timeout>10</acquire-timeout>
+  </ipv4:dhcp>
+
+  <ipv6>
+    <enabled>false</enabled>
+  </ipv6>
+
+  <ipv6:dhcp>
+    <enabled>false</enabled>
+    <defer-timeout>10</defer-timeout>
+    <acquire-timeout>10</acquire-timeout>
+  </ipv6:dhcp>
+</interface>

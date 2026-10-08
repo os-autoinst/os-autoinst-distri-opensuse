@@ -1,0 +1,20 @@
+---
+name: autoyast_home_encrypted
+description: |
+  Gnome installation with separate /home partition encrypted
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/verify_separate_home
+  - console/validate_encrypt
+  - autoyast/console
+  - autoyast/clone
+  - autoyast/verify_cloned_profile
+test_data:
+  <<: !include test_data/yast/encryption/encrypt_home.yaml
+  crypttab:
+    num_devices_encrypted: 1
+  <<: !include test_data/yast/autoyast/profiles/home_encrypted.yaml

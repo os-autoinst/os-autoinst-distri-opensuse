@@ -1,0 +1,8 @@
+name:           samba_ncurses
+description:    >
+    Samba test has to be excluded from ncurses suite until resolution of bsc#1146736. This test suite is to be executed in development groups.
+schedule:
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/yast2_samba

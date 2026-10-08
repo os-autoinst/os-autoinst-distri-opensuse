@@ -1,0 +1,5 @@
+---
+# Timeout in Seconds for Bootloader Options in boot Loader Settings is not modified
+# GRUB finished its default timeout so it is not processed
+booting: []
+grub: []

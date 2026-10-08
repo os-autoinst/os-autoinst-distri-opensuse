@@ -1,0 +1,6 @@
+---
+name: message
+description: Sway wayland window manager
+schedule:
+  - sway/sway
+  - shutdown/shutdown

@@ -1,0 +1,5 @@
+dn: dc=ldapdom,dc=net
+changetype: modify
+add: aci
+aci: (targetattr = "*") (version 3.0;acl "myaci";allow (all) (userdn = "ldap:///anyone");)
+

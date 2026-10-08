@@ -1,0 +1,10 @@
+---
+name: tomcat
+description: >
+    Maintainer: zluo@suse.com
+    Install and test tomcat packages after Online-installation of SLES,
+    Boot from HDD directly to run tomcat on Tumbleweed.
+schedule:
+    - boot/boot_to_desktop
+    - x11/tomcat
+    - shutdown/shutdown

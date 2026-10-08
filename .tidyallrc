@@ -1,0 +1,3 @@
+[PerlTidy]
+select = {lib,products,script,tests,t}/**/*.{pl,pm,t}
+argv = --pro=$ROOT/.perltidyrc

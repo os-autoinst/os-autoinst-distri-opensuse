@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html><head>
+<link rel="top" title="Home" href="http://www.mozilla.org/">
+<link rel="stylesheet" type="text/css" href="list_files/print.css" media="print">
+<link rel="stylesheet" type="text/css" href="list_files/content_002.css" media="all">
+<link rel="stylesheet" type="text/css" href="list_files/content.css" title="Cavendish" media="screen">
+<link rel="stylesheet" type="text/css" href="list_files/template.css" media="screen">
+<link rel="stylesheet" type="text/css" href="list_files/template_002.css" title="Cavendish" media="screen">
+<link rel="icon" href="https://www-archive.mozilla.org/images/mozilla-16.png" type="image/png">
+
+
+  <meta name="generator" content="HTML Tidy for Windows (vers 14 June 2007), see www.w3.org">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="Content-Language" content="en">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+
+  <title>Lists Test Cases</title>
+
+<link rel="up" href="https://www-archive.mozilla.org/quality/browser/front-end/testcases/printing/listtest.html" title="Test Case Description for printing lists">
+
+  <style type="text/css">
+  li.c7 {color: #FF0;}
+  li.c6 {list-style-type: decimal;}
+  li.c5 {list-style-type: disc;}
+  li.c4 {list-style-type: lower-roman;}
+  li.c3 {list-style-type: upper-alpha;}
+  li.c2 {list-style-type: lower-alpha;}
+  li.c1 {list-style-type: upper-roman;}
+  </style>
+
+<script src="list_files/__utm.js" type="text/javascript"></script><script language="JavaScript1.5">_ujv='1.5';</script>
+</head>
+<body id="www-mozilla-org" class="deepLevel">
+<div id="container">
+
+<p class="skipLink"><a href="#mainContent" accesskey="2">Skip to main content</a></p>
+
+<hr class="hide">
+<div id="mBody">
+<div id="side">
+
+
+
+</div>
+<hr class="hide">
+<div id="mainContent">
+
+
+
+
+
+
+
+
+  <p class="crumbs"><em>You are here:</em>
+  </p>
+
+  <h1>Welcome to a list of lists</h1>
+
+  <p>Lists are not only fun to make, they are fun to use. They help us:</p>
+
+  <ol>
+    <li>remember what the heck we are doing each day</li>
+
+    <li>arrange long and arbitrary lines of text into ordered lists that
+    are pleasing to the eye and suggest some sense of priority, even if it
+    is artificial</li>
+
+    <li>look really cool when we carry them around on yellow Post-Its
+    ™.</li>
+
+    <li>and that other thing I keep forgetting.</li>
+  </ol>
+
+  <p>(With the deprecated "type" attribute) Your ordered lists
+  can start at a strange number, like</p>
+
+  <ol type="i" start="6">
+    <li>And use roman numerals,</li>
+
+    <li type="a">You might try using letters as well,</li>
+
+    <li type="A">Maybe you prefer Big Letters,</li>
+
+    <li type="i">or small roman numerals</li>
+
+    <li type="disc">But discs belong to unordered lists</li>
+
+    <li value="50" type="1">Though you can set the value in a list
+    item!</li>
+  </ol>
+
+  <hr>
+
+  <p>(With the CSS property "list-style-type") Your ordered lists
+  can start at a strange number, like</p>
+
+  <ol start="6">
+    <li class="c1">And use roman numerals,</li>
+
+    <li class="c2">You might try using letters as well,</li>
+
+    <li class="c3">Maybe you prefer Big Letters,</li>
+
+    <li class="c4">or small roman numerals</li>
+
+    <li class="c5">But discs belong to unordered lists</li>
+
+    <li class="c6" value="50">Though you can set the value in a list
+    item!</li>
+  </ol>
+
+  <hr>
+
+  <h3>Unordered list</h3>
+
+  <ul>
+    <li>listing item
+
+      <ul>
+        <li>first sublevel
+
+          <ul>
+            <li>look for the bullet on
+
+              <ul>
+                <li>each sublevel</li>
+
+                <li>they should all be different, except here.</li>
+              </ul>
+            </li>
+
+            <li>second sublevel</li>
+          </ul>
+        </li>
+
+        <li type="square">or you can specify a square
+
+          <ul>
+            <li type="circle">if your type is circle</li>
+
+            <li type="disc">or even a disc</li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+
+    <li type="square">Franz Liszt
+
+      <ul>
+        <li>was a composer who was not square</li>
+
+        <li type="disc">would have liked the Who</li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul type="circle">
+    <li>feeling listless. type="circle"</li>
+
+    <li class="c7" type="square">blah, blah, blah (square)</li>
+
+    <li type="disc">whine, whine, whine (disc)</li>
+  </ul>
+
+
+
+<hr class="hide">
+</div>
+</div>
+
+</div>
+
+
+</body></html>
+

@@ -1,0 +1,44 @@
+# SUSE's openQA tests
+#
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: kernel-default-devel kmod-compact make
+# Summary: Test kernel module build
+#          Example http://www.tldp.org/LDP/lkmpg/2.6/html/x121.html
+# Maintainer: Petr Cervinka <pcervinka@suse.com>
+# Tags: https://progress.opensuse.org/issues/49031
+
+use Mojo::Base 'opensusebasetest';
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use utils;
+use package_utils 'install_package';
+
+sub run {
+    select_serial_terminal;
+    # kernel live patch scenario has devel package already installed
+    install_package('kernel-default-devel', trup_apply => 1) unless get_var('KGRAFT');
+    # Prepare module sources
+    assert_script_run("curl -L -v " . autoinst_url . "/data/kernel/module > module.data && cpio -id < module.data && rm module.data");
+    assert_script_run "cd data";
+    # Build module
+    assert_script_run "make";
+    # Insert module
+    assert_script_run "insmod hello.ko";
+    # Verify that module was inserted
+    assert_script_run "dmesg | grep 'Hello world'";
+    # Remove module
+    assert_script_run "rmmod hello";
+    # Verify that module was removed
+    assert_script_run "dmesg | grep 'Goodbye world'";
+    # Do cleanup
+    assert_script_run "make clean";
+    assert_script_run "cd .. && rm -rf data";
+}
+
+sub test_flags {
+    return {fatal => 0};
+}
+
+1;

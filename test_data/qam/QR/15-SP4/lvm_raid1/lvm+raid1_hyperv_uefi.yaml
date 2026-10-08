@@ -1,0 +1,57 @@
+---
+mds: !include test_data/qam/QR/15-SP4/lvm_raid1/lvm+raid1_mds_hyperv.yaml
+lvm: !include test_data/qam/QR/15-SP4/lvm_raid1/lvm+raid1_lvm.yaml
+disks:
+  - name: sda
+    partitions:
+      - size: 300mb
+        role: raw-volume
+        formatting_options:
+          should_format: 1
+          filesystem: fat
+        mounting_options:
+          should_mount: 1
+          mount_point: '/boot/efi'
+      - size: 12500mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: sdb
+    partitions:
+      - size: 300mb
+        role: raw-volume
+        id: efi
+      - size: 12500mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: sdc
+    partitions:
+      - size: 300mb
+        role: raw-volume
+        id: efi
+      - size: 12500mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: sdd
+    partitions:
+      - size: 300mb
+        role: raw-volume
+        id: efi
+      - size: 12500mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+raid1:
+  disk_to_fail: /dev/sdd2
+  level: raid1
+  name: /dev/md0

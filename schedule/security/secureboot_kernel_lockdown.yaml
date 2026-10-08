@@ -1,0 +1,7 @@
+name: Secureboot kernel lockdown check
+description:    >
+    Verify that if we are "secure booted" that kernel lockdown is enabled
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/secureboot/kernel_lockdown

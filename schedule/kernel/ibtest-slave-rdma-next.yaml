@@ -1,0 +1,40 @@
+name:           ibtest-slave
+description:    >
+    The slave node for the infiniband testsuite (hpc-testing)
+vars:
+    DESKTOP: textmode
+    GRUB_TIMEOUT: 300
+    IBTESTS: 1
+    IBTEST_ROLE: IBTEST_SLAVE
+    IPXE: 1
+    IPXE_CONSOLE: ttyS1,115200
+    KERNEL_GIT_TREE: https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+    KERNEL_GIT_BRANCH: for-next
+    PARALLEL_WITH: ibtest-master
+    PATTERNS: base,minimal
+    SCC_ADDONS: sdk
+schedule:
+    - installation/ipxe_install
+    - installation/welcome
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_graphics
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/handle_reboot
+    - installation/first_boot
+    - kernel/build_git_kernel
+    - kernel/ibtests_prepare
+    - installation/handle_reboot
+    - kernel/ibtests

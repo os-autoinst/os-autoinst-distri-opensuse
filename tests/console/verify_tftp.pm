@@ -1,0 +1,31 @@
+# SUSE's openQA tests
+#
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: this test checks that tftp-server runs properly in the SUT.
+# Can be used to validate tftp service in the installed system.
+# - Verify that service is up and running
+# - Connect using tftp command, get test file and check
+# - Connect using tftp command, put test file back
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'y2_module_consoletest';
+use testapi;
+use serial_terminal 'select_text_console';
+use utils;
+
+sub run {
+    select_text_console;
+
+    assert_script_run 'echo "hello world" > /srv/tftpboot/tmp.txt';
+    assert_script_run 'chown -R tftp /srv/tftpboot/tmp.txt';
+
+    assert_script_run 'tftp -v localhost -c get tmp.txt';
+    # Compare that downloaded file is identical to the file on the server
+    assert_script_run 'diff -u tmp.txt /srv/tftpboot/tmp.txt';
+
+    assert_script_run 'tftp -v localhost -c put tmp.txt';
+}
+
+1;

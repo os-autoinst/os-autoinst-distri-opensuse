@@ -1,0 +1,16 @@
+---
+name: usb_virt
+vars:
+    DESKTOP: textmode
+    VIDEOMODE: text
+    VIRTIO_CONSOLE: 1
+    NUMDISKS: 2
+    HDDMODEL_1: virtio-blk
+    HDDMODEL_2: usb-storage
+    HDDSIZEGB2: 2
+    QEMU_DISABLE_SNAPSHOTS: '1'
+    QEMU_APPEND: "device qemu-xhci,id=usb-bus0 -netdev user,id=unstack -device usb-net,netdev=unstack,bus=usb-bus0.0,id=nic0"
+schedule:
+- boot/boot_to_desktop
+- kernel/usb_drive
+- kernel/usb_nic

@@ -1,0 +1,18 @@
+# SUSE's openQA tests
+#
+# Copyright 2022 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Select SUSE Linux Enterprise HA Extension
+#          in "Extension and Module Selection" dialog.
+# Medium:  Full (Description Text shows "Directory on the Media")
+#
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'y2_installbase';
+
+sub run {
+    $testapi::distri->get_module_selection()->select_module('high availability');
+}
+
+1;

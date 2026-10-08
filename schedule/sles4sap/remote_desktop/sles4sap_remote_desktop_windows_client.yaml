@@ -1,0 +1,12 @@
+---
+name: sles4sap_remote_desktop_windows_client
+description: >
+  Remote Desktop Protocol (RDP) test from a Windows client.
+vars:
+  NETWORKS: fixed
+  REGRESSION: remote
+  REMOTE_DESKTOP_TYPE: win_client
+schedule:
+  - wsl/boot_windows
+  - x11/remote_desktop/windows_network_setup
+  - x11/remote_desktop/windows_client_remotelogin

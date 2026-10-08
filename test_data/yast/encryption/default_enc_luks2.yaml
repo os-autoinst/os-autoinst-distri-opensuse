@@ -1,0 +1,11 @@
+---
+cryptsetup:
+  device_status:
+    message: is active and is in use.
+    properties:
+      type: LUKS2
+      cipher: aes-xts-plain64
+      key_location: keyring
+      mode: read/write
+backup_file_info: 'LUKS encrypted file, ver 2, header size [0-9]+, ID [0-9]+, algo sha256'
+backup_path: '/root/bkp_luks_header'

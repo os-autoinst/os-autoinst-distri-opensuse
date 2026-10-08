@@ -1,0 +1,36 @@
+---
+subvolume:
+  cow:
+    - /opt
+    - /srv
+    - /tmp
+    - /usr/local
+    - /var/cache
+    - /var/crash
+    - /var/lib/machines
+    - /var/lib/mailman
+    - /var/lib/named
+    - /var/opt
+    - /var/spool
+    - /var/tmp
+    - /.snapshots
+  no_cow:
+    - /var/lib/libvirt/images
+    - /var/lib/mariadb
+    - /var/lib/mysql
+    - /var/lib/pgsql
+    - /var/log
+  disks:
+  - name: vda
+    table_type: gpt
+    partitions:
+    - name: vda2
+      formatting_options:
+        filesystem: btrfs
+      mounting_options:
+        mount_point: /
+    - name: vda3
+      formatting_options:
+        filesystem: xfs
+      mounting_options:
+        mount_point: /home

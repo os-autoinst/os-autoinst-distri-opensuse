@@ -1,0 +1,20 @@
+---
+name: gfx-usb-drivers
+schedule:
+- autoyast/prepare_profile
+- installation/bootloader_start
+- autoyast/installation
+- console/yast2_vnc
+- console/force_scheduled_tasks
+- autoyast/autoyast_reboot
+- installation/handle_reboot
+- installation/first_boot
+- console/system_prepare
+- console/consoletest_setup
+- console/hostname
+- console/textinfo
+- console/consoletest_finish
+- x11/glxgears
+- kernel/usb_nic
+- kernel/usb_drive
+- shutdown/shutdown

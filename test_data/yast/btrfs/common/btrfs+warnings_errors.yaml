@@ -1,0 +1,2 @@
+no_root: There is no device mounted at '/'
+boot_small_for_kernel: The device mounted at '/boot' does not have enough space to contain a kernel

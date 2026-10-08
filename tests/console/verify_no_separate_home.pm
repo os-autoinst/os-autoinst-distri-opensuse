@@ -1,0 +1,25 @@
+# SUSE's openQA tests
+#
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: util-linux
+# Summary: Verification module. Asserts if /home is not located on the separate
+# partition/volume.
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'consoletest';
+use warnings FATAL => 'all';
+use testapi;
+use serial_terminal 'select_text_console';
+use Test::Assert 'assert_equals';
+
+sub run {
+    select_text_console;
+
+    my $root_device = script_output("findmnt -nrvo SOURCE -T /");
+    my $home_device = script_output("findmnt -nrvo SOURCE -T /home");
+    assert_equals($root_device, $home_device, "/home is on a separate partition");
+}
+
+1;

@@ -1,0 +1,1223 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+# Maintainer: QE-SAP <qe-sap@suse.de>
+#
+# Library used for Microsoft SDAF deployment
+
+package sles4sap::sap_deployment_automation_framework::deployment;
+
+use strict;
+use warnings;
+use version;
+use testapi;
+use Mojo::Base -signatures;
+use List::Util qw(first);
+use Exporter qw(import);
+use Carp qw(croak);
+use Utils::Git qw(git_clone);
+use File::Basename;
+use Regexp::Common qw(net);
+use utils qw(write_sut_file file_content_replace define_secret_variable);
+use Mojo::JSON qw(decode_json);
+use publiccloud::utils qw(get_credentials);
+use sles4sap::azure_cli;
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id);
+use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
+  homedir
+  deployment_dir
+  log_dir
+  sdaf_scripts_dir
+  env_variable_file
+  get_tfvars_path
+  generate_resource_group_name
+  convert_region_to_short
+  get_workload_vnet_code
+);
+
+our @EXPORT = qw(
+  $output_log_file
+  log_command_output
+  az_login
+  check_credentials
+  sdaf_ssh_key_from_keyvault
+  serial_console_diag_banner
+  set_common_sdaf_os_env
+  prepare_sdaf_project
+  set_os_variable
+  get_os_variable
+  sdaf_execute_deployment
+  load_os_env_variables
+  sdaf_cleanup
+  get_sdaf_instance_id
+  sdaf_deployment_reused
+  validate_components
+  get_fencing_mechanism
+  sdaf_upload_logs
+  collect_guestregister_logs
+  get_sdaf_resource_group
+  apply_no_cleanup_tag
+);
+
+our $output_log_file = '';
+
+=head1 SYNOPSIS
+
+Library with common functions for Microsoft SDAF deployment automation. Documentation can be found on the
+L<projects official website|https://learn.microsoft.com/en-us/azure/sap/automation/get-started>
+
+Github repositories:
+L<Automation scripts|https://github.com/Azure/sap-automation/tree/main>
+L<Sample configurations|https://github.com/Azure/SAP-automation-samples/tree/main>
+
+Basic terminology:
+
+=over
+
+=item * B<SDAF>: SAP deployment automation framework
+
+=item * B<Control plane>: Common term for Resource groups B<Deployer> and B<Library>.
+Generally it is part of a permanent infrastructure in the cloud.
+
+=item * B<Deployer>: Resource group providing services such as keyvault, Deployer VM and associated resources.
+
+=item * B<Deployer VM>: Central point that contains SDAF installation and where the deployment is executed from.
+Since SUT VMs have no public IPs, this is also serving as a jump-host to reach them via SSH.
+
+=item * B<Library>: Resource group providing storage for terraform state files, SAP media and private DNS zone.
+
+=item * B<Workload zone>: Resource group that provides services similar to support server.
+
+=item * B<SAP Systems>: Resource group containing SAP SUTs and related resources.
+
+=back
+=cut
+
+=head2 log_command_output
+
+    log_command_output(command=>$command, log_file=>$log_file);
+
+Using C<'tee'> to redirect command output into log does not return code for executed command, but execution of C<'tee'> itself.
+This function transforms given command so the RC reflects exit code of the command itself instead of C<'tee'>.
+Function returns only string with transformed command, nothing is being executed.
+
+Command structure: "(command_to_execute 2>$1 | tee /log/file.log; exit ${PIPESTATUS[0]})"
+
+    'exit ${PIPESTATUS[0]}' - returns 'command_to_execute' return code instead of one from 'tee'
+    (...) - puts everything into subshell to prevent 'exit' logging out of current shell
+    tee - writes output also into the log file
+
+=over
+
+=item * B<command>: Command which output should be logged into file.
+
+=item * B<log_file>: Full log file path and filename to pipe command output into.
+
+=back
+=cut
+
+sub log_command_output {
+    my (%args) = @_;
+    foreach ('command', 'log_file') {
+        croak "Missing mandatory argument: $_" unless $args{$_};
+    }
+
+    my $result = join(' ', '(', $args{command}, '2>&1', '|', 'tee', $args{log_file}, ';', 'exit', '${PIPESTATUS[0]})');
+    return $result;
+}
+
+=head2 export_credentials
+
+    export_credentials();
+
+Exports Azure credentials retrieved from login server defined in.
+Please note that B<get_credentials> function requires following OpenQA settings:
+  PUBLIC_CLOUD_CREDENTIALS_URL
+  PUBLIC_CLOUD_NAMESPACE
+  _SECRET_PUBLIC_CLOUD_CREDENTIALS_USER
+  _SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD
+
+Credentials can be provided as well using openQA settings:
+  _SECRET_AZURE_SDAF_APP_ID
+  _SECRET_AZURE_SDAF_APP_PASSWORD
+  _SECRET_AZURE_SDAF_TENANT_ID
+  PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID
+=cut
+
+sub export_credentials {
+    my $temp_file = '/tmp/az_login_tmp';
+    my $data;
+
+    if (get_var('_SECRET_AZURE_SDAF_APP_ID') &&
+        get_var('_SECRET_AZURE_SDAF_APP_PASSWORD') &&
+        get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') &&
+        get_var('_SECRET_AZURE_SDAF_TENANT_ID')) {
+        record_info('Credentials', 'Credentials defined by OpenQA settings');
+        $data = {
+            client_id => get_required_var('_SECRET_AZURE_SDAF_APP_ID'),
+            client_secret => get_required_var('_SECRET_AZURE_SDAF_APP_PASSWORD'),
+            tenant_id => get_required_var('_SECRET_AZURE_SDAF_TENANT_ID'),
+            # Keeping the same OpenQA setting name consistent with other deployments
+            subscription_id => get_required_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
+        };
+    } else {
+        record_info('Credentials', 'Fetching credentials from remote server');
+        $data = get_credentials(namespace => 'sdaf', url_suffix => 'azure.json');
+        $data = $data->{get_required_var('PUBLIC_CLOUD_NAMESPACE')}->{get_required_var('SDAF_ENV_CODE')};
+    }
+
+    my @variables = (
+        "export ARM_CLIENT_ID=$data->{client_id}",
+        "export ARM_CLIENT_SECRET=$data->{client_secret}",
+        "export ARM_TENANT_ID=$data->{tenant_id}",
+        "export ARM_SUBSCRIPTION_ID=$data->{subscription_id}"
+    );
+
+    # Write variables into temporary file using openQA infrastructure to avoid exposing variable values.
+    write_sut_file($temp_file, join("\n", @variables));
+    # Source file and load variables
+    assert_script_run("source $temp_file");
+    return ($data);
+}
+
+=head2 check_credentials
+
+    check_credentials();
+
+Check credentials: fetch keyvault secrets and compare them with openQA settings
+  _SECRET_AZURE_SDAF_APP_ID (ARM_CLIENT_ID)
+  _SECRET_AZURE_SDAF_APP_PASSWORD (ARM_CLIENT_SECRET)
+  _SECRET_AZURE_SDAF_TENANT_ID (ARM_TENANT_ID)
+  PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID (ARM_SUBSCRIPTION_ID)
+
+NOTE:
+    In order to keep secrets hidden in autoinst-log.txt as well, this function
+    needs to call export_credentials() to get the needed secrets/data directly,
+    please do NOT set secrets related input parameters for check_credentials()
+=cut
+
+sub check_credentials {
+    my $result = 0;
+    my $tmpfile = '/tmp/output';
+
+    my $data = export_credentials();
+    my %credentials = (
+        ARM_CLIENT_ID => $data->{client_id},
+        ARM_CLIENT_SECRET => $data->{client_secret},
+        ARM_TENANT_ID => $data->{tenant_id},
+        ARM_SUBSCRIPTION_ID => $data->{subscription_id}
+    );
+    my %queries = (
+        ARM_CLIENT_ID => 'client-id',
+        ARM_CLIENT_SECRET => 'client-secret',
+        ARM_TENANT_ID => 'tenant-id',
+        ARM_SUBSCRIPTION_ID => 'subscription-id'
+    );
+
+    my $env = get_required_var('SDAF_ENV_CODE');
+    my $key_vault = get_required_var('SDAF_DEPLOYER_KEY_VAULT');
+    my $vnet_code = get_required_var('SDAF_DEPLOYER_VNET_CODE');
+    my $region_code = convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
+
+    my @secret_ids = @{az_keyvault_secret_list(vault_name => $key_vault, query => '[].id')};
+    for my $key (keys %credentials) {
+        # Check for full name first and fallback to older naming convention
+        my $long_name = "$env-$region_code-$vnet_code-$queries{$key}";
+        my $short_name = $queries{$key};
+        my $secret_id = (first { /$long_name/ } @secret_ids) //
+          (first { /$short_name/ } @secret_ids) ||
+          die "No secrets found: \n" . join("\n", @secret_ids);
+
+        az_keyvault_secret_show(
+            id => $secret_id,
+            query => 'value',
+            output => 'tsv',
+            save_to_file => "$tmpfile");
+
+        # Keep secrets hidden in serial output
+        define_secret_variable('SECRET_VARIABLE', $credentials{$key});
+        # Use echo/grep/cat to ignore the " and/or ' added in $SECRET_VARIABLE when using worker settings
+        # For example: handle "123-456-789"/'123-456-789', the correct one is 123-456-789
+        if (script_run("echo \$SECRET_VARIABLE | grep `cat $tmpfile` > /dev/null 2>&1")) {
+            record_info("Check $key", "check_credentials failed on $key\n", result => 'softfail');
+            record_info("Check $key", "");
+            $result = 1;
+        }
+        else {
+            record_info("Check $key", "check_credentials passed on $key\n");
+        }
+    }
+
+    die "check_credentials failed\n" if $result;
+    return $result;
+}
+
+=head2 az_login
+
+ az_login();
+
+Logs into azure account using SPN credentials. Those are not typed directly into the command but using OS env variables.
+To avoid exposure of credentials in serial console, there is a special temporary file used which contains required variables.
+
+Credentials are by default provided using secure server.
+Below are required OpenQA settings:
+
+=over
+
+=item * B<PUBLIC_CLOUD_NAMESPACE> - namespace dedicated for the project
+
+=item * B<PUBLIC_CLOUD_CREDENTIALS_URL> URL of the secure server
+
+=item * B<_SECRET_PUBLIC_CLOUD_CREDENTIALS_USER> Secure server user name
+
+=item * B<_SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD> Secure server password
+
+=back
+
+Can be also supplied via secret OpenQA parameters:
+
+=over
+
+=item * B<_SECRET_AZURE_SDAF_APP_ID> SPN app id
+
+=item * B<_SECRET_AZURE_SDAF_APP_PASSWORD> SPN app password
+
+=item * B<_SECRET_AZURE_SDAF_TENANT_ID> Tenant ID
+
+=item * B<PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID> Subscription ID
+
+=back
+
+SDAF needs SPN credentials with special permissions. Check link below for details.
+L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?tabs=linux#prepare-the-deployment-credentials>
+
+=cut
+
+sub az_login {
+    # This is to remove telemetry messages which can mangle JSON outputs.
+    assert_script_run(
+        'az config set core.survey_message=false core.collect_telemetry=no --only-show-errors --output json', timeout => 240
+    );
+    my $credentials = export_credentials();
+    my $login_cmd = 'while ! az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} -t ${ARM_TENANT_ID} -o none 1>/dev/null 2>&1; do sleep 10; done';
+    assert_script_run($login_cmd, timeout => 300);
+    record_info('AZ login', "Subscription id: $credentials->{subscription_id}");
+    return ($credentials->{subscription_id});
+}
+
+=head2 create_sdaf_os_var_file
+
+    create_sdaf_os_var_file($entries);
+
+Creates a simple file with bash env variables and uploads it to the target host without revealing content in serial console.
+File is sourced afterwards.
+For detailed variable description check : L<https://learn.microsoft.com/en-us/azure/sap/automation/naming>
+
+=over
+
+=item * B<$entries>: ARRAYREF of entries to be appended to variable source file
+
+=back
+=cut
+
+sub create_sdaf_os_var_file {
+    my ($entries) = @_;
+    croak 'Expected an ARRAYREF but got: ' . ref $entries if (ref $entries ne 'ARRAY');
+
+    write_sut_file(env_variable_file, join("\n", @$entries));
+    assert_script_run('source ' . env_variable_file, quiet => 1);
+}
+
+=head2 set_os_variable
+
+    set_os_variable($variable_name, $variable_value);
+
+Adds or replaces existing OS env variable value in env variable file (see function 'set_common_sdaf_os_env()').
+File is sourced afterwards to load the value. Croaks with incorrect usage.
+
+B<WARNING>: This is executed via 'assert_script_run' therefore output will be visible in logs
+
+=over
+
+=item * B<$variable_name>: Variable name
+
+=item * B<$variable_value>: Variable value. Empty value is accepted as well.
+
+=back
+=cut
+
+sub set_os_variable {
+    my ($variable_name, $variable_value) = @_;
+    croak 'Missing mandatory argument "$variable_name"' unless $variable_name;
+
+    my $env_variable_file = env_variable_file();
+
+    if (!script_run("grep 'export $variable_name=' $env_variable_file")) {
+        file_content_replace($env_variable_file, "export $variable_name=.*" => "export $variable_name=\"$variable_value\"");
+    }
+    else {
+        assert_script_run("echo 'export $variable_name=\"$variable_value\"' >> $env_variable_file");
+    }
+
+    # Activate new variable
+    load_os_env_variables();
+    record_info('ENV set', "Env variable '$variable_name' is set to '$variable_value' ");
+}
+
+=head2 get_os_variable
+
+    get_os_variable($variable_name);
+
+Returns value of requested OS env variable name.
+Variable is acquired using C<'echo'> command and is visible in serial terminal output.
+Keep in mind, this variable is only active until logout.
+
+=over
+
+=item * B<$variable_name>: Variable name
+
+=back
+=cut
+
+sub get_os_variable {
+    my ($variable_name) = @_;
+    croak 'Positional argument $variable_name not defined' unless $variable_name;
+    $variable_name =~ s/[\$}{]//g;
+
+    return script_output("echo \${$variable_name}", quiet => 1);
+}
+
+=head2 set_common_sdaf_os_env
+
+    set_common_sdaf_os_env(
+        subscription_id=>$subscription_id
+        [, env_code=>$env_code]
+        [, deployer_vnet_code=>$deployer_vnet_code]
+        [, sdaf_region_code=>$sdaf_region_code]
+        [, sap_sid=>$sap_sid]
+        [, sdaf_tfstate_storage_account=$sdaf_tfstate_storage_account]
+        [, sdaf_key_vault=>$sdaf_key_vault]
+    );
+
+Creates a file with common OS env variables required to run SDAF. File is sourced afterwards to make the values active.
+Keep in mind that values are lost after user logout (for example after disconnecting console redirection).
+You can load them back using I<load_os_env_variables()> function
+OS env variables are core of how to execute SDAF and many are used even internally by SDAF code.
+For detailed variable description check : L<https://learn.microsoft.com/en-us/azure/sap/automation/naming>
+
+=over
+
+=item * B<subscription_id>: Azure subscription ID
+
+=item * B<env_code>: Code for SDAF deployment env. Default: 'SDAF_ENV_CODE'
+
+=item * B<deployer_vnet_code>: Deployer virtual network code. Default: 'SDAF_DEPLOYER_VNET_CODE'
+
+=item * B<sdaf_region_code>: SDAF internal code for azure region. Default: 'PUBLIC_CLOUD_REGION' - converted to SDAF format
+
+=item * B<sap_sid>: SAP system ID. Default: 'SAP_SID'
+
+=item * B<sdaf_tfstate_storage_account>: Storage account residing in library resource group.
+Location for stored tfstate files. Default 'SDAF_TFSTATE_STORAGE_ACCOUNT'
+
+=item * B<sdaf_key_vault>: Key vault name inside Deployer resource group. Default 'SDAF_DEPLOYER_KEY_VAULT'
+
+=back
+=cut
+
+sub set_common_sdaf_os_env {
+    my (%args) = @_;
+    my $deployment_dir = deployment_dir(create => 'yes');
+
+    $args{env_code} //= get_required_var('SDAF_ENV_CODE');
+    $args{deployer_vnet_code} //= get_required_var('SDAF_DEPLOYER_VNET_CODE');
+    $args{sdaf_region_code} //= convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
+    $args{sap_sid} //= get_required_var('SAP_SID');
+    $args{sdaf_tfstate_storage_account} //= get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT');
+    $args{sdaf_key_vault} //= get_required_var('SDAF_DEPLOYER_KEY_VAULT');
+    my $workload_vnet_code = get_workload_vnet_code();
+
+    # This is used later filling up tfvars files.
+    set_var('SDAF_REGION_CODE', $args{sdaf_region_code});
+
+    my @variables = (
+        "export env_code=$args{env_code}",
+        "export deployer_vnet_code=$args{deployer_vnet_code}",
+        "export workload_vnet_code=$workload_vnet_code",
+        "export sap_env_code=$args{env_code}",
+        "export deployer_env_code=$args{env_code}",
+        "export sdaf_region_code=$args{sdaf_region_code}",
+        "export SID=$args{sap_sid}",
+        "export ARM_SUBSCRIPTION_ID=$args{subscription_id}",
+        "export SAP_AUTOMATION_REPO_PATH=$deployment_dir/sap-automation/",
+        'export DEPLOYMENT_REPO_PATH=${SAP_AUTOMATION_REPO_PATH}',
+        "export CONFIG_REPO_PATH=$deployment_dir/WORKSPACES",
+        'export deployer_parameter_file=' . get_tfvars_path(deployment_type => 'deployer', vnet_code => $args{deployer_vnet_code}, %args),
+        'export library_parameter_file=' . get_tfvars_path(deployment_type => 'library', %args),
+        'export sap_system_parameter_file=' . get_tfvars_path(deployment_type => 'sap_system', vnet_code => $workload_vnet_code, %args),
+        'export workload_zone_parameter_file=' . get_tfvars_path(deployment_type => 'workload_zone', vnet_code => $workload_vnet_code, %args),
+        "export tfstate_storage_account=$args{sdaf_tfstate_storage_account}",
+        # Deployer state is a file existing in LIBRARY storage account, default value is SDAF default.
+'export deployerState=' . get_var('SDAF_DEPLOYER_TFSTATE', '${deployer_env_code}-${sdaf_region_code}-${deployer_vnet_code}-INFRASTRUCTURE.terraform.tfstate'),
+        "export key_vault=$args{sdaf_key_vault}",
+        "\n"    # Newline is required otherwise "echo 'something' >> file" will just append content to the last line
+    );
+
+    create_sdaf_os_var_file(\@variables);
+}
+
+=head2 load_os_env_variables
+
+    load_os_env_variables();
+
+Sources file containing OS env variables required for executing SDAF.
+Currently deployer VM is a permanent installation with all tests using it. Therefore using .bashrc file for storing
+variables is not an option since tests would constantly overwrite variables between each other.
+
+=cut
+
+sub load_os_env_variables {
+    assert_script_run('source ' . env_variable_file());
+}
+
+=head2 sdaf_ssh_key_from_keyvault
+
+    sdaf_ssh_key_from_keyvault(key_vault=>$key_vault [, query=>'sshkey', target_file=>'/path/to/glory/and_happiness']);
+
+Retrieves public and private ssh key from specified keyvault and sets up permissions.
+
+=over
+
+=item * B<key_vault>: Key vault name
+
+=item * B<query>: Query keyword, default 'sshkey', ['sshkey' | 'sid-sshkey' | 'iscsi-sshkey']
+
+=item * B<target_file>: Full file path, where to write the public key. Default '~/.ssh/id_rsa'
+
+=back
+=cut
+
+sub sdaf_ssh_key_from_keyvault {
+    my (%args) = @_;
+    croak 'Missing mandatory argument: key_vault' unless $args{key_vault};
+    $args{query} //= 'sshkey';
+    $args{target_file} //= homedir() . '/.ssh/id_rsa';
+    my ($target_filename, $target_path) = fileparse($args{target_file});
+    my @secret_ids = @{az_keyvault_secret_list(
+            vault_name => $args{key_vault}, query => "[?ends_with(name, \'$args{query}\')].id")};
+
+    croak "Multiple or no secrets found: \n" . join("\n", @secret_ids) unless @secret_ids == 1;
+
+    # Ensure private key file exists and has correct permissions
+    assert_script_run("mkdir -p $target_path");
+    assert_script_run("chmod 700 $target_path");
+    assert_script_run("touch $args{target_file}");
+    assert_script_run("chmod 600 $target_path/$target_filename");
+
+    my $private_key_content;
+
+    # Retry 3 (magic number) times in case of issues with az API
+    foreach (1 .. 3) {
+        $private_key_content = az_keyvault_secret_show(
+            id => $secret_ids[0],
+            query => 'value',
+            output => 'tsv',
+            save_to_file => $args{target_file});
+
+        # Check with ssh-keygen if SSH public key is malformed
+        last if !script_run("ssh-keygen -l -f $args{target_file}");
+        croak "Failed to retrieve private key content. Content returned: $private_key_content" if $_ == 3;
+        # Sleep between retries to give AZ API a little break
+        sleep 5;
+    }
+
+    record_info('SSH KEY', "SSH public key '${target_path}${target_filename}' is ready to be used.");
+}
+
+=head2 serial_console_diag_banner
+
+    serial_console_diag_banner($input_text);
+
+Prints a banner in serial console that highlights a point in output to make it more readable.
+Can be used for example to mark start and end of a function or a point in test so it is easier to find while debugging.
+Below is an example of the printed banner:
+# # $input_text #
+
+=over
+
+=item * B<input_text>: string that will be printed in uppercase surrounded by '#' to make it more visible in output
+
+=back
+=cut
+
+sub serial_console_diag_banner {
+    my ($input_text) = @_;
+    # make all lines equal length and fill
+    my $max_length = 80;
+    # leave some space for '#' symbol and dividing spaces
+    my $max_string_length = $max_length - 16;
+    croak 'No input text specified' unless $input_text;
+    croak "Input text is longer than" . $max_string_length . "characters. Make it shorter." unless length($input_text) < $max_string_length;
+
+    # max_length - length of the text - 4x2 dividing spaces
+    my $symbol_fill = ($max_length - length($input_text) - 8) / 2;
+    $input_text = '#' x $symbol_fill . ' ' x 4 . $input_text . ' ' x 4 . '#' x $symbol_fill;
+
+    enter_cmd($input_text);
+    wait_serial(qr/:~|#|>/, timeout => 5, quiet => 1);
+}
+
+=head2 sdaf_execute_deployment
+
+    sdaf_execute_deployment(deployment_type=>$deployment_type [, timeout=>$timeout]);
+
+Executes SDAF deployment according to the type specified.
+Croaks with unsupported deployment type, dies upon command failure.
+L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-workload-zone?tabs=linux#deploy-the-sap-workload-zone>
+L<https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#deploy-the-sap-system-infrastructure>
+
+=over
+
+=item * B<deployment_type>: Type of the deployment: workload_zone or sap_system
+
+=item * B<timeout>: Execution timeout. Default: 1800s.
+
+=item * B<retries>: Number of attempts to execute deployment in case of failure. Default: 3
+
+=back
+=cut
+
+sub sdaf_execute_deployment {
+    my (%args) = @_;
+    croak 'This function can be used only on sap system and workload zone deployment' unless
+      grep /^$args{deployment_type}$/, ('sap_system', 'workload_zone');
+    $args{retries} //= 3;
+    $args{timeout} //= 1800;
+    my $parameter_name = $args{deployment_type} eq 'workload_zone' ? 'workload_zone_parameter_file' : 'sap_system_parameter_file';
+    my ($tfvars_filename, $tfvars_path) = fileparse(get_os_variable($parameter_name));
+
+    # Variable is specific to each deployment type and will be changed during the course of whole deployment process.
+    # It is used by SDAF internally, so keep it set in OS env
+    export_credentials();
+    set_os_variable('parameterFile', $tfvars_filename);
+    set_os_variable('TF_PARALLELLISM', 3);
+    assert_script_run("echo \$TF_PARALLELLISM");
+
+    # SDAF has to be executed from the profile directory
+    assert_script_run("cd $tfvars_path");
+    my $deploy_command = get_sdaf_deployment_command(
+        deployment_type => $args{deployment_type}, tfvars_filename => $tfvars_filename);
+
+    record_info('SDAF exe', "Executing '$args{deployment_type}' deployment: $deploy_command");
+    my $rc;
+    $output_log_file = log_dir() . "/deploy_$args{deployment_type}_attempt.txt";
+    my $attempt_no = 1;
+    while ($attempt_no <= $args{retries}) {
+        $output_log_file =~ s/attempt/attempt-$attempt_no/;
+        $deploy_command = log_command_output(command => $deploy_command, log_file => $output_log_file);
+        $rc = script_run($deploy_command, timeout => $args{timeout});
+        upload_logs($output_log_file, log_name => $output_log_file);    # upload logs before failing
+        last unless $rc;
+        record_info("SDAF retry $attempt_no", "Deployment of '$args{deployment_type}' exited with RC '$rc', retrying ...");
+        $attempt_no++;
+    }
+
+    die "SDAF deployment execution failed with RC: $rc" if $rc;
+    record_info('Deploy done');
+}
+
+
+=head2 get_sdaf_deployment_command
+
+    get_sdaf_deployment_command(deployment_type=>$deployment_type, tfvars_filename=>tfvars_filename);
+
+Function composes SDAF deployment script command for B<sap_system> or B<workload_zone> according to official documentation.
+Although the documentation uses env OS variable references in the command, function replaces them with actual values.
+This is done for better debugging and logging transparency. Only sensitive values are hidden by using references.
+
+=over
+
+=item * B<deployment_type>: Type of the deployment: workload_zone or sap_system
+
+=item * B<tfvars_filename>: Filename of tfvars file
+
+=back
+=cut
+
+sub get_sdaf_deployment_command {
+    my (%args) = @_;
+    my $cmd;
+    my $control_plane_name = get_required_var('SDAF_ENV_CODE') . '-' . convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')) . '-' . get_required_var('SDAF_DEPLOYER_VNET_CODE');
+    if ($args{deployment_type} eq 'workload_zone') {
+        $cmd = join(' ', sdaf_scripts_dir() . '/install_workloadzone.sh',
+            '--control_plane_name', "$control_plane_name",    # control plane name
+            '--parameterfile', $args{tfvars_filename},    # workload zone tfvars file
+            '--deployer_environment', get_os_variable('deployer_env_code'),    # VNET code
+            '--deployer_tfstate_key', get_os_variable('deployerState'),    # tfstate name. State file is stored in storage account.
+            '--keyvault', get_os_variable('key_vault'),    # Deployer key vault containing credentials
+            '--storageaccountname', get_os_variable('tfstate_storage_account'),    # storage account for tfstate
+            '--subscription', get_os_variable('ARM_SUBSCRIPTION_ID'),
+            '--tenant_id', get_os_variable('ARM_TENANT_ID'),
+            '--spn_id', '${ARM_CLIENT_ID}',    # Keep secrets hidden in serial output
+            '--spn_secret', '${ARM_CLIENT_SECRET}',    #keep secrets hidden in serial output
+            '--auto-approve');    # avoid user interaction
+    }
+    elsif ($args{deployment_type} eq 'sap_system') {
+        $cmd = join(' ', sdaf_scripts_dir() . '/installer.sh',
+            '--parameterfile', $args{tfvars_filename},
+            '--type', 'sap_system',
+            '--storageaccountname', get_os_variable('tfstate_storage_account'),
+            '--state_subscription', get_os_variable('ARM_SUBSCRIPTION_ID'),
+            '--auto-approve');
+    }
+    else {
+        croak("Incorrect deployment type: '$args{deployment_type}'\nOnly 'workload_zone' and 'sap_system' is supported.");
+    }
+    return $cmd;
+}
+
+=head2 prepare_sdaf_project
+
+   prepare_sdaf_project(
+        [, env_code=>$env_code]
+        [, sdaf_region_code=>$sdaf_region_code]
+        [, deployer_vnet_code=>$deployer_vnet_code]
+        [, sap_sid=>$sap_sid]);
+
+Prepares directory structure and Clones git repository for SDAF samples and automation code.
+
+=over
+
+=item * B<env_code>: Code for SDAF deployment env. Default: 'SDAF_ENV_CODE'
+
+=item * B<deployer_vnet_code>: Deployer virtual network code. Default 'SDAF_DEPLOYER_VNET_CODE'
+
+=item * B<sdaf_region_code>: SDAF internal code for azure region. Default: 'PUBLIC_CLOUD_REGION' converted to SDAF format
+
+=item * B<sap_sid>: SAP system ID. Default 'SAP_SID'
+
+=back
+=cut
+
+sub prepare_sdaf_project {
+    my (%args) = @_;
+    $args{env_code} //= get_required_var('SDAF_ENV_CODE');
+    $args{deployer_vnet_code} //= get_required_var('SDAF_DEPLOYER_VNET_CODE');
+    $args{sdaf_region_code} //= convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
+    $args{sap_sid} //= get_required_var('SAP_SID');
+    my $workload_vnet_code = get_workload_vnet_code();
+
+    my $deployment_dir = deployment_dir(create => 'yes');
+
+    assert_script_run("cd $deployment_dir");
+    assert_script_run('mkdir -p ' . log_dir());
+
+    # Calculate SDAF version used for deployment and picks latest -1
+    # SDAF_GIT_AUTOMATION_BRANCH variable will override calculated value
+    my $branch = get_var('SDAF_GIT_AUTOMATION_BRANCH', '');
+    if (!$branch || $branch eq 'latest') {
+        my $tags = script_output("curl -s https://api.github.com/repos/Azure/sap-automation/tags | jq -r '.[].name' | sort -rV");
+        record_info("Releases: $tags");
+        my @releases = split('\n', $tags);
+        my $branch_expected = ($branch eq 'latest') ? $releases[0] : $releases[1];
+        # Versions older or equal than 'v3.11.0.3' missing features so report failure
+        my $branch_er = version->new('v3.11.0.3');
+        $branch_expected = version->new("$branch_expected");
+        if ($branch_expected <= $branch_er) {
+            die "Version $branch_expected older or equal than $branch_er missing features";
+        }
+        $branch = $branch_expected;
+    }
+    record_info("Release: $branch");
+
+    assert_script_run('rm -rf sap-automation');
+    git_clone(get_required_var('SDAF_GIT_AUTOMATION_REPO'),
+        branch => $branch,
+        depth => '1',
+        single_branch => 'yes',
+        output_log_file => log_dir() . '/git_clone_automation.txt');
+
+    assert_script_run('rm -rf sap-automation-samples');
+    git_clone(get_required_var('SDAF_GIT_TEMPLATES_REPO'),
+        branch => get_var('SDAF_GIT_TEMPLATES_BRANCH'),
+        depth => '1',
+        single_branch => 'yes',
+        output_log_file => log_dir() . '/git_clone_templates.log');
+
+    assert_script_run("cp -Rp sap-automation-samples/Terraform/WORKSPACES $deployment_dir/WORKSPACES");
+    assert_script_run("cp -Rp ~/Azure_SAP_Automated_Deployment/WORKSPACES/.sap_deployment_automation $deployment_dir/WORKSPACES");
+    # Ensure correct directories are in place
+    my %vnet_codes = (
+        workload_zone => $workload_vnet_code,
+        sap_system => $workload_vnet_code,
+        library => '',    # SDAF Library is not part of any VNET
+        deployer => $args{deployer_vnet_code}
+    );
+
+    my @create_workspace_dirs;
+    for my $deployment_type ('workload_zone', 'sap_system', 'library', 'deployer') {
+        my $tfvars_file = get_tfvars_path(
+            vnet_code => $vnet_codes{$deployment_type},
+            sap_sid => $args{sap_sid},
+            sdaf_region_code => $args{sdaf_region_code},
+            env_code => $args{env_code},
+            deployment_type => $deployment_type
+        );
+
+        push(@create_workspace_dirs, dirname($tfvars_file));
+    }
+
+    assert_script_run("mkdir -p $_") foreach @create_workspace_dirs;
+}
+
+
+=head2 sdaf_execute_remover
+
+    sdaf_execute_remover(deployment_type=>$deployment_type);
+
+Uses remover.sh script which is part of the SDAF project. This script can be used only on workload zone or sap system.
+Control plane and library have separate removal script, but are currently part of permanent setup and should not be destroyed.
+Returns RC to allow additional cleanup tasks required even after script failure.
+L<https://learn.microsoft.com/en-us/azure/sap/automation/bash/remover>
+
+=over
+
+=item * B<$deployment_type>: Type of the deployment (workload_zone, sap_system)
+
+=back
+=cut
+
+sub sdaf_execute_remover {
+    my (%args) = @_;
+    croak 'Missing mandatory positional argument "$deployment_type"' unless $args{deployment_type};
+    croak 'This function can be used only on sap system and workload zone removal' unless
+      grep /^$args{deployment_type}$/, ('sap_system', 'workload_zone');
+
+    # SDAF remover.sh uses term 'sap_landscape' for 'workload_zone'.
+    my $type_parameter = $args{deployment_type} eq 'workload_zone' ? 'sap_landscape' : $args{deployment_type};
+
+    my $tfvars_file;
+    $tfvars_file = get_os_variable('sap_system_parameter_file') if $args{deployment_type} eq 'sap_system';
+    $tfvars_file = get_os_variable('workload_zone_parameter_file') if $args{deployment_type} eq 'workload_zone';
+    die 'Function failed to retrieve tfvars file via OS variable.' unless $tfvars_file;
+
+    my ($tfvars_filename, $tfvars_path) = fileparse($tfvars_file);
+    my $remover_cmd = join(' ',
+        sdaf_scripts_dir() . '/remover.sh',
+        '--parameterfile', $tfvars_filename,
+        '--type', $type_parameter,
+        '--auto-approve');
+
+    my $rc;
+    $output_log_file = log_dir() . "/cleanup_$args{deployment_type}_attempt.txt";
+    my $attempt_no = 1;
+    # SDAF must be executed from the profile directory, otherwise it will fail
+    assert_script_run("cd " . $tfvars_path);
+    while ($attempt_no <= 3) {
+        record_info("Attempt #$attempt_no");
+        # Capture command output into log file
+        $output_log_file =~ s/attempt/attempt-$attempt_no/;
+        $remover_cmd = log_command_output(command => $remover_cmd, log_file => $output_log_file);
+
+        record_info('SDAF destroy', "Executing SDAF remover:\n$remover_cmd");
+        # Keep the timeout high, definitely above 1H. Azure tends to be slow.
+        $rc = script_run($remover_cmd, timeout => 7200);
+        upload_logs($output_log_file, log_name => $output_log_file);
+
+        last unless $rc;
+        sleep 120;
+        record_info("SDAF destroy retry $attempt_no", "destroy of '$args{deployment_type}' exited with RC '$rc', retrying ...");
+        $attempt_no++;
+    }
+
+    # Do not kill the test, only return RC. There are still files to be cleaned up on deployer VM side.
+    return $rc;
+}
+
+=head2 sdaf_cleanup
+
+    sdaf_cleanup();
+
+Performs full cleanup routine for B<sap systems> and B<workload zone> by executing SDAF remover.sh file.
+Deletes all files related to test run on deployer VM, even in case remover script fails.
+Resource groups are force-deleted upon script failure using B<az cli>.
+Reports errors using B<record_info> message for easier tracking.
+Returns report of cleanup results in a form of a B<HASHREF>.
+
+Example:
+{remover_failed=>'workload zone', file_cleanup=>'pass'}
+
+=cut
+
+sub sdaf_cleanup {
+    my $remover_rc;
+    my %result;
+    # Sap system needs to be destroyed before workload zone so order matters here.
+    for my $deployment_type ('sap_system', 'workload_zone') {
+        my $group_exists = az_group_exists(name => generate_resource_group_name(deployment_type => $deployment_type));
+        unless ($group_exists) {
+            record_info('Cleanup skip', "Resource group for deployment type '$deployment_type' does not exist. Skipping cleanup");
+            next;
+        }
+
+        # Do not run remover for workload zone if sap systems failed.
+        $remover_rc = sdaf_execute_remover(deployment_type => $deployment_type) unless $result{remover_failed};
+        if ($remover_rc) {
+            # Destroy resource groups using az cli if remover fails.
+            sdaf_destroy_resources(deployment_type => $deployment_type);
+            # Show fail message only after remover script failure - fail flag is not yet set
+            record_info('REMOVER FAIL',
+                'SDAF remover script failed. Please check logs and file a bug report if needed:
+                                https://github.com/sdaf-suse/sap-automation',
+                result => 'fail') unless $result{remover_failed};
+            # Set cleanup failed result flag
+            $result{remover_failed} = $deployment_type;
+        }
+    }
+
+    # Clean up terraform tfstate files created by your own deployment job
+    # See also: https://github.com/sdaf-suse/sap-automation/issues/42
+    # ([BUG] tfstate files are not being cleaned up by remover script)
+    record_info('Cleanup tfstate files', 'Clean up storage blob terraform tfstate files created by your own deployment job');
+    my $query = get_required_var('SDAF_ENV_CODE') . '-' . convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')) . '-' . find_deployment_id();
+    my $tf_files = az_storage_blob_list(
+        container_name => 'tfstate',
+        storage_account_name => get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT'),
+        query => "[?contains(name, '${query}') && ends_with(name, '.terraform.tfstate')].name",
+        timeout => '120'
+    );
+    foreach my $file (@$tf_files) {
+        az_storage_blob_delete(
+            container_name => 'tfstate',
+            storage_account_name => get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT'),
+            name => "$file",
+            timeout => '120'
+        );
+    }
+
+    # Navigate out the directory you are about to delete, but continue with cleanup even upon failure
+    $result{file_cleanup} = script_run('cd; rm -Rf ' . deployment_dir()) ? 'fail' : 'pass';
+    record_info('Project cleanup', 'Cleanup of SDAF project failed. Files were destroyed with deployer VM')
+      if $result{file_cleanup} eq 'fail';
+    return \%result;
+}
+
+=head2 sdaf_destroy_resources
+
+    sdaf_destroy_resources(deployment_type=>'workload_zone');
+
+Function destroys SDAF resources (sap_system or workload_zone) left even after B<remover> script fails.
+
+=over
+
+=item * B<deployment_type>: Deployment type that should be destroyed. Supported values: 'sap_system', 'workload_zone'.
+
+=back
+=cut
+
+sub sdaf_destroy_resources(%args) {
+    croak("Missing mandatory argument 'deployment_type'") unless defined($args{deployment_type});
+    croak("Unsupported 'deployment_type' value: '$args{deployment_type}'") unless
+      grep(/^$args{deployment_type}$/, qw(sap_system workload_zone));
+
+    my $resource_name = generate_resource_group_name(deployment_type => $args{deployment_type});
+    my $resource_present = az_group_exists(name => $resource_name);
+    # No need to delete resource if there is none.
+    return unless $resource_present eq 'true';
+    az_group_delete(name => $resource_name, timeout => 1800);
+}
+
+=head2 get_sdaf_instance_id
+
+    get_sdaf_instance_id(pattern=>['SCS', 'ERS', 'PAS']);
+
+Get instance id number from SAP_SYSTEM.tfvar.
+
+=over
+
+=item * B<pattern>: SDAF SAP Central Services pattern
+
+=back
+=cut
+
+sub get_sdaf_instance_id {
+    my (%args) = @_;
+    my $pattern = lc($args{pattern});
+    my $instance_id = '00';
+
+    my $tfvar_file = get_os_variable('sap_system_parameter_file');
+    $instance_id = script_output("grep ^${pattern}_instance_number $tfvar_file | cut -d '=' -f2 | grep -o '[0-9]\\+'");
+    record_info("$args{pattern} ID: $instance_id");
+    return $instance_id;
+}
+
+=head2 sdaf_deployment_reused
+
+    sdaf_deployment_reused(quiet=>'BeQuiet!');
+
+If an existing deployment is being reused according to openQA setting `SDAF_DEPLOYMENT_ID`, function will display
+`record_info` message with details and returns deployment ID. Otherwise returns nothing/false.
+Argument B<quiet> can be used to disable `record_info` message.
+
+=over
+
+=item * B<quiet>: Hide 'record_info' message. Default: undef
+
+=back
+=cut
+
+sub sdaf_deployment_reused {
+    my (%args) = @_;
+    my $deployment_id = get_var('SDAF_DEPLOYMENT_ID');
+    return unless $deployment_id;
+
+    record_info(
+        'Deploy skip', "OpenQA setting 'SDAF_DEPLOYMENT_ID' defined.\nExisting deployment '$deployment_id' will be used.")
+      if !$args{quiet};
+
+    return $deployment_id;
+}
+
+=head2 validate_components
+
+    validate_components(components=>['db_install', 'db_ha']);
+
+Checks if components list is valid and supported by code. Croaks if not.
+Currently supported components are:
+
+=over
+
+=item * B<components>: B<ARRAYREF> of components that should be installed.
+    Supported values:
+        db_install : Basic DB installation
+        db_ha : Database HA setup
+        nw_pas : Installs primary application server (PAS)
+        nw_aas : Installs additional application server (AAS)
+        nw_ensa : Installs enqueue replication server (ERS)
+
+=back
+
+=cut
+
+sub validate_components {
+    my (%args) = @_;
+    croak '$args{components} must be an ARRAYREF' unless ref($args{components}) eq 'ARRAY';
+
+    my %valid_components = ('db_install' => 'Basic DB installation.',
+        db_ha => 'db_ha : Database HA setup',
+        nw_pas => 'db_pas : Installs primary application server (PAS)',
+        nw_aas => 'nw_aas : Installs additional application server (AAS)',
+        nw_ensa => 'nw_ensa : Installs enqueue replication server (ERS)');
+
+    for my $component (@{$args{components}}) {
+        croak "Unsupported component: '$component'\nSupported values:\n" . join("\n", values(%valid_components))
+          unless grep /^$component$/, keys(%valid_components);
+    }
+    # need to return positive value for unit test to work properly
+    return 1;
+}
+
+=head2 get_fencing_mechanism
+
+    get_fencing_mechanism(components=>['db_install', 'db_ha']);
+
+Converts fencing type naming used by existing OpenQA tests into corresponding value accepted by SDAF setting (tfvars).
+Value is retrieved as a mandatory OpenQA setting 'SDAF_FENCING_MECHANISM'.
+
+B<Value conversion:>
+
+=over
+
+=item * B<msi> =>  'AFA' - Azure fencing agent
+
+=item * B<sbd> => 'ISCSI' - ISCSI based SBD fencing device
+
+=item * B<asd> => 'ASD' - Azure shared disk based SBD device
+
+=back
+
+=cut
+
+sub get_fencing_mechanism {
+    # Fencing type must be set as mandatory OpenQA setting to keep value consistent across whole code
+    my $fencing_type = get_required_var('SDAF_FENCING_MECHANISM');
+    my %supported_fencing_values = (msi => 'AFA', sbd => 'ISCSI', asd => 'ASD');
+    die "Fencing type '$fencing_type' is not supported" unless grep /^$fencing_type$/, keys(%supported_fencing_values);
+    return ($supported_fencing_values{$fencing_type});
+}
+
+=head2 get_sdaf_resource_group
+
+    get_sdaf_resource_group(deployment_id=>'1234', resource_group_type=>'workload_zone');
+
+Finds and returns resource group belonging to the test according to deployment type.
+
+B<Value conversion:>
+
+=over
+
+=item * B<deployment_id>: Test/deployment ID
+
+=item * B<resource_group_type>: Type of resource group.
+    Supported values: workload_zone, sap_system
+
+=back
+
+=cut
+
+sub get_sdaf_resource_group {
+    my (%args) = @_;
+    croak 'Missing mandatory argument "$args{deployment_id}"' unless $args{deployment_id};
+    croak 'Missing mandatory argument "$args{resource_group_type}"' unless $args{resource_group_type};
+
+    # Capture the full hash returned by the new az_group_name_get
+    my $result = az_group_name_get(
+        query => "[?contains(name, '$args{resource_group_type}') && contains(name, '$args{deployment_id}')].name");
+
+    # Apply the filter: remove known noisy warnings
+    if (exists $result->{err}) {
+        # Define the filter regex based on the branch
+        $result->{err} =~ s/.*(FutureWarning|Launching flake|self.).*//g;
+        # Remove empty lines left behind by the filtering
+        $result->{err} =~ s/^\s*\n//gm;
+        record_info('AZ ERROR', "Error while fetching resource groups: $result->{err}") if ($result->{err} =~ /\S+/);
+    }
+
+    my $groups = $result->{data};
+    die "Zero or more than one resource groups found:\n" . join("\n", @$groups) unless (@$groups == 1);
+    return $groups->[0];
+}
+
+=head3 collect_guestregister_logs
+
+    collect_guestregister_logs()
+
+    Collect and upload SDAF logs related to registercloudguest service.
+
+=cut
+
+sub collect_guestregister_logs {
+    my @commands = (
+        'systemctl status guestregister.service',
+        'journalctl -u guestregister.service --no-pager',
+        'grep -E "ERROR:|WARNING:|401|422|failed" /var/log/cloudregister || true',
+        'zypper lr -u || true'
+    );
+    my @output;
+    for my $cmd (@commands) {
+        push(@output, "\n### COMMAND: $cmd ###\n");
+        push(@output, script_output("sudo $cmd", proceed_on_failure => 1));
+        push(@output, "\n#####################\n");
+    }
+    record_info('REGISTER OUT', join("\n", @output));
+}
+
+=head3 sdaf_upload_logs
+
+    sdaf_upload_logs(hostname => $hostname, sap_sid => $sap_sid)
+
+    Collect and upload SDAF logs present and generated locally on SUT.
+
+=over
+
+=item B<hostname> - SUT hostname
+
+=item B<sap_sid> - sap sid
+
+=back
+=cut
+
+sub sdaf_upload_logs {
+    my (%args) = @_;
+    my $hostname = $args{hostname};
+    my $sap_sid = $args{sap_sid};
+    my $crm_cfg_log = "/tmp/${hostname}_crm_cfg.txt";
+    my $crm_report_log = "/var/log/${hostname}_crm_report";
+    my $packages_list = "/tmp/${hostname}_packages.list";
+    my $iscsi_devs = "/tmp/${hostname}_iscsi_devices.list";
+
+    record_info('Uploading crm report log');
+    script_run("sudo crm report -E /var/log/ha-cluster-bootstrap.log $crm_report_log", timeout => 300);
+    upload_logs("${crm_report_log}.tar.gz", failok => 1);
+
+    record_info('Uploading crm configure log');
+    record_info('crm configure show', 'Failed to run "crm configure show"', result => 'fail') if (script_run("sudo crm configure show > $crm_cfg_log", timeout => 120));
+    upload_logs("$crm_cfg_log", failok => 1);
+
+    # Upload registercloudguest log
+    collect_guestregister_logs();
+    upload_logs('/var/log/cloudregister', log_name => "$autotest::current_test->{name}-${hostname}_cloudregister.log", failok => 1);
+
+    # Upload zypper log
+    upload_logs('/var/log/zypper.log', log_name => "$autotest::current_test->{name}-${hostname}_zypper.log", failok => 1);
+
+    # Generate the packages list
+    script_run "rpm -qa > $packages_list";
+    upload_logs("$packages_list", failok => 1);
+
+    # iSCSI devices and their real paths
+    script_run "ls -l /dev/disk/by-path/ > $iscsi_devs";
+    upload_logs($iscsi_devs, failok => 1);
+
+    # Uploading NW install logs
+    record_info('Uploading NW ERS/SCS install logs');
+    my $nw_logs = script_output("ls /var/tmp/$sap_sid | grep ${sap_sid}.*zip", proceed_on_failure => 1);
+    if ($nw_logs =~ /\Q$sap_sid\E/ && $nw_logs =~ /zip/) {
+        foreach my $file (split /\n/, $nw_logs) {
+            upload_logs("/var/tmp/$sap_sid/$file", log_name => "$autotest::current_test->{name}-${hostname}_${file}", failok => 1);
+        }
+    }
+
+    # Uploading supportconfig log (it is time consuming so it is conditional)
+    if (get_var('SUPPORTCONFIG')) {
+        record_info('Uploading supportconfig log');
+        script_run("sudo supportconfig -B $hostname", timeout => 1800);
+        # Sometimes the tar ball is scc_${hostname}_xxx-xxx-xxx-*.txz
+        if (!script_run("ls /var/log/scc_${hostname}*.txz")) {
+            my $supportconfig_log = script_output("ls /var/log/scc_${hostname}*.txz");
+            upload_logs("$supportconfig_log", failok => 1);
+        }
+    } else {
+        record_info('Skipped uploading supportconfig log');
+    }
+
+    # need to return positive value for unit test to work properly
+    return 1;
+}
+
+=head2 apply_no_cleanup_tag
+
+    apply_no_cleanup_tag(resource_group=>'workload_zone', no_cleanup_tag=>'pc_ignore');
+
+Checks resources inside B<resource_group> for B<SDAF_NO_CLEANUP_TAG> and applies one if missing.
+
+=over
+
+=item * B<resource_group>: Resource group name
+
+=item * B<no_cleanup_tag>: Tag name
+
+=back
+
+=cut
+
+sub apply_no_cleanup_tag {
+    my (%args) = @_;
+    for my $argument ('resource_group', 'no_cleanup_tag') {
+        croak "Missing mandatory argument '\$args{$argument}'" unless $args{$argument};
+    }
+    my $query = "[?tags.$args{no_cleanup_tag} == null].id";
+    my @untagged_resources = @{
+        az_resource_list(resource_group => $args{resource_group},
+            query => $query)};
+    record_info('Retain deployment',
+        "Adding missing tag '$args{no_cleanup_tag}' on following resources:\n" .
+          join("\n", @untagged_resources)) if @untagged_resources;
+    az_resource_tag(
+        resource_ids => \@untagged_resources,
+        tags => ["$args{no_cleanup_tag}=1"]
+    ) if @untagged_resources;
+}
+
+1;

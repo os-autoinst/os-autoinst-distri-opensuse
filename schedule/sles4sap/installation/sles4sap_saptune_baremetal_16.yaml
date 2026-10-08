@@ -1,0 +1,18 @@
+---
+name: sles4sap_gnome_saptune_baremetal
+description: >
+  saptune tests for SLES4SAP on baremetal
+vars:
+  MR_TEST: '%ARCH%'
+schedule:
+  - installation/bootloader_start
+  - installation/agama_reboot
+  - support_server/login
+  - '{{staging}}'
+  - console/system_prepare
+  - sles4sap/saptune/mr_test
+conditional_schedule:
+  staging:
+    STAGING:
+      1:
+        - console/zypper_lr

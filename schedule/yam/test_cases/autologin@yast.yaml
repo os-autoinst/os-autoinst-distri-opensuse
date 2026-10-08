@@ -1,0 +1,13 @@
+---
+name:           autologin@yast
+description:    >
+  Test automatic login when selected for local user during installation.
+schedule:
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  local_user:
+    - installation/authentication/use_same_password_for_root
+    - installation/authentication/enable_autologin
+    - installation/authentication/default_user_simple_pwd

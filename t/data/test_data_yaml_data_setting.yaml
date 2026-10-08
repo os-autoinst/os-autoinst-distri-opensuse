@@ -1,0 +1,2 @@
+test_in_yaml_data: test_in_yaml_data
+<<: !include t/data/test_data_3.yaml

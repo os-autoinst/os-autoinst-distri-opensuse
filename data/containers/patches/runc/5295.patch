@@ -1,0 +1,199 @@
+From 3acb097f93294f208126eac7d25cd426a2ba1ae1 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sun, 24 May 2026 11:12:23 +0200
+Subject: [PATCH 1/3] tests/int: build TestPids pipelines programmatically
+
+TestPids used long hand-written /bin/true pipelines for the 4-, 32- and
+64-command cases. This made the test easy to typo and hard to review, as
+seen by the earlier "bin/true" entries.
+
+Build the shell pipelines instead, preserving the existing test coverage
+while making the command counts explicit.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ libcontainer/integration/exec_test.go | 22 +++++++---------------
+ 1 file changed, 7 insertions(+), 15 deletions(-)
+
+diff --git a/libcontainer/integration/exec_test.go b/libcontainer/integration/exec_test.go
+index e1cb8151c40..e66e1d87b54 100644
+--- a/libcontainer/integration/exec_test.go
++++ b/libcontainer/integration/exec_test.go
+@@ -535,6 +535,10 @@ func TestPidsSystemd(t *testing.T) {
+ 
+ func mkPtr[T any](v T) *T { return &v }
+ 
++func truePipeline(n int) string {
++	return strings.Join(slices.Repeat([]string{"/bin/true"}, n), " | ")
++}
++
+ func testPids(t *testing.T, systemd bool) {
+ 	if testing.Short() {
+ 		return
+@@ -544,29 +548,17 @@ func testPids(t *testing.T, systemd bool) {
+ 	config.Cgroups.Resources.PidsLimit = mkPtr[int64](-1)
+ 
+ 	// Running multiple processes, expecting it to succeed with no pids limit.
+-	runContainerOk(t, config, "/bin/sh", "-c", "/bin/true | /bin/true | /bin/true | /bin/true")
++	runContainerOk(t, config, "/bin/sh", "-c", truePipeline(4))
+ 
+ 	// Enforce a permissive limit. This needs to be fairly hand-wavey due to the
+ 	// issues with running Go binaries with pids restrictions (see below).
+ 	config.Cgroups.Resources.PidsLimit = mkPtr[int64](64)
+-	runContainerOk(t, config, "/bin/sh", "-c", `
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true |
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true |
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true |
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true`)
++	runContainerOk(t, config, "/bin/sh", "-c", truePipeline(32))
+ 
+ 	// Enforce a restrictive limit. 64 * /bin/true + 1 * shell should cause
+ 	// this to fail reliably.
+ 	config.Cgroups.Resources.PidsLimit = mkPtr[int64](64)
+-	out, _, err := runContainer(t, config, "/bin/sh", "-c", `
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true |
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true |
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true |
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true |
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true |
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true |
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true |
+-	/bin/true | /bin/true | /bin/true | /bin/true | /bin/true | /bin/true | bin/true | /bin/true`)
++	out, _, err := runContainer(t, config, "/bin/sh", "-c", truePipeline(64))
+ 	if err != nil && !strings.Contains(out.String(), "sh: can't fork") {
+ 		t.Fatal(err)
+ 	}
+
+From de39d5e79bcb7e39f33221684e9fc253cd16a922 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sun, 24 May 2026 10:08:16 +0200
+Subject: [PATCH 2/3] tests/int: relax testPids fork error match string
+
+The test checked for the exact BusyBox ash diagnostic "sh: can't fork".
+With BusyBox 1.38, ash reports the failure as:
+
+  /bin/sh: line 0: can't fork: Resource temporarily unavailable
+
+Match the stable "can't fork" part of the error message instead.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ libcontainer/integration/exec_test.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libcontainer/integration/exec_test.go b/libcontainer/integration/exec_test.go
+index e66e1d87b54..c1c69a65f85 100644
+--- a/libcontainer/integration/exec_test.go
++++ b/libcontainer/integration/exec_test.go
+@@ -559,7 +559,7 @@ func testPids(t *testing.T, systemd bool) {
+ 	// this to fail reliably.
+ 	config.Cgroups.Resources.PidsLimit = mkPtr[int64](64)
+ 	out, _, err := runContainer(t, config, "/bin/sh", "-c", truePipeline(64))
+-	if err != nil && !strings.Contains(out.String(), "sh: can't fork") {
++	if err != nil && !strings.Contains(out.String(), "can't fork") {
+ 		t.Fatal(err)
+ 	}
+ 
+
+From c7c2920db02e603b36ed4b393abc5dd498a59e93 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 22 May 2026 08:26:55 +0200
+Subject: [PATCH 3/3] Update `busybox:glibc` in integration tests to latest
+ (1.38.0) builds
+
+This release fixes tests on ppc64le in busybox commit 3621595939e43:
+"nsenter,unshare: don't use xvfork_parent_waits_and_exits(), it SEGVs
+on ppc64le".
+
+Fixes: https://github.com/opencontainers/runc/issues/4836
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/integration/bootstrap-get-images.sh |  2 +-
+ tests/integration/get-images.sh           | 32 +++++++++++------------
+ 2 files changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/tests/integration/bootstrap-get-images.sh b/tests/integration/bootstrap-get-images.sh
+index c826d0ab959..4176ff7d3e9 100755
+--- a/tests/integration/bootstrap-get-images.sh
++++ b/tests/integration/bootstrap-get-images.sh
+@@ -10,7 +10,7 @@ set -Eeuo pipefail
+ 
+ images=(
+ 	# https://github.com/docker-library/official-images/commits/HEAD/library/busybox
+-	'https://github.com/docker-library/official-images/raw/67f09d75e7915359c2216cb12cf6fc1150d42a26/library/busybox:glibc'
++	'https://github.com/docker-library/official-images/raw/da3b030b9dd58f7cb1cd0063a96984c2686ffd5f/library/busybox:glibc'
+ 
+ 	# pinned to an older Debian Buster which has more architectures than the latest does (Buster transitioned from the Debian Security Team to the LTS Team which supports a smaller set)
+ 	'https://github.com/docker-library/official-images/raw/ce10f6b60289c0c0b5de6f785528b8725f225a58/library/debian:buster-slim'
+diff --git a/tests/integration/get-images.sh b/tests/integration/get-images.sh
+index 09d2809affa..fb4156d2616 100755
+--- a/tests/integration/get-images.sh
++++ b/tests/integration/get-images.sh
+@@ -49,50 +49,50 @@ fi
+ case $arch in
+ amd64)
+ 	# https://github.com/docker-library/busybox/tree/dist-amd64
+-	# https://github.com/docker-library/busybox/tree/9c2d0c6fbaaf2ca1b4c19027fa515d9e797e7199/latest/glibc/amd64
+-	url="https://github.com/docker-library/busybox/raw/9c2d0c6fbaaf2ca1b4c19027fa515d9e797e7199/latest/glibc/amd64/rootfs.tar.gz"
++	# https://github.com/docker-library/busybox/tree/71dbea6bedb4bb497581d61bb025f8558cc7833a/latest/glibc/amd64
++	url="https://github.com/docker-library/busybox/raw/71dbea6bedb4bb497581d61bb025f8558cc7833a/latest/glibc/amd64/rootfs.tar.gz"
+ 	;;
+ 
+ armv5)
+ 	# https://github.com/docker-library/busybox/tree/dist-arm32v5
+-	# https://github.com/docker-library/busybox/tree/d687cd5484009bdf2ee3e79a78600f01a7edc912/latest/glibc/arm32v5
+-	url="https://github.com/docker-library/busybox/raw/d687cd5484009bdf2ee3e79a78600f01a7edc912/latest/glibc/arm32v5/rootfs.tar.gz"
++	# https://github.com/docker-library/busybox/tree/5fec30bd4375e5f8d5f399f635d8c01ddee548f7/latest/glibc/arm32v5
++	url="https://github.com/docker-library/busybox/raw/5fec30bd4375e5f8d5f399f635d8c01ddee548f7/latest/glibc/arm32v5/rootfs.tar.gz"
+ 	;;
+ 
+ armv7)
+ 	# https://github.com/docker-library/busybox/tree/dist-arm32v7
+-	# https://github.com/docker-library/busybox/tree/c773a028ec0e18dc92e89e0bc57898883897ef8d/latest/glibc/arm32v7
+-	url="https://github.com/docker-library/busybox/raw/c773a028ec0e18dc92e89e0bc57898883897ef8d/latest/glibc/arm32v7/rootfs.tar.gz"
++	# https://github.com/docker-library/busybox/tree/a8c6f12d2a1c8011f706f4995b0ef10f3f901fcc/latest/glibc/arm32v7
++	url="https://github.com/docker-library/busybox/raw/a8c6f12d2a1c8011f706f4995b0ef10f3f901fcc/latest/glibc/arm32v7/rootfs.tar.gz"
+ 	;;
+ 
+ arm64)
+ 	# https://github.com/docker-library/busybox/tree/dist-arm64v8
+-	# https://github.com/docker-library/busybox/tree/8141f5b047a1fbeefd842388244c045825a61c90/latest/glibc/arm64v8
+-	url="https://github.com/docker-library/busybox/raw/8141f5b047a1fbeefd842388244c045825a61c90/latest/glibc/arm64v8/rootfs.tar.gz"
++	# https://github.com/docker-library/busybox/tree/0a49464ff90e706d47953a9aacc888cc80ddb62f/latest/glibc/arm64v8
++	url="https://github.com/docker-library/busybox/raw/0a49464ff90e706d47953a9aacc888cc80ddb62f/latest/glibc/arm64v8/rootfs.tar.gz"
+ 	;;
+ 
+ 386)
+ 	# https://github.com/docker-library/busybox/tree/dist-i386
+-	# https://github.com/docker-library/busybox/tree/ddcda848177fffa1df68fbed9cda06bd17757dad/latest/glibc/i386
+-	url="https://github.com/docker-library/busybox/raw/ddcda848177fffa1df68fbed9cda06bd17757dad/latest/glibc/i386/rootfs.tar.gz"
++	# https://github.com/docker-library/busybox/tree/5d4c51cdbac3707680d85bc23b5f5bd8740e76dc/latest/glibc/i386
++	url="https://github.com/docker-library/busybox/raw/5d4c51cdbac3707680d85bc23b5f5bd8740e76dc/latest/glibc/i386/rootfs.tar.gz"
+ 	;;
+ 
+ ppc64le)
+ 	# https://github.com/docker-library/busybox/tree/dist-ppc64le
+-	# https://github.com/docker-library/busybox/tree/ddb1ced9350261eb7aa6d117052d04a5ad8dd1b7/latest/glibc/ppc64le
+-	url="https://github.com/docker-library/busybox/raw/ddb1ced9350261eb7aa6d117052d04a5ad8dd1b7/latest/glibc/ppc64le/rootfs.tar.gz"
++	# https://github.com/docker-library/busybox/tree/5b3724499baea9f0ff998d63feaccc786fff5ab3/latest/glibc/ppc64le
++	url="https://github.com/docker-library/busybox/raw/5b3724499baea9f0ff998d63feaccc786fff5ab3/latest/glibc/ppc64le/rootfs.tar.gz"
+ 	;;
+ 
+ riscv64)
+ 	# https://github.com/docker-library/busybox/tree/dist-riscv64
+-	# https://github.com/docker-library/busybox/tree/aa4b2b5fc1583c52a2806f38772d2f684f3c3185/latest/glibc/riscv64
+-	url="https://github.com/docker-library/busybox/raw/aa4b2b5fc1583c52a2806f38772d2f684f3c3185/latest/glibc/riscv64/rootfs.tar.gz"
++	# https://github.com/docker-library/busybox/tree/d8f26a505ca1799feb33830218c6915f4087d8f5/latest/glibc/riscv64
++	url="https://github.com/docker-library/busybox/raw/d8f26a505ca1799feb33830218c6915f4087d8f5/latest/glibc/riscv64/rootfs.tar.gz"
+ 	;;
+ 
+ s390x)
+ 	# https://github.com/docker-library/busybox/tree/dist-s390x
+-	# https://github.com/docker-library/busybox/tree/52d5ab6b9089780aaa39f36c7d4562ee0f7ce3d5/latest/glibc/s390x
+-	url="https://github.com/docker-library/busybox/raw/52d5ab6b9089780aaa39f36c7d4562ee0f7ce3d5/latest/glibc/s390x/rootfs.tar.gz"
++	# https://github.com/docker-library/busybox/tree/f51c3009c496303f609e6d934d34d80b75db4fdd/latest/glibc/s390x
++	url="https://github.com/docker-library/busybox/raw/f51c3009c496303f609e6d934d34d80b75db4fdd/latest/glibc/s390x/rootfs.tar.gz"
+ 	;;
+ 
+ *)

@@ -1,0 +1,22 @@
+# SUSE's openQA tests
+#
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Validate that the NFS repository is available.
+#
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'consoletest';
+
+use testapi;
+use serial_terminal 'select_text_console';
+use repo_tools "validate_repo_properties";
+
+sub run {
+    select_text_console;
+    my $nfs_repo_uri = get_var("MIRROR_NFS");
+    validate_repo_properties({URI => $nfs_repo_uri, Enabled => "Yes"});
+}
+
+1;

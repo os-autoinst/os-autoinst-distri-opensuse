@@ -1,0 +1,4 @@
+---
+# Select Server in System Role
+system_role:
+  - installation/system_role/select_role_server

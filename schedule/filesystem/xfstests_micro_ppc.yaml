@@ -1,0 +1,13 @@
+---
+name: 'xfstests@sle_micro_ppc'
+description:    >
+  Maintainer: An Long <lan@suse.com>
+  xfstests test suite for SLE-Micro on ppc
+schedule:
+    - installation/bootloader
+    - microos/install_image
+    - transactional/host_config
+    - console/suseconnect_scc
+    - xfstests/install
+    - xfstests/partition
+    - xfstests/run

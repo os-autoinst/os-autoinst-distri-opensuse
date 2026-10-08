@@ -1,0 +1,35 @@
+---
+disks:
+  - name: xvdb
+    table_type: msdos
+    allowed_unpartitioned: 0.00GB
+    partitions:
+      - name: xvdb1
+        size: 9G
+        role: operating-system
+        partition_type: primary
+        formatting_options:
+          should_format: 1
+          filesystem: xfs
+        mounting_options:
+          should_mount: 1
+          mount_point: /
+      - name: xvdb2
+        size: 9G
+        role: data
+        partition_type: primary
+        formatting_options:
+          should_format: 1
+          filesystem: xfs
+        mounting_options:
+          should_mount: 1
+          mount_point: /home
+      - name: xvdb3
+        role: swap
+        partition_type: primary
+        formatting_options:
+          should_format: 1
+          filesystem: swap
+        mounting_options:
+          should_mount: 1
+          mount_point: SWAP

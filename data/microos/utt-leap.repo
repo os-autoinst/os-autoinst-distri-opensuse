@@ -1,0 +1,7 @@
+[openSUSE_Maintenance_17952]
+name=openSUSE:Maintenance:17952 (openSUSE_Leap_15.5_Update)
+type=rpm-md
+baseurl=https://download.opensuse.org/repositories/openSUSE:/Maintenance:/17952/openSUSE_Leap_15.5_Update/
+gpgcheck=1
+gpgkey=https://download.opensuse.org/repositories/openSUSE:/Maintenance:/17952/openSUSE_Leap_15.5_Update/repodata/repomd.xml.key
+enabled=1

@@ -1,0 +1,14 @@
+mapped_device: '/dev/mapper/cr-auto-1'
+device_status:
+  message: 'is active and is in use.'
+  properties:
+    type: 'LUKS1'
+    cipher: 'aes-xts-plain64'
+    key_location: 'dm-crypt'
+    mode: 'read/write'
+partitioning_deletion_entries:
+  - 'Delete btrfs on /dev/system/root'
+  - 'Delete swap on /dev/system/swap'
+  - 'Delete xfs on /dev/system/home'
+  - 'Delete volume group system'
+  - 'Delete partition'

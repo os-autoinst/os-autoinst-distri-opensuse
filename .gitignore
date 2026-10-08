@@ -1,0 +1,15 @@
+needles
+!products/aeon/needles
+os-autoinst
+tools/absolutize
+tools/lib
+tools/tidy
+*.tdy
+.*.swp
+*~
+docs/*.html
+docs/**/*.html
+/script/yaml_generator/env/
+__pycache__/
+.tidyall.d/
+.claude/settings.local.json

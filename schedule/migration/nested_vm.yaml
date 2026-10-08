@@ -1,0 +1,23 @@
+name:  nested_vm
+description:    >
+    This yaml file is used for check libvirt status in nested vm env during migration process
+schedule:
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - console/nested_vm
+  - installation/bootloader
+  - installation/welcome
+  - installation/upgrade_select
+  - installation/online_repos
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - installation/opensuse_welcome
+  - console/system_prepare
+  - console/nested_vm

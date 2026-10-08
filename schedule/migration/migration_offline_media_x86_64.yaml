@@ -1,0 +1,34 @@
+name: migration_offline_x86_64.yaml
+description: |
+  This is for offline migration tests on x86_64.
+vars:
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+  YUI_REST_API: '1'
+schedule:
+  - migration/version_reset_origin_system
+  - boot/boot_to_desktop
+  - migration/suseconnect_register_system
+  - migration/patch_and_reboot_system
+  - migration/setup_sle
+  - migration/drop_unavailable_product_modules
+  - migration/deregister_system
+  - migration/record_disk_info
+  - migration/reboot_to_migration
+  - migration/version_switch_upgrade_target
+  - installation/bootloader
+  - installation/setup_libyui
+  - installation/upgrade/accept_keyboard_layout
+  - installation/upgrade/select_for_update
+  - installation/licensing/accept_license
+  - installation/upgrade/accept_remove_previous_repos
+  - installation/addon_products_sle
+  - installation/resolve_dependency_issues
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot

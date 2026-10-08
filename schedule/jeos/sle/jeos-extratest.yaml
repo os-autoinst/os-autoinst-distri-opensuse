@@ -1,0 +1,65 @@
+---
+description: 'Extratest JeOS test suite. Maintainer: qac'
+name: 'jeos-extratest'
+conditional_schedule:
+    bootloader:
+        MACHINE:
+            'svirt-xen-pv':
+                - installation/bootloader_svirt
+            'svirt-xen-hvm':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+            'svirt-hyperv2022-uefi':
+                - installation/bootloader_hyperv
+            'svirt-hyperv2022':
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
+            'svirt-vmware':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+            's390x-kvm':
+                - installation/bootloader_start
+    maintenance:
+        FLAVOR:
+            'JeOS-for-kvm-and-xen-Updates':
+                - qa_automation/patch_and_reboot
+schedule:
+    - '{{bootloader}}'
+    - jeos/firstrun
+    - console/consoletest_setup
+    - jeos/record_machine_id
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - jeos/host_config
+    - jeos/diskusage
+    - jeos/build_key
+    - console/suseconnect_scc
+    - '{{maintenance}}'
+    - console/zypper_lr_validate
+    - console/zypper_ref
+    - console/validate_packages_and_patterns
+    - console/zypper_extend
+    - console/check_os_release
+    - console/timezone
+    - console/chrony
+    - console/sshd
+    - console/rpm
+    - console/openssl_alpn
+    - console/syslog
+    - console/check_default_network_manager
+    - console/cups
+    - console/sysctl
+    - console/oqa_agnostic/sysstat_agnostic
+    - console/curl_ipv6
+    - console/wget_ipv6
+    - console/ca_certificates_mozilla
+    - console/oqa_agnostic/ansible_agnostic
+    - x11/evolution/evolution_prepare_servers
+    - console/unzip
+    - console/salt
+    - console/gpg
+    - console/rsync
+    - console/shells
+    - console/dstat
+    - console/journalctl
+    - console/procps

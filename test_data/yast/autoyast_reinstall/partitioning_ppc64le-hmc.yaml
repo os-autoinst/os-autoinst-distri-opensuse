@@ -1,0 +1,20 @@
+---
+disks:
+  - name: sda
+    table_type: gpt
+    partitions:
+      - name: sda2
+        formatting_options:
+          filesystem: btrfs
+        mounting_options:
+          mount_point: /
+      - name: sda3
+        formatting_options:
+          filesystem: xfs
+        mounting_options:
+          mount_point: /home
+      - name: sda4
+        formatting_options:
+          filesystem: swap
+        mounting_options:
+          mount_point: '[SWAP]'

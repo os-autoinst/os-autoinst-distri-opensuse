@@ -1,0 +1,4 @@
+<html>
+This is server %NODE% !!!
+IP: %IP%
+</html>

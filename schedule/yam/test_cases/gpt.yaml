@@ -1,0 +1,30 @@
+---
+name: gpt
+description: >
+  Test installation on a very large hard disk which needs GPT partition format.
+schedule:
+  extension_module_selection:
+    - installation/module_registration/register_module_desktop
+  system_role:
+    - installation/system_role/accept_selected_role_SLES_with_GNOME
+  software:
+    - installation/change_desktop
+  system_validation:
+    - console/hostname
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices
+test_data:
+  disks:
+    - name: vda
+      table_type: gpt
+      partitions:
+        - name: vda2
+          formatting_options:
+            filesystem: btrfs
+          mounting_options:
+            mount_point: /
+        - name: vda3
+          formatting_options:
+            filesystem: xfs
+          mounting_options:
+            mount_point: /home

@@ -1,0 +1,7 @@
+---
+name: bsc1178790
+description: |
+  Try to reproduce https://bugzilla.opensuse.org/show_bug.cgi?id=1178790
+  dasd_configure: Error: Could not write file /sys/bus/ccw/drivers/dasd-eckd/0.0.0150/online: Resource temporarily
+schedule:
+  - installation/bootloader_start

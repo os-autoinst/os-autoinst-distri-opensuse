@@ -1,0 +1,12 @@
+---
+name: qam-minimal-base-installation-ay
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader
+  - autoyast/installation
+  - installation/first_boot
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

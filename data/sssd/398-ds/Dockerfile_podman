@@ -1,0 +1,8 @@
+ARG tag
+FROM $tag
+ARG pkgs
+RUN zypper --gpg-auto-import-keys ref -s
+RUN zypper install -y $pkgs
+COPY instance_389.inf /tmp/
+RUN echo "root:test" | chpasswd
+CMD ["/sbin/init"]

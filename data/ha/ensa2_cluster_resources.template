@@ -1,0 +1,38 @@
+primitive rsc_fs_%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS% Filesystem \
+  params device="%USR_SAP_DEVICE_ASCS%" directory="/usr/sap/%INSTANCE_SID%/ASCS%INSTANCE_ID_ASCS%" \
+         fstype=xfs \
+  op start timeout=60s interval=0 \
+  op stop timeout=60s interval=0 \
+  op monitor interval=20s timeout=40s
+primitive rsc_ip_%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS% IPaddr2 \
+  params ip=%VIRTUAL_IP_ASCS% \
+  op monitor interval=10s timeout=20s
+primitive rsc_sap_%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS% SAPInstance \
+  operations $id=rsc_sap_%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS%-operations \
+  op monitor interval=11 timeout=60 on-fail=restart \
+  params InstanceName=%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS%_%VIRTUAL_HOSTNAME_ASCS% \
+     START_PROFILE="/usr/sap/%INSTANCE_SID%/SYS/profile/%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS%_%VIRTUAL_HOSTNAME_ASCS%" \
+     AUTOMATIC_RECOVER=false \
+  meta resource-stickiness=5000
+primitive rsc_fs_%INSTANCE_SID%_ERS%INSTANCE_ID_ERS% Filesystem \
+  params device="%USR_SAP_DEVICE_ERS%" directory="/usr/sap/%INSTANCE_SID%/ERS%INSTANCE_ID_ERS%" fstype=xfs \
+  op start timeout=60s interval=0 \
+  op stop timeout=60s interval=0 \
+  op monitor interval=20s timeout=40s
+primitive rsc_ip_%INSTANCE_SID%_ERS%INSTANCE_ID_ERS% IPaddr2 \
+  params ip=%VIRTUAL_IP_ERS% \
+  op monitor interval=10s timeout=20s
+primitive rsc_sap_%INSTANCE_SID%_ERS%INSTANCE_ID_ERS% SAPInstance \
+  operations $id=rsc_sap_%INSTANCE_SID%_ERS%INSTANCE_ID_ERS%-operations \
+  op monitor interval=11 timeout=60 on-fail=restart \
+  params InstanceName=%INSTANCE_SID%_ERS%INSTANCE_ID_ERS%_%VIRTUAL_HOSTNAME_ERS% \
+         START_PROFILE="/usr/sap/%INSTANCE_SID%/SYS/profile/%INSTANCE_SID%_ERS%INSTANCE_ID_ERS%_%VIRTUAL_HOSTNAME_ERS%" \
+         AUTOMATIC_RECOVER=false IS_ERS=true
+group grp_%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS% \
+  rsc_ip_%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS% rsc_fs_%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS% rsc_sap_%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS% \
+	meta resource-stickiness=3000
+group grp_%INSTANCE_SID%_ERS%INSTANCE_ID_ERS% \
+  rsc_ip_%INSTANCE_SID%_ERS%INSTANCE_ID_ERS% rsc_fs_%INSTANCE_SID%_ERS%INSTANCE_ID_ERS% rsc_sap_%INSTANCE_SID%_ERS%INSTANCE_ID_ERS%
+colocation col_sap_%INSTANCE_SID%_no_both -5000: grp_%INSTANCE_SID%_ERS%INSTANCE_ID_ERS% grp_%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS%
+order ord_sap_%INSTANCE_SID%_first_start_ascs Optional: rsc_sap_%INSTANCE_SID%_ASCS%INSTANCE_ID_ASCS%:start \
+      rsc_sap_%INSTANCE_SID%_ERS%INSTANCE_ID_ERS%:stop symmetrical=false

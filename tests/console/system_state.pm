@@ -1,0 +1,30 @@
+# SUSE's openQA tests
+#
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Summary:  Export the existing status of running tasks and system load
+# for future reference
+# - Collect running process list
+# - Collect system load average
+# - Upload the gatherings to the job's logs
+# Maintainer: QE Core <qe-core@suse.de>
+
+use Mojo::Base 'consoletest';
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use utils;
+use Utils::Architectures;
+use Utils::Logging 'tar_and_upload_log';
+
+sub run {
+    my ($self) = shift;
+    select_serial_terminal;
+    my $timeout = is_s390x ? '90' : '30';
+    script_run("mkdir /tmp/system_state", timeout => $timeout);
+    script_run "ps axf > /tmp/system_state/psaxf.log";
+    script_run "cat /proc/loadavg > /tmp/system_state/loadavg_consoletest_setup.txt";
+    tar_and_upload_log('/tmp/system_state', '/tmp/stats_during_installation.tar.bz2');
+}
+
+1;

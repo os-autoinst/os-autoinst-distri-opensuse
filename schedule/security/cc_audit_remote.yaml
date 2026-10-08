@@ -1,0 +1,23 @@
+name: cc_audit_remote
+description:    >
+    This is for audit-remote test in CC system role
+schedule:
+    - installation/bootloader_start
+    - security/boot_disk
+    - '{{setup_multimachine}}'
+    - security/cc/cc_audit_test_setup
+    - security/selinux/selinux_setup
+    - security/cc/cc_selinux_setup
+    - '{{disable_root_ssh}}'
+    - security/cc/audit_remote
+conditional_schedule:
+    setup_multimachine:
+        ARCH:
+            aarch64:
+                - network/setup_multimachine
+            x86_64:
+                - network/setup_multimachine
+    disable_root_ssh:
+        ARCH:
+            s390x:
+                - security/cc/disable_root_ssh

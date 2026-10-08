@@ -1,0 +1,158 @@
+## Copyright 2024 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Summary: Boot to agama adding bootloader kernel parameters and expecting web ui up and running.
+# At the moment redirecting to legacy handling for remote architectures booting.
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'installbasetest';
+
+use testapi;
+use autoyast qw(create_file_as_profile_companion expand_agama_profile generate_json_profile parse_dud_parameter);
+use Utils::Architectures;
+use Utils::Backends;
+use Mojo::Util 'trim';
+use File::Basename;
+use Yam::Agama::agama_base 'upload_agama_logs';
+use Yam::Agama::LiveIso qw(read_live_iso);
+
+BEGIN {
+    unshift @INC, dirname(__FILE__) . '/../../installation';
+}
+use bootloader_s390;
+use bootloader_zkvm;
+use bootloader_pvm;
+
+sub prepare_boot_params {
+    # add mandatory boot params
+    my $serial_dev = get_var('SERIALDEV') // 'ttyS0';
+    my $has_net_config_tui = get_var('EXTRABOOTPARAMS', '') =~ /live\.net_config_tui=1/;
+
+    my @params = $has_net_config_tui
+      ? ("console=$serial_dev console=tty0")
+      : ('console=tty', "console=$serial_dev");
+    push @params, 'kernel.softlockup_panic=1';
+    push @params, "live.password=$testapi::password";
+
+    # override default boot params
+    if (get_var('BOOTPARAMS')) {
+        push @params, split ' ', trim(get_var('BOOTPARAMS'));
+        return @params;
+    }
+
+    # add default boot params
+    if (my $inst_auto = get_var('INST_AUTO')) {
+        create_file_as_profile_companion() if get_var('AGAMA_PROFILE_OPTIONS') =~ /files=true/;
+        my $profile_url = $inst_auto;
+        unless ($inst_auto =~ /usb:\/\//) {
+            $profile_url = ($inst_auto =~ /\.libsonnet/) ?
+              generate_json_profile($inst_auto) :
+              expand_agama_profile($inst_auto);
+        }
+        set_var('INST_AUTO', $profile_url);
+        push @params, "inst.auto=\"$profile_url\"";
+        push @params, map { "inst.finish=$_" } grep { $_ && !get_var('INST_FINISH_DISABLED') } (get_var('INST_FINISH') || 'stop');
+    }
+
+    # add register url
+    my $has_scc_url = get_var('SCC_URL');
+    my $is_online_flavor = get_var('FLAVOR') =~ /^(Online.*|agama-installer)$/;
+    my $is_forced_register = get_var('AGAMA_FORCE_REGISTER');
+    my $is_leap = get_var('ISO') =~ /Leap/;
+    my $should_register = ($is_online_flavor || $is_forced_register) && !$is_leap;
+    if ($has_scc_url && $should_register) {
+        push @params, 'inst.register_url=' . get_var('SCC_URL');
+    }
+
+    push @params, 'inst.install_url=' . get_var('INST_INSTALL_URL') if get_var('INST_INSTALL_URL');
+
+    push @params, 'inst.self_update=' . get_var('INST_SELF_UPDATE') if get_var('INST_SELF_UPDATE');
+
+    # add extra boot params along with the default ones
+    push @params, split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
+
+    # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
+    push @params, split ' ', trim(get_var('AGAMA_NETWORK_PARAMS', ''));
+
+    # additional parameters requiring parsing
+    push @params, split ' ', trim(parse_dud_parameter(get_var('INST_DUD'))) if get_var('INST_DUD');
+
+    return @params;
+}
+
+sub validate_ntui_network_configuration {
+    my $ntui_current_network_configuration = $testapi::distri->get_ntui_current_network_configuration();
+    my $ntui_edit_a_connection = $testapi::distri->get_ntui_edit_a_connection();
+    my $ntui_http_proxy_address = $testapi::distri->get_ntui_http_proxy_address();
+    my $ntui_connection_test_result = $testapi::distri->get_ntui_connection_test_result();
+
+    $ntui_current_network_configuration->expect_is_shown();
+    $ntui_current_network_configuration->edit();
+    $ntui_edit_a_connection->expect_is_shown();
+    $ntui_edit_a_connection->quit();
+    $ntui_http_proxy_address->expect_is_shown();
+    $ntui_http_proxy_address->ok();
+    $ntui_current_network_configuration->test_connection();
+    $ntui_connection_test_result->expect_is_shown();
+    $ntui_connection_test_result->ok();
+    $ntui_current_network_configuration->expect_is_shown();
+    $ntui_current_network_configuration->continue();
+}
+
+sub run {
+    my $self = shift;
+
+    # Please, avoid adding code here that would be a dependency for specific booting implementations
+    # For now using legacy code to handle remote architectures
+    if (is_s390x()) {
+        if (is_backend_s390x()) {
+            record_info('bootloader_s390x');
+            $self->bootloader_s390::run();
+        } elsif (is_svirt) {
+            record_info('bootloader_zkvm');
+            $self->bootloader_zkvm::run();
+        }
+        return;
+    }
+    elsif (is_pvm_hmc()) {
+        $self->bootloader_pvm::boot_pvm();
+        return;
+    }
+
+    read_live_iso();
+
+    my $grub_menu = $testapi::distri->get_grub_menu_agama();
+    my $grub_entry_edition = $testapi::distri->get_grub_entry_edition();
+    my $agama_up_and_running = $testapi::distri->get_agama_up_and_running();
+
+    my @params = prepare_boot_params();
+
+    $grub_menu->expect_is_shown();
+    $grub_menu->select_install_product();
+    $grub_menu->select_check_installation_medium_entry() if check_var('AGAMA_GRUB_SELECTION', 'check_medium');
+    $grub_menu->select_rescue_system_entry() if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
+    $grub_menu->edit_current_entry();
+    $grub_entry_edition->move_cursor_to_end_of_kernel_line();
+    $grub_entry_edition->type(\@params);
+    $grub_entry_edition->boot();
+
+    return if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
+
+    validate_ntui_network_configuration if (get_var('EXTRABOOTPARAMS', '') =~ /live\.net_config_tui=1/);
+
+    if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
+        wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
+        return;
+    }
+    if (check_var('AGAMA_GRUB_SELECTION', 'check_medium')) {
+        wait_serial("Medium check succeeded", 600) || die "Medium check failed";
+        send_key 'ret' if wait_serial("Press any key to continue...", 60);
+    }
+    $agama_up_and_running->expect_is_shown();
+}
+
+sub post_fail_hook {
+    Yam::Agama::agama_base::upload_agama_logs();
+}
+
+1;

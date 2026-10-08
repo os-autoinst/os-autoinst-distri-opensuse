@@ -1,0 +1,15 @@
+name:           sle_micro_default
+description:    >
+  Maintainer: QE Yam <qe-yam at suse de>
+  SUSE Linux Enterprise Micro installation
+schedule:
+  addons:
+    - installation/module_registration/skip_module_registration
+  timeout:
+    - installation/performing_installation/stop_timeout_system_reboot_now
+  reconnect:
+    - installation/performing_installation/reconnect_after_reboot
+    - installation/handle_reboot
+  system_validation:
+    - microos/cockpit_service
+    - console/textinfo

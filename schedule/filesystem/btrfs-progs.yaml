@@ -1,0 +1,10 @@
+---
+name: 'btrfs-progs@sle_micro'
+description:    >
+  Maintainer: An Long <lan@suse.com>
+  btrfs-progs test suite for SLE-Micro
+schedule:
+    - microos/disk_boot
+    - btrfs-progs/install
+    - btrfs-progs/run
+    - btrfs-progs/generate_report

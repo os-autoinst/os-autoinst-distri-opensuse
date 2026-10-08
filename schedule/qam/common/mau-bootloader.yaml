@@ -1,0 +1,11 @@
+---
+name: mau-bootloader
+description: >
+  perl-bootloader test
+  https://progress.opensuse.org/issues/139091
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/perl_bootloader

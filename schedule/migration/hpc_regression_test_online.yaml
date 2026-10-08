@@ -1,0 +1,86 @@
+name:           hpc_regression_test_online.yaml
+description:    |
+  This is for SLEHPC online regression test.
+  #REGRESSION_TEST: '1' means load regression test modules after migration.
+  # QCOW_GENERATION: '1' means publish qcow after migration; '0' means no need.
+vars:
+  DESKTOP: textmode
+  BOOT_HDD_IMAGE: 1
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+schedule:
+  - migration/version_switch_origin_system
+  - '{{online_migration_test}}'
+  - console/check_system_info
+  - installation/install_service
+  - migration/version_switch_upgrade_target
+  - migration/online_migration/pre_migration
+  - '{{migration_method}}'
+  - migration/online_migration/post_migration
+  - '{{qcow_generation}}'
+conditional_schedule:
+  qcow_generation:
+    QCOW_GENERATION:
+      0:
+        - console/check_upgraded_service
+        - console/check_os_release
+        - console/check_system_info
+        - console/system_prepare
+        - '{{check_migration_features}}'
+        - console/check_network
+        - console/system_state
+        - console/prepare_test_data
+        - console/consoletest_setup
+        - '{{regression_tests}}'
+        - '{{rollback_after_migration}}'
+      1:
+        - shutdown/cleanup_before_shutdown
+        - shutdown/shutdown
+  migration_method:
+    MIGRATION_METHOD:
+      yast:
+        - migration/online_migration/yast2_migration
+      zypper:
+        - migration/online_migration/zypper_migration
+  online_migration_test:
+    ONLINE_MIGRATION:
+      1:
+        - installation/isosize
+        - installation/bootloader
+        - migration/online_migration/online_migration_setup
+        - migration/online_migration/register_system
+        - migration/online_migration/zypper_patch
+  check_migration_features:
+    MIGRATION_FEATURES:
+      1:
+        - console/check_migration_features
+  regression_tests:
+    REGRESSION_TEST:
+      1:
+        - locale/keymap_or_locale
+        - console/force_scheduled_tasks
+        - console/hostname
+        - console/upgrade_snapshots
+        - console/zypper_lr
+        - console/zypper_ref
+        - console/yast2_lan
+        - console/zypper_in
+        - console/zypper_log
+        - console/yast2_i
+        - console/yast2_bootloader
+        - console/vim
+        - console/firewall_enabled
+        - console/sshd
+        - console/ssh_cleanup
+        - console/yast2_nfs_server
+        - console/dns_srv
+        - console/postgresql_server
+        - console/zypper_lifecycle
+        - console/orphaned_packages_check
+        - console/consoletest_finish
+  rollback_after_migration:
+    ROLLBACK_AFTER_MIGRATION:
+      1:
+        - boot/grub_test_snapshot
+        - migration/version_switch_origin_system
+        - boot/snapper_rollback

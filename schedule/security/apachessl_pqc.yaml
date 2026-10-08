@@ -1,0 +1,8 @@
+name: apachessl_pqc
+description: >
+  This is for the Apache SSL post-quantum cryptography test.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - security/oqa_agnostic/apachessl_pqc

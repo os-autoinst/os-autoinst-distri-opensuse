@@ -1,0 +1,181 @@
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+package saltbase;
+use base "consoletest";
+
+use strict;
+use warnings;
+
+use testapi;
+use known_bugs;
+
+use utils qw(zypper_call systemctl remount_tmp_if_ro);
+
+sub is_master_node {
+    return check_var('HOSTNAME', 'master');
+}
+
+sub master_prepare {
+    # Install the salt master
+    zypper_call("in salt-master");
+
+    # Save logs to a directory
+    assert_script_run('mkdir -p /var/log/salt');
+    assert_script_run('sed -i -e "s/log_file:.*/log_file: \\/var\\/log\\/salt\\/master/" /etc/salt/master');
+
+    # Increese log_level from 'warning' to 'debug'
+    assert_script_run('sed -i -e "s/#log_level_logfile:.*/log_level_logfile: debug/" /etc/salt/master');
+
+    # Enable and start the salt-master
+    systemctl 'enable salt-master';
+    systemctl 'start salt-master';
+    systemctl 'status salt-master';
+
+    # Enable event logging
+    assert_script_run '( salt-run state.event pretty=True &> /var/log/salt/event & )';
+}
+
+sub minion_prepare {
+    # Install the salt minion
+    zypper_call("in salt-minion");
+
+    # Set the right address of the salt master
+    assert_script_run "echo `hostname` > /etc/salt/minion_id";
+    if (is_master_node) {
+        assert_script_run("sed -i -e 's/#master:.*/master: localhost/' /etc/salt/minion");
+    } else {
+        assert_script_run("sed -i -e 's/#master:.*/master: 10.0.2.101/' /etc/salt/minion");
+    }
+
+    # Save logs to a directory
+    assert_script_run('sed -i -e "s/log_file:.*/log_file: \\/var\\/log\\/salt\\/minion/" /etc/salt/minion');
+
+    # Increese log_level from 'warning' to 'debug'
+    assert_script_run('sed -i -e "s/#log_level_logfile:.*/log_level_logfile: debug/" /etc/salt/minion');
+
+    # Check all the settings we changed
+    assert_script_run("grep 'master:\\\|ipv6:\\\|log_' /etc/salt/minion");
+
+    assert_script_run("grep -B9 -A9 'disable_modules' /etc/salt/minion");
+    assert_script_run('echo -en "disable_modules:\n  - boto3_elasticsearch\n" >> /etc/salt/minion');
+    assert_script_run("grep -B9 -A9 'disable_modules' /etc/salt/minion");
+    upload_logs '/etc/salt/minion';
+
+    # Enable and start the salt-minion
+    systemctl 'enable salt-minion';
+    systemctl 'start salt-minion';
+    systemctl 'status salt-minion';
+}
+
+sub stop {
+    if (is_master_node) {
+        systemctl 'stop salt-master';
+    }
+    systemctl 'stop salt-minion';
+}
+
+=head2 logs_from_salt
+
+Method fetching Salt specific logs.
+
+=cut
+
+sub logs_from_salt {
+    assert_script_run "ls /var/log/salt";
+
+    if (is_master_node) {
+        upload_logs '/var/log/salt/master', log_name => 'salt-master.txt';
+        upload_logs '/var/log/salt/event', log_name => 'salt-event.txt';
+    }
+
+    upload_logs '/var/log/salt/minion', log_name => 'salt-minion.txt';
+
+    my @patterns = (
+        "grep -i '\\[.*CRITICAL.*\\]\\|\\[.*ERROR.*\\]\\|Traceback'",
+        "grep -vi 'Error while parsing IPv\\|Error loading module\\|Unable to resolve address\\|SaltReqTimeoutError'",
+        "grep -vi 'has cached the public key for this node\\|Minion unable to successfully connect to a Salt Master'",
+        "grep -vi 'Error while bringing up minion for multi-master'"
+    );
+    my $error_cmd = join(' | ', @patterns);
+
+    my $log_files = script_output('find /var/log/salt -type f');
+    my $has_errors = 0;
+
+    for my $file (split(/\n/, $log_files)) {
+        next unless $file;
+        if (script_run("cat $file | $error_cmd") == 0) {
+            my $matched_output = script_output("cat $file | $error_cmd");
+            record_info("$file has errors", "File: $file\n\nMatched output:\n$matched_output", result => 'fail');
+            $has_errors = 1;
+        }
+    }
+
+    if ($has_errors) {
+        my $softfail_flag = 0;
+        if (is_master_node && script_run('grep "self.pusher.connect(timeout=timeout)" /var/log/salt/master') == 0) {
+            record_soft_failure('bsc#1209248');
+            $softfail_flag = 1;
+        }
+        if (script_run('grep "ModuleNotFoundError.*\'salt.ext.six\'" /var/log/salt/minion') == 0) {
+            record_soft_failure('bsc#1211591');
+            $softfail_flag = 1;
+        }
+        if (is_master_node && script_run('grep "Encountered StreamClosedException" /var/log/salt/master') == 0) {
+            record_soft_failure('bsc#1213635');
+            $softfail_flag = 1;
+        }
+        if (script_run('grep -Pzo \'(?s)Failed to import module pip(?:(?!\n.DEBUG).)*?ModuleNotFoundError: No module named .pkg_resources.\' /var/log/salt/minion') == 0) {
+            record_soft_failure('bsc#1262135');
+            $softfail_flag = 1;
+        }
+
+        return if $softfail_flag;
+        die "Salt logs are containing errors!";
+    }
+}
+
+=head2 post_run_hook
+
+Method executed when run() finishes.
+
+=cut
+
+sub post_run_hook {
+    my ($self) = @_;
+
+    # fetch Salt specific logs
+    logs_from_salt();
+
+    # Stop both master and minion at the end
+    stop();
+
+    # start next test in home directory
+    enter_cmd "cd";
+
+    # clear screen to make screen content ready for next test
+    $self->clear_and_verify_console;
+}
+
+=head2 post_fail_hook
+
+Method executed when run() finishes and the module has result => 'fail'
+
+=cut
+
+sub post_fail_hook {
+    my ($self) = shift;
+    return if get_var('NOLOGS');
+    select_console('log-console');
+
+    # fetch Salt specific logs
+    logs_from_salt();
+
+    # Stop both master and minion at the end
+    stop();
+
+    $self->SUPER::post_fail_hook;
+    remount_tmp_if_ro;
+}
+
+1;

@@ -1,0 +1,19 @@
+---
+name: sles_ha_migration_160_textmode_s390x
+description: >
+  Migration with zypper migration from SLES 16.0 with addon sle-ha registered.
+schedule:
+  - yam/migration/setup_upgrade_env
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/migration/restore_upgrade_env
+  - console/system_prepare
+  - yam/migration/zypper_migration
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_product
+  - yam/validate/validate_registered_products
+  - yam/validate/validate_installed_patterns
+  - console/validate_repos

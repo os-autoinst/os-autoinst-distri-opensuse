@@ -1,0 +1,40 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: sysstat
+# desc: >
+#   Functional tests for sysstat. Exercises the sysstat service and the
+#   pidstat, iostat, mpstat and sar tools and validates the generated reports.
+#   Ported from tests/console/sysstat.pm.
+# steps:
+#   - start, stop and restart the sysstat service
+#   - generate a daily activity file with sa1
+#   - validate pidstat, iostat and mpstat output
+#   - validate the sar report headers for cpu, memory, io, paging, network,
+#     huge pages and swap
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 15+
+# tags: console sysstat pidstat iostat mpstat sar
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_sysstat.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+
+set +e
+pytest -v --tb=short test_sysstat.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc

@@ -1,0 +1,112 @@
+local repo = '{{INCIDENT_REPO}}';
+local urls = if repo != '' then std.split(repo, ',') else [];
+{
+  product: {
+    id: '{{AGAMA_PRODUCT_ID}}',
+    registrationCode: '{{SCC_REGCODE}}',
+    addons: []
+  },
+  bootloader: {
+    stopOnBootMenu: false,
+    extraKernelParams: 'console=ttyS0,115200 console=tty0'
+  },
+  user: {
+    fullName: 'Bernhard M. Wiedemann',
+    password: '$6$0bUrc6YvA/qw$h1Z3pzadaxmc/KgcHRSEcYoU1ShVNymoXBaRAQZJ4ozVhTbCvdAMbGQrQAAX7cC9cLRybhsvDio3kBX/IB3xj/',
+    hashedPassword: true,
+    userName: 'bernhard'
+  },
+  root: {
+    password: '$6$0bUrc6YvA/qw$h1Z3pzadaxmc/KgcHRSEcYoU1ShVNymoXBaRAQZJ4ozVhTbCvdAMbGQrQAAX7cC9cLRybhsvDio3kBX/IB3xj/',
+    hashedPassword: true,
+    sshPublicKey: '{{_SECRET_ED25519_PUB_KEY}}'
+  },
+  software: {
+    packages: ['openssh-server-config-rootlogin'],
+    patterns: [
+      'base'
+    ],
+    extraRepositories:
+      if std.length(urls) > 0 then
+        [
+          {
+            alias: 'TEST_' + std.toString(i),
+            url: urls[i],
+            allowUnsigned: true
+          }
+          for i in std.range(0, std.length(urls) -1)
+        ]
+      else
+        [],
+    onlyRequired: false
+  },
+  questions: {
+    policy: 'auto',
+    answers: [
+      {
+        answer: 'Trust',
+        class: 'software.import_gpg'
+      },
+      {
+        answer: 'Yes',
+        class: 'load.retry'
+      },
+      {
+        answer: 'Retry',
+        class: 'software.medium_error'
+      }
+    ]
+  },
+  scripts: {
+    post: [
+      {
+        name: 'setup_sshd',
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf"
+          echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 120" > $sshd_config_file
+        |||
+      },
+      {
+        name: 'Setup service for report_vm_ip_to_host.service on every VM reboot',
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          SHELL_SCRIPT='/usr/local/bin/report_vm_ip_to_host.sh'
+          SERVICE_FILE='/etc/systemd/system/report_vm_ip_to_host.service'
+          
+          cat << EOF > $SHELL_SCRIPT
+          #!/usr/bin/env bash
+          # Report IP address to test host using guest name
+          # Try eth0 first (most common), then fallback to first available interface
+          ip a | grep eth0 | grep -Po '(?<=inet )[\d.]+' > /root/{{GUEST}} || \
+          ip -4 addr show | grep -E "inet.*scope global" | head -1 | grep -Po '(?<=inet )[\d.]+' > /root/{{GUEST}}
+          logger "SLES16 Guest {{GUEST}} IP is written into file: $(cat /root/{{GUEST}} 2>/dev/null || echo 'FAILED')"
+          curl -k -u root:{{PASS}} -T /root/{{GUEST}} sftp://{{SUT_IP}}/tmp/guests_ip/ --ftp-create-dirs
+          exit 0
+          EOF
+          
+          chmod a+x $SHELL_SCRIPT
+          
+          cat << EOF > $SERVICE_FILE
+          [Unit]
+          Description=Report vm ip to host After Every Reboot
+          After=network-online.target
+          
+          [Service]
+          Type=oneshot
+          ExecStart=$SHELL_SCRIPT
+          RemainAfterExit=true
+          User=root
+          
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          
+          systemctl enable report_vm_ip_to_host.service
+        |||
+      }
+    ]
+  }
+}

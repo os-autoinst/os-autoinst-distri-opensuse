@@ -1,0 +1,163 @@
+---
+name: mau-extratests1
+description: First set of CLI extratests
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/clamav_upgrade
+  - console/ping
+  - console/arping
+  - console/wireshark_cli
+  - console/traceroute
+  - console/tracepath
+  - console/dig
+  - console/man_pages
+  - console/openvswitch
+  - console/pam
+  - console/sshd
+  - console/update_alternatives
+  - console/rpm
+  - console/slp
+  - console/journalctl
+  - console/journalctlLevels
+  - console/libvorbis
+  - console/krb5
+  - console/command_not_found
+  - console/openssl_alpn
+  - console/autoyast_removed
+  - console/cron
+  - console/syslog
+  - console/mta
+  - console/check_default_network_manager
+  - console/git
+  - console/cups
+  - console/java
+  - console/sqlite3
+  - console/gdb
+  - console/perf
+  - console/sysctl
+  - console/oqa_agnostic/sysstat_agnostic
+  - console/cpio
+  - console/tar
+  - console/ruby
+  - console/tcpdump
+  - '{{version_specific}}'
+  - console/coredump_collect
+conditional_schedule:
+  version_specific:
+    VERSION:
+      '16.0':
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - console/oqa_agnostic/ansible_agnostic
+        - console/libxslt
+        - qe-core/systemd/journal_remote
+        - '{{arch_specific}}'
+      15-SP7:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - console/oqa_agnostic/ansible_agnostic
+        - console/libxslt
+        - qe-core/systemd/journal_remote
+        - '{{arch_specific}}'
+      15-SP6:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - console/oqa_agnostic/ansible_agnostic
+        - console/libxslt
+        - qe-core/systemd/journal_remote
+        - '{{arch_specific}}'
+      15-SP5:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - console/oqa_agnostic/ansible_agnostic
+        - console/libxslt
+        - '{{arch_specific}}'
+      15-SP4:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - console/oqa_agnostic/ansible_agnostic
+        - console/libxslt
+        - '{{arch_specific}}'
+      15-SP3:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - '{{arch_specific}}'
+      15-SP2:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - '{{arch_specific}}'
+      12-SP5:
+        - console/openssl_nodejs
+        - '{{arch_specific}}'
+        - '{{sssd_12SP5_arch_specific}}'
+  arch_specific:
+    ARCH:
+      x86_64:
+        - console/aplay
+        - console/wavpack
+        - '{{sle15}}'
+  sle15:
+    VERSION:
+      '16.0':
+        - console/firewalld
+        - console/lshw
+        - console/dpdk
+      15-SP7:
+        - console/firewalld
+        - console/lshw
+        - console/dpdk
+      15-SP6:
+        - console/firewalld
+        - console/lshw
+        - console/dpdk
+      15-SP5:
+        - console/firewalld
+        - console/lshw
+        - console/dpdk
+      15-SP4:
+        - console/firewalld
+        - console/lshw
+      15-SP3:
+        - console/firewalld
+        - console/lshw
+      15-SP2:
+        - console/firewalld
+        - console/lshw
+  sssd_12SP5_arch_specific:
+    ARCH:
+      x86_64:
+        - console/sssd_389ds_functional
+      s390x:
+        - console/sssd_389ds_functional

@@ -1,0 +1,15 @@
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Summary: Select System Role 'Text Mode' and navigate to next screen
+# in SLES.
+#
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'y2_installbase';
+
+sub run {
+    $testapi::distri->get_system_role()->select_system_role('text_mode');
+}
+
+1;

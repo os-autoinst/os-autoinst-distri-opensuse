@@ -1,0 +1,4 @@
+---
+# Select Desktop with KDE Plasma in System Role
+system_role:
+  - installation/system_role/select_role_desktop_with_KDE_plasma

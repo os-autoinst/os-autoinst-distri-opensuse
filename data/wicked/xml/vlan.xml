@@ -1,0 +1,24 @@
+<interface>
+  <name>iface.42</name>
+
+  <vlan>
+    <device>iface</device>
+    <tag>42</tag>
+  </vlan>
+
+  <ipv4:static>
+    <address>
+      <local>ip_address</local>
+    </address>
+  </ipv4:static>
+
+  <ipv6:static>
+    <address>
+      <local>fd00:4242:4242::123/48</local>
+    </address>
+  </ipv6:static>
+</interface>
+
+<interface>
+  <name>iface</name>
+</interface>

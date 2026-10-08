@@ -1,0 +1,28 @@
+---
+name: leap_15_incidents_update
+description: >
+  Test performs autoyast installation and runs
+  incidents update tests
+vars:
+  AUTOYAST: autoyast_opensuse/opensuse_leap.xml.ep
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - '{{crypt_no_auto_login}}'
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/import_gpg_keys
+  - update/zypper_up
+  - console/install_packages
+  - console/zypper_add_repos
+  - console/qam_zypper_patch
+  - console/qam_verify_package_install
+conditional_schedule:
+  crypt_no_auto_login:
+    ENCRYPT:
+      '1':
+        - installation/grub_test
+        - installation/boot_encrypt
+        - installation/first_boot

@@ -1,0 +1,21 @@
+---
+name:           yast2_ncurses_textmode@svirt-xen-hvm
+description:    >
+  Test for yast2 UI, ncurses only. Running on created gnome images
+  which provides both text console for ncurses UI tests as well as
+  the gnome environment for the GUI tests.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/yast2_i
+  - console/yast2_bootloader
+  - console/yast2_lan_device_settings
+  - "{{yast_nfs_server}}"
+  - console/coredump_collect
+conditional_schedule:
+  yast_nfs_server:
+    BACKEND:
+      qemu:
+        - console/yast2_nfs_server

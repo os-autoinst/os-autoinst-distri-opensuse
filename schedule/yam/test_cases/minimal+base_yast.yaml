@@ -1,0 +1,27 @@
+---
+name:           minimal+base@yast
+description:    >
+  Select a minimal textmode installation by starting with the default and unselecting all patterns
+  except for "base" and "minimal". Not to be confused with the new system role "minimal" introduced with SLE15.
+  Sometimes grub is not displayed due to console reconnection.
+schedule:
+  software:
+    - installation/select_only_visible_patterns_from_top
+  security_configuration:
+    - installation/security/select_security_module_none
+  system_preparation:
+    - console/system_prepare
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - console/force_scheduled_tasks
+  system_validation:
+    - console/installation_snapshots
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/ncurses
+    - console/glibc_sanity
+    - update/zypper_up
+    - console/zypper_lifecycle
+    - console/orphaned_packages_check
+    - console/validate_installed_patterns
+    - console/consoletest_finish

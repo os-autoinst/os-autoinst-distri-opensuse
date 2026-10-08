@@ -1,0 +1,19 @@
+# SUSE's openQA tests
+#
+# Copyright 2022 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Upload the logs compressed in logs_from_installation_system as asset,
+# so they can be parsed after reboot in the test suite "logs_from_installation_system"
+#
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'opensusebasetest';
+use testapi;
+
+sub run {
+    select_console 'root-console';
+    upload_asset('/tmp/y2logs.tar.bz2');
+}
+
+1;

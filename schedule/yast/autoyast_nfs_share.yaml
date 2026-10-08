@@ -1,0 +1,28 @@
+---
+name: autoyast_multi_btrfs
+description: >
+  Test autoyast installation, while using nfs share
+vars:
+  AUTOYAST: yam/autoyast/nfs_share.xml
+  DESKTOP: textmode
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - autoyast/console
+  - autoyast/clone
+  - autoyast/verify_cloned_profile
+  - autoyast/verify_nfs_share
+test_data:
+  # cmd validation
+  server: openqa.suse.de
+  remote_dir: /var/lib/openqa/share
+  mount: /test
+  fs_type: nfs
+  services:
+    - rpcbind
+    - rpc-statd
+    - nfs
+  services_status: active
+  <<: !include test_data/yast/autoyast/profiles/nfs_share.yaml

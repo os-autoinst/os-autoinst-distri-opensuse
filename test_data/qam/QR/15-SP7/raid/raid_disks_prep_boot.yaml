@@ -1,0 +1,49 @@
+---
+disks:
+  - name: vda
+    partitions:
+      - size: 8mb
+        role: raw-volume
+        id: prep-boot
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 310mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: vdb
+    partitions:
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 310mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: vdc
+    partitions:
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 310mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid
+  - name: vdd
+    partitions:
+      - size: 8000mb
+        role: raw-volume
+        id: linux-raid
+      - size: 310mb
+        role: raw-volume
+        id: linux-raid
+      - size: 100mb
+        role: raw-volume
+        id: linux-raid

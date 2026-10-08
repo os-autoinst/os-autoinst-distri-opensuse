@@ -1,0 +1,57 @@
+---
+software:
+  packages:
+    # Device Mapper Tools
+    device-mapper:
+      installed: 1
+    # Tools to Manage Multipathed Devices with the device-mapper
+    multipath-tools:
+      installed: 1
+    # Manages partition tables on device-mapper devices
+    kpartx:
+      installed: 1
+multipath:
+  attributes:
+    # Specifies whether to use world-wide IDs (WWIDs) or to use the /var/lib/multipath/bindings file
+    # to assign a persistent and unique alias to the multipath devices in the form of /dev/mapper/mpathN.
+    user_friendly_names: 'no'
+    # Specifies whether to monitor the failed path recovery, and indicates the timing for group failback
+    # after failed paths return to service.
+    failback: manual
+    # Determines the state of the path.
+    #   tur: Issues an SCSI test unit ready command to the device.
+    path_checker: tur
+    # Specifies the path grouping policy for a multipath device hosted by a given controller.
+    #   failover: One path is assigned per priority group so that only one path at a time is used.
+    path_grouping_policy: failover
+    # Specifies the path-selector algorithm to use for load balancing
+    #   service-time 0: A service-time oriented load balancer that balances I/O on paths according
+    #                   to the latency.
+    path_selector: 'service-time 0'
+    # Specifies the time in seconds between the end of one path checking cycle and the beginning
+    # of the next path checking cycle.
+    polling_interval: 5
+    # Specifies the number of I/O requests to route to a path before switching to the next path
+    # in the current path group.
+    rr_min_io_rq: 1
+    # Specifies the weighting method to use for paths.
+    #   uniform: All paths have the same round-robin weights.
+    rr_weight: uniform
+    # A udev attribute that provides a unique path identifier
+    uid_attribute: ID_SERIAL
+  topology:
+    vendor_product_revision: 'QEMU,QEMU HARDDISK'
+    features: 0
+    hwhandler: 0
+    wp: rw
+    priority_groups:
+      - prio: 1
+        status: active
+        paths:
+          - name: sda
+            status: 'active ready running'
+      - prio: 1
+        status: enabled
+        paths:
+          - name: sdb
+            status: 'active ready running'

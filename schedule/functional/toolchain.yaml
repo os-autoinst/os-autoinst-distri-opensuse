@@ -1,0 +1,22 @@
+---
+name: toolchain
+description: >
+    Maintainer: zluo
+    toolchain tests for sles and opensuse
+conditional_schedule:
+    bootloader:
+        BACKEND:
+            'svirt':
+                - installation/bootloader_zkvm
+    kdump_and_crash:
+        DISTRI:
+            sle:
+                - console/kdump_and_crash
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - console/force_scheduled_tasks
+    - toolchain/install
+    - toolchain/gcc_fortran_compilation
+    - toolchain/gcc_compilation
+    - '{{kdump_and_crash}}'

@@ -1,0 +1,37 @@
+---
+name: qam-yast_self_update_libyui
+description: installation using self_update as boot parameter
+vars:
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/product_selection/install_SLES
+  - installation/validate_self_update
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/register_extensions_and_modules
+  - installation/add_on_product/add_maintenance_repos
+  - installation/addon_products_sle
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - '{{efi}}'
+conditional_schedule:
+  efi:
+    MACHINE:
+      uefi:
+        - console/consoletest_setup
+        - console/verify_efi_mok

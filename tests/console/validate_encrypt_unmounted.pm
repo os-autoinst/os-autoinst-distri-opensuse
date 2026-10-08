@@ -1,0 +1,38 @@
+# SUSE's openQA tests
+#
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Validate LUKS version for encrypted partitions not mounted
+# in the system using test data. Example:
+# test_data:
+#   disks:
+#     - name: vdb
+#       partitions:
+#         - name: vdb1
+#           formatting_options:
+#             luks_type: 2
+#
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
+
+use Mojo::Base 'opensusebasetest';
+use testapi;
+use serial_terminal 'select_text_console';
+use scheduler 'get_test_suite_data';
+
+sub run {
+    my $disks = get_test_suite_data()->{disks};
+    select_text_console;
+
+    my $luks_type;
+    foreach my $disk (@{$disks}) {
+        foreach my $part (@{$disk->{partitions}}) {
+            $luks_type = $part->{formatting_options}{luks_type};
+            record_info("Encryption", "Verify that the partition encryptions is LUKS $luks_type");
+            validate_script_output "cryptsetup luksDump /dev/$part->{name}",
+              sub { m/Version:\s+$luks_type.*/s };
+        }
+    }
+}
+
+1;

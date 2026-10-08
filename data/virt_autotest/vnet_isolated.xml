@@ -1,0 +1,9 @@
+<network>
+ <name>vnet_isolated</name>
+ <bridge name="virbr2"/>
+ <ip address="192.168.127.1" netmask="255.255.255.0">
+  <dhcp>
+   <range start="192.168.127.2" end="192.168.127.254" />
+  </dhcp>
+ </ip>
+</network>

@@ -1,0 +1,33 @@
+From eadc20444aac50267019021d8d554a9ce34692f6 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 30 Jan 2026 19:11:06 +0100
+Subject: [PATCH] test: fix pull failure assertion for Docker v29
+
+The error message comes now from containerd.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ pkg/e2e/pull_test.go | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/pkg/e2e/pull_test.go b/pkg/e2e/pull_test.go
+index 799bdbb2fc7..61550e4ca12 100644
+--- a/pkg/e2e/pull_test.go
++++ b/pkg/e2e/pull_test.go
+@@ -66,7 +66,15 @@ func TestComposePull(t *testing.T) {
+ 
+ 	t.Run("Verify pull failure", func(t *testing.T) {
+ 		res := c.RunDockerComposeCmdNoCheck(t, "--project-directory", "fixtures/compose-pull/unknown-image", "pull")
+-		res.Assert(t, icmd.Expected{ExitCode: 1, Err: "pull access denied for does_not_exists"})
++		output := res.Combined()
++
++		errMsg := "pull access denied for does_not_exists"
++		if !strings.Contains(output, errMsg) {
++			// containerd returns:
++			// failed to resolve reference "docker.io/library/does_not_exists:latest": docker.io/library/does_not_exists:latest: not found
++			errMsg = "does_not_exists:latest: not found"
++		}
++		res.Assert(t, icmd.Expected{ExitCode: 1, Err: errMsg})
+ 	})
+ 
+ 	t.Run("Verify ignore pull failure", func(t *testing.T) {

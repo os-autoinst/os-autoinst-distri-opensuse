@@ -1,0 +1,7 @@
+# Server node
+node          server
+install       git-tests-server
+
+# Client node
+node          client
+install       git-tests-client

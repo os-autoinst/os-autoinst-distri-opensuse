@@ -1,0 +1,42 @@
+From 67ccf4940cca8dfa969f8eaae71de5fc51d7dcf8 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 12 Mar 2026 21:30:50 +0100
+Subject: [PATCH] tests/e2e: Do not try to list /proc/acpi on non-amd64
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/e2e/run_test.go | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/test/e2e/run_test.go b/test/e2e/run_test.go
+index 8e4887d63b..389db4a990 100644
+--- a/test/e2e/run_test.go
++++ b/test/e2e/run_test.go
+@@ -495,10 +495,12 @@ var _ = Describe("Podman run", func() {
+ 		Expect(session).Should(ExitCleanly())
+ 		Expect(session.OutputToStringArray()).Should(HaveLen(1))
+ 
+-		session = podmanTest.Podman([]string{"run", "--security-opt", "unmask=/proc/a*", ALPINE, "ls", "/proc/acpi"})
+-		session.WaitWithDefaultTimeout()
+-		Expect(session).Should(ExitCleanly())
+-		Expect(session.OutputToString()).To(Not(BeEmpty()))
++		if podmanTest.Host.Arch == "amd64" {
++			session = podmanTest.Podman([]string{"run", "--security-opt", "unmask=/proc/a*", ALPINE, "ls", "/proc/acpi"})
++			session.WaitWithDefaultTimeout()
++			Expect(session).Should(ExitCleanly())
++			Expect(session.OutputToString()).To(Not(BeEmpty()))
++		}
+ 	})
+ 
+ 	It("podman run powercap is masked", func() {
+@@ -2264,9 +2266,7 @@ WORKDIR /madethis`, BB)
+ 	})
+ 
+ 	It("podman run check personality support", func() {
+-		if podmanTest.Host.Arch != "amd64" {
+-			Skip("test only valid on amd64")
+-		}
++		SkipIfNotAMD64()
+ 		session := podmanTest.Podman([]string{"run", "--personality=LINUX32", "--name=testpersonality", ALPINE, "uname", "-a"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())

@@ -1,0 +1,17 @@
+---
+name: agama_install_on_second_disk.yaml
+description: >
+  Playwright test: Install system on second disk using Agama.
+schedule:
+  - installation/bootloader_start
+  - yam/agama/patch_agama
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_first_disk_selection
+test_data:
+  guided_partitioning:
+    disks:
+      - vdb
+  unused_disks:
+    - vda

@@ -1,0 +1,5 @@
+---
+name: qam-libssh
+schedule:
+- boot/boot_to_desktop
+- console/libssh

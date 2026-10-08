@@ -1,0 +1,6 @@
+---
+name: test_data_mini_default_flows
+description: Minimal file to merge with default and flows.
+schedule:
+  phase_3:
+    - individual_step_3

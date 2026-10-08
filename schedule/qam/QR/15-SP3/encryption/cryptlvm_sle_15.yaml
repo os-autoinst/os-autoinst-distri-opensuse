@@ -1,0 +1,39 @@
+---
+description: >
+  Conduct installation with encrypted LVM selected during installation.
+  Generated disk image used in downstream jobs. (crypt-)LVM installations can
+  take longer, especially on non-x86_64 architectures.
+name: cryptlvm
+vars:
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_registration/register_module_desktop
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
+  - installation/partitioning/guided_setup/accept_default_fs_options
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/validate_lvm
+  - console/validate_encrypt
+  - console/zypper_lr
+  - console/yast2_i
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

@@ -1,0 +1,10 @@
+<network>
+ <name>vnet_routed</name>
+ <bridge name="virbr1"/>
+ <forward mode="route"/>
+ <ip address="192.168.129.1" netmask="255.255.255.0">
+  <dhcp>
+      <range start="192.168.129.2" end="192.168.129.254" />
+  </dhcp>
+ </ip>
+</network>

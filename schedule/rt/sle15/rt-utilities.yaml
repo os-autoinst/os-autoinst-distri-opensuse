@@ -1,0 +1,7 @@
+---
+description: "Tunning pre-installed RT system, adjust RT attributes of a process, configure basic CPU shield\nMaintainer: mloviska"
+name: 'rt_utils ( qemu )'
+schedule:
+  - boot/boot_to_desktop
+  - rt/rt_chrt
+  - rt/cpuset_shield

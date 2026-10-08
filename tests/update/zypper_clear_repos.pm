@@ -1,0 +1,39 @@
+# SUSE's openQA tests
+#
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: zypper
+# Summary: Clear unneed repos before updating for Staging Project
+# Maintainer: Max Lin <mlin@suse.com>
+
+use Mojo::Base 'consoletest';
+use testapi;
+use serial_terminal 'select_text_console';
+use utils;
+
+sub run {
+    select_text_console;
+    # packagekit service may block zypper when operate on repos
+    quit_packagekit;
+
+    # remove Factory repos
+    my $repos_folder = '/etc/zypp/repos.d';
+    zypper_call 'lr -d', exitcode => [0, 6];
+    assert_script_run(
+"find $repos_folder/ -name \\*.repo -type f -exec grep -Eq 'baseurl=(http|https)://(download|cdn|openqa|codecs).opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev",
+        15
+    );
+    zypper_call 'lr -d', exitcode => [0, 6];
+
+    if (get_var("STAGING")) {
+        # With FATE#320494 the local repository would be disabled after installation
+        # in Staging, enable it here.
+        clear_console;
+        assert_script_run("grep -rlE 'baseurl=cd:/(//)?\\?devices' $repos_folder | xargs --no-run-if-empty sed -i 's/^enabled=0/enabled=1/g'");
+        zypper_call 'lr -d', exitcode => [0, 6];
+    }
+}
+
+1;

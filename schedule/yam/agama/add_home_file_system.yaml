@@ -1,0 +1,11 @@
+---
+name: add_home_file_system
+description: >
+  Playwright test on Agama for adding a home file system
+schedule:
+  - installation/bootloader_start
+  - yam/agama/patch_agama
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - console/verify_separate_home

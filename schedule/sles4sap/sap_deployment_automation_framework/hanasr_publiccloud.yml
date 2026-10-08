@@ -1,0 +1,13 @@
+---
+name: sap_deployment_automation_framework
+description: |
+    Hana SR test scenario executed on deployment created by 'SAP Deployment automation framework'
+    Uses `lib/publiccloud/*` libraries for interacting with SUT.
+    Interaction happens using wrapper function around `ssh` command.
+vars:
+    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
+schedule:
+    - boot/boot_to_desktop
+    - sles4sap/sap_deployment_automation_framework/connect_to_deployer
+    - sles4sap/sap_deployment_automation_framework/setup_publiccloud_instances
+    - sles4sap/sap_deployment_automation_framework/cleanup

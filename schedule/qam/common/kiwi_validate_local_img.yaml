@@ -1,0 +1,8 @@
+---
+name: kiwi_validate_local_img
+description: >
+      Validate the locally built Kiwi qcow2 image by booting it
+schedule:
+      - boot/boot_to_desktop
+      - kiwi_images_test/validate_local_kiwi_image
+...

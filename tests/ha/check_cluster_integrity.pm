@@ -1,0 +1,22 @@
+# SUSE's openQA tests
+#
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: pacemaker-cli
+# Summary: Check cluster integrity
+# Maintainer: QE-SAP <qe-sap@suse.de>, Christian Lanig <clanig@suse.com>
+
+use Mojo::Base 'haclusterbasetest';
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use hacluster;
+
+sub run {
+    select_serial_terminal;
+    wait_until_resources_started;
+    # Check for the state of the whole cluster
+    check_cluster_state;
+}
+
+1;

@@ -1,0 +1,11 @@
+---
+name: mau-userspace
+description: >
+      Execute test suites in userspace using
+      variable USER_SPACE_TESTSUITES.
+schedule:
+    - boot/boot_to_desktop
+    - qa_automation/qaset_pre_patch_run
+    - console/post_installation
+    - qa_automation/qaset_post_patch_run
+...

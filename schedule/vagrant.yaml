@@ -1,0 +1,20 @@
+name:           vagrant
+description:    >
+    Tests for vagrant, vagrant plugins and the official vagrant boxes
+vars:
+    QEMUCPU: host
+    QEMURAM: 4096
+    QEMUCPUS: 4
+schedule:
+    - '{{boot_to_desktop}}'
+    - '{{add_box_virtualbox}}'
+    - virtualization/vagrant/boxes/tumbleweed
+conditional_schedule:
+    add_box_virtualbox:
+        ARCH:
+            x86_64:
+                - virtualization/vagrant/add_box_virtualbox
+    boot_to_desktop:
+        BACKEND:
+            qemu:
+                - boot/boot_to_desktop

@@ -1,0 +1,7 @@
+---
+description: 'Main MinimalVM SAP test suite for SLES 16. Maintainer: qe-sap.'
+name: 'minimalvm-sap-patterns@64bit-virtio-vga ( qemu )'
+schedule:
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - sles4sap/patterns

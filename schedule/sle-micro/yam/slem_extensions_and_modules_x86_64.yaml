@@ -1,0 +1,12 @@
+name:           sle_micro_extensions_and_modules
+description:    >
+  Maintainer: QE Yam <qe-yam at suse de>
+  SUSE Linux Enterprise Micro installation with phub and live addons.
+schedule:
+  addons:
+    - installation/module_registration/register_extensions_and_modules
+  grub:
+    - installation/grub_test
+  system_validation:
+    - console/textinfo
+    - transactional/check_phub

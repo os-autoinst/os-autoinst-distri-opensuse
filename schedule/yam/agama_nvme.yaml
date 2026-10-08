@@ -1,0 +1,14 @@
+---
+name: agama_nvme
+description: >
+  Prepare url for agama.auto boot parameter, perform auto-installation with nvme on agama.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/nvme_checks
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write

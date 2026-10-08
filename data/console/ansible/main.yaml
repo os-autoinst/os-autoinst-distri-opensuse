@@ -1,0 +1,7 @@
+---
+- name: openQA Ansible test
+  hosts: all
+  collections:
+    - community.general
+  roles:
+    - test

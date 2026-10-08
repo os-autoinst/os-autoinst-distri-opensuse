@@ -1,0 +1,10 @@
+name: ima_measurement
+description:    >
+    Test ima_measurement
+schedule:
+    - boot/boot_to_desktop
+    - security/ima/ima_setup
+    - security/ima/ima_measurement
+    - security/ima/ima_kernel_cmdline_template
+    - security/ima/ima_kernel_cmdline_hash
+    - security/ima/ima_measurement_audit

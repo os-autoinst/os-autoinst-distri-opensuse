@@ -1,0 +1,71 @@
+#!/bin/bash
+# Script to be used with: 'usbsdmux' software, with the following hardware:
+#  USB-SD-mux from https://shop.linux-automation.com/index.php?route=product/product&product_id=50
+
+# Print commands and abort script on failure
+set -ex
+
+echo "Flash script start...";
+
+# Check number of args
+if [ "$#" -ne 3 ]; then
+    # Workaround for jeos-container_host@RPi3 where NUMDISKS=2 is set and adds 2 additonal args
+    if [ "$#" -ne 5 ]; then
+        echo "Please provide <device serial>, <image to flash> and <hdd size> (ignored)."
+        exit 1;
+    else
+        echo "Too many arguments, but ignore them as a workaround for jeos-container_host@RPi3"
+    fi
+fi
+
+# Get device serial (check 'sd-mux-ctrl --list', or usb-sd-mux/id-<SERIAL>)
+device_serial=$1
+# Get image to flash
+image_to_flash=$2
+# Get hdd size (ignored for SD, but passed as arg from openQA)
+hdd_size=$3
+
+device_link="/dev/disk/by-id/usb-LinuxAut_sd*_HS-SD_MMC_${device_serial}-0:0"
+
+echo "* Switch SD card to flasher"
+usbsdmux /dev/usb-sd-mux/id-$device_serial host
+
+echo "* Wait for kernel to propagate device nodes"
+sleep 5
+while ! [ -L $device_link ] ; do
+	sleep 1
+done
+sdX_device=$(readlink -f $device_link)
+while ! [[ -b $sdX_device ]] ; do
+	sleep 1
+done
+
+# Check /dev/sdX_device is not mounted to prevent unexpected overwritting
+set +e
+output=$(mount | grep $sdX_device)
+set -e
+if [ "$output" == "" ]; then
+	# Copy to SD card
+	echo "** Copy to SD card"
+	du --apparent-size -h -L "$image_to_flash"
+	image_to_flash_extension="${image_to_flash##*.}"
+	if [ "$image_to_flash_extension" == "qcow2" ] ; then
+		qemu-img info $image_to_flash
+		qemu-img dd -f qcow2 -O raw if=$image_to_flash of=$sdX_device bs=8M
+	elif [ "$image_to_flash_extension" == "xz" ] ; then
+		xzcat --threads=0 $image_to_flash | dd of=$sdX_device oflag=sync bs=8M status=progress
+	elif [ "$image_to_flash_extension" == "gz" ] ; then
+		zcat $image_to_flash | dd of=$sdX_device oflag=sync bs=8M status=progress
+	else
+		cat $image_to_flash | dd of=$sdX_device oflag=sync bs=8M status=progress
+	fi
+else
+	echo "***** /dev/$sdX_device is mounted, so it is unlikely your target. Please check. *****"
+	echo "$output"
+	exit 1
+fi
+
+echo "* Switch SD card to SUT"
+usbsdmux /dev/usb-sd-mux/id-$device_serial dut
+
+echo "Flash script done!";

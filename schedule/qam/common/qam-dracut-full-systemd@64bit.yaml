@@ -1,0 +1,13 @@
+---
+name: qam-dracut-full-systemd
+description:
+vars:
+  COLLECT_COREDUMPS: '1'
+  TEST: qam-dracut-full-systemd
+schedule:
+- boot/boot_to_desktop
+- console/prepare_test_data
+- console/consoletest_setup
+- console/dracut_enhanced
+- console/coredump_collect
+...

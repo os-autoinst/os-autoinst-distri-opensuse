@@ -1,0 +1,15 @@
+---
+name: supportserver_generator_from_hdd
+description: |
+  supportserver image creation job used as parent for other jobs testing based on existing installation.
+  use of create_hdd_gnome to configure supportserver image for MM tests.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/consoletest_setup
+  - support_server/configure
+  - console/consoletest_finish
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

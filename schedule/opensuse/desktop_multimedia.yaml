@@ -1,0 +1,18 @@
+name:  desktop_multimedia
+description:    >
+    Tests some multimedia applications
+conditional_schedule:
+    graphicsMagick:
+        VERSION:
+            Tumbleweed:
+                - x11/graphicsMagick
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - x11/inkscape
+    - x11/gimp
+    - x11/vlc
+    - x11/glxgears
+    - '{{graphicsMagick}}'
+    - x11/exiv2

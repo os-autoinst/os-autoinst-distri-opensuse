@@ -1,0 +1,33 @@
+name: fips_crypt_tool
+description:    >
+    This is for the crypt_tool fips tests.
+schedule:
+    - boot/boot_to_desktop
+    - fips/curl_fips_rc4_seed
+    - console/aide_check
+    - console/gpg
+    - console/journald_fss
+    - console/git
+    - console/clamav
+    - console/openvswitch_ssl
+    - security/ntpd
+    - console/chrony
+    - console/cups
+    - console/cryptsetup
+    - console/syslog
+    - x11/evolution/evolution_prepare_servers
+    - console/mutt
+    - fips/squid/squid_init
+    - fips/squid/squid_web_proxy
+    - fips/squid/squid_reverse_proxy
+    - security/ecryptfs/ecryptfs
+    - security/libserf/libserf
+    - security/vsftpd/vsftpd_setup
+    - security/vsftpd/vsftpd
+    - security/vsftpd/lftp
+    - '{{suseconnect_only_ker}}'
+conditional_schedule:
+    suseconnect_only_ker:
+        TEST:
+            fips_ker_mode_tests_crypt_tool:
+                - console/suseconnect.pm

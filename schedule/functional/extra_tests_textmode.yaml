@@ -1,0 +1,210 @@
+name:           extra_tests_textmode
+description:    >
+    Maintainer: dheidler.
+    Extra CLI tests
+conditional_schedule:
+    lshw:
+        ARCH:
+            x86_64:
+                - console/lshw
+            ppc64le:
+                - console/lshw
+    yast2_lan_device_settings:
+        ARCH:
+            aarch64:
+                - console/yast2_lan_device_settings
+            ppc64le:
+                - console/yast2_lan_device_settings
+            x86_64:
+                - console/yast2_lan_device_settings
+    fwupd:
+        ARCH:
+            aarch64:
+                - console/fwupd
+            x86_64:
+                - console/fwupd
+            ppc64le:
+                - console/fwupd
+    snmp:
+        MACHINE:
+            64bit:
+                - network/snmp
+            aarch64:
+                - network/snmp
+            ppc64le:
+                - network/snmp
+            s390x-kvm-sle12:
+                - network/snmp
+    update_repos:
+        VERSION:
+            'Tumbleweed':
+                - update/zypper_clear_repos
+                - console/zypper_ar
+                - console/zypper_ref
+    sound_tests:
+        ARCH:
+            x86_64:
+                - console/aplay
+                - console/soundtouch
+                - console/wavpack
+            aarch64:
+                - console/aplay
+                - console/soundtouch
+                - console/wavpack
+    steamcmd:
+        ARCH:
+            x86_64:
+                - console/steamcmd
+    opensuse_tests:
+        DISTRI:
+            opensuse:
+                - '{{sound_tests}}'
+                - console/libvorbis
+                - console/gdb
+                - console/perf
+                - console/salt
+                - console/libgpiod
+                - console/libgcrypt
+                - console/gd
+                - console/gcc
+                - console/wpa_supplicant
+                - appgeo/gdal
+                - console/openqa_review
+                - console/zbar
+                - console/a2ps
+                - console/znc
+                - console/weechat
+                - console/nano
+                - '{{steamcmd}}'
+                - console/libqca2
+                - console/vmstat
+                - kernel/kdump
+                - console/oqa_agnostic/ansible_agnostic
+                - console/libgit2
+    validate_packages_and_patterns:
+        DISTRI:
+            sle:
+                - console/validate_packages_and_patterns
+    sle_tests:
+        DISTRI:
+            sle:
+                - console/supportutils
+                - console/zziplib
+                - console/vsftpd
+                - console/year_2038_detection
+                - console/redis
+    leap_tests:
+        LEAP:
+            '1':
+                - console/redis
+    tumbleweed_tests:
+        VERSION:
+            'Tumbleweed':
+                - console/systemd_resolved
+                - console/systemd_rpm_macros
+                - console/vsftpd
+                - console/year_2038_detection
+                - console/libjpeg_turbo
+                - console/valkey
+                - '{{velociraptor_tests}}'
+                - console/apache2_php_fpm
+    velociraptor_tests:
+        ARCH:
+            x86_64:
+                - console/velociraptor_client_event_collect
+            aarch64:
+                - console/velociraptor_client_event_collect
+            ppc64le:
+                - console/velociraptor_client_event_collect
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - '{{update_repos}}'
+    - console/clamav_upgrade
+    - console/chrony
+    - console/dnsmasq
+    - console/man_pages
+    - console/ping
+    - console/arping
+    - console/wireshark_cli
+    - console/traceroute
+    - console/tracepath
+    - console/dig
+    - console/orphaned_packages_check
+    - console/zypper_lr_validate
+    - console/zypper_ref
+    - console/zypper_info
+    - console/snapper_zypp
+    - '{{validate_packages_and_patterns}}'
+    - console/zypper_extend
+    - console/check_os_release
+    - console/openvswitch
+    - console/ovn
+    - console/pam
+    - console/shar
+    - console/sshd
+    - console/update_alternatives
+    - console/rpm
+    - console/slp
+    - console/pkcon
+    - console/command_not_found
+    - console/openssl_alpn
+    - console/autoyast_removed
+    - console/cron
+    - console/syslog
+    - console/mta
+    - '{{yast2_lan_device_settings}}'
+    - console/check_default_network_manager
+    - console/git
+    - console/cups
+    - console/java
+    - console/golang
+    - console/sqlite3
+    - console/sysctl
+    - console/oqa_agnostic/sysstat_agnostic
+    - console/tuned
+    - '{{fwupd}}'
+    - '{{snmp}}'
+    - console/curl_ipv6
+    - console/wget_ipv6
+    - console/ca_certificates_mozilla
+    - console/unzip
+    - console/gpg
+    - console/rsync
+    - console/rust
+    - console/shells
+    - console/oqa_agnostic/sudo_agnostic
+    - console/run0
+    - console/dstat
+    - x11/evolution/evolution_prepare_servers
+    - console/mutt
+    - console/pciutils
+    - '{{sle_tests}}'
+    - console/mdadm
+    - console/systemd_nspawn
+    - console/quota
+    - console/vhostmd
+    - console/rpcbind
+    - console/timezone
+    - console/procps
+    - '{{lshw}}'
+    - console/kmod
+    - console/suse_module_tools
+    - console/firewalld
+    - console/nftables
+    - console/aaa_base
+    - console/osinfo_db
+    - '{{opensuse_tests}}'
+    - '{{leap_tests}}'
+    - '{{tumbleweed_tests}}'
+    - console/journalctl
+    - console/tar
+    - console/ruby
+    - console/coredump_collect
+    - console/valgrind
+    - console/sssd_389ds_functional
+    - console/tcpdump
+    - console/zypper_log_packages

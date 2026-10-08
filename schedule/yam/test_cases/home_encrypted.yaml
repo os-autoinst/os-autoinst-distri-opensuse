@@ -1,0 +1,34 @@
+---
+name: home_encrypted
+description: >
+  Test interactive installation with encrypted home partition.
+schedule:
+  suggested_partitioning:
+    - installation/partitioning/edit_proposal_encrypt
+  first_login:
+    - installation/boot_encrypt
+    - installation/first_boot
+  system_preparation:
+    - console/system_prepare
+  system_validation:
+    - console/verify_separate_home
+    - console/validate_encrypt
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  cryptsetup:
+    device_status:
+      message: is active and is in use.
+      properties:
+        type: LUKS1
+        cipher: aes-xts-plain64
+        device: /dev/vda3
+        key_location: dm-crypt
+        mode: read/write
+  backup_file_info: 'LUKS encrypted file, ver 1 \[aes, xts-plain64, sha256\]'
+  backup_path: '/root/bkp_luks_header_cr_home'
+  disks:
+    - name: vda
+      partitions:
+        - name: vda3
+          encrypt_device: 1

@@ -1,0 +1,57 @@
+HPC Migration
+
+The tests rely on the fact that openQA fixed directory contains ready
+qcow2 images. Those should be registered against SCC for base products,
+as well as relevant parts: HPC and all other needed modules, patterns
+etc. For multimachine set-up there should be separate qcow2 registered.
+
+The overall idea is to run some functional tests on system before the
+actual migration. Then the system should be patched and eventually
+migrated.
+
+Upon successful migration the HPC cluster of VMs should be re-booted,
+and all sanity checks should be performed, so that one can check if
+all relevant parts of the HPC cluster still work as expected.
+
+This means that the migration testing is focused here on checking
+certain HPC functionalities and how do they behave upon migration and
+not on the migration process per-se.
+
+Overall, in terms of programatical approach, the concept differs from
+existing migration tests, as instead of using openQA modules with run()
+functions, the tests are calling relevant functions which take care of
+migration logic. This approach allows - for instance - to create
+barriers without complicating existing openQA migration modules.
+
+Test organization
+-----------------
+-----------------
+
+
+N1: FROM SPX to SPX+1
+-----------------
+MIGRATION_N1_A - single machine tests checking basics
+-- migration from SPX to SPX+1
+-- checking for both supported arches
+-- checking for zypper online
+-- checking for correct migration targets
+-- basic migration of a single machine
+
+MIGRATION_N1_B - cluster tests checking HPC functionality upon migration
+-- migration from SPX to SPX+1
+-- focused on zypper online migration as relevant for multimachine set-ups
+-- starting the cluster on older SP
+-- conducting HPC functional tests
+-- running online zypper migration
+-- restarting the cluster
+-- conducting HPC functional tests
+
+N2: FROM SPX to SPX+2
+-----------------
+MIGRATION_N2_A - single machine tests checking basics
+-- migration from SPX to SPX+2
+-- the same as MIGRATION_A but:
+
+MIGRATION_N2B - cluster tests checking HPC functionality upon migration
+-- migration from SPX to SPX+2
+-- the same as MIGRATION_B but:

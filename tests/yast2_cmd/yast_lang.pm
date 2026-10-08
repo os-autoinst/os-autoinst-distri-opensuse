@@ -1,0 +1,29 @@
+# SUSE's openQA tests
+#
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: yast2-country
+# Summary: yast language test
+# List languages, set default and secondary languages
+# Maintainer: QE Core <qe-core@suse.de>
+
+use Mojo::Base 'consoletest';
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use utils;
+
+sub run {
+    select_serial_terminal;
+    zypper_call "in yast2-country";
+    validate_script_output 'yast language list', sub { m/(.*)de_DE(.*)it_IT(.*)/s };
+    assert_script_run('yast language set lang=de_DE languages=it_IT', timeout => 300);
+    validate_script_output 'yast language summary', sub { m/(.*)de_DE(.*)it_IT(.*)/s };
+    assert_script_run('yast language set lang=en_US', timeout => 300);
+}
+
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
+1;

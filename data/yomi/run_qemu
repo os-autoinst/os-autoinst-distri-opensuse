@@ -1,0 +1,24 @@
+#!/bin/bash -ex
+
+# The first parameter is the scenario name
+if [ -z "$1" ]; then
+    echo 'Missing scenario name'
+    exit 1
+fi
+scenario="$1"
+
+efi=
+if [[ "$scenario" == *-efi ]]; then
+    efi='-drive if=pflash,format=raw,unit=0,readonly,file=/usr/share/qemu/ovmf-x86_64-code.bin '
+    efi+='-drive if=pflash,format=raw,unit=1,file=/usr/share/qemu/ovmf-x86_64-vars.bin '
+fi
+
+qemu-system-x86_64 \
+    -nographic \
+    -enable-kvm \
+    -m 1024 \
+    -net nic,model=virtio \
+    -net user,hostfwd=tcp::10022-:22 \
+    -cdrom openSUSE-Tumbleweed-Yomi*.iso \
+    -hda hda.qcow2 \
+    $efi
