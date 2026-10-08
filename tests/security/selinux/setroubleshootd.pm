@@ -1,4 +1,4 @@
-# Copyright 2024 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: verify expected setroubleshootd behavior
@@ -17,6 +17,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_leap);
+use package_utils 'install_package';
 
 sub ensure_setroubleshootd_cannot_be_directly_run_as_root {
     # ensure current test is run as root user
@@ -92,14 +93,17 @@ sub check_sealert() {
 sub run {
     my ($self) = shift;
     select_serial_terminal;
-    if (is_sle || is_leap) {    # bail out on SLE
-        record_info 'TEST SKIPPED', 'setroubleshootd is not yet implemented on SLE';
+    if (is_sle('<16.0') || is_leap('<16.0')) {    # bail out on SLE/Leap < 16.0
+        record_info('TEST SKIPPED', 'setroubleshootd is not implemented on SLE<16.0');
         return;
     }
     # ensure selinux is in enforcing mode
     validate_script_output 'getenforce', sub { m/Enforcing/ };
-    # ensure pkg installation
-    zypper_call 'in setroubleshoot-server setroubleshoot';
+    # ensure pkg installation, sealert needs the Gtk3 typelib on SLE 16+
+    my $packages = 'setroubleshoot-server setroubleshoot';
+    $packages .= ' typelib-1_0-Gtk-3_0' if is_sle('>=16.0');
+    install_package($packages);
+
     assert_script_run 'rpm -q setroubleshoot-plugins';
     ensure_setroubleshootd_cannot_be_directly_run_as_root;
     validate_service_restart;
