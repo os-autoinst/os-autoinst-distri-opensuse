@@ -14,9 +14,11 @@ use strict;
 use warnings;
 use testapi;
 use utils 'systemctl';
+use Mojo::JSON 'decode_json';
 
 our @EXPORT_OK = qw(
   is_debugfs_mounted
+  get_mount_info
   enable_debugfs
   get_kernel_config
   get_verified_shallow_tar
@@ -33,6 +35,25 @@ blktests' C<_have_debugfs()>. Returns true/false.
 
 sub is_debugfs_mounted {
     return script_run('findmnt -t debugfs /sys/kernel/debug') == 0;
+}
+
+=head2 get_mount_info
+
+ my $mount = get_mount_info($path);
+
+Returns a hash reference with C<target>, C<source>, C<fstype> and
+C<options> of the file system that C<$path> is on, from C<findmnt -T>.
+For example, C<target> C</var>, C<source> C</dev/sda2[/@/var]>, C<fstype>
+C<btrfs>. Dies if C<$path> is on no mounted file system.
+
+=cut
+
+sub get_mount_info {
+    my ($path) = @_;
+    my $json = script_output("findmnt -J -T $path -o TARGET,SOURCE,FSTYPE,OPTIONS");
+    my $mount = decode_json($json)->{filesystems}[0];
+    die "No mounted file system for $path" unless $mount;
+    return $mount;
 }
 
 =head2 enable_debugfs
