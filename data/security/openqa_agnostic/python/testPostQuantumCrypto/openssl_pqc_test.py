@@ -13,10 +13,11 @@ from pathlib import Path
 
 
 # TEST DATA
-
 ML_KEM_ALGOS = ["ML-KEM-512", "ML-KEM-768", "ML-KEM-1024"]
 HYBRID_KEM_ALGOS = ["X25519MLKEM768", "X448MLKEM1024", "SecP256r1MLKEM768", "SecP384r1MLKEM1024"]
-# skip X448MLKEM1024 as it's not implemented for TLS
+
+# skip X448MLKEM1024 as it's not implemented for TLS in openssl 3.5.x, see `openssl list -tls-groups`
+# and https://github.com/openssl/openssl/blob/openssl-3.5/providers/common/capabilities.c
 TLS_HANDSHAKE_ALGOS = [algo for algo in HYBRID_KEM_ALGOS if algo != "X448MLKEM1024"]
 ML_DSA_ALGOS = ["ML-DSA-44", "ML-DSA-65", "ML-DSA-87"]
 SLH_DSA_ALGOS = ["SLH-DSA-SHA2-128s", "SLH-DSA-SHA2-128f", "SLH-DSA-SHAKE-256s"]
@@ -28,6 +29,9 @@ class OpenSSLDriver:
     Handles OpenSSL command execution and manages the algorithm support cache.
     """
     def __init__(self, binary="openssl"):
+        """
+        :param binary: (str) openssl executable name or path
+        """
         self.binary = binary
         self._all_algos_cache = None
         self._tls_groups_cache = None
@@ -36,6 +40,13 @@ class OpenSSLDriver:
     def run(self, args, cwd=None, check=True, capture_output=True, input=None):
         """
         Helper to run openssl commands safely.
+
+        :param args: (list[str]) openssl subcommand and its arguments, eg. ["genpkey", "-algorithm", ...]
+        :param cwd: (str | Path | None) working directory for the command
+        :param check: (bool) raise RuntimeError if the command exits with a non-zero code
+        :param capture_output: (bool) capture stdout and stderr as bytes
+        :param input: (bytes | None) data sent to the command's stdin
+        :return: (subprocess.CompletedProcess) finished process, stdout/stderr are bytes when captured
         """
         # Provider Injection Logic:
         # 1. s_server/s_client: Need 'default' AND 'base' for full hybrid OID resolution.
@@ -72,6 +83,9 @@ class OpenSSLDriver:
         """
         Broad check: is the algorithm listed ANYWHERE (KEM, Sig, PK, or TLS)?
         Useful for general lifecycle tests.
+
+        :param algo_name: (str) algorithm name, matched case-insensitively
+        :return: (bool) True if the algorithm appears in any openssl list output
         """
         if self._all_algos_cache is None:
             try:
@@ -90,6 +104,9 @@ class OpenSSLDriver:
         """
         Specific check: is this algorithm a registered TLS Group?
         Mandatory for s_client/s_server -groups flag.
+
+        :param algo_name: (str) algorithm name, matched case-insensitively
+        :return: (bool) True if the algorithm is listed by 'openssl list -tls-groups'
         """
         if self._tls_groups_cache is None:
             try:
@@ -102,6 +119,9 @@ class OpenSSLDriver:
     def can_generate_key(self, algo_name):
         """
         Stricter check: can we actually run 'genpkey' for this algorithm?
+
+        :param algo_name: (str) algorithm name passed to 'openssl genpkey -algorithm'
+        :return: (bool) True if key generation succeeds
         """
         if self._keygen_supported_cache is None:
             self._keygen_supported_cache = set()
@@ -120,6 +140,12 @@ class OpenSSLDriver:
         return False
 
     def generate_cert(self, key_path, cert_path):
+        """
+        Generate an ED25519 key and a self-signed certificate for it.
+
+        :param key_path: (Path) output path for the private key
+        :param cert_path: (Path) output path for the certificate
+        """
         # 1. Generate Key
         self.run(["genpkey", "-algorithm", "ED25519", "-out", str(key_path)])
         # 2. Generate Self-Signed Cert
@@ -134,6 +160,11 @@ class OpenSSLDriver:
 
 @pytest.fixture(scope="session")
 def openssl():
+    """
+    Session-wide OpenSSL driver, so the algorithm support caches are shared by all tests.
+
+    :return: (OpenSSLDriver) driver using the 'openssl' binary from PATH
+    """
     return OpenSSLDriver(binary="openssl")
 
 
@@ -141,6 +172,13 @@ def openssl():
 # TEST: 'openssl dgst' compatibility with Post-Quantum DSA
 @pytest.mark.parametrize("algo", ML_DSA_ALGOS)
 def test_ml_dsa_explicit_dgst_compatibility(tmp_path: Path, algo, openssl):
+    """
+    Sign and verify a file with 'openssl dgst' using an ML-DSA key.
+
+    :param tmp_path: (Path) pytest fixture providing a per-test temporary directory
+    :param algo: (str) ML-DSA algorithm under test
+    :param openssl: (OpenSSLDriver) driver used to run openssl commands
+    """
     if not openssl.is_supported(algo):
         pytest.fail(f"Error: Algorithm {algo} not supported.")
 
@@ -172,6 +210,10 @@ def test_tls_handshake(tmp_path: Path, algo, openssl):
     """
     Spins up an 'openssl s_server' and connects with 'openssl s_client'
     enforcing the specific PQC or Hybrid group for Key Exchange.
+
+    :param tmp_path: (Path) pytest fixture providing a per-test temporary directory
+    :param algo: (str) PQC or hybrid TLS group under test
+    :param openssl: (OpenSSLDriver) driver used to run openssl commands
     """
     # STRICT CHECK: Only attempt handshake if OpenSSL explicitly lists it as a TLS group.
     if not openssl.is_tls_group(algo):
@@ -257,6 +299,10 @@ def test_tls_handshake(tmp_path: Path, algo, openssl):
 def test_kem_lifecycle(tmp_path: Path, algo, openssl):
     """
     Tests Key Encapsulation Mechanism (File-based).
+
+    :param tmp_path: (Path) pytest fixture providing a per-test temporary directory
+    :param algo: (str) ML-KEM algorithm under test
+    :param openssl: (OpenSSLDriver) driver used to run openssl commands
     """
     if not openssl.is_supported(algo):
         pytest.fail(f"Error: Algorithm {algo} not supported.")
@@ -301,6 +347,13 @@ def test_kem_lifecycle(tmp_path: Path, algo, openssl):
 # TEST: Post-Quantum Digital Signatures
 @pytest.mark.parametrize("algo", ML_DSA_ALGOS + SLH_DSA_ALGOS)
 def test_post_quantum_signatures(tmp_path: Path, algo, openssl):
+    """
+    Sign and verify a file with 'openssl pkeyutl', then check a tampered file fails verification.
+
+    :param tmp_path: (Path) pytest fixture providing a per-test temporary directory
+    :param algo: (str) ML-DSA or SLH-DSA algorithm under test
+    :param openssl: (OpenSSLDriver) driver used to run openssl commands
+    """
     if not openssl.is_supported(algo):
         pytest.fail(f"Error: Algorithm {algo} not supported.")
 
