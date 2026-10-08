@@ -78,6 +78,7 @@ subtest '[elemental3ctl_cmd]' => sub {
     ok((any { /--volume \/testdir:\/config(?!\S)/ } @calls), 'config_dir mounted');
     ok((any { /--volume \/testoverlay:\/extensions(?!\S)/ } @calls), 'overlay_dir mounted');
     ok((any { /--volume \/dev:\/dev/ } @calls), 'host /dev mounted');
+    ok((any { /--volume \/run\/udev:\/run\/udev/ } @calls), 'host /run/udev mounted');
     ok((any { /elemental3ctl install --target \/dev\/nbd0/ } @calls), 'elemental3ctl command executed');
 
     # Check without optional arguments (device, config_dir, overlay_dir)
@@ -87,6 +88,7 @@ subtest '[elemental3ctl_cmd]' => sub {
         uri => $params{uri}
     );
     ok(!(any { /--volume \/dev:\/dev/ } @calls), '/dev not mounted when device not specified');
+    ok(!(any { /--volume \/run\/udev:\/run\/udev/ } @calls), '/run/udev not mounted when device not specified');
     ok(!(any { /--volume \/testdir/ } @calls), 'config_dir not mounted when not specified');
     ok(!(any { /--volume \/testoverlay/ } @calls), 'overlay_dir not mounted when not specified');
 };
