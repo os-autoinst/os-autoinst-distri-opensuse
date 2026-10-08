@@ -867,11 +867,11 @@ sub fully_patch_system {
 
     my $ret = 1;
     if (is_transactional) {
-        # Update package manager first, not possible to detect package manager update bsc#1216504
+        # Update the package manager first, then continue patching in the same
+        # snapshot so a single reboot applies both. The second patch runs with
+        # the updated package manager from the snapshot (bsc#1216504).
         transactional::trup_call('patch', timeout => $trup_call_timeout);
-        transactional::reboot_on_changes();
-        # Continue with patch
-        transactional::trup_call('patch', timeout => $trup_call_timeout);
+        transactional::trup_call('--continue patch', timeout => $trup_call_timeout);
         transactional::reboot_on_changes();
         return;
     } else {
