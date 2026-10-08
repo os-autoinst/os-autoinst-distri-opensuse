@@ -78,6 +78,7 @@ sub run {
     select_serial_terminal;
 
     my $bastion_ip = ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $bastion_ip;
 
     # Default for ipaddr2_os_sanity is cloudadmin.
     # It has to know about it to decide which ssh are expected in internal VMs

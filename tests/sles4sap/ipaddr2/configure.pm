@@ -72,6 +72,7 @@ sub run {
 
     record_info("TEST STAGE", "Prepare all the ssh connections within the 2 internal VMs");
     my $bastion_ip = ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $bastion_ip;
     ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
 
     my %int_key_args = (bastion_ip => $bastion_ip);

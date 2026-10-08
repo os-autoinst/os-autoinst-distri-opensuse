@@ -69,6 +69,7 @@ sub run {
     select_serial_terminal;
 
     my $bastion_ip = ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $bastion_ip;
 
     # 1. get the webpage using the LB floating IP. It should be from VM1 at the test beginning
     # 2. move the cluster resource on the VM2

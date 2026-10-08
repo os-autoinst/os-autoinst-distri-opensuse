@@ -262,17 +262,118 @@ subtest '[az_network_publicip_create] with optional arguments' => sub {
     ok((any { /--zone Venezia Mestre/ } @calls), 'Argument --zone');
 };
 
+subtest '[az_network_publicip_get] missing argument' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    my %run_args;
+
+    dies_ok { az_network_publicip_get(name => 'Truffaldino') } 'Die for missing argument resource_group';
+    dies_ok { az_network_publicip_get(resource_group => 'Arlecchino') } 'Die for missing argument name';
+};
+
 subtest '[az_network_publicip_get]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Eugenia'; });
+    my %run_args;
+    $azcli->redefine(assert_script_run => sub {
+            push @calls, shift;
+    });
+    $azcli->redefine(script_run => sub {
+            push @calls, shift;
+            %run_args = @_;
+            return 0;
+    });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az\.json/, $_[0];
+            return 'err.log' if grep /az\.err/, $_[0];
+            return '"10.0.0.1"' if grep /out\.json/, $_[0];
+            return '';
+    });
 
     my $res = az_network_publicip_get(
         resource_group => 'Arlecchino',
         name => 'Truffaldino');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok $res eq 'Eugenia';
+    is $res, '10.0.0.1', 'Return public IP address';
+    ok((any { /az network public-ip show/ } @calls), 'Correct command composition');
+    ok((any { /--resource-group Arlecchino/ } @calls), 'Check for argument "--resource-group"');
+    ok((any { /--name Truffaldino/ } @calls), 'Check for argument "--name"');
+    ok((any { /--query "ipAddress"/ } @calls), 'Check for argument "--query"');
+};
+
+subtest '[az_network_publicip_get] timeout' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    my %run_args;
+    $azcli->redefine(assert_script_run => sub {
+            push @calls, shift;
+    });
+    $azcli->redefine(script_run => sub {
+            push @calls, shift;
+            %run_args = @_;
+            return 0;
+    });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az\.json/, $_[0];
+            return 'err.log' if grep /az\.err/, $_[0];
+            return '"10.0.0.1"' if grep /out\.json/, $_[0];
+            return '';
+    });
+
+    # Optional timeout
+    az_network_publicip_get(
+        resource_group => 'Arlecchino',
+        name => 'Truffaldino',
+        timeout => 42);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is $run_args{timeout}, 42, 'Pass timeout to az / script_run';
+};
+
+subtest '[az_network_publicip_get] return undef' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub {
+            push @calls, shift;
+            return 0;
+    });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az\.json/, $_[0];
+            return 'err.log' if grep /az\.err/, $_[0];
+            return '"10.0.0.1"' if grep /out\.json/, $_[0];
+            return '';
+    });
+
+    # Return undef when script_run fails (non-zero exit code e.g. ResourceNotFound)
+    $azcli->redefine(script_run => sub {
+            push @calls, shift;
+            return 3; });
+    is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), undef, 'Return undef on command failure';
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    # Return undef when script_run times out (returns undef)
+    $azcli->redefine(script_run => sub {
+            push @calls, shift;
+            return undef; });
+    is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), undef, 'Return undef on timeout';
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    # Return undef when command output is empty or whitespace
+    $azcli->redefine(script_run => sub {
+            push @calls, shift;
+            return 0; });
+    $azcli->redefine(script_output => sub {
+            return 'out.json' if grep /az\.json/, $_[0];
+            return 'err.log' if grep /az\.err/, $_[0];
+            return '   ' if grep /out\.json/, $_[0];
+            return '';
+    });
+    is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), undef, 'Return undef on empty output';
+    note("\n  -->  " . join("\n  -->  ", @calls));
 };
 
 subtest '[az_network_lb_create]' => sub {
