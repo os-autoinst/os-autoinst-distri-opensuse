@@ -91,7 +91,7 @@ sub elemental3ctl_cmd {
 
     # Is device sharing needed?
     my $device = '';
-    $device = "--group-add keep-groups --device=$args{device}:$args{device}:rwm" if ($args{device});
+    $device = '--volume /dev:/dev' if ($args{device});
 
     assert_script_run(
         "$runtime run --rm ${sec_opts} ${volumes} ${device} $args{uri} elemental3ctl $args{cmd}",

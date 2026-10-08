@@ -285,7 +285,7 @@ sub install_cmd {
     assert_script_run(
         "qemu-img create -f qcow2 $args{config_dir}/$args{img_filename}.qcow2 $args{hddsize}G"
     );
-    assert_script_run('modprobe nbd');
+    assert_script_run('modprobe nbd max_part=16');
     assert_script_run(
         "qemu-nbd -c $device $args{config_dir}/$args{img_filename}.qcow2");
 
