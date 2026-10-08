@@ -18,11 +18,13 @@ sub run {
     select_console 'root-console';
     my $out = script_output("transactional-update --quiet register --list-extensions|grep PackageHub", proceed_on_failure => 1);
     if ($out ne "") {    #check if PackageHub extension is available
+        my $continue = '';
         if ($out =~ /Activate with: transactional-update /p) {    #Check if it is activated
             trup_call("${^POSTMATCH}");
-            check_reboot_changes;
+            # Reuse the registration snapshot for the install, so a single reboot applies both
+            $continue = '--continue ';
         }
-        trup_call("pkg install sshpass");
+        trup_call($continue . "pkg install sshpass");
         check_reboot_changes;
         assert_script_run("rpm -q sshpass");
     }
