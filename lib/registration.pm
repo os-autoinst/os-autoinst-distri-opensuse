@@ -1086,9 +1086,13 @@ sub runtime_registration {
     if (is_transactional) {
         trup_call('register' . $cmd);
         trup_call('--continue run zypper --gpg-auto-import-keys refresh') if is_staging;
+        # Register SL-Micro-Extras in the same transaction as the base product
+        # using --continue so both land in one snapshot and need only one reboot.
+        # Previously (PR#20494) a reboot was added between the two registrations
+        # because SUSEConnect needs the base product active. With --continue
+        # the snapshot already contains the base registration state.
         if (is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) {
-            process_reboot(trigger => 1);
-            add_suseconnect_product('SL-Micro-Extras', get_var('HDDVERSION'), undef, undef, 90, 1);
+            trup_call('--continue register -p SL-Micro-Extras/' . scc_version(get_var('HDDVERSION')) . '/' . get_required_var('ARCH'));
         }
         process_reboot(trigger => 1);
     }
