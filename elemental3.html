@@ -15,6 +15,7 @@
   <li>
     <ul>
       <li><a href="#elemental3_cmd">elemental3_cmd</a></li>
+      <li><a href="#elemental3ctl_cmd">elemental3ctl_cmd</a></li>
       <li><a href="#get_artifact_uri">get_artifact_uri</a></li>
       <li><a href="#get_sysext">get_sysext</a></li>
       <li><a href="#get_values">get_values</a></li>
@@ -30,10 +31,18 @@
 
 <h2 id="elemental3_cmd">elemental3_cmd</h2>
 
-<pre><code>elemental3_cmd( config_dir =&gt; &lt;value&gt;, cmd =&gt; &lt;value&gt;, uri =&gt; &lt;value&gt;,
-                timeout =&gt; &lt;value&gt; );</code></pre>
+<pre><code>elemental3_cmd( config_dir =&gt; &lt;value&gt;, cmd =&gt; &lt;value&gt;, uri =&gt; &lt;value&gt;
+                [, timeout =&gt; &lt;value&gt; ] );</code></pre>
 
 <p>Execute elemental3 command from container.</p>
+
+<h2 id="elemental3ctl_cmd">elemental3ctl_cmd</h2>
+
+<pre><code>elemental3ctl_cmd( cmd =&gt; &lt;value&gt;, uri =&gt; &lt;value&gt; [, config_dir =&gt; &lt;value&gt; ]
+                   [, device =&gt; &lt;value&gt; ] [, overlay_dir =&gt; &lt;value&gt; ]
+                   [, timeout =&gt; &lt;value&gt; ] );</code></pre>
+
+<p>Execute elemental3ctl command from container.</p>
 
 <h2 id="get_artifact_uri">get_artifact_uri</h2>
 
@@ -43,7 +52,7 @@
 
 <h2 id="get_sysext">get_sysext</h2>
 
-<pre><code>get_sysext( tmpdir =&gt; &lt;value&gt;, timeout =&gt; &lt;value&gt; );</code></pre>
+<pre><code>get_sysext( tmpdir =&gt; &lt;value&gt;, uri =&gt; &lt;value&gt; [, timeout =&gt; &lt;value&gt; ] );</code></pre>
 
 <p>Get systemd system extensions from SYSEXT_IMAGES_TO_TEST list and prepare them to be used by elemental tool.</p>
 
