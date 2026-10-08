@@ -56,9 +56,14 @@ def setup_apache():
 
 @pytest.fixture(scope="session", params=MLDSA_VARIANTS)
 def mldsa(request):
-    """Generate ML-DSA key and self-signed certificate for the given variant,
-    deploy them to Apache directories, restart Apache and verify it is
-    listening on port 443. Returns the variant name and certificate path."""
+    """Generate (if not already present) ML-DSA key and self-signed certificate
+    for the given variant, deploy them to Apache directories, restart Apache and
+    verify it is listening on port 443. Returns the variant name and certificate path.
+
+    :param request: (pytest.FixtureRequest) pytest request object; request.param
+                    holds the ML-DSA variant for this instance, eg. 'mldsa65'
+    :return: (tuple[str, Path]) ML-DSA variant name and path to its self-signed certificate
+    """
     variant = request.param
     key = BASE_DIR / f"server_{variant}.key"
     crt = BASE_DIR / f"server_{variant}.crt"
@@ -102,7 +107,12 @@ def mldsa(request):
 
 def _s_client_output(groups: str, cafile: Path) -> str:
     """Run openssl s_client against the server restricted to the given KEM group
-    and send a minimal HTTP/1.0 GET. Returns combined stdout and stderr."""
+    and send a minimal HTTP/1.0 GET over TLS.
+
+    :param groups: (str) ML-KEM group to restrict the key exchange to, eg. 'mlkem768'
+    :param cafile: (Path) CA certificate used to verify the server certificate
+    :return: (str) combined stdout and stderr of openssl s_client
+    """
     result = subprocess.run(
         [
             "openssl", "s_client",
@@ -124,7 +134,11 @@ def test_pqc_tls_handshake(mldsa, groups):
     """Verify the TLS handshake uses the expected ML-KEM group for key exchange
     (checked in 'Negotiated TLS1.3 group' line) and the expected ML-DSA variant
     for the server certificate signature (checked in 'Peer signature type'
-    line)."""
+    line).
+
+    :param mldsa: (tuple[str, Path]) ML-DSA variant name and certificate path from the mldsa fixture
+    :param groups: (str) ML-KEM group to use for the key exchange
+    """
     variant, crt = mldsa
     output = _s_client_output(groups, crt)
     neg_group = next(
@@ -146,7 +160,11 @@ def test_pqc_tls_handshake(mldsa, groups):
 def test_pqc_curl_https_request(mldsa, groups):
     """Verify the server returns HTTP 200 over a PQC TLS connection using curl.
     curl -v verbose output (sent to stderr) is checked for 'HTTP/1.1 200 OK'.
-    We use -k (aka --insecure) option with curl because cert is self-signed"""
+    We use -k (aka --insecure) option with curl because cert is self-signed
+
+    :param mldsa: (tuple[str, Path]) mldsa fixture, requested so Apache is set up with the ML-DSA certificate
+    :param groups: (str) ML-KEM group passed to curl --curves
+    """
     result = subprocess.run(
         ["curl", "-k", "-v", "--curves", groups, "https://localhost:443"],
         stdout=subprocess.DEVNULL,
