@@ -82,19 +82,18 @@ sub elemental3ctl_cmd {
     # UnifiedCore OS image has the CAs we can simply use them as-is.
     # NOTE: Run privileged with unconfined_t SELinux domain so elemental3ctl
     # can perform disk partitioning (systemd-repart) and file relabeling (setfiles).
-    my $sec_opts = '--privileged --security-opt label=type:unconfined_t';
-    my $volumes = '--volume /var/lib/ca-certificates:/var/lib/ca-certificates:ro --volume /etc/ssl:/etc/ssl:ro';
+    my $opts = '--privileged --security-opt label=type:unconfined_t';
+    $opts .= ' --volume /var/lib/ca-certificates:/var/lib/ca-certificates:ro --volume /etc/ssl:/etc/ssl:ro';
 
     # Check if specific directories need to be mounted
-    $volumes .= " --volume $args{config_dir}:/config" if ($args{config_dir});
-    $volumes .= " --volume $args{overlay_dir}:/extensions" if ($args{overlay_dir});
+    $opts .= " --volume $args{config_dir}:/config" if ($args{config_dir});
+    $opts .= " --volume $args{overlay_dir}:/extensions" if ($args{overlay_dir});
 
     # Is device sharing needed?
-    my $device = '';
-    $device = '--volume /dev:/dev --volume /run/udev:/run/udev' if ($args{device});
+    $opts .= ' --volume /dev:/dev --volume /run/udev:/run/udev' if ($args{device});
 
     assert_script_run(
-        "$runtime run --rm ${sec_opts} ${volumes} ${device} $args{uri} elemental3ctl $args{cmd}",
+        "$runtime run --rm ${opts} $args{uri} elemental3ctl $args{cmd}",
         timeout => $timeout
     );
 }
