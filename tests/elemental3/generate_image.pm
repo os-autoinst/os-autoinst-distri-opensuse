@@ -167,12 +167,12 @@ sub customize_cmd {
             if (check_var('CLUSTER_TYPE', 'singlenode')) {
                 # Keep configuration for first node only
                 assert_script_run(
-                    "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $cluster_yaml"
+                    "sed -i -e '/- hostname: node02/,/^network:/ { /^network:/!d }' $cluster_yaml"
                 );
                 assert_script_run("rm -f $args{config_dir}/network/node0[2-9]*.yaml");
             }
         } else {
-            # Remove k8s-preinstall service, as this is only useful
+            # Remove network configuration and k8s-preinstall service, as this is only useful
             # for the single-node and multi-node tests
             assert_script_run("rm -rf $args{config_dir}/network");
             assert_script_run(
