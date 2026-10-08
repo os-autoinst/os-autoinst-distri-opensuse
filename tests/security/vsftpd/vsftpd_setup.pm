@@ -53,6 +53,8 @@ expect {
     # Edit vsftpd.conf to enable and force the use of ssl
     assert_script_run("wget --quiet " . data_url("vsftpd/vsftpd.conf") . " -O /etc/vsftpd.conf");
 
+    # Disable require_ssl_reuse in SLE16
+    assert_script_run("echo \"require_ssl_reuse=NO\" >> /etc/vsftpd.conf") if is_sle('>=16.0');
     # Start vsftpd service and check status
     systemctl('start vsftpd');
     validate_script_output('systemctl is-active vsftpd', sub { m/active/ });

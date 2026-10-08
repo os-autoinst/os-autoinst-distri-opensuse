@@ -15,6 +15,11 @@ use version_utils qw(is_sle is_leap);
 sub run {
     select_console 'root-console';
 
+    if (is_sle('>=16.0')) {    # bail out on SLE16+, package not present there
+        record_info('TEST SKIPPED', 'dool/dstat not present in SLE16');
+        return;
+    }
+
     my $binary = (is_sle('<16') || is_leap('<16.0')) ? "dstat" : "dool";
     zypper_call("in $binary");
 

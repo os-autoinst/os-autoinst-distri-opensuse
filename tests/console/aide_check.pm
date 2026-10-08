@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: aide
@@ -13,12 +13,13 @@
 #          4. Modify the file system and run aide check again
 #
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#64364, poo#102032, tc#1744128
+# Tags: poo#64364, poo#102032, tc#1744128, poo#207477
 
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils "zypper_call";
+use package_utils 'install_package';
+use version_utils 'is_sle';
 
 sub cleanup_aide {
     # run() replaces the packaged aide.conf and builds a database over a scratch directory.
@@ -30,20 +31,22 @@ sub cleanup_aide {
 sub run {
     select_serial_terminal;
 
-    zypper_call "in aide wget";
-
+    install_package("aide wget", trup_continue => 1, trup_reboot => 1);
     # Keep the packaged configuration so it can be restored afterwards
     script_run "cp -a /etc/aide.conf /etc/aide.conf.orig";
-
-    assert_script_run "wget --quiet " . data_url("security/aide_conf");
-    assert_script_run "mv aide_conf /etc/aide.conf";
-
+    if (is_sle('<=15-SP7')) {
+        assert_script_run "wget --quiet " . data_url("security/aide_conf");
+        assert_script_run "mv aide_conf /etc/aide.conf";
+    }
+    else {
+        assert_script_run q{printf '%s\n' 'database_in=file:/var/lib/aide/aide.db' 'database_out=file:/var/lib/aide/aide.db.new' 'report_url=stdout' 'CONTENTONLY = sha1+s' '/testdir f CONTENTONLY' > /etc/aide.conf};
+    }
 
     assert_script_run "mkdir -p /testdir";
     assert_script_run "echo hello > /testdir/t1.log";
 
     # Initialize the database and move it to the appropriate place before using the --check command
-    validate_script_output "aide --init 2>&1 || true", sub { m/AIDE initialized database/ }, 300;
+    validate_script_output "aide --init 2>&1 || true", sub { m/AIDE (successfully )?initialized database/ }, 300;
     send_key 'ret';
 
     assert_script_run "cp /var/lib/aide/aide.db.new /var/lib/aide/aide.db";

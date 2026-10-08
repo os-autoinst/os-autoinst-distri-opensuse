@@ -1,15 +1,16 @@
 # SUSE's openQA tests
 #
-# Copyright 2018 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: SUSEConnect
 # Summary: Test SUSEConnect by registering system, module and deregistration.
 # - De-register system using SUSEConnect (-d, --cleanup,  --status-text)
 # - Register product using SCC_REGCODE code
-# - Add live patching if SLE < 15 using SCC_REGCODE_LIVE
+# - Add live patching (extension on SLE 12, module on SLE 15, skipped on SLE 16) using SCC_REGCODE_LIVE
 # - Check registering status
 # Maintainer: Juraj Hura <jhura@suse.com>
+# Tags: poo#207477
 
 use Mojo::Base 'consoletest';
 use testapi;
@@ -38,7 +39,14 @@ sub run {
     zypper_call 'ref';
     assert_script_run "SUSEConnect --list-extensions";
 
-    add_suseconnect_product(is_sle('<15') ? 'sle-live-patching' : 'sle-module-live-patching', undef, undef, "-r $live_reg_code");
+    # Products to activate with SCC_REGCODE_LIVE: SLE 12 has the live patching extension,
+    # SLE 15 has it as a module. SLE 16 has no such product in SCC (not listed by --list-extensions)
+    my @live_products = is_sle('15+') ? ('sle-module-live-patching') : ('sle-live-patching');
+    if (is_sle('16+')) {
+        record_info('skip live patching', 'No live patching product available in SCC for SLE 16');
+        @live_products = ();
+    }
+    add_suseconnect_product($_, undef, undef, "-r $live_reg_code") for @live_products;
 
     assert_script_run "SUSEConnect --status";
     assert_script_run "SUSEConnect -d || SUSEConnect --cleanup";

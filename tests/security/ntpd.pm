@@ -1,4 +1,4 @@
-# Copyright 2024 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: ntp
@@ -8,20 +8,23 @@
 # This test has been adapted from console/ntp.pm and changed to clean up after
 # itself, which is required if we want to run chrony test afterwards, since it
 # fails when ntpd is installed.
+# Tags: poo#207477
 
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use services::ntpd;
-use serial_terminal qw(select_serial_terminal);
+use serial_terminal 'select_serial_terminal';
 use Utils::Logging 'save_and_upload_log';
 use version_utils 'is_sle';
-use registration 'add_suseconnect_product';
-
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
+use serial_terminal 'select_text_console';
 
 sub run {
-    select_serial_terminal;
-    add_suseconnect_product('sle-module-legacy') if is_sle('>=15-SP4');
+    select_text_console;
+    add_suseconnect_product('sle-module-legacy') if is_sle('>=15-SP4') && is_sle('<16.0');
+    add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready() && is_sle('>=16.0'));
+    assert_script_run('zypper --gpg-auto-import-keys refresh') if is_sle('>=16.0');
     services::ntpd::install_service();
     services::ntpd::enable_service();
     services::ntpd::start_service();
