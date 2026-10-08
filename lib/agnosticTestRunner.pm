@@ -130,7 +130,7 @@ sub run_test {
       . ' && mv ' . $result_src . ' ' . $self->{result_file};
     assert_script_run($command, timeout => $self->{run_timeout}, quiet => 1);
     upload_logs($output_log, failok => 1);
-    assert_script_run('reset');
+    script_run('reset');
     return $self;
 }
 
