@@ -155,6 +155,7 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
       12-SP5:
+        - console/sudo
         - console/curl_ipv6
         - console/wget_ipv6
         - console/osinfo_db
@@ -165,6 +166,7 @@ conditional_schedule:
         - '{{arch_12sp5}}'
         - '{{arch_systemtap}}'
       12-SP3:
+        - console/sudo
         - console/osinfo_db
         - console/journald_fss
         - '{{arch_specific}}'
