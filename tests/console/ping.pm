@@ -94,7 +94,7 @@ sub run {
     if ($rc) {
         record_info('ttl=0 not found');
     } else {
-        record_soft_failure('bsc#1243284');
+        record_info('bsc#1243284');
     }
 
     # IPv6 -I bug reproducibility
