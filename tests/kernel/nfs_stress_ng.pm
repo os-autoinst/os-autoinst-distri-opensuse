@@ -161,8 +161,12 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    upload_logs('/tmp/stress-ng*.yaml', failok => 1);
-    upload_logs('/tmp/stress-ng*.log', failok => 1);
+    # the user terminal can still be busy with the stress-ng output
+    select_serial_terminal;
+    my $logs = script_output('ls /tmp/stress-ng_*.yaml /tmp/stress-ng_*.log 2>/dev/null', proceed_on_failure => 1);
+    upload_logs($_, failok => 1) for grep { m{^/tmp/stress-ng_} } split ' ', $logs;
+    # the generic hook hangs on the NFS mounts if the server is gone
+    script_run('umount -a -l -t nfs,nfs4');
     $self->SUPER::post_fail_hook;
 }
 
