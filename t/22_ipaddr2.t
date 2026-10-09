@@ -585,9 +585,7 @@ subtest '[ipaddr2_os_sanity] Failure Scenarios' => sub {
             push @calls, ["VM$args{id}", $args{cmd}];
             return 1 if ($args{id} == 1);
             return 0; });
-    lives_ok { ipaddr2_os_sanity(); } 'Failed services do not abort sanity checks';
-    # Only uncomment if we decide to kill the test on 'degraded' status
-    # throws_ok { ipaddr2_os_sanity(); } qr/Test died on VM 1/, 'Test die due to failed services';
+    throws_ok { ipaddr2_os_sanity(); } qr/Test died on VM 1 due to failed services\./, 'Test dies due to failed services';
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
@@ -596,6 +594,126 @@ subtest '[ipaddr2_os_sanity] Failure Scenarios' => sub {
             return 3 if ($args{id} == 2);
             return 0; });
     throws_ok { ipaddr2_os_sanity(); } qr/VM 2 .* with exit code 3/, 'Unexpected non-zero exit code';
+};
+
+subtest '[ipaddr2_os_sanity] cleanoldsepoldir failure in 16.1' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
+    $ipaddr2->noop(qw(script_run assert_script_run));
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub { return; });
+
+    my @soft_failures;
+    $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
+    my @is_sle_calls;
+    $ipaddr2->redefine(is_sle => sub { push @is_sle_calls, @_; return 1; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            return "cleanoldsepoldir.service loaded failed failed Clean old sepol directory\n" if ($args{cmd} =~ /failed/);
+            return 3;
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            return 1 if ($args{cmd} =~ /is-system-running/ && $args{id} == 1);
+            return 0 if ($args{cmd} =~ /is-system-running/ && $args{id} == 2);
+            return 1 if ($args{cmd} =~ /rpm -q snapper/);
+            return 0;
+    });
+
+    lives_ok { ipaddr2_os_sanity(); } 'cleanoldsepoldir failure without snapper on SLE 16.1 records soft failure and continues';
+    is($is_sle_calls[0], '=16.1', 'is_sle queried specifically for =16.1');
+    ok((any { /bsc#1271814/ } @soft_failures), 'record_soft_failure called with bsc#1271814');
+};
+
+subtest '[ipaddr2_os_sanity] cleanoldsepoldir in 16.1 and snapper installed' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
+    $ipaddr2->noop(qw(script_run assert_script_run));
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub { return; });
+
+    my @soft_failures;
+    $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
+    my @is_sle_calls;
+    $ipaddr2->redefine(is_sle => sub { push @is_sle_calls, @_; return 1; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            return "cleanoldsepoldir.service loaded failed failed Clean old sepol directory\n" if ($args{cmd} =~ /failed/);
+            return 3;
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            return 1 if ($args{cmd} =~ /is-system-running/ && $args{id} == 1);
+            return 0 if ($args{cmd} =~ /is-system-running/ && $args{id} == 2);
+            return 0 if ($args{cmd} =~ /rpm -q snapper/);
+            return 0;
+    });
+
+    throws_ok { ipaddr2_os_sanity(); } qr/Test died on VM 1 due to failed services\./, 'Dies when snapper is installed';
+    is($is_sle_calls[0], '=16.1', 'is_sle queried specifically for =16.1');
+    ok((none { /bsc#1271814/ } @soft_failures), 'record_soft_failure not called');
+};
+
+subtest '[ipaddr2_os_sanity] multiple failed services' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
+    $ipaddr2->noop(qw(script_run assert_script_run));
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub { return; });
+
+    my @soft_failures;
+    $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
+    my @is_sle_calls;
+    $ipaddr2->redefine(is_sle => sub { push @is_sle_calls, @_; return 1; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            return "cleanoldsepoldir.service loaded failed failed Clean old sepol directory\nnginx.service loaded failed failed Nginx Server\n" if ($args{cmd} =~ /failed/);
+            return 3;
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            return 1 if ($args{cmd} =~ /is-system-running/ && $args{id} == 1);
+            return 0 if ($args{cmd} =~ /is-system-running/ && $args{id} == 2);
+            return 1 if ($args{cmd} =~ /rpm -q snapper/);
+            return 0;
+    });
+
+    throws_ok { ipaddr2_os_sanity(); } qr/Test died on VM 1 due to failed services\./, 'Dies when multiple services failed';
+    is($is_sle_calls[0], '=16.1', 'is_sle queried specifically for =16.1');
+    ok((none { /bsc#1271814/ } @soft_failures), 'record_soft_failure not called');
+};
+
+subtest '[ipaddr2_os_sanity] cleanoldsepoldir failure non-SLE 16.1' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
+    $ipaddr2->noop(qw(script_run assert_script_run));
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub { return; });
+
+    my @soft_failures;
+    $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
+    my @is_sle_calls;
+    $ipaddr2->redefine(is_sle => sub { push @is_sle_calls, @_; return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            return "cleanoldsepoldir.service loaded failed failed Clean old sepol directory\n" if ($args{cmd} =~ /failed/);
+            return 3;
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            return 1 if ($args{cmd} =~ /is-system-running/ && $args{id} == 1);
+            return 0 if ($args{cmd} =~ /is-system-running/ && $args{id} == 2);
+            return 1 if ($args{cmd} =~ /rpm -q snapper/);
+            return 0;
+    });
+
+    throws_ok { ipaddr2_os_sanity(); } qr/Test died on VM 1 due to failed services\./, 'Dies on non-SLE 16.1';
+    is($is_sle_calls[0], '=16.1', 'is_sle queried specifically for =16.1');
+    ok((none { /bsc#1271814/ } @soft_failures), 'record_soft_failure not called');
 };
 
 subtest '[ipaddr2_bastion_pubip]' => sub {
