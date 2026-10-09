@@ -585,7 +585,9 @@ subtest '[ipaddr2_os_sanity] Failure Scenarios' => sub {
             push @calls, ["VM$args{id}", $args{cmd}];
             return 1 if ($args{id} == 1);
             return 0; });
-    throws_ok { ipaddr2_os_sanity(); } qr/Test died on VM 1/, 'Test die due to failed services';
+    lives_ok { ipaddr2_os_sanity(); } 'Failed services do not abort sanity checks';
+    # Only uncomment if we decide to kill the test on 'degraded' status
+    # throws_ok { ipaddr2_os_sanity(); } qr/Test died on VM 1/, 'Test die due to failed services';
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
