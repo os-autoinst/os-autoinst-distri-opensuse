@@ -5,7 +5,6 @@ description:    >
     Actual ping is done in setup_multimachine.
     To be cloned in openQA-in-openQA test.
 schedule:
-    - installation/bootloader_start
     - boot/boot_to_desktop
     - network/setup_multimachine
     - network/conclude_multimachine
