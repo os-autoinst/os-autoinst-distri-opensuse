@@ -21,6 +21,7 @@ schedule:
   - console/update_alternatives
   - console/rpm
   - console/slp
+  - '{{chrony}}'
   - console/journalctl
   - console/journalctlLevels
   - console/libvorbis
@@ -47,12 +48,21 @@ schedule:
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
+  chrony:
+    VERSION:
+      '16.0': &chrony
+        - console/chrony
+      15-SP7: *chrony
+      15-SP6: *chrony
+      15-SP5: *chrony
+      15-SP4: *chrony
+      15-SP3: *chrony
+      15-SP2: *chrony
   version_specific:
     VERSION:
       '16.0':
         - console/sssd_389ds_functional
         - console/rabbitmq
-        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
@@ -63,7 +73,6 @@ conditional_schedule:
       15-SP7:
         - console/sssd_389ds_functional
         - console/rabbitmq
-        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
@@ -74,7 +83,6 @@ conditional_schedule:
       15-SP6:
         - console/sssd_389ds_functional
         - console/rabbitmq
-        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
@@ -85,7 +93,6 @@ conditional_schedule:
       15-SP5:
         - console/sssd_389ds_functional
         - console/rabbitmq
-        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
@@ -95,7 +102,6 @@ conditional_schedule:
       15-SP4:
         - console/sssd_389ds_functional
         - console/rabbitmq
-        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
@@ -105,7 +111,6 @@ conditional_schedule:
       15-SP3:
         - console/sssd_389ds_functional
         - console/rabbitmq
-        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
@@ -113,7 +118,6 @@ conditional_schedule:
       15-SP2:
         - console/sssd_389ds_functional
         - console/rabbitmq
-        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
