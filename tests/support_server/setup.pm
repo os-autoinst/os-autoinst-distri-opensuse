@@ -73,8 +73,6 @@ sub turnoff_gnome_screensaver_and_suspend {
 sub setup_pxe_server {
     return if $pxe_server_set;
     my $setup_script;
-    chk_req_pkgs('dhcpd tftp');
-
     $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/pxe/setup_pxe.sh  > setup_pxe.sh\n";
     my $ckrnl;
     if ($ckrnl = get_var('SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
@@ -100,7 +98,6 @@ sub setup_pxe_server {
 sub setup_http_server {
     return if $http_server_set;
     record_info 'HTTP server setup';
-    chk_req_pkgs('apache2');
 
     systemctl('stop apache2');
     assert_script_run('curl -f -v ' . autoinst_url . '/data/supportserver/http/apache2  >/etc/sysconfig/apache2');
@@ -119,7 +116,6 @@ sub setup_ftp_server {
 sub setup_tftp_server {
     return if $tftp_server_set;
     record_info 'TFTP server setup';
-    chk_req_pkgs('tftp');
     # atftpd is available only on older products (e.g.: present on SLE-12, gone on SLE-15)
     # FIXME: other options besides RPMs atftp, tftp not considered. For SLE-15 this is enough.
     my $tftp_service = script_output("rpm --quiet -q atftp && echo atftpd || echo tftp", type_command => 1);
@@ -176,8 +172,6 @@ sub setup_networks {
 sub setup_dns_server {
     return if $dns_server_set;
     my $setup_script;
-    chk_req_pkgs('bind bind-utils');
-
     my $named_url = autoinst_url . '/data/supportserver/named';
     $setup_script .= qq@
         sed -i -e '/^NETCONFIG_DNS_FORWARDER=/ s/=.*/="bind"/' \\
@@ -293,7 +287,6 @@ sub setup_dhcp_server {
     my ($dns, $pxe, $mtu) = @_;
     return if $dhcp_server_set;
     my $setup_script;
-    chk_req_pkgs('dhcp-server');
     my $net_conf = parse_network_configuration();
 
     $setup_script .= "systemctl stop dhcpd\n";
@@ -345,7 +338,6 @@ sub setup_ntp_server {
         systemctl('restart ntpd');
     }
     else {
-        chk_req_pkgs('chrony');
         assert_script_run('firewall-cmd --add-service=ntp --permanent; firewall-cmd --reload')
           if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0);
         assert_script_run('echo \'server pool.ntp.org\' >> /etc/chrony.conf');
@@ -393,7 +385,6 @@ sub setup_xvnc_server {
 sub setup_xdmcp_server {
     return if $xdmcp_server_set;
     record_info 'XDMCP server setup';
-    chk_req_pkgs('xrdp');
 
     if (check_var('REMOTE_DESKTOP_TYPE', 'xdmcp_xdm')) {
         assert_script_run "sed -i -e 's|^DISPLAYMANAGER=.*|DISPLAYMANAGER=\"xdm\"|' /etc/sysconfig/displaymanager";
@@ -413,12 +404,6 @@ sub setup_iscsi_lio_server {
     # Setup of the iSCSI LIO server by 'targercli' from lib/iscsi.pm
     return if $iscsi_lio_server_set;
     record_info 'iSCSI LIO server setup';
-    # Add the targetcli package now used for the iSCSI server configuration
-    # but name is different on SLE 12.x and 15.x+
-    my $lio_pkg = check_os_release('12', 'VERSION_ID')
-      ? 'targetcli' : 'python3-targetcli-fb';
-    chk_req_pkgs($lio_pkg);
-
     # Get the iSCSI server settings
     my $iscsi_iqn = get_var('ISCSI_IQN', 'iqn.2016-02.de.openqa');
     my $iscsi_identifier = get_var('ISCSI_IDENTIFIER', '132');
@@ -529,7 +514,6 @@ sub setup_aytests {
     return if $aytests_set;
     my $setup_script;
     record_info 'AYTESTS server setup';
-    chk_req_pkgs('apache2 git-core');
 
     # install the aytests-tests package and export the tests over http
     my $aytests_repo = get_var("AYTESTS_REPO_BRANCH", 'master');
@@ -562,7 +546,6 @@ sub setup_aytests {
 sub setup_stunnel_server {
     return if $stunnel_server_set;
     record_info 'STUNNEL server setup';
-    chk_req_pkgs('stunnel');
     configure_stunnel(1);
     assert_script_run 'mkdir -p ~/.vnc/';
     assert_script_run "vncpasswd -f <<<$password > ~/.vnc/passwd";
@@ -581,8 +564,6 @@ sub setup_mariadb_server {
     record_info 'MariaDB server setup';
     my $ip = '10.0.2.%';
     my $passwd = 'suse';
-
-    chk_req_pkgs('mariadb');
     systemctl('start mysql');
 
     # Enter MySQL command to grant the access privileges to root
@@ -602,7 +583,6 @@ sub setup_mariadb_server {
 sub setup_nfs_server {
     return if $nfs_server_set;
     record_info 'NFS server setup';
-    chk_req_pkgs('rpcbind nfs-kernel-server');
     my $nfs_mount = "/nfs/shared";
     my $nfs_permissions = "rw,sync,no_root_squash";
 
@@ -660,6 +640,27 @@ sub run {
 
     # Networks setup
     setup_networks($mtu);
+
+    # Install all required packages in one zypper transaction to avoid
+    # repeated repository refreshes. Each setup_* sub had its own
+    # chk_req_pkgs() call; batching them into one saves a zypper refresh
+    # per role. Keep this list in sync when adding a new role or package.
+    my %pkgs = ();
+    $pkgs{dhcpd} = $pkgs{tftp} = 1 if exists $server_roles{pxe};
+    $pkgs{'dhcp-server'} = 1 if exists $server_roles{dhcp} || exists $server_roles{pxe};
+    $pkgs{tftp} = 1 if exists $server_roles{tftp};
+    $pkgs{apache2} = 1 if exists $server_roles{qemuproxy} || exists $server_roles{aytests};
+    $pkgs{'git-core'} = 1 if exists $server_roles{aytests};
+    $pkgs{bind} = $pkgs{'bind-utils'} = 1 if exists $server_roles{dns};
+    $pkgs{chrony} = 1 if exists $server_roles{ntp} && !check_os_release('12', 'VERSION_ID');
+    $pkgs{xrdp} = 1 if exists $server_roles{xdmcp};
+    if (exists $server_roles{iscsi}) {
+        check_os_release('12', 'VERSION_ID') ? $pkgs{targetcli} = 1 : $pkgs{'python3-targetcli-fb'} = 1;
+    }
+    $pkgs{stunnel} = 1 if exists $server_roles{stunnel};
+    $pkgs{mariadb} = 1 if exists $server_roles{mariadb};
+    $pkgs{rpcbind} = $pkgs{'nfs-kernel-server'} = 1 if exists $server_roles{nfs};
+    chk_req_pkgs(keys %pkgs) if %pkgs;
     # Wait until all nodes boot first
     if (get_var 'SLENKINS_CONTROL') {
         barrier_wait 'HOSTNAMES_CONFIGURED';
