@@ -20,7 +20,7 @@ schedule:
   - console/zypper_ref
   - console/firewall_enabled
   - '{{glibc_sanity}}'
-  - console/salt
+  - console/oqa_agnostic/salt_agnostic
   - console/sshd
   - console/ssh_cleanup
   - console/ncurses

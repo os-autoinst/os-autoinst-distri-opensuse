@@ -64,5 +64,5 @@ conditional_schedule:
   salt:
     SLE_PRODUCT:
       sles:
-        - console/salt
+        - console/oqa_agnostic/salt_agnostic
 ...
