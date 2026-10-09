@@ -164,9 +164,7 @@ sub setup_networks {
     bmwqemu::log_call(setup_script => $setup_script);
     record_info('Forward setup', script_output($setup_script, 300));
 
-    record_info('IP route status', script_output('ip route'));
-    record_info('IP addr status', script_output('ip addr'));
-    record_info('IPTABLES status', script_output('iptables -v -L'));
+    record_info('Network status', script_output('echo "=== ip route ==="; ip route; echo "=== ip addr ==="; ip addr; echo "=== iptables ==="; iptables -v -L'));
 }
 
 sub setup_dns_server {
