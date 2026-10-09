@@ -14,6 +14,7 @@ use utils;
 use Utils::Logging "export_logs_basic";
 use package_utils 'install_package';
 use Kernel::nfs;
+use Kernel::multimachine_topology qw(has_topology get_local_node get_peers get_node_interface);
 
 sub compare_checksums {
     my ($file) = @_;
@@ -46,7 +47,14 @@ sub run {
     my $kernel_nfs4_2 = 0;
     my $kernel_nfsd_v3 = 0;
     my $kernel_nfsd_v4 = 0;
-    my $client = get_var('CLIENT_NODE', 'client-node00');
+    my @clients = (get_var('CLIENT_NODE', 'client-node00'));
+    # with a topology, export to all clients, each writes to its own directory
+    my @client_dirs = ('');
+    if (has_topology()) {
+        my @nodes = grep { !$_->{external} } @{get_peers(get_local_node())};
+        @clients = map { get_node_interface($_, 0)->{ipv4} } @nodes;
+        @client_dirs = map { "/$_->{id}" } @nodes;
+    }
 
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
@@ -89,15 +97,15 @@ sub run {
     # configure our exports
     if ($kernel_nfs3 == 1) {
         record_info('INFO', 'Kernel has support for NFSv3');
-        create_export($nfs_mount_nfs3, $client, $nfs_options);
-        create_export($nfs_mount_nfs3_async, $client, $nfs_options_async);
+        create_export($nfs_mount_nfs3, $_, $nfs_options) for @clients;
+        create_export($nfs_mount_nfs3_async, $_, $nfs_options_async) for @clients;
     } else {
         record_info('INFO', 'Kernel has no support for NFSv3, skipping NFSv3 tests');
     }
     if ($kernel_nfs4 == 1) {
         record_info('INFO', 'Kernel has support for NFSv4');
-        create_export($nfs_mount_nfs4, $client, $nfs_options);
-        create_export($nfs_mount_nfs4_async, $client, $nfs_options_async);
+        create_export($nfs_mount_nfs4, $_, $nfs_options) for @clients;
+        create_export($nfs_mount_nfs4_async, $_, $nfs_options_async) for @clients;
     } else {
         record_info('INFO', 'Kernel has no support for NFSv4, skipping NFSv4 tests');
     }
@@ -112,8 +120,8 @@ sub run {
         record_info('INFO', 'Testing NFS with Kerberos');
         setup_nfs_krb5_server;
         foreach my $export (@krb5_exports) {
-            create_export($export->{sync}, $client, "$nfs_options,$sec");
-            create_export($export->{async}, $client, "$nfs_options_async,$sec");
+            create_export($export->{sync}, $_, "$nfs_options,$sec") for @clients;
+            create_export($export->{async}, $_, "$nfs_options_async,$sec") for @clients;
         }
     }
 
@@ -136,29 +144,31 @@ sub run {
     barrier_wait("NFS_SERVER_CHECK");
 
     my @files = ($file_flag_direct, $file_flag_dsync, $file_flag_sync);
-    if ($kernel_nfs3 == 1) {
-        record_info("TESTS: NFS3");
-        verify_test_data($nfs_mount_nfs3, @files);
-        record_info("TESTS: NFS3 async");
-        verify_test_data($nfs_mount_nfs3_async, @files);
-    }
+    foreach my $client_dir (@client_dirs) {
+        if ($kernel_nfs3 == 1) {
+            record_info("TESTS: NFS3$client_dir");
+            verify_test_data("$nfs_mount_nfs3$client_dir", @files);
+            record_info("TESTS: NFS3 async$client_dir");
+            verify_test_data("$nfs_mount_nfs3_async$client_dir", @files);
+        }
 
-    if ($kernel_nfs4 == 1) {
-        record_info("TESTS: NFS4");
-        verify_test_data($nfs_mount_nfs4, @files);
-        record_info("TESTS: NFS4 async");
-        verify_test_data($nfs_mount_nfs4_async, @files);
-    }
+        if ($kernel_nfs4 == 1) {
+            record_info("TESTS: NFS4$client_dir");
+            verify_test_data("$nfs_mount_nfs4$client_dir", @files);
+            record_info("TESTS: NFS4 async$client_dir");
+            verify_test_data("$nfs_mount_nfs4_async$client_dir", @files);
+        }
 
-    # The client writes the data of each flavor in its own subdirectory
-    foreach my $export (@krb5_exports) {
-        foreach my $type (qw(sync async)) {
-            foreach my $sec (@krb5_flavors) {
-                my $dir = "$export->{$type}/$sec";
-                record_info("TESTS: NFS$export->{version} $type $sec");
-                die "No test data in $dir: NFS_KRB5 and NFS_KRB5_FLAVORS must be the same on server and client"
-                  if script_run("test -d $dir");
-                verify_test_data($dir, @files);
+        # The client writes the data of each flavor in its own subdirectory
+        foreach my $export (@krb5_exports) {
+            foreach my $type (qw(sync async)) {
+                foreach my $sec (@krb5_flavors) {
+                    my $dir = "$export->{$type}$client_dir/$sec";
+                    record_info("TESTS: NFS$export->{version} $type $sec$client_dir");
+                    die "No test data in $dir: NFS_KRB5 and NFS_KRB5_FLAVORS must be the same on server and client"
+                      if script_run("test -d $dir");
+                    verify_test_data($dir, @files);
+                }
             }
         }
     }
@@ -205,6 +215,11 @@ file using md5 checksums.
 
 Hostname or IP of the NFS client used in the export access list.
 Defaults to C<client-node00>.
+
+If the schedule has a C<multimachine_topology> (see
+L<Kernel::multimachine_topology>), the server exports to the first
+interface address of every other node that runs a job, and checks the
+files of each client in a directory named after its node id.
 
 =head2 NFS_MOUNT_NFS3
 

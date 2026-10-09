@@ -1,0 +1,31 @@
+multimachine_topology:
+  name: nfs_3hosts
+
+  networks:
+    - id: mgmt
+      ipv4_cidr: "10.146.14.0/23"
+
+  nodes:
+    - id: sonic
+      role: nfs_server
+      hostname: sonic-1.bmt.prg2.suse.org
+      interfaces:
+        - id: eno1
+          network: mgmt
+          ipv4: "10.146.14.84"
+
+    - id: coppi
+      role: nfs_client1
+      hostname: coppi-1.bmt.prg2.suse.org
+      interfaces:
+        - id: eno1
+          network: mgmt
+          ipv4: "10.146.14.87"
+
+    - id: merckx
+      role: nfs_client2
+      hostname: merckx-1.bmt.prg2.suse.org
+      interfaces:
+        - id: eno1
+          network: mgmt
+          ipv4: "10.146.14.90"
