@@ -349,7 +349,9 @@ sub run {
         add_grub_cmdline_settings($grub_param, update_grub => 1);
     }
 
-    add_custom_grub_entries if (is_sle('12+') || is_opensuse || is_transactional) && !is_jeos && !is_bootloader_grub2_bls && !is_bootloader_sdboot;
+    if ((is_sle('12+') || is_opensuse || is_transactional) && !is_jeos && !is_bootloader_grub2_bls && !is_bootloader_sdboot) {
+        add_custom_grub_entries(check_kernel_arg_len => 1);
+    }
 
     if (is_xen_host) {
         my $version = get_var('VERSION');
