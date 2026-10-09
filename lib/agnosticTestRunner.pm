@@ -62,6 +62,17 @@ sub _python_version {
 sub _install_python_deps {
     my ($self) = @_;
     return if script_run('python3 -m pytest --version', timeout => 10, quiet => 1) == 0;
+
+    # python3-pytest from PackageHub requires python3-wcwidth, which on SLE 15
+    # is shipped only in the Public Cloud Module. Activate it before installing;
+    # on products without that module the dependency is in the regular
+    # repositories, so a failure to activate it must not be fatal.
+    if (is_sle('<16.0')) {
+        eval { add_suseconnect_product(get_addon_fullname('pcm')) };
+        record_info('pcm', "Could not activate the Public Cloud Module: $@") if $@;
+        zypper_call('--gpg-auto-import-keys ref') unless $@;
+    }
+
     eval { install_package('python3-pytest', trup_reboot => 1) };
     if ($@) {
         record_info('pkg fallback', "zypper cannot install python3-pytest, using pip3");
