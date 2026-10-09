@@ -1268,6 +1268,8 @@ sub load_consoletests {
     # salt in SLE is only available for SLE12 ASMM or SLES15 and variants of
     # SLES but not SLED. Don't run it on live media, not really useful there.
     if (!get_var("LIVETEST") && is_opensuse || (check_var_array('SCC_ADDONS', 'asmm') || is_sle('15+') && is_sle('<16.0') && !is_desktop)) {
+        # salt_agnostic needs Python 3.6; SLE 12 ASMM and Leap 42.3 do not have it
+        loadtest "console/salt" if (is_sle('<15') || is_leap('<15'));
         loadtest "console/oqa_agnostic/salt_agnostic";
         loadtest "console/oqa_agnostic/ansible_agnostic" if (is_sle('=15-SP7'));
     }
@@ -1763,6 +1765,8 @@ sub load_extra_tests_console {
     loadtest "console/ca_certificates_mozilla";
     # The agnostic unzip test needs Python 3.6+; SLE 12 keeps the console test.
     loadtest(is_sle('<15') ? "console/unzip" : "console/oqa_agnostic/unzip_agnostic");
+    # salt_agnostic needs Python 3.6; SLE 12 and Leap 42.3 do not have it
+    loadtest "console/salt" if (is_sle('<15') || is_leap('<15'));
     loadtest "console/oqa_agnostic/salt_agnostic" if ((is_jeos && is_sle('<16.0')) || is_opensuse);
     loadtest "console/gpg";
     loadtest "console/rsync";
