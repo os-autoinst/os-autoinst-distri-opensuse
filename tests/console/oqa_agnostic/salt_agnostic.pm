@@ -32,7 +32,7 @@ sub run {
     # Legacy salt.pm skips salt-minion install on JeOS SLE < 16
     # (pre-installed). Unconditional install is safe -- zypper
     # handles already-installed packages as a no-op.
-    install_package('salt-master salt-minion', trup_continue => 1);
+    install_package('salt-master salt-minion', trup_continue => 1, trup_reboot => 1);
 
     my $test = agnosticTestRunner->new({
             language => 'python',
