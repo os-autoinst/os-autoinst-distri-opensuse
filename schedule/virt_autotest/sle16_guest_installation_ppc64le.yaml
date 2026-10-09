@@ -9,6 +9,8 @@ schedule:
   - virt_autotest/login_console
   - '{{do_preparation}}'
   - virt_autotest/unified_guest_installation
+  - virt_autotest/set_config_as_glue
+  - '{{hotplugging_test}}'
 conditional_schedule:
   do_preparation:
     TRANSACTIONAL:
@@ -16,3 +18,12 @@ conditional_schedule:
         - virt_autotest/prepare_non_transactional_server
       1:
         - virt_autotest/prepare_transactional_server
+  hotplugging_test:
+    ENABLE_HOTPLUGGING:
+      1:
+        - virtualization/universal/hotplugging_guest_preparation
+        - virtualization/universal/hotplugging_network_interfaces
+        - virtualization/universal/hotplugging_HDD
+        - virtualization/universal/hotplugging_vCPUs
+        - virtualization/universal/hotplugging_memory
+        - virtualization/universal/hotplugging_cleanup
