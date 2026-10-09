@@ -630,10 +630,11 @@ sub run {
         # So messed up, that someone add x86_64 repo to the AARCH64 image
         zypper_call('removerepo 1') if $cpu_arch eq 'aarch64';
 
-        # Adding back the pool and updates repositories which should be registered
-        zypper_ar("http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/$cpu_arch/product", name => 'sles12sp3-pool');
-        zypper_ar("http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/$cpu_arch/update", name => 'sles12sp3-update');
-        zypper_call('lr -u');
+        # Add both repos and refresh once instead of per-repo zypper_ar
+        # (each zypper_ar does lr + ar + ref = 3 calls per repo)
+        zypper_call("--gpg-auto-import-keys ar -f http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/$cpu_arch/product sles12sp3-pool");
+        zypper_call("--gpg-auto-import-keys ar -f http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/$cpu_arch/update sles12sp3-update");
+        zypper_call('--gpg-auto-import-keys ref');
 
     }
     # -----> END OF SLE 12 SP3 BACKWARD COMPATIBILITY BLOCK
