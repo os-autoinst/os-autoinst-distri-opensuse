@@ -341,7 +341,7 @@ sub run {
 
     log_versions 1;
 
-    install_package('efivar') if is_sle('12+') || is_opensuse;
+    install_package('efivar', trup_continue => 1) if is_sle('12+') || is_opensuse;
 
     $grub_param .= ' console=hvc0' if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
