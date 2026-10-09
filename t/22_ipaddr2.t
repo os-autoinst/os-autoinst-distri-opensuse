@@ -620,6 +620,17 @@ subtest '[ipaddr2_bastion_pubip] get invalid IP' => sub {
     is($res, undef, 'Expect undef');
 };
 
+subtest '[ipaddr2_bastion_pubip] get no IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    $ipaddr2->redefine(az_network_publicip_get => sub { return undef; });
+
+    my $res = ipaddr2_bastion_pubip();
+
+    is($res, undef, 'Expect undef');
+};
+
 subtest '[ipaddr2_internal_key_gen]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });

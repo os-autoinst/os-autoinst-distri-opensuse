@@ -81,6 +81,7 @@ sub run {
     select_serial_terminal;
 
     my $bastion_ip = ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $bastion_ip;
 
     # Check if cloudinit is active or not. In case it is,
     # registration was eventually performed by the cloudinit script

@@ -139,9 +139,12 @@ subtest '[crash_pubip] AZURE' => sub {
     $crash->redefine(crash_deploy_name => sub { return 'ImperatorTorosus'; });
     my @calls;
     my $azure = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azure->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azure->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azure->redefine(script_output => sub {
             push @calls, $_[0];
-            return 'Inoc.ybe.Geo.phylla'; });
+            return 'out.json' if grep /az.json/, $_[0];
+            return '"Inoc.ybe.Geo.phylla"' if grep /out.json/, $_[0]; });
 
     my $res = crash_pubip(provider => 'AZURE', region => 'AmanitaFalloide');
 

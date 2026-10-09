@@ -71,6 +71,7 @@ sub run {
     select_serial_terminal;
 
     my $bastion_ip = ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $bastion_ip;
     ipaddr2_cluster_sanity(bastion_ip => $bastion_ip);
 }
 

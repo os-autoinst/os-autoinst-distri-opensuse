@@ -635,7 +635,7 @@ sub az_network_publicip_create(%args) {
         resource_group => 'openqa-rg',
         name => 'openqa-pip')
 
-Return an IPv4 public IP address from its name
+Return an IPv4 public IP address from its name or undef on failure.
 
 =over
 
@@ -643,18 +643,27 @@ Return an IPv4 public IP address from its name
 
 =item B<name> - existing public IP resource name
 
+=item B<timeout> - optional command timeout in seconds
+
 =back
 =cut
 
 sub az_network_publicip_get(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
-    my $az_cmd = join(' ', 'az network public-ip show',
+    my $az_args = join(' ', 'network public-ip show',
         '--resource-group', $args{resource_group},
-        '--name', $args{name},
-        "--query 'ipAddress'",
-        '-o tsv');
-    return script_output($az_cmd);
+        '--name', $args{name});
+    my %cmd_args = (
+        az_args => $az_args,
+        query => 'ipAddress',
+        failok => 1,
+    );
+    $cmd_args{timeout} = $args{timeout} if defined $args{timeout};
+    my $res = az(%cmd_args);
+    return (defined $res->{rc} && $res->{rc} == 0 && defined $res->{output} && !ref($res->{output}) && $res->{output} =~ /\S/)
+      ? $res->{output}
+      : undef;
 }
 
 =head2 az_network_nat_gateway_create

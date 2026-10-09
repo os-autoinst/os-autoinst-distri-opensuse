@@ -476,6 +476,7 @@ the IP address using az cli, so it could die if the az cli fails to return a val
 sub ipaddr2_bastion_pubip {
     my $rg = ipaddr2_azure_resource_group();
     my $pub_ip = az_network_publicip_get(resource_group => $rg, name => $bastion_pub_ip);
+    return unless defined $pub_ip;
     my $ip_obj = NetAddr::IP::Lite->new($pub_ip) or die "Invalid IP '$pub_ip'";
     return $ip_obj->addr;
 }
@@ -498,7 +499,7 @@ in the deployment that has public IP.
 
 sub ipaddr2_bastion_ssh_addr(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    return USER . '@' . $args{bastion_ip};
+    return $args{bastion_ip} ? USER . '@' . $args{bastion_ip} : undef;
 }
 
 =head2 ipaddr2_bastion_key_accept
@@ -526,6 +527,7 @@ sub ipaddr2_bastion_key_accept(%args) {
     # Not strictly needed in this context as each test
     # in openQA start from a clean environment
 
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
     my $cmd = join(' ',
         'ssh',
         '-E', SSH_LOG,
@@ -564,6 +566,7 @@ This function always use cloudadmin as user in any ssh connections.
 sub ipaddr2_internal_key_accept(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{key_checking} //= 'accept-new';
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
 
     my $key_policy = '-oStrictHostKeyChecking=' . $args{key_checking};
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
@@ -661,6 +664,7 @@ sub ipaddr2_internal_key_gen(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{key_checking} //= 'accept-new';
     $args{user} //= USER;
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
 
     my $key_policy = '-oStrictHostKeyChecking=' . $args{key_checking};
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
@@ -783,6 +787,7 @@ sub ipaddr2_internal_key_authorize(%args) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{user} //= USER;
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
 
     my $vm_name;
     my $remote_key_tmp_path = '/tmp/other_vm';
@@ -1218,6 +1223,7 @@ Run a command on the bastion using assert_script_run
 sub ipaddr2_ssh_bastion_assert_script_run(%args) {
     croak("Argument < cmd > missing") unless $args{cmd};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
 
     assert_script_run(join(' ',
             'ssh',
@@ -1248,6 +1254,7 @@ Run a command on the bastion using script_run
 sub ipaddr2_ssh_bastion_script_run(%args) {
     croak("Argument < cmd > missing") unless $args{cmd};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
 
     return script_run(join(' ',
             'ssh',
@@ -1278,6 +1285,7 @@ Run a command on the bastion using script_output
 sub ipaddr2_ssh_bastion_script_output(%args) {
     croak("Argument < cmd > missing") unless $args{cmd};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
 
     return script_output(join(' ',
             'ssh',
@@ -1316,6 +1324,7 @@ sub ipaddr2_ssh_internal_cmd(%args) {
     foreach (qw(id cmd)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
 
     return join(' ',
         'ssh',
@@ -2386,6 +2395,7 @@ Patch system
 
 sub ipaddr2_patch_system(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
 
     my @vms = ();
     foreach my $id (1 .. 2) {
@@ -2482,6 +2492,7 @@ Register addons on SUT
 sub ipaddr2_scc_addons(%args) {
     croak 'Missing mandatory argument < scc_addons >' unless $args{scc_addons};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
 
     my $host_ip = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     my @addons = split(/,/, $args{scc_addons});
@@ -2660,6 +2671,8 @@ Collect logs from the ipaddr2 cluster.
 
 sub ipaddr2_logs_collect(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    # No die, let the test run
+    return unless $args{bastion_ip};
     $args{no_supportconfig} //= 0;
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     my $vm_addr;
