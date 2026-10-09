@@ -433,35 +433,35 @@ sub setup_iscsi_lio_server {
           : 'firewall-cmd --add-port=3260/tcp --permanent;firewall-cmd --reload';
         assert_script_run($firewall_cmd, timeout => 200);
     }
-    # Create partitions on devices for the iSCSI LUNs
-    script_run "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";
-    my $start = 0;
-    my $size = 0;
+    # Create all partitions in a single parted command instead of one per LUN
+    my $parted_cmd = "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";
+    my $part_start = 0;
+    my $part_size = 0;
     for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
-        $start = $size + 1;
-        # Last partition size in percentage to ensure it is not larger that device size.
-        $size = $num_lun eq $num_luns ? '100%' : $num_lun * $lun_size * 1024 . 'MiB';
-        script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}";
+        $part_start = $part_size + 1;
+        $part_size = $num_lun eq $num_luns ? '100%' : $num_lun * $lun_size * 1024 . 'MiB';
+        $parted_cmd .= " mkpart primary ${part_start}MiB ${part_size}";
     }
+    assert_script_run($parted_cmd);
 
-    # Disable auto portal creation
-    lio_global_set('auto_add_default_portal', 'false');
-
-    # Creation of the iSCSI target
-    lio_target_create($iscsi_identifier, $iscsi_iqn);
-
-    # Add LUNs
+    # Build a single shell command chaining all targetcli invocations
+    # instead of 11+ individual assert_script_run calls. Each targetcli
+    # call runs in non-interactive mode (single command argument), so no
+    # stdin or multi-line issues. Joined with && for fail-fast.
+    my $bs_block = check_os_release('12', 'VERSION_ID') ? 'iblock' : 'block';
+    my @tcli_cmds;
+    push @tcli_cmds, 'targetcli "set global auto_add_default_portal=false"';
+    push @tcli_cmds, "targetcli '/iscsi create $iscsi_iqn:$iscsi_identifier'";
     for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
-        lio_lun_create($iscsi_identifier, $iscsi_iqn, $hdd_lun . $num_lun);
+        my $device = "$hdd_lun$num_lun";
+        (my $name_lun = $device) =~ tr/\//_/;
+        $name_lun =~ s/^_//;
+        push @tcli_cmds, "targetcli '/backstores/$bs_block create name=$name_lun dev=$device'";
+        push @tcli_cmds, "targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1/luns create storage_object=/backstores/$bs_block/$name_lun'";
     }
-
-    # Add the Portal IP
-    lio_portal_create($iscsi_identifier, $iscsi_iqn, $iscsi_ip, $iscsi_port);
-
-    # Now we need to enable iSCSI Demo Mode
-    # With this mode, we don't need to manage iSCSI initiators
-    # It's OK for a test/QA system, but of course not for a production one!
-    lio_auth_all($iscsi_identifier, $iscsi_iqn);
+    push @tcli_cmds, "targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1/portals create $iscsi_ip ip_port=$iscsi_port'";
+    push @tcli_cmds, "targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1 set attribute demo_mode_write_protect=0 cache_dynamic_acls=1 generate_node_acls=1 authentication=0'";
+    assert_script_run(join(' && ', @tcli_cmds), timeout => 120);
 
     # Start and enable iSCSI Target in systemctl
     systemctl('enable --now target');
