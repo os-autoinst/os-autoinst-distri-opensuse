@@ -72,6 +72,7 @@ sub client {
     my $local_nfs4 = get_var('NFS_LOCAL_NFS4', '/var/lib/nfs-tests/localNFS4');
     my $local_nfs4_async = get_var('NFS_LOCAL_NFS4_ASYNC', '/var/lib/nfs-tests/localNFS4async');
     my $stressor_timeout = get_var('NFS_STRESS_NG_TIMEOUT') // 3;
+    my $instances = get_var('NFS_STRESS_NG_INSTANCES', -1);
     my $exclude = get_var('NFS_STRESS_NG_EXCLUDE');
     # allow to override the default exports
     my $exports = get_var('NFS_STRESS_EXPORTS');
@@ -108,7 +109,7 @@ sub client {
         my $yaml = "/tmp/stress-ng_${dirname}.yaml";
         my $log = "/tmp/stress-ng_${dirname}.log";
 
-        my $run_stress_ng = "stress-ng --verbose --sequential -1 --timeout $stressor_timeout " .
+        my $run_stress_ng = "stress-ng --verbose --sequential $instances --timeout $stressor_timeout " .
           "--class filesystem " .
           "--metrics-brief --yaml $yaml --log-file $log";
 
@@ -117,7 +118,7 @@ sub client {
             record_info('Excluding stressor:', "$exclude");
         }
 
-        my $ret = script_run($run_stress_ng, timeout => $stressor_timeout * 100);
+        my $ret = script_run($run_stress_ng, timeout => $stressor_timeout * 200);
 
         my $metrics = parse_stress_ng_log($log);
         record_info(
@@ -220,6 +221,13 @@ executed, overriding the C<NFS_LOCAL_NFS4> and C<NFS_LOCAL_NFS4_ASYNC> defaults.
 
 Timeout in seconds passed to the C<stress-ng --timeout> option for each
 stressor. Defaults to C<3>.
+
+=head2 NFS_STRESS_NG_INSTANCES
+
+Number of instances of each stressor, passed to the C<stress-ng
+--sequential> option. Defaults to C<-1>, one instance per online CPU. On
+machines with many CPUs, a lower number keeps the run within the time
+limit of C<NFS_STRESS_NG_TIMEOUT> times 200 seconds per export.
 
 =head2 NFS_STRESS_NG_EXCLUDE
 
