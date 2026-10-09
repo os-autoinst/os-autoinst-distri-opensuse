@@ -77,6 +77,13 @@ sub run {
     "max_poll_std": 1,
     "min_poll": 1,
     "default_max_wait": 1
+  },
+  "GUI": {
+    "initial_users": [
+       {"name": "admin",
+        "password_hash": "6044ac5eb1138482d2bd1f284426fe92aab19e073c215d5c8c47cc3a86b2a5ac",
+        "password_salt": "3420112105172cad2c60777fe569d6e52418be398dcbdc48f38c48947f74d63f"}
+    ]
   }
 }
 EOF');
