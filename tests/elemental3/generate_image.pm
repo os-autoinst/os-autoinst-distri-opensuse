@@ -169,6 +169,7 @@ sub customize_cmd {
                 assert_script_run(
                     "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $cluster_yaml"
                 );
+                assert_script_run("rm -f $args{config_dir}/network/node0[2-9]*.yaml");
             }
         } else {
             # Remove k8s-preinstall service, as this is only useful
@@ -333,6 +334,12 @@ sub run {
 
     # Clean image filename (useful for cloned jobs)
     $img_filename =~ tr/\/#/_/;
+
+    # Disambiguate image filename if CLUSTER_TYPE is set to prevent
+    # concurrent generator jobs from overwriting each other's assets
+    if (my $cluster_type = get_var('CLUSTER_TYPE')) {
+        $img_filename .= "-$cluster_type" unless $img_filename =~ /$cluster_type/;
+    }
 
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
