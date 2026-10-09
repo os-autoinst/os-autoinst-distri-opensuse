@@ -18,6 +18,7 @@
       <li><a href="#set_link_up">set_link_up</a></li>
       <li><a href="#has_ipv4_addr">has_ipv4_addr</a></li>
       <li><a href="#wait_for_ipv4_addr">wait_for_ipv4_addr</a></li>
+      <li><a href="#add_hosts_entries">add_hosts_entries</a></li>
       <li><a href="#get_net_prefix_len">get_net_prefix_len</a></li>
       <li><a href="#add_ipv6_addr">add_ipv6_addr</a></li>
       <li><a href="#add_ipv6_route">add_ipv6_route</a></li>
@@ -67,6 +68,12 @@
 <pre><code>wait_for_ipv4_addr($dev, $ip);</code></pre>
 
 <p>Waits up to one minute until the network interface <code>$dev</code> has the IPv4 address <code>$ip</code>, for example an address from DHCP. Dies if it does not get it.</p>
+
+<h2 id="add_hosts_entries">add_hosts_entries</h2>
+
+<pre><code>add_hosts_entries(&#39;server.example.com&#39; =&gt; &#39;192.0.2.1&#39;, ...);</code></pre>
+
+<p>Adds a line with the address and the name to <code>/etc/hosts</code> for each given name, so that the names resolve to these addresses without DNS. For example, a name that has an IPv6 address in DNS then resolves only to the given IPv4 address. Records the resulting <code>/etc/hosts</code>.</p>
 
 <h2 id="get_net_prefix_len">get_net_prefix_len</h2>
 

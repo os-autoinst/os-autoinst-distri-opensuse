@@ -18,6 +18,7 @@
     <ul>
       <li><a href="#require_field">require_field</a></li>
       <li><a href="#get_topology">get_topology</a></li>
+      <li><a href="#has_topology">has_topology</a></li>
       <li><a href="#get_node_by_role">get_node_by_role</a></li>
       <li><a href="#get_local_node">get_local_node</a></li>
       <li><a href="#get_job_nodes">get_job_nodes</a></li>
@@ -62,6 +63,12 @@ my $peer_ip = get_node_interface(get_node_by_role(&#39;peer&#39;), 0)-&gt;{ipv4}
 <pre><code>my $topology = get_topology();</code></pre>
 
 <p>Return the <code>multimachine_topology</code> hashref from <code>get_test_suite_data()</code>. The structure is validated and indexed on first access.</p>
+
+<h2 id="has_topology">has_topology</h2>
+
+<pre><code>if (has_topology()) { ... }</code></pre>
+
+<p>Return true if the schedule <code>test_data</code> has a <code>multimachine_topology</code>. Use it in modules that also run without a topology, for example with job variables on QEMU.</p>
 
 <h2 id="get_node_by_role">get_node_by_role</h2>
 
