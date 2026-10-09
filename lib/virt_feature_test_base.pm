@@ -59,7 +59,7 @@ sub reconnect_if_problematic {
 sub prepare_run_test {
     my $self = shift;
 
-    select_console 'sol', await_console => 0;
+    select_backend_console(init => 1, wait => 0);
     use_ssh_serial_console;
     reconnect_if_problematic;
     assert_script_run("> ~/.bash_history");
