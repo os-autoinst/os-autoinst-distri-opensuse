@@ -84,7 +84,7 @@
     <guest_autostart/>
     <guest_transient/>
     <guest_destroy_on_exit/>
-    <guest_autoconsole>text</guest_autoconsole>
+    <guest_autoconsole>none</guest_autoconsole>
     <guest_noautoconsole>false</guest_noautoconsole>
     <guest_noreboot/>
     <guest_default_target>graphical</guest_default_target>
