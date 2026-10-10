@@ -13,7 +13,7 @@ package agnosticTestRunner;
 
 use strict;
 use warnings;
-use testapi qw(assert_script_run script_run data_url parse_extra_log script_output enter_cmd upload_logs record_info);
+use testapi qw(assert_script_run script_run data_url parse_extra_log script_output upload_logs record_info);
 use Mojo::DOM;
 use registration 'add_suseconnect_product', 'get_addon_fullname';
 use package_utils 'install_package';
@@ -130,7 +130,7 @@ sub run_test {
       . ' && mv ' . $result_src . ' ' . $self->{result_file};
     assert_script_run($command, timeout => $self->{run_timeout}, quiet => 1);
     upload_logs($output_log, failok => 1);
-    enter_cmd('reset');
+    script_run('reset');
     return $self;
 }
 
