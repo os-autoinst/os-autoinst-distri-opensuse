@@ -26,7 +26,7 @@ use publiccloud::utils qw( get_ssh_private_key_path register_addon);
 use sles4sap::ibsm;
 use sles4sap::azure_cli;
 use sles4sap::qesap::utils qw( qesap_get_public_cloud_tags );
-use version_utils qw(package_version_cmp);
+use version_utils qw(package_version_cmp is_sle);
 
 
 =head1 SYNOPSIS
@@ -911,17 +911,35 @@ sub ipaddr2_os_sanity(%args) {
             next;
         }
         elsif (defined $ret && $ret == 1) {
-            # get the names of the failed services
+            # Query failed units with clean formatting
             my $failed_services = ipaddr2_ssh_internal_output(id => $_,
-                cmd => 'sudo systemctl --failed --no-pager',
+                cmd => 'sudo systemctl --failed --no-legend --plain --no-pager',
                 bastion_ip => $args{bastion_ip});
 
-            # record the failed services for investigating
+            # Parse unit names (stripping .service suffix)
+            my @failed_units;
+            for my $line (split(/\n/, $failed_services)) {
+                if ($line =~ /^\s*([\w.-]+)\s/) {
+                    push @failed_units, $1 =~ s/\.service$//r;
+                }
+            }
+
+            # Check if this matches bsc#1271814
+            if (is_sle('=16.1') && @failed_units == 1 && $failed_units[0] eq 'cleanoldsepoldir') {
+                my $snapper_check = ipaddr2_ssh_internal(id => $_,
+                    cmd => 'rpm -q snapper',
+                    bastion_ip => $args{bastion_ip},
+                    no_assert => 1);
+
+                if (defined $snapper_check && $snapper_check != 0) {
+                    record_soft_failure('bsc#1271814 - snapper is intentionally not installed on Public Cloud images');
+                    next;
+                }
+            }
+
+            # If not matching the known issue, record error and die as before
             record_info('Error', "The Services failed on VM $_:\n$failed_services", result => 'fail');
-            # The die is skipped in case of 'degraded' status due to failing services.
-            # This is a workaround for cleanoldsepoldir.service failing due to snapper absence, bsc#1271814
-            # Final handling of 'degraded' status to come in a later ticket.
-            # die "Test died on VM $_ due to failed services.";
+            die "Test died on VM $_ due to failed services.";
         }
         else {
             die "VM $_ is not in a running state with exit code " . ($ret // 'undef');
