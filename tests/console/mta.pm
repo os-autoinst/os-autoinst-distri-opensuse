@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
-use package_utils 'install_package';
+use package_utils qw(install_package uninstall_package);
 
 sub run {
     select_serial_terminal;
@@ -25,6 +25,8 @@ sub run {
         script_retry 'systemctl is-active postfix', retry => 3, delay => 10;
         systemctl 'status postfix';
     } else {
+        # Ensure no other MTA conflict
+        uninstall_package('opensmtpd exim sendmail');
         # Install and start postfix on Public Cloud/SlE 16+/Leap 16+ and Tumbleweed
         install_package('postfix mailx');
         systemctl 'enable postfix';
