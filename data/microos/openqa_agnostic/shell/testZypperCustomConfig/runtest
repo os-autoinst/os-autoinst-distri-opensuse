@@ -1,0 +1,120 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: zypper custom configuration
+# desc: >
+#   Verify that the distribution ships and applies its custom libzypp/zypper
+#   configuration (solver.onlyRequires, rpm.install.excludedocs, multiversion).
+#   Ported from tests/microos/libzypp_config.pm.
+# steps:
+#   - locate the active zypp configuration directory
+#   - verify the vendor configuration packages are installed
+#   - verify solver.onlyRequires is enabled
+#   - verify rpm.install.excludedocs is enabled
+#   - verify the multiversion setting matches the system type
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass
+# platform: MicroOS, SLE Micro, openSUSE JeOS
+# tags: console zypper libzypp configuration
+# ---
+# METADATA_END
+
+case "${1:-}" in
+    -h | --help)
+        echo "Usage: $0"
+        exit 0
+        ;;
+    -m | --metadata)
+        awk '/# METADATA_END/{exit} f{print substr($0,3)}; /# METADATA_START/{f=1}' "$0"
+        exit 0
+        ;;
+    -f | --files)
+        exit 0
+        ;;
+esac
+
+set -u
+
+config_dir() {
+    if rpm -q --provides libzypp | grep -q 'libzypp(econf)' && [ ! -f /etc/zypp/zypp.conf ]; then
+        echo /usr/etc/zypp
+    else
+        echo /etc/zypp
+    fi
+}
+
+uses_vendor_config() {
+    rpm -q --provides libzypp | grep -q 'libzypp(econf)' && [ ! -f /etc/zypp/zypp.conf ]
+}
+
+is_transactional() {
+    command -v transactional-update >/dev/null 2>&1 || rpm -q transactional-update >/dev/null 2>&1
+}
+
+is_community_jeos() {
+    local identity
+    identity="$(. /etc/os-release 2>/dev/null; echo "${ID:-} ${NAME:-}" | tr '[:upper:]' '[:lower:]')"
+    [[ "$identity" == *micro* ]] && return 1
+    [[ "$identity" == opensuse* ]]
+}
+
+has_setting() {
+    local want="$1=$2" line
+    want="${want//[[:space:]]/}"
+    while IFS= read -r line; do
+        [[ "${line//[[:space:]]/}" == "$want" ]] && return 0
+    done < <(grep -rh . "$(config_dir)" 2>/dev/null)
+    return 1
+}
+
+checks=0
+failures=0
+
+ok() {
+    checks=$((checks + 1))
+    echo "ok $checks - $1"
+}
+
+not_ok() {
+    checks=$((checks + 1))
+    failures=$((failures + 1))
+    echo "not ok $checks - $1"
+}
+
+run_checks() {
+    local dir pkg expected
+    dir="$(config_dir)"
+    if [ -d "$dir" ]; then ok "configuration directory $dir exists"; else not_ok "configuration directory $dir is missing"; fi
+
+    if uses_vendor_config; then
+        for pkg in zypp-excludedocs zypp-no-recommends; do
+            if rpm -q "$pkg" >/dev/null 2>&1; then ok "$pkg is installed"; else not_ok "$pkg is not installed"; fi
+        done
+        if is_transactional; then
+            if rpm -q zypp-no-multiversion >/dev/null 2>&1; then ok "zypp-no-multiversion is installed"; else not_ok "zypp-no-multiversion is not installed"; fi
+        fi
+    else
+        ok "libzypp does not use vendor configuration"
+    fi
+
+    if is_community_jeos; then
+        ok "openSUSE JeOS uses the upstream defaults"
+    else
+        if has_setting solver.onlyRequires true; then ok "solver.onlyRequires is enabled"; else not_ok "solver.onlyRequires is not enabled"; fi
+        if has_setting rpm.install.excludedocs yes; then ok "rpm.install.excludedocs is enabled"; else not_ok "rpm.install.excludedocs is not enabled"; fi
+    fi
+
+    expected="provides:multiversion(kernel)"
+    is_transactional && expected=""
+    if has_setting multiversion "$expected"; then ok "multiversion is set to '$expected'"; else not_ok "multiversion is not set to '$expected'"; fi
+
+    echo "1..$checks"
+}
+
+{
+    # The openQA TAP parser recognises the result file from this prove style header.
+    echo "testZypperCustomConfig.tap .."
+    run_checks
+} | tee results.tap
+exit 0
