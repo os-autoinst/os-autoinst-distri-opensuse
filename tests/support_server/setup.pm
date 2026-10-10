@@ -68,6 +68,26 @@ sub is_os_release {
     return $os_release_cache{$version};
 }
 
+# The firewall state does not change during setup, so probe it once.
+my $firewall_active;
+sub is_firewall_active {
+    $firewall_active //= (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0);
+    return $firewall_active;
+}
+
+# Collect firewall-cmd rules and apply them with a single --reload at the end
+# of run() instead of reloading the firewall after every service.
+my @firewall_rules;
+sub firewall_cmd_add {
+    push @firewall_rules, @_ if is_firewall_active();
+}
+sub firewall_cmd_apply {
+    return unless @firewall_rules;
+    assert_script_run('firewall-cmd ' . join(' ', @firewall_rules) . ' --permanent', timeout => 200);
+    assert_script_run('firewall-cmd --reload', timeout => 200);
+    @firewall_rules = ();
+}
+
 
 sub chk_req_pkgs {
     # Install provided list of required packages if any of them is not present on the system
@@ -210,10 +230,7 @@ sub setup_dns_server {
         $setup_script .= qq@
             sed -i -e '/^NAMED_ARGS=/ s/=.*/="-4"/' /etc/sysconfig/named
         @;
-        $setup_script .= qq@
-            firewall-cmd --add-service=dns --permanent
-            firewall-cmd --reload
-        @ if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0);
+        firewall_cmd_add('--add-service=dns');
     }
     $setup_script .= "netconfig update -f";
     bmwqemu::log_call(setup_script => $setup_script);
@@ -321,12 +338,13 @@ sub setup_dhcp_server {
 sub setup_ssh_server {
     return if $ssh_server_set;
     record_info 'SSH server setup';
-    if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0) {
-        my $firewall_cmd
-          = is_os_release('12')
-          ? 'yast2 firewall services add zone=EXT service=service:sshd'
-          : 'firewall-cmd --add-service=ssh --permanent; firewall-cmd --reload';
-        assert_script_run($firewall_cmd, timeout => 200);
+    if (is_firewall_active()) {
+        if (is_os_release('12')) {
+            assert_script_run('yast2 firewall services add zone=EXT service=service:sshd', timeout => 200);
+        }
+        else {
+            firewall_cmd_add('--add-service=ssh');
+        }
     }
     systemctl('restart sshd');
     record_info('SSHD status', script_output('systemctl is-active sshd'));
@@ -338,14 +356,12 @@ sub setup_ntp_server {
     return if $ntp_server_set;
     record_info 'NTP setup';
     if (is_os_release('12')) {
-        assert_script_run('yast2 firewall services add zone=EXT service=service:ntp')
-          if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0);
+        assert_script_run('yast2 firewall services add zone=EXT service=service:ntp', timeout => 200) if is_firewall_active();
         assert_script_run('echo \'server pool.ntp.org\' >> /etc/ntp.conf');
         systemctl('restart ntpd');
     }
     else {
-        assert_script_run('firewall-cmd --add-service=ntp --permanent; firewall-cmd --reload')
-          if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0);
+        firewall_cmd_add('--add-service=ntp');
         assert_script_run('echo \'server pool.ntp.org\' >> /etc/chrony.conf');
         systemctl('restart chronyd');
     }
@@ -432,12 +448,13 @@ sub setup_iscsi_lio_server {
 
     # Needed if a firewall is configured
     # FIXME: remove the `yast` dependency
-    if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0) {
-        my $firewall_cmd
-          = is_os_release('12')
-          ? 'yast2 firewall services add zone=EXT service=service:target'
-          : 'firewall-cmd --add-port=3260/tcp --permanent;firewall-cmd --reload';
-        assert_script_run($firewall_cmd, timeout => 200);
+    if (is_firewall_active()) {
+        if (is_os_release('12')) {
+            assert_script_run('yast2 firewall services add zone=EXT service=service:target', timeout => 200);
+        }
+        else {
+            firewall_cmd_add('--add-port=3260/tcp');
+        }
     }
     # Create all partitions in a single parted command instead of one per LUN
     my $parted_cmd = "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";
@@ -737,6 +754,9 @@ sub run {
     }
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless %server_roles;
+
+    # Apply all collected firewall-cmd rules with a single reload
+    firewall_cmd_apply() unless $disable_firewall;
 
     assert_script_run opensusebasetest::firewall . ' stop' if $disable_firewall;
 
