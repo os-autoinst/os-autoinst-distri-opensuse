@@ -171,6 +171,11 @@ sub install_dependencies
         push @deps, qw(libcap-devel);
     }
 
+    if ($collection eq 'landlock') {
+        # build
+        push @deps, qw(glibc-devel-static);
+    }
+
     if ($collection =~ m{^net(/|$)}) {
         # build
         push @deps, qw(clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema);
