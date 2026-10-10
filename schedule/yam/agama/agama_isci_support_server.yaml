@@ -1,0 +1,8 @@
+---
+name: agama_isci_support_server
+description: >
+  Setup support server for iscsi test.
+schedule:
+  - support_server/login
+  - support_server/setup
+  - support_server/wait_children
