@@ -15,6 +15,9 @@ use Utils::Architectures;
 use SemVer;
 use POSIX 'strftime';
 
+# /etc/os-release does not change during a test run, so cache the lookups.
+my %os_release_cache;
+
 use constant {
     VERSION => [
         qw(
@@ -796,14 +799,12 @@ Returns 1 (true) if the ID_LIKE variable contains C<distri_name>.
 =back
 =cut
 
-my %os_release_cache;
 sub check_os_release {
     my ($distri_name, $line, $go_to_target, $os_release_file) = @_;
     die '$distri_name is not given' unless $distri_name;
     die '$line is not given' unless $line;
     $go_to_target //= '';
     $os_release_file //= '/etc/os-release';
-    # /etc/os-release does not change during a test run, so cache the result
     my $key = join('|', $distri_name, $line, $go_to_target, $os_release_file);
     return $os_release_cache{$key} //= do {
         my $os_like_name = script_output("$go_to_target grep -e \"^$line\\b\" ${os_release_file} | cut -d'\"' -f2");
@@ -1119,7 +1120,5 @@ sub is_ltss {
     # Check if current date is past the lifecycle date
     return $general_ends{$version} <= $current_date;
 }
-
-
 
 1;
