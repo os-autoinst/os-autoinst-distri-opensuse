@@ -17,6 +17,8 @@ use testapi;
 our @EXPORT_OK = qw(
   is_block_device
   record_storage_info
+  get_block_dev_kernel_name
+  get_block_dev_pci_device
   create_loop_backing_file
   attach_loop_device
   create_zoned_nullblk
@@ -58,6 +60,42 @@ sub record_storage_info {
     record_info('/dev disks',
         script_output('ls -l /dev/nvme* /dev/vd* /dev/sd*', proceed_on_failure => 1));
     record_info('by-id', script_output('ls -l /dev/disk/by-id', proceed_on_failure => 1));
+}
+
+=head2 get_block_dev_kernel_name
+
+ my $kernel_name = get_block_dev_kernel_name($dev);
+
+Returns the kernel name of a block device, for example C<nvme0n1> for
+C</dev/disk/by-id/nvme-...>. This is the name in C</sys/class/block> and
+in kernel messages.
+
+=cut
+
+sub get_block_dev_kernel_name {
+    my ($dev) = @_;
+    return script_output("basename \$(readlink -f $dev)");
+}
+
+=head2 get_block_dev_pci_device
+
+ my $pci = get_block_dev_pci_device($dev);
+
+Returns the sysfs path of the PCI device of a block device, for example
+C</sys/devices/pci0000:00/0000:00:01.0> for an NVMe disk or the SATA
+controller for a SATA disk. If there are PCI bridges, this is the PCI
+device closest to the disk. Dies if the block device is not under a PCI
+device in sysfs, for example a loop or device mapper device.
+
+=cut
+
+sub get_block_dev_pci_device {
+    my ($dev) = @_;
+    my $kernel_name = get_block_dev_kernel_name($dev);
+    my $path = script_output("readlink -f /sys/class/block/$kernel_name");
+    my ($pci) = $path =~ m{^(/sys/devices/.*/[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7])/};
+    die "$dev is not under a PCI device: $path" unless $pci;
+    return $pci;
 }
 
 =head2 create_loop_backing_file
