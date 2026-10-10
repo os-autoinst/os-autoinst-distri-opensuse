@@ -11,6 +11,7 @@ schedule:
     - console/force_scheduled_tasks
     - console/textinfo
     - console/hostname
+    - console/uuidd
     - console/installation_snapshots
     - console/zypper_lr
     - console/zypper_ref
