@@ -129,6 +129,7 @@ sub run {
     script_run 'rm /tmp/hostname';
     assert_script_run 'rckadmind stop';
     systemctl 'stop kadmind krb5kdc';
+    script_run 'userdel -r tester';
 
     #confirm hostname returned:
     validate_script_output "hostname", sub { /susetest/ };
