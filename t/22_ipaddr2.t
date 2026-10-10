@@ -2046,4 +2046,29 @@ subtest '[ipaddr2_logs_collect] supportconfig timeout triggers diagnostic' => su
     ok((any { /SC timeout/ } @record_info_calls), "record_info called with SC timeout");
 };
 
+subtest '[ipaddr2_post_fail_hook] ipaddr2 post fail hook' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+
+    my $log_collected = 0;
+    my $cleanup_called = 0;
+
+    $ipaddr2->redefine(ipaddr2_logs_collect => sub { $log_collected++; });
+    $ipaddr2->redefine(ipaddr2_cleanup => sub { $cleanup_called++; return 0; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    ipaddr2_post_fail_hook();
+    is($log_collected, 1, 'Logs collected on fail');
+    is($cleanup_called, 1, 'Cleanup executed on fail');
+
+    $ipaddr2->redefine(ipaddr2_logs_collect => sub { die "Simulated SSH / Cloud API error"; });
+    $log_collected = 0;
+    $cleanup_called = 0;
+
+    lives_ok {
+        ipaddr2_post_fail_hook();
+    } 'Hook does not crash when log collection dies';
+
+    is($cleanup_called, 1, 'CRITICAL: Cleanup MUST still execute even if log collection dies!');
+};
+
 done_testing;

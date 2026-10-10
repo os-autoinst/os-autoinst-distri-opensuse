@@ -72,6 +72,7 @@ our @EXPORT = qw(
   ipaddr2_cleanup
   ipaddr2_logs_collect
   ipaddr2_ssh_intrusion_detection
+  ipaddr2_post_fail_hook
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
@@ -2858,6 +2859,33 @@ sub ipaddr2_ssh_intrusion_detection(%args) {
               "Unexpected external login attempts found from IPs: " . join(', ', @suspicious_ips));
     }
     return $total_attempts;
+}
+
+=head2 ipaddr2_post_fail_hook
+
+    ipaddr2_post_fail_hook();
+
+Safely handle post_fail_hook for ipaddr2 test modules, safely collect logs and cleanup
+without letting exceptions abort ipaddr2_logs_collect and ipaddr2_cleanup.
+
+=cut
+
+sub ipaddr2_post_fail_hook {
+    my ($self) = @_;
+
+    eval {
+        ipaddr2_logs_collect();
+        1;
+    } or record_info('LOG_FAIL', "ipaddr2_logs_collect failed:\n$@", result => 'fail');
+
+    eval {
+        ipaddr2_cleanup(
+            diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+            cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
+            ibsm_rg => get_var('IBSM_RG')
+        );
+        1;
+    } or record_info('CLEANUP_FAIL', "CRITICAL: ipaddr2_cleanup failed:\n$@", result => 'fail');
 }
 
 

@@ -58,6 +58,7 @@ use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
   ipaddr2_repos_add_server_to_hosts
+  ipaddr2_post_fail_hook
   ipaddr2_cleanup
   ipaddr2_logs_collect
   ipaddr2_network_peering_create);
@@ -81,12 +82,8 @@ sub test_flags {
 }
 
 sub post_fail_hook {
-    my ($self) = shift;
-    ipaddr2_logs_collect();
-    ipaddr2_cleanup(
-        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
-        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
-        ibsm_rg => get_var('IBSM_RG'));
+    my ($self) = @_;
+    ipaddr2_post_fail_hook();
 }
 
 1;
