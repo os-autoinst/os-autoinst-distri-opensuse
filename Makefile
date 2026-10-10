@@ -13,8 +13,8 @@ prepare:
 	./tools/wheel --fetch
 	$(MAKE) check-links
 	# https://rt.cpan.org/Ticket/Display.html?id=133363
-	cd os-autoinst && PERL_MB_OPT="--config optimize=-Wno-error=implicit-function-declaration" PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm --from https://cpan.metacpan.org -v -nq --installdeps .
-	PERL_MB_OPT="--config optimize=-Wno-error=implicit-function-declaration" PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm --from https://cpan.metacpan.org -v -nq --installdeps .
+	cd os-autoinst && PERL_MB_OPT="--config optimize=-Wno-error=implicit-function-declaration" PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm --mirror-only --from https://cpan.metacpan.org -v -nq --installdeps .
+	PERL_MB_OPT="--config optimize=-Wno-error=implicit-function-declaration" PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm --mirror-only --from https://cpan.metacpan.org -v -nq --installdeps .
 
 os-autoinst/:
 	@test -d os-autoinst || (echo "Missing test requirements, \
