@@ -71,6 +71,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_repo_refresh
   ipaddr2_repo_list
   ipaddr2_bastion_pubip
+  ipaddr2_post_fail_hook
   ipaddr2_cleanup
   ipaddr2_logs_collect
   ipaddr2_scc_registration_workaround_PAYG);
@@ -141,12 +142,8 @@ sub test_flags {
 }
 
 sub post_fail_hook {
-    my ($self) = shift;
-    ipaddr2_logs_collect();
-    ipaddr2_cleanup(
-        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
-        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
-        ibsm_rg => get_var('IBSM_RG'));
+    my ($self) = @_;
+    ipaddr2_post_fail_hook();
 }
 
 1;
