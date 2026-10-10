@@ -59,14 +59,8 @@ my $nfs_server_set = 0;
 
 my $disable_firewall = 0;
 
-# check_os_release() shells out to read /etc/os-release on every call. The same
-# queries are repeated across the setup_* functions, so cache the results.
-my %os_release_cache;
-sub is_os_release {
-    my $version = shift;
-    $os_release_cache{$version} //= check_os_release($version, 'VERSION_ID');
-    return $os_release_cache{$version};
-}
+# check_os_release() is cached in version_utils; this is just a short alias.
+sub is_os_release { check_os_release($_[0], 'VERSION_ID') }
 
 # The firewall state does not change during setup, so probe it once.
 my $firewall_active;
@@ -768,12 +762,13 @@ sub run {
 sub pre_run_hook {
     my ($self) = @_;
 
-    # Comment /etc/named.conf.include inclusion from /etc/named.conf in those
-    # cases this module runs on support servers which were configured in a
-    # previous job (for example, on migration scenarios). Also make sure the
-    # openqa.zones include is not active twice and disable gpg checks. All in
-    # one script instead of five console round-trips.
-    # One line: script_output cannot be used here, the network is not up yet.
+    # The five steps the old pre_run_hook ran as separate console round-trips,
+    # as one line (script_output needs the network, which is not up yet here):
+    #   1. On a support server configured by a previous job (e.g. migration),
+    #      comment the named.conf.include include out; leaving it can pull
+    #      openqa.zones in twice and prevent named from starting.
+    #   2. Comment the openqa.zones include out if it is still present.
+    #   3. Disable zypper's repo gpg checks.
     my $named_conf_fix = q{if [ -f /etc/named.d/openqa.zones ] && grep -q -E '^include "/etc/named.d/openqa.zones";' /etc/named.conf.include && grep -q -E '^include "/etc/named.conf.include";' /etc/named.conf; then sed -i -e '/^include "\/etc\/named.conf.include";/ s/^/#/' /etc/named.conf; fi; grep -q -E '^include "/etc/named.d/openqa.zones";' /etc/named.conf || sed -i -e '/^include "\/etc\/named.d\/openqa.zones";/ s/^/#/' /etc/named.conf; sed -i -e '/^# repo_gpgcheck =/ i gpgcheck = off' /etc/zypp/zypp.conf};
     assert_script_run($named_conf_fix);
 
