@@ -128,9 +128,8 @@ sub setup_http_server {
     return if $http_server_set;
     record_info 'HTTP server setup';
 
-    systemctl('stop apache2');
     assert_script_run('curl -f -v ' . autoinst_url . '/data/supportserver/http/apache2  >/etc/sysconfig/apache2');
-    systemctl('start apache2');
+    systemctl('restart apache2');
 
     $http_server_set = 1;
 }
@@ -189,11 +188,11 @@ sub setup_networks {
     }
     # Enable IP forwarding
     $setup_script .= "echo 1 > /proc/sys/net/ipv4/ip_forward\n";
+    # Network diagnostics in the same script instead of a separate round-trip
+    $setup_script .= q{echo '=== ip route ==='; ip route; echo '=== ip addr ==='; ip addr; echo '=== iptables ==='; iptables -v -L} . "\n";
 
     bmwqemu::log_call(setup_script => $setup_script);
     record_info('Forward setup', script_output($setup_script, 300));
-
-    record_info('Network status', script_output('echo "=== ip route ==="; ip route; echo "=== ip addr ==="; ip addr; echo "=== iptables ==="; iptables -v -L'));
 }
 
 sub setup_dns_server {
@@ -207,11 +206,10 @@ sub setup_dns_server {
         sed -i 's|#dnssec-validation .*;|dnssec-validation no;|' /etc/named.conf
 
         echo -e '\ninclude "/etc/named.d/openqa.zones";' >> /etc/named.conf
-        curl -f -v $named_url/openqa.zones > /etc/named.d/openqa.zones
+        curl -f -v -o /etc/named.d/openqa.zones $named_url/openqa.zones \\
+                 -o /var/lib/named/master/openqa.test.zone $named_url/openqa.test.zone \\
+                 -o /var/lib/named/master/2.0.10.in-addr.arpa.zone $named_url/2.0.10.in-addr.arpa.zone
         chown :named /etc/named.d/openqa.zones
-
-        curl -f -v $named_url/openqa.test.zone > /var/lib/named/master/openqa.test.zone
-        curl -f -v $named_url/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
         chown -R named:named /var/lib/named/master
     @;
 
@@ -535,18 +533,18 @@ sub setup_iscsi_tgt_server {
 
 sub setup_aytests {
     return if $aytests_set;
-    my $setup_script;
     record_info 'AYTESTS server setup';
 
     # install the aytests-tests package and export the tests over http
     my $aytests_repo = get_var("AYTESTS_REPO_BRANCH", 'master');
+    my $setup_script = "set -e\n";
     # Get profiles
-    assert_script_run('git clone --single-branch -b ' . $aytests_repo . ' https://github.com/yast/aytests-tests.git /tmp/ay');
-    assert_script_run('mv -f /tmp/ay/aytests /srv/www/htdocs/');
+    $setup_script .= "git clone --single-branch -b $aytests_repo https://github.com/yast/aytests-tests.git /tmp/ay\n";
+    $setup_script .= "mv -f /tmp/ay/aytests /srv/www/htdocs/\n";
     # Download apache configuration and cgi script used for dynamically set paramaters expansion
-    assert_script_run('curl -f -v ' . autoinst_url . '/data/supportserver/aytests/aytests.conf >/etc/apache2/vhosts.d/aytests.conf');
-    assert_script_run('curl -f -v ' . autoinst_url . '/data/supportserver/aytests/aytests.cgi >/srv/www/cgi-bin/aytests');
-    assert_script_run('chmod 755 /srv/www/cgi-bin/aytests');
+    $setup_script .= 'curl -f -v ' . autoinst_url . "/data/supportserver/aytests/aytests.conf >/etc/apache2/vhosts.d/aytests.conf\n";
+    $setup_script .= 'curl -f -v ' . autoinst_url . "/data/supportserver/aytests/aytests.cgi >/srv/www/cgi-bin/aytests\n";
+    $setup_script .= "chmod 755 /srv/www/cgi-bin/aytests\n";
     $setup_script .= "
     # Expand variables
     sed -i -e 's|{{SCC_REGCODE}}|" . get_var('SCC_REGCODE') . "|g' \\
@@ -618,7 +616,7 @@ sub setup_nfs_server {
 
     systemctl("start rpcbind");
     systemctl("start nfs-server");
-    assert_script_run("nfsstat –s");
+    assert_script_run("nfsstat -s");
     assert_script_run("mkdir -p $nfs_mount");
     assert_script_run("chmod 777 $nfs_mount");
     assert_script_run("echo $nfs_mount 10.0.2.2/24\\($nfs_permissions\\) >> /etc/exports");
@@ -772,23 +770,12 @@ sub pre_run_hook {
 
     # Comment /etc/named.conf.include inclusion from /etc/named.conf in those
     # cases this module runs on support servers which were configured in a
-    # previous job (for example, on migration scenarios)
-    my $openqa_zones_exists = !script_run 'test -f /etc/named.d/openqa.zones';
-    my $openqa_zones_in_include = !script_run q|grep -q -E "^include \"/etc/named.d/openqa.zones\";" /etc/named.conf.include|;
-    my $named_conf_include = !script_run q|grep -q -E "^include \"/etc/named.conf.include\";" /etc/named.conf|;
-    if ($openqa_zones_exists && $openqa_zones_in_include && $named_conf_include) {
-        # This is running in a support server which was configured on a previous job.
-        # Comment line with 'include "/etc/named.conf.include";' from /etc/named.conf
-        # as in some older versions, leaving the line causes /etc/named.d/openqa.zones
-        # to be included twice, which prevents named from starting
-        assert_script_run q|sed -i -e '/^include \"\/etc\/named.conf.include\";/ s/^/#/' /etc/named.conf|;
-    }
-
-    assert_script_run q|sed -i -e '/^include \"\/etc\/named.d\/openqa.zones\";/ s/^/#/' /etc/named.conf|
-      unless (script_run q|grep -E "^include \"/etc/named.d/openqa.zones\";" /etc/named.conf|);
-
-    # Disable gpg cheks in zypper globaly
-    assert_script_run(q|sed -i -e '/^# repo_gpgcheck =/ i gpgcheck = off' /etc/zypp/zypp.conf|);
+    # previous job (for example, on migration scenarios). Also make sure the
+    # openqa.zones include is not active twice and disable gpg checks. All in
+    # one script instead of five console round-trips.
+    # One line: script_output cannot be used here, the network is not up yet.
+    my $named_conf_fix = q{if [ -f /etc/named.d/openqa.zones ] && grep -q -E '^include "/etc/named.d/openqa.zones";' /etc/named.conf.include && grep -q -E '^include "/etc/named.conf.include";' /etc/named.conf; then sed -i -e '/^include "\/etc\/named.conf.include";/ s/^/#/' /etc/named.conf; fi; grep -q -E '^include "/etc/named.d/openqa.zones";' /etc/named.conf || sed -i -e '/^include "\/etc\/named.d\/openqa.zones";/ s/^/#/' /etc/named.conf; sed -i -e '/^# repo_gpgcheck =/ i gpgcheck = off' /etc/zypp/zypp.conf};
+    assert_script_run($named_conf_fix);
 
     # Disable GNOME screen saver and suspend
     turnoff_gnome_screensaver_and_suspend if check_var('DESKTOP', 'gnome');
