@@ -59,6 +59,15 @@ my $nfs_server_set = 0;
 
 my $disable_firewall = 0;
 
+# check_os_release() shells out to read /etc/os-release on every call. The same
+# queries are repeated across the setup_* functions, so cache the results.
+my %os_release_cache;
+sub is_os_release {
+    my $version = shift;
+    $os_release_cache{$version} //= check_os_release($version, 'VERSION_ID');
+    return $os_release_cache{$version};
+}
+
 
 sub chk_req_pkgs {
     # Install provided list of required packages if any of them is not present on the system
@@ -197,7 +206,7 @@ sub setup_dns_server {
             sed -i '/^options/a\\   response-policy { zone "rpz"; };' /etc/named.conf
         @;
     }
-    if (check_os_release('15', 'VERSION_ID')) {
+    if (is_os_release('15')) {
         $setup_script .= qq@
             sed -i -e '/^NAMED_ARGS=/ s/=.*/="-4"/' /etc/sysconfig/named
         @;
@@ -211,8 +220,7 @@ sub setup_dns_server {
     record_info('DNS server setup', script_output($setup_script, 300));
     # Start services
     systemctl('start named');
-    record_info('DNS status', script_output('systemctl status named'));
-    systemctl('restart dhcpd');
+    record_info('DNS status', script_output('systemctl is-active named'));
 
     $dns_server_set = 1;
 }
@@ -315,13 +323,13 @@ sub setup_ssh_server {
     record_info 'SSH server setup';
     if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0) {
         my $firewall_cmd
-          = check_os_release('12', 'VERSION_ID')
+          = is_os_release('12')
           ? 'yast2 firewall services add zone=EXT service=service:sshd'
           : 'firewall-cmd --add-service=ssh --permanent; firewall-cmd --reload';
         assert_script_run($firewall_cmd, timeout => 200);
     }
     systemctl('restart sshd');
-    record_info('SSHD status', script_output('systemctl status sshd'));
+    record_info('SSHD status', script_output('systemctl is-active sshd'));
 
     $ssh_server_set = 1;
 }
@@ -329,7 +337,7 @@ sub setup_ssh_server {
 sub setup_ntp_server {
     return if $ntp_server_set;
     record_info 'NTP setup';
-    if (check_os_release('12', 'VERSION_ID')) {
+    if (is_os_release('12')) {
         assert_script_run('yast2 firewall services add zone=EXT service=service:ntp')
           if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0);
         assert_script_run('echo \'server pool.ntp.org\' >> /etc/ntp.conf');
@@ -350,7 +358,7 @@ sub setup_xvnc_server {
     record_info 'XVNC server setup';
 
 
-    if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc') && check_os_release('12.3', 'VERSION_ID')) {
+    if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc') && is_os_release('12.3')) {
         zypper_call('ar http://openqa.suse.de/assets/repo/fixed/SLE-12-SP3-Server-DVD-x86_64-GM-DVD1/ sles12sp3dvd1_repo');
         zypper_call('ref');
     }
@@ -426,7 +434,7 @@ sub setup_iscsi_lio_server {
     # FIXME: remove the `yast` dependency
     if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0) {
         my $firewall_cmd
-          = check_os_release('12', 'VERSION_ID')
+          = is_os_release('12')
           ? 'yast2 firewall services add zone=EXT service=service:target'
           : 'firewall-cmd --add-port=3260/tcp --permanent;firewall-cmd --reload';
         assert_script_run($firewall_cmd, timeout => 200);
@@ -446,7 +454,7 @@ sub setup_iscsi_lio_server {
     # instead of 11+ individual assert_script_run calls. Each targetcli
     # call runs in non-interactive mode (single command argument), so no
     # stdin or multi-line issues. Joined with && for fail-fast.
-    my $bs_block = check_os_release('12', 'VERSION_ID') ? 'iblock' : 'block';
+    my $bs_block = is_os_release('12') ? 'iblock' : 'block';
     my @tcli_cmds;
     push @tcli_cmds, 'targetcli "set global auto_add_default_portal=false"';
     push @tcli_cmds, "targetcli '/iscsi create $iscsi_iqn:$iscsi_identifier'";
@@ -598,8 +606,6 @@ sub setup_nfs_server {
     assert_script_run("chmod 777 $nfs_mount");
     assert_script_run("echo $nfs_mount 10.0.2.2/24\\($nfs_permissions\\) >> /etc/exports");
     assert_script_run("exportfs -r");
-    systemctl("restart nfs-server");
-    systemctl("restart rpcbind");
     systemctl("is-active nfs-server -a rpcbind");
     $nfs_server_set = 1;
 }
@@ -620,7 +626,7 @@ sub run {
     # someone mess up directly with QCOW images instead of regeneration of them
     # and could be removed when this ancient 12SP3 image is no longer used
 
-    if (check_os_release('12.3', 'VERSION_ID')) {
+    if (is_os_release('12.3')) {
 
         # Get the Support server architecture
         my $cpu_arch = get_var('ARCH');
@@ -651,10 +657,10 @@ sub run {
     $pkgs{apache2} = 1 if exists $server_roles{qemuproxy} || exists $server_roles{aytests};
     $pkgs{'git-core'} = 1 if exists $server_roles{aytests};
     $pkgs{bind} = $pkgs{'bind-utils'} = 1 if exists $server_roles{dns};
-    $pkgs{chrony} = 1 if exists $server_roles{ntp} && !check_os_release('12', 'VERSION_ID');
+    $pkgs{chrony} = 1 if exists $server_roles{ntp} && !is_os_release('12');
     $pkgs{xrdp} = 1 if exists $server_roles{xdmcp};
     if (exists $server_roles{iscsi}) {
-        check_os_release('12', 'VERSION_ID') ? $pkgs{targetcli} = 1 : $pkgs{'python3-targetcli-fb'} = 1;
+        is_os_release('12') ? $pkgs{targetcli} = 1 : $pkgs{'python3-targetcli-fb'} = 1;
     }
     $pkgs{stunnel} = 1 if exists $server_roles{stunnel};
     $pkgs{mariadb} = 1 if exists $server_roles{mariadb};
