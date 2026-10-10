@@ -15,6 +15,9 @@ use Utils::Architectures;
 use SemVer;
 use POSIX 'strftime';
 
+# /etc/os-release does not change during a test run, so cache the lookups.
+my %os_release_cache;
+
 use constant {
     VERSION => [
         qw(
@@ -802,8 +805,11 @@ sub check_os_release {
     die '$line is not given' unless $line;
     $go_to_target //= '';
     $os_release_file //= '/etc/os-release';
-    my $os_like_name = script_output("$go_to_target grep -e \"^$line\\b\" ${os_release_file} | cut -d'\"' -f2");
-    return ($os_like_name =~ /$distri_name/i);
+    my $key = join('|', $distri_name, $line, $go_to_target, $os_release_file);
+    return $os_release_cache{$key} //= do {
+        my $os_like_name = script_output("$go_to_target grep -e \"^$line\\b\" ${os_release_file} | cut -d'\"' -f2");
+        ($os_like_name =~ /$distri_name/i) ? 1 : 0;
+    };
 }
 
 =head2 verify_os_version
@@ -1115,4 +1121,4 @@ sub is_ltss {
     return $general_ends{$version} <= $current_date;
 }
 
-
+1;

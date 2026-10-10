@@ -80,10 +80,6 @@ sub configure_static_ip {
         $device ||= script_output("grep $mac /sys/class/net/*/address |cut -d / -f 5");
         record_info('set_ip', "Device: $device\nIP: $ip\nMTU: $mtu");
 
-        # check for duplicate IP
-        my ($ip_no_mask, $mask) = split('/', $ip);
-        script_run "arping -w 1 -I $device $ip_no_mask";
-
         # Configure the static networking
         assert_script_run "echo -e \"STARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'\\nMTU='$mtu'\" > /etc/sysconfig/network/ifcfg-$device";
     }
