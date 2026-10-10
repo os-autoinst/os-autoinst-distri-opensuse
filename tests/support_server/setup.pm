@@ -83,6 +83,18 @@ sub firewall_cmd_apply {
 }
 
 
+# The serial console types one character at a time (~30 chars/s), so a long
+# inline script costs seconds to type before anything runs. Upload the script
+# and run it with a short command instead; set -ex keeps it fail-fast and makes
+# the executed commands visible in the serial log.
+sub upload_script {
+    my ($name, $script) = @_;
+    my $path = "/tmp/$name";
+    bmwqemu::log_call(setup_script => $script);
+    write_sut_file($path, "set -ex\n$script");
+    return $path;
+}
+
 sub chk_req_pkgs {
     # Install provided list of required packages if any of them is not present on the system
     zypper_install_available(@_) if script_run('rpm -q --quiet ' . join(' ', @_));
@@ -163,8 +175,8 @@ sub setup_networks {
         $setup_script .= "MTU='$mtu'\n";
         $setup_script .= "EOT\n";
     }
-    bmwqemu::log_call(setup_script => $setup_script);
-    record_info('NETWORK setup', script_output($setup_script, 300));
+    my $network_script = upload_script('mm_network_setup.sh', $setup_script);
+    record_info('NETWORK setup', script_output("bash $network_script", 300));
     systemctl('restart network');
 
     # Firewall setup to allow forward
@@ -185,8 +197,8 @@ sub setup_networks {
     # Network diagnostics in the same script instead of a separate round-trip
     $setup_script .= q{echo '=== ip route ==='; ip route; echo '=== ip addr ==='; ip addr; echo '=== iptables ==='; iptables -v -L} . "\n";
 
-    bmwqemu::log_call(setup_script => $setup_script);
-    record_info('Forward setup', script_output($setup_script, 300));
+    my $forward_script = upload_script('mm_forward_setup.sh', $setup_script);
+    record_info('Forward setup', script_output("bash $forward_script", 300));
 }
 
 sub setup_dns_server {
@@ -225,8 +237,8 @@ sub setup_dns_server {
         firewall_cmd_add('--add-service=dns');
     }
     $setup_script .= "netconfig update -f";
-    bmwqemu::log_call(setup_script => $setup_script);
-    record_info('DNS server setup', script_output($setup_script, 300));
+    my $dns_script = upload_script('dns_setup.sh', $setup_script);
+    record_info('DNS server setup', script_output("bash $dns_script", 300));
     # Start services
     systemctl('start named');
     record_info('DNS status', script_output('systemctl is-active named'));
@@ -294,8 +306,8 @@ sub dhcpd_conf_generation {
         $setup_script .= "}\n";
     }
     $setup_script .= "EOT\n";
-    bmwqemu::log_call(setup_script => $setup_script);
-    record_info('DHCP configured', script_output($setup_script, 300));
+    my $dhcpd_conf_script = upload_script('dhcpd_conf.sh', $setup_script);
+    record_info('DHCP configured', script_output("bash $dhcpd_conf_script", 300));
 }
 
 sub setup_dhcp_server {
@@ -321,8 +333,8 @@ sub setup_dhcp_server {
     $setup_script .= "\"\n";
     $setup_script .= 'sed -i -e "s|^DHCPD_INTERFACE=.*|DHCPD_INTERFACE=\"$NIC_LIST\"|" /etc/sysconfig/dhcpd' . "\n";
 
-    bmwqemu::log_call(setup_script => $setup_script);
-    record_info('DHCP server', script_output($setup_script, 300));
+    my $dhcp_script = upload_script('dhcp_server_setup.sh', $setup_script);
+    record_info('DHCP server', script_output("bash $dhcp_script", 300));
     systemctl('start dhcpd');
     $dhcp_server_set = 1;
 }
@@ -459,24 +471,25 @@ sub setup_iscsi_lio_server {
     }
     assert_script_run($parted_cmd);
 
-    # Build a single shell command chaining all targetcli invocations
-    # instead of 11+ individual assert_script_run calls. Each targetcli
-    # call runs in non-interactive mode (single command argument), so no
-    # stdin or multi-line issues. Joined with && for fail-fast.
+    # Build the equivalent targetcli commands as an uploaded script instead of
+    # one long inline command: the chain is ~800 chars and the serial console
+    # types ~30 chars/s, so typing it cost ~30s while it only ran for ~5s. Each
+    # targetcli call runs in non-interactive (single-command) mode; the
+    # uploaded script's set -e keeps it fail-fast.
     my $bs_block = is_os_release('12') ? 'iblock' : 'block';
-    my @tcli_cmds;
-    push @tcli_cmds, 'targetcli "set global auto_add_default_portal=false"';
-    push @tcli_cmds, "targetcli '/iscsi create $iscsi_iqn:$iscsi_identifier'";
+    my $setup_script = qq{targetcli "set global auto_add_default_portal=false"\n};
+    $setup_script .= qq{targetcli '/iscsi create $iscsi_iqn:$iscsi_identifier'\n};
     for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
         my $device = "$hdd_lun$num_lun";
         (my $name_lun = $device) =~ tr/\//_/;
         $name_lun =~ s/^_//;
-        push @tcli_cmds, "targetcli '/backstores/$bs_block create name=$name_lun dev=$device'";
-        push @tcli_cmds, "targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1/luns create storage_object=/backstores/$bs_block/$name_lun'";
+        $setup_script .= qq{targetcli '/backstores/$bs_block create name=$name_lun dev=$device'\n};
+        $setup_script .= qq{targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1/luns create storage_object=/backstores/$bs_block/$name_lun'\n};
     }
-    push @tcli_cmds, "targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1/portals create $iscsi_ip ip_port=$iscsi_port'";
-    push @tcli_cmds, "targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1 set attribute demo_mode_write_protect=0 cache_dynamic_acls=1 generate_node_acls=1 authentication=0'";
-    assert_script_run(join(' && ', @tcli_cmds), timeout => 120);
+    $setup_script .= qq{targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1/portals create $iscsi_ip ip_port=$iscsi_port'\n};
+    $setup_script .= qq{targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1 set attribute demo_mode_write_protect=0 cache_dynamic_acls=1 generate_node_acls=1 authentication=0'\n};
+    my $iscsi_script = upload_script('iscsi_lio_setup.sh', $setup_script);
+    assert_script_run("bash $iscsi_script", timeout => 120);
 
     # Fail fast: targetcli/rtslib can report success while creating nothing
     # (its restore path is non-fatal, and targetcli still exits 0), so assert
@@ -539,7 +552,7 @@ sub setup_aytests {
 
     # install the aytests-tests package and export the tests over http
     my $aytests_repo = get_var("AYTESTS_REPO_BRANCH", 'master');
-    my $setup_script = "set -e\n";
+    my $setup_script = '';
     # Get profiles
     $setup_script .= "git clone --single-branch -b $aytests_repo https://github.com/yast/aytests-tests.git /tmp/ay\n";
     $setup_script .= "mv -f /tmp/ay/aytests /srv/www/htdocs/\n";
@@ -559,8 +572,8 @@ sub setup_aytests {
            -e 's|{{INIT_SCRIPT_URL}}|http://10.0.2.1/aytests/files/scripts/init_script.sh|g' \\
            /srv/www/htdocs/aytests/*.xml;
     ";
-    bmwqemu::log_call(setup_script => $setup_script);
-    script_output($setup_script, 300);
+    my $aytests_script = upload_script('aytests_setup.sh', $setup_script);
+    script_output("bash $aytests_script", 300);
 
     systemctl('restart apache2');
     $aytests_set = 1;
@@ -771,14 +784,23 @@ sub pre_run_hook {
     my ($self) = @_;
 
     # The five steps the old pre_run_hook ran as separate console round-trips,
-    # as one line (script_output needs the network, which is not up yet here):
+    # now as one line:
     #   1. On a support server configured by a previous job (e.g. migration),
     #      comment the named.conf.include include out; leaving it can pull
     #      openqa.zones in twice and prevent named from starting.
     #   2. Comment the openqa.zones include out if it is still present.
     #   3. Disable zypper's repo gpg checks.
     my $named_conf_fix = q{if [ -f /etc/named.d/openqa.zones ] && grep -q -E '^include "/etc/named.d/openqa.zones";' /etc/named.conf.include && grep -q -E '^include "/etc/named.conf.include";' /etc/named.conf; then sed -i -e '/^include "\/etc\/named.conf.include";/ s/^/#/' /etc/named.conf; fi; grep -q -E '^include "/etc/named.d/openqa.zones";' /etc/named.conf || sed -i -e '/^include "\/etc\/named.d\/openqa.zones";/ s/^/#/' /etc/named.conf; sed -i -e '/^# repo_gpgcheck =/ i gpgcheck = off' /etc/zypp/zypp.conf};
-    assert_script_run($named_conf_fix);
+    # Typing this ~440-char one-liner costs ~17s on the serial console. Upload
+    # and run it instead, but only if the worker HTTP is already reachable:
+    # the fixed network may still be down this early in the boot.
+    if (script_run('curl -s -o /dev/null --connect-timeout 5 ' . autoinst_url . '/data/supportserver/http/apache2') == 0) {
+        my $named_conf_script = upload_script('named_conf_fix.sh', $named_conf_fix);
+        assert_script_run("bash $named_conf_script");
+    }
+    else {
+        assert_script_run($named_conf_fix);
+    }
 
     # Disable GNOME screen saver and suspend
     turnoff_gnome_screensaver_and_suspend if check_var('DESKTOP', 'gnome');
