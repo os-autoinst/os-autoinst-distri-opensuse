@@ -478,6 +478,14 @@ sub setup_iscsi_lio_server {
     push @tcli_cmds, "targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1 set attribute demo_mode_write_protect=0 cache_dynamic_acls=1 generate_node_acls=1 authentication=0'";
     assert_script_run(join(' && ', @tcli_cmds), timeout => 120);
 
+    # Fail fast: targetcli/rtslib can report success while creating nothing
+    # (its restore path is non-fatal, and targetcli still exits 0), so assert
+    # the target and all LUNs actually exist instead of only recording them.
+    my $target_path = "/sys/kernel/config/target/iscsi/$iscsi_iqn:$iscsi_identifier";
+    assert_script_run("test -d $target_path", fail_message => 'iSCSI LIO target was not created');
+    assert_script_run("test \$(ls -1 $target_path/tpgt_1/lun | grep -c '^lun_') -eq $num_luns",
+        fail_message => "iSCSI LIO target does not export the expected $num_luns LUN(s)");
+
     # Start and enable iSCSI Target in systemctl
     systemctl('enable --now target');
 
