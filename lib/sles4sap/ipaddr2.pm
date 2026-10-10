@@ -72,6 +72,7 @@ our @EXPORT = qw(
   ipaddr2_cleanup
   ipaddr2_logs_collect
   ipaddr2_ssh_intrusion_detection
+  ipaddr2_post_fail_hook
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
@@ -2844,5 +2845,26 @@ sub ipaddr2_ssh_intrusion_detection(%args) {
     return $total_attempts;
 }
 
+=head2 ipaddr2_post_fail_hook
+
+    ipaddr2_post_fail_hook();
+
+Consolidated post_fail_hook handler for ipaddr2 test modules.
+
+Collects diagnostic logs from the cluster and SUT before destroying the
+Azure infrastructure to avoid resource leakage.
+
+=cut
+
+sub ipaddr2_post_fail_hook {
+    my ($self) = @_;
+
+    ipaddr2_logs_collect();
+    ipaddr2_cleanup(
+        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
+        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
+        ibsm_rg => get_var('IBSM_RG')
+    );
+}
 
 1;
