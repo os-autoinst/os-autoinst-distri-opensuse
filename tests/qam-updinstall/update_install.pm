@@ -140,6 +140,21 @@ sub get_installed_bin_version {
     }
 }
 
+sub get_installed_bin_versions {
+    my ($names, $age) = @_;
+    my %ver;
+    my $out = script_output("rpm -q --queryformat '%{NAME} %{VERSION}-%{RELEASE}\\n' " . join(' ', @$names), proceed_on_failure => 1);
+    for my $line (split /\n/, $out) {
+        next unless $line =~ /^(\S+) (\d\S*-\S+)$/;
+        my ($name, $version) = ($1, $2);
+        # rpm prints every installed version; the caller wants the oldest
+        # ('old') or the newest ('new'), matching the previous head/tail -n1.
+        $age eq 'old' ? ($ver{$name} //= $version) : ($ver{$name} = $version);
+    }
+    $ver{$_} //= 0 for @$names;
+    return \%ver;
+}
+
 sub get_results {
     my ($self) = @_;
     my ($bins_ref, $package_ref) = ($self->{bins}, $self->{package_list});
@@ -326,8 +341,18 @@ sub run {
 
         disable_test_repositories($repos_count);
 
+        # One zypper search for all the patch binaries instead of one call per
+        # binary. The exit code of a single search cannot tell which binaries
+        # were found, so parse the XML. A binary that is not in any enabled repo
+        # is one the incident adds.
+        my %in_repo;
+        if (@patch_l2 || @patch_l3) {
+            my $se_xml = script_output('zypper --xmlout -n se -x -t package ' . join(' ', @patch_l2, @patch_l3), proceed_on_failure => 1);
+            # zypper names the solvables in a 'name' attribute, not in a <name> element.
+            $in_repo{$_} = 1 for ($se_xml =~ m{<solvable\b[^>]*\bname="([^"]+)"}g);
+        }
         foreach my $b (@patch_l2, @patch_l3) {
-            if (zypper_call("se -t package -x $b", exitcode => [0, 104]) eq '104') {
+            if (!$in_repo{$b}) {
                 if (grep($b eq $_, @conflicts)) {
                     push(@new_binaries_conflicts, $b);
                 }
@@ -407,10 +432,10 @@ sub run {
 
         if ($patch_info_status !~ /Status\s+: applied/) {
             # Store the version of the installed binaries before the update.
-            for my $bin (keys %patch_bins) {
-                next if grep($bin eq $_, @update_conflicts);
-                $patch_bins{$bin}->{old} = get_installed_bin_version($bin, 'old');
-            }
+            my %is_update_conflict = map { $_ => 1 } @update_conflicts;
+            my @old_bins = grep { !$is_update_conflict{$_} } keys %patch_bins;
+            my $old_versions = get_installed_bin_versions(\@old_bins, 'old');
+            $patch_bins{$_}->{old} = $old_versions->{$_} for @old_bins;
         }
 
         # Patch binaries already installed.
@@ -463,10 +488,10 @@ sub run {
             # After and only if the patches have been applied and the new binaries
             # have been installed, check the version again and based on that
             # determine if the update was succesfull.
-            for my $bin (keys %patch_bins) {
-                next if grep($bin eq $_, @update_conflicts);
-                $patch_bins{$bin}->{new} = get_installed_bin_version($bin, 'new');
-            }
+            my %is_update_conflict = map { $_ => 1 } @update_conflicts;
+            my @new_bins = grep { !$is_update_conflict{$_} } keys %patch_bins;
+            my $new_versions = get_installed_bin_versions(\@new_bins, 'new');
+            $patch_bins{$_}->{new} = $new_versions->{$_} for @new_bins;
             my $l3_results = "L3 binaries must always be updated.\n";
             foreach (@l3) {
                 if ($patch_bins{$_}->{old} eq $patch_bins{$_}->{new} or not $patch_bins{$_}->{new}) {
@@ -502,8 +527,9 @@ sub run {
 
     # merge logs from all patches into one which is testreport template expecting
     foreach (qw(prepare zypper new)) {
-        next if script_run("timeout 20 ls /tmp|grep ${_}_");
-        assert_script_run("cat /tmp/$_* > /tmp/$_.log");
+        # Look for the per-patch logs directly instead of listing all of /tmp.
+        next if script_run("ls /tmp/${_}_* >/dev/null 2>&1");
+        assert_script_run("cat /tmp/${_}_* > /tmp/$_.log");
         upload_logs("/tmp/$_.log");
     }
 }
