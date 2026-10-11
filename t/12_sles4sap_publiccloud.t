@@ -52,6 +52,7 @@ subtest "[run_cmd] with ssh_keepalive" => sub {
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
     $mock_pc->set_true('update_instance_ip');
+    $mock_pc->set_always('ssh_opts', '');
     my @captured_opts;
     $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
@@ -329,6 +330,27 @@ END
     my $ret = $self->is_hana_online();
     set_var('SAP_SIDADM', undef);
     ok $ret eq 1;
+};
+
+subtest "[is_hana_online] with retry_ssh" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my @retry_ssh;
+    $sles4sap_publiccloud->redefine(get_replication_info => sub {
+            my ($self, %args) = @_;
+            push @retry_ssh, $args{retry_ssh};
+            return {online => 'true'};
+    });
+
+    my $self = sles4sap::publiccloud->new();
+
+    # Case 1: retry_ssh enabled -> forwarded by every poll
+    ok($self->is_hana_online(wait_for_start => 1, retry_ssh => 1), 'HANA is online after three consecutive checks');
+    is_deeply(\@retry_ssh, [1, 1, 1], 'retry_ssh forwarded to each of the three checks');
+
+    # Case 2: retry_ssh disabled (default)
+    @retry_ssh = ();
+    $self->is_hana_online();
+    is_deeply(\@retry_ssh, [undef], 'retry_ssh not set by default');
 };
 
 subtest "[stop_hana]" => sub {
@@ -1763,6 +1785,49 @@ END
     ok(ref($result) eq 'HASH', 'Result is a hash reference');
     is($result->{online}, 'true', 'Online status is true');
     is($result->{dropline}, undef, 'No filtered lines');
+};
+
+subtest "[get_replication_info] with retry_ssh" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $cmd_output = "online: true\nmode: sync\n";
+    my (@run_cmd_calls, @run_cmd_retry_calls);
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @run_cmd_calls, \%args;
+            return $cmd_output;
+    });
+    $sles4sap_publiccloud->redefine(run_cmd_retry => sub {
+            my ($self, %args) = @_;
+            push @run_cmd_retry_calls, \%args;
+            return $cmd_output;
+    });
+
+    my $self = sles4sap::publiccloud->new();
+    my $mock_pc = Test::MockObject->new();
+    $mock_pc->set_always('ssh_opts', '-o InstanceOpt=1');
+    $self->{my_instance} = $mock_pc;
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
+
+    # Case 1: retry_ssh enabled -> run_cmd_retry with keepalive and the instance ssh options
+    my $result = $self->get_replication_info(retry_ssh => 1);
+    is(scalar @run_cmd_calls, 0, 'run_cmd not called directly');
+    is(scalar @run_cmd_retry_calls, 1, 'run_cmd_retry called once');
+    like($run_cmd_retry_calls[0]{cmd}, qr/hdbnsutil -sr_state/, 'sr_state is queried');
+    is($run_cmd_retry_calls[0]{runas}, 'SAP_SIDADMTEST', 'sr_state is queried as SAP_SIDADM');
+    is($run_cmd_retry_calls[0]{ssh_keepalive}, 1, 'ssh_keepalive is enabled');
+    is($run_cmd_retry_calls[0]{ssh_opts}, '-o InstanceOpt=1', 'instance ssh_opts are kept');
+    is($result->{online}, 'true', 'Output is parsed');
+
+    # Case 2: retry_ssh disabled (default) -> plain run_cmd without keepalive
+    @run_cmd_calls = ();
+    @run_cmd_retry_calls = ();
+    $self->get_replication_info();
+    set_var('SAP_SIDADM', undef);
+    is(scalar @run_cmd_retry_calls, 0, 'run_cmd_retry not called by default');
+    is(scalar @run_cmd_calls, 1, 'run_cmd called once');
+    ok(!exists $run_cmd_calls[0]{ssh_keepalive}, 'ssh_keepalive not set by default');
 };
 
 done_testing;
