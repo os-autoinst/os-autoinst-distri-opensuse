@@ -115,7 +115,7 @@ sub run_cmd {
 
     # Ensure SSH keepalives to detect hung connections faster
     if ($args{ssh_keepalive}) {
-        $args{ssh_opts} //= '';
+        $args{ssh_opts} //= $self->{my_instance}->ssh_opts();
         $args{ssh_opts} .= ' -o ServerAliveInterval=15 -o ServerAliveCountMax=3' unless $args{ssh_opts} =~ /ServerAliveInterval/;
     }
 
