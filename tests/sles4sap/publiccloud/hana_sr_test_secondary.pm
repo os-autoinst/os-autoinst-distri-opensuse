@@ -110,7 +110,7 @@ sub run {
     # Retain three consecutive online checks within a fixed recovery budget.
     my $hana_online_timeout =
       ($db_action eq 'kill' && get_var('USE_SAP_HANA_SR_ANGI')) ? 600 : 120;
-    $self->is_hana_online(wait_for_start => 1, timeout => $hana_online_timeout);
+    $self->is_hana_online(wait_for_start => 1, timeout => $hana_online_timeout, retry_ssh => 1);
 
     # Wait for the cluster to report the HANA resource running on this node.
     my $hana_started = time;

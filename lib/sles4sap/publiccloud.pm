@@ -331,7 +331,7 @@ sub get_hana_topology {
 }
 
 =head2 is_hana_online
-    is_hana_online([timeout => 120, wait_for_start => 'false']);
+    is_hana_online([timeout => 120, wait_for_start => 'false', retry_ssh => 0]);
 
     Check if hana DB is online.
 
@@ -340,6 +340,8 @@ sub get_hana_topology {
 =item B<wait_for_start> - Define 'wait_for_start' to wait for DB to start.
 
 =item B<timeout> - timeout for the wait of the online state
+
+=item B<retry_ssh> - query the DB state with SSH keepalive and retries, to survive the node being fenced or rebooted meanwhile
 
 =back
 =cut
@@ -353,7 +355,7 @@ sub is_hana_online {
     my $db_status;
 
     while ($consecutive_passes < 3) {
-        $db_status = $self->get_replication_info()->{online} eq "true" ? 1 : 0;
+        $db_status = $self->get_replication_info(retry_ssh => $args{retry_ssh})->{online} eq "true" ? 1 : 0;
         return $db_status unless $args{wait_for_start};
 
         # Require three consecutive online results within the timeout.
@@ -805,15 +807,26 @@ sub enable_replication {
 }
 
 =head2 get_replication_info
-    get_replication_info();
+    get_replication_info([retry_ssh => 0]);
 
     Parses "hdbnsutil -sr_state" command output.
     Returns hash of found values converted to lowercase and replaces spaces to underscores.
+    Set 'retry_ssh' to run the command with SSH keepalive and retries (run_cmd_retry).
 =cut
 
 sub get_replication_info {
-    my ($self) = @_;
-    my $output_cmd = $self->run_cmd(cmd => 'hdbnsutil -sr_state 2>&1', runas => get_required_var('SAP_SIDADM'));
+    my ($self, %args) = @_;
+    my $method = $args{retry_ssh} ? 'run_cmd_retry' : 'run_cmd';
+    my %ssh_args;
+    if ($args{retry_ssh}) {
+        $ssh_args{ssh_opts} = $self->{my_instance}->ssh_opts();
+        $ssh_args{ssh_keepalive} = 1;
+    }
+
+    my $output_cmd = $self->$method(
+        cmd => 'hdbnsutil -sr_state 2>&1',
+        runas => get_required_var('SAP_SIDADM'),
+        %ssh_args);
     $output_cmd = join "\n", grep /:[^\^]/, split /\n/, $output_cmd;
     record_info('Replication info', $output_cmd);
     # Create a hash from hdbnsutil output, convert to lowercase with underscore instead of space.
