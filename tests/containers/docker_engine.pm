@@ -122,6 +122,11 @@ sub run {
     push @xfails, (
         "github.com/moby/moby/v2/integration/container::TestStatsNetworkStats",
     ) if (get_var("ROOTLESS"));
+    push @xfails, (
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied",
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80",
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80/AF_ALG",
+    ) if (is_sle(">=16") || get_var("DOCKER_SELINUX"));
     # This fails for unknown reason on SLES 16.1 Build74.1
     push @xfails, (
         "github.com/moby/moby/v2/integration/daemon/nri::TestNRIReload",
