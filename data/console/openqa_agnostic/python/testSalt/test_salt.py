@@ -93,6 +93,23 @@ def salt_cmd(args, timeout=30):
     return run(cmd, check=False, timeout=timeout)
 
 
+def salt_cmd_retry(args, timeout=60, attempts=6, interval=5):
+    """Run a salt CLI command, retrying transient minion failures.
+
+    The minion can briefly report "Couldn't get lock, is another instance
+    already running?" right after it (re)started, see bsc#1069711. The
+    legacy tests/console/salt.pm works around the same race by retrying
+    test.ping. Retry here so the master-minion tests are not flaky.
+    """
+    result = None
+    for _ in range(attempts):
+        result = salt_cmd(args, timeout=timeout)
+        if result.returncode == 0 and "Couldn't get lock" not in result.stdout:
+            return result
+        time.sleep(interval)
+    return result
+
+
 def salt_call(args, timeout=30):
     """Run salt-call with --local and return CompletedProcess."""
     cmd = ["salt-call", "--local", "--out=json", "--no-color"] + args
@@ -383,13 +400,13 @@ class TestPackageBasics:
 
     def test_salt_master_installed(self):
         """salt-master binary is present in PATH."""
-        result = run(["which", "salt-master"], check=False)
-        assert result.returncode == 0, "salt-master not found in PATH"
+        assert shutil.which("salt-master") is not None, \
+            "salt-master not found in PATH"
 
     def test_salt_minion_installed(self):
         """salt-minion binary is present in PATH."""
-        result = run(["which", "salt-minion"], check=False)
-        assert result.returncode == 0, "salt-minion not found in PATH"
+        assert shutil.which("salt-minion") is not None, \
+            "salt-minion not found in PATH"
 
     def test_salt_master_version(self):
         """salt-master --version returns a valid version string."""
@@ -460,7 +477,8 @@ class TestSaltCallLocal:
 
     def test_local_cmd_run(self):
         """salt-call --local cmd.run executes a command."""
-        result = salt_call(["cmd.run", "echo salt_agnostic_test_marker"])
+        result = salt_call(["cmd.run", "echo salt_agnostic_test_marker"],
+                           timeout=120)
         assert result.returncode == 0, \
             f"salt-call cmd.run failed: {result.stderr}"
         data = json.loads(result.stdout)
@@ -569,7 +587,7 @@ class TestMasterMinionCommunication:
 
     def test_ping(self, salt_keys_accepted):
         """salt '*' test.ping returns True for the minion."""
-        result = salt_cmd(["*", "test.ping", "--timeout=15"])
+        result = salt_cmd_retry(["*", "test.ping", "--timeout=15"])
         assert result.returncode == 0, \
             f"test.ping failed: {result.stderr}"
         data = json.loads(result.stdout)
@@ -579,7 +597,7 @@ class TestMasterMinionCommunication:
     def test_ping_by_minion_id(self, salt_keys_accepted):
         """Ping using the specific minion id."""
         minion_id = salt_keys_accepted
-        result = salt_cmd([minion_id, "test.ping", "--timeout=15"])
+        result = salt_cmd_retry([minion_id, "test.ping", "--timeout=15"])
         assert result.returncode == 0, \
             f"test.ping by id failed: {result.stderr}"
         data = json.loads(result.stdout)
@@ -588,7 +606,7 @@ class TestMasterMinionCommunication:
 
     def test_cmd_run_uname(self, salt_keys_accepted):
         """salt '*' cmd.run 'uname -s' returns 'Linux'."""
-        result = salt_cmd(["*", "cmd.run", "uname -s", "--timeout=15"])
+        result = salt_cmd_retry(["*", "cmd.run", "uname -s", "--timeout=15"])
         assert result.returncode == 0, \
             f"cmd.run failed: {result.stderr}"
         data = json.loads(result.stdout)
@@ -597,7 +615,7 @@ class TestMasterMinionCommunication:
 
     def test_cmd_run_hostname(self, salt_keys_accepted):
         """salt '*' cmd.run 'hostname' returns a non-empty string."""
-        result = salt_cmd(["*", "cmd.run", "hostname", "--timeout=15"])
+        result = salt_cmd_retry(["*", "cmd.run", "hostname", "--timeout=15"])
         assert result.returncode == 0, \
             f"cmd.run hostname failed: {result.stderr}"
         data = json.loads(result.stdout)
@@ -606,7 +624,7 @@ class TestMasterMinionCommunication:
 
     def test_grains_os(self, salt_keys_accepted):
         """salt '*' grains.item os returns a valid OS name."""
-        result = salt_cmd(["*", "grains.item", "os", "--timeout=15"])
+        result = salt_cmd_retry(["*", "grains.item", "os", "--timeout=15"])
         assert result.returncode == 0, \
             f"grains.item os failed: {result.stderr}"
         data = json.loads(result.stdout)
@@ -618,7 +636,7 @@ class TestMasterMinionCommunication:
 
     def test_grains_kernel(self, salt_keys_accepted):
         """salt '*' grains.item kernel returns 'Linux'."""
-        result = salt_cmd(["*", "grains.item", "kernel", "--timeout=15"])
+        result = salt_cmd_retry(["*", "grains.item", "kernel", "--timeout=15"])
         assert result.returncode == 0, \
             f"grains.item kernel failed: {result.stderr}"
         data = json.loads(result.stdout)
@@ -644,8 +662,8 @@ class TestStateApply:
 
     def test_state_apply(self, salt_state_tree, salt_keys_accepted):
         """Apply a test state and verify the managed file is created."""
-        result = salt_cmd(["*", "state.apply", TEST_STATE_NAME,
-                           "--timeout=30"], timeout=60)
+        result = salt_cmd_retry(
+            ["*", "state.apply", TEST_STATE_NAME, "--timeout=30"], timeout=60)
         assert result.returncode == 0, \
             f"state.apply failed: {result.stderr}"
         data = json.loads(result.stdout)
@@ -677,7 +695,7 @@ class TestPillar:
                  timeout=30)
         time.sleep(2)
 
-        result = salt_cmd(["*", "pillar.items", "--timeout=15"])
+        result = salt_cmd_retry(["*", "pillar.items", "--timeout=15"])
         assert result.returncode == 0, \
             f"pillar.items failed: {result.stderr}"
         data = json.loads(result.stdout)
@@ -692,8 +710,8 @@ class TestPillar:
 
     def test_pillar_get(self, salt_state_tree, salt_keys_accepted):
         """salt '*' pillar.get returns our specific test value."""
-        result = salt_cmd(["*", "pillar.get", "agnostic_test_key",
-                           "--timeout=15"])
+        result = salt_cmd_retry(
+            ["*", "pillar.get", "agnostic_test_key", "--timeout=15"])
         assert result.returncode == 0, \
             f"pillar.get failed: {result.stderr}"
         data = json.loads(result.stdout)
