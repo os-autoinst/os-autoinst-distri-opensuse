@@ -189,7 +189,12 @@ sub add_suseconnect_product {
     my ($name, $version, $arch, $params, $timeout, $retry) = @_;
     # no SCC registration https://progress.opensuse.org/issues/131498#note-5
     record_info('skip SCC', "Skip activating product on flavor without SCC registration") && return if ((get_var('FLAVOR') =~ /TERADATA/) && is_sle('=15-SP4'));
-    $version //= scc_version();
+    # The version must come from the running SUT, not from get_var('VERSION'),
+    # because the job variable can differ from the installed OS (e.g. HAWK
+    # tests run a 15-SP6 image under a 16.0 job). Read it once from the SUT.
+    if (!defined $version) {
+        $version = script_output('grep -oP "(?<=^VERSION_ID=\").*(?=\")" /etc/os-release');
+    }
     $arch //= get_required_var('ARCH');
     $params //= '';
     $retry //= 3;    # Times we retry the SUSEConnect command (besides first execution)
