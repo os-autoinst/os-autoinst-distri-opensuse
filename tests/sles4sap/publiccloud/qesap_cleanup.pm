@@ -50,23 +50,17 @@ sub run {
         return 1;
     }
 
-    my $cleanup_success;
-    my $cleanup_completed = eval {
-        $cleanup_success = $self->cleanup($run_args);
-        1;  # for exception handling
-    };
-    my $cleanup_error = $@;
-
-    if (!$cleanup_completed) {
+    # Keep cleanup exceptions non-fatal and visible in the test details.
+    eval {
+        $self->cleanup($run_args);
+        1;
+    } or do {
+        my $error = $@ || 'Cleanup raised an exception, but no error details were available';
         record_info('Cleanup failed',
-            "self::cleanup(\$run_args) failed:\n$cleanup_error",
+            "self::cleanup(\$run_args) failed:\n$error",
             result => 'fail');
-        record_soft_failure('jsc#10375 - Cloud resource cleanup raised an exception');
-    }
-    elsif (!$cleanup_success) {
-        # deployment_cleanup already records failed details for exhausted retries.
-        record_soft_failure('jsc#10375 - Cloud resource cleanup failed');
-    }
+    };
+
     $run_args->{ansible_present} = $self->{ansible_present};
 }
 
