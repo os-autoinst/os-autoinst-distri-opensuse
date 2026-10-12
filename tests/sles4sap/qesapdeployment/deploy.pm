@@ -69,7 +69,7 @@ sub run {
     $qesap_exec_args_terraform{cmd_options} = '--parallel ' . get_var('QESAPDEPLOY_TERRAFORM_PARALLEL') if get_var('QESAPDEPLOY_TERRAFORM_PARALLEL');
 
     my @ret = qesap_execute(%qesap_exec_args_terraform);
-    die "Retry failed, original ansible return: $ret[0]" if ($ret[0]);
+    die "'qesap.py terraform' return: $ret[0]" if ($ret[0]);
 
     my $inventory = qesap_get_inventory(provider => $provider);
     upload_logs($inventory, failok => 1);
