@@ -49,10 +49,13 @@ sub get_host_resolv_conf {
     return \%conf;
 }
 
+# The network backend does not change during a run, so probe it once.
+my $networkmanager;
 sub is_networkmanager {
+    return $networkmanager if defined $networkmanager;
     my $is_nm = (script_run('readlink /etc/systemd/system/network.service | grep NetworkManager') == 0);
     record_info('NetworkManager', (($is_nm) ? 'NetworkManager has been detected.' : 'NetworkManager has not been detected.'));
-    return $is_nm;
+    return $networkmanager = $is_nm;
 }
 
 sub configure_static_ip {
