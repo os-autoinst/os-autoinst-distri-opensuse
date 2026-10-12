@@ -7,6 +7,7 @@ description:    >
 vars:
     INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
     LTP_BAREMETAL: '1'
+    NFS_STRESS_NG_INSTANCES: '8'
 test_data:
     <<: !include test_data/kernel/multimachine/nfs_3hosts.yaml
     multimachine_barriers:
@@ -14,6 +15,8 @@ test_data:
         - NFS_SERVER_ENABLED
         - NFS_CLIENT_ENABLED
         - NFS_SERVER_CHECK
+        - NFS_STRESS_NG_START
+        - NFS_STRESS_NG_END
 conditional_schedule:
     nfstest:
         ROLE:
@@ -32,3 +35,4 @@ schedule:
     - kernel/update_kernel
     - kernel/before_nfs_test
     - '{{nfstest}}'
+    - kernel/nfs_stress_ng

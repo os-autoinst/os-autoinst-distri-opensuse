@@ -14,6 +14,7 @@ use utils;
 use Utils::Logging "export_logs_basic";
 use package_utils 'install_package';
 use Kernel::nfs;
+use Kernel::utils 'get_mount_info';
 use Kernel::multimachine_topology qw(has_topology get_local_node get_peers get_node_interface);
 
 sub compare_checksums {
@@ -126,6 +127,8 @@ sub run {
     }
 
     record_info("EXPORTS", script_output("cat /etc/exports"));
+    my @fs = map { my $mount = get_mount_info($_); "$_: $mount->{fstype} $mount->{source} on $mount->{target} ($mount->{options})" } get_export_paths();
+    record_info("EXPORTS FS", join("\n", @fs)) if @fs;
 
     systemctl("enable rpcbind --now");
     systemctl("is-active rpcbind");

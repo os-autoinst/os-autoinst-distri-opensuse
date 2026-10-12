@@ -10,12 +10,14 @@ use warnings;
 use testapi;
 use package_utils;
 use utils 'systemctl';
+use List::Util 'uniq';
 use Kernel::krb5 qw(setup_krb5_conf setup_krb5_kdc add_host_principals);
 use Kernel::net_tests qw(start_packet_capture stop_packet_capture count_capture_packets capture_statistics);
 use Kernel::block_dev qw(start_block_trace stop_block_trace count_block_writes);
 
 our @EXPORT = qw(
   create_export
+  get_export_paths
   setup_pnfs_client
   verify_pnfs_block_layout
   kernel_supports_nfs_krb5
@@ -47,6 +49,20 @@ sub create_export {
     assert_script_run "mkdir -p $path";
     assert_script_run "chmod 777 $path";
     assert_script_run "echo $path $cl\\($options\\) >> /etc/exports";
+}
+
+=head2 get_export_paths
+
+  my @paths = get_export_paths();
+
+Returns the paths exported in /etc/exports, each path once, in the order
+of the file. Comments and empty lines are skipped.
+
+=cut
+
+sub get_export_paths {
+    my $exports = script_output('cat /etc/exports');
+    return uniq map { m{^(/\S+)} ? $1 : () } split /\n/, $exports;
 }
 
 =head2 setup_pnfs_client
