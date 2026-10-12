@@ -140,8 +140,10 @@ sub run {
         record_info('ZYPP_MEDIANETWORK config', script_output('cat /etc/zypp/zypp.conf.d/medianetwork.conf'));
     }
 
-    # stop and disable PackageKit
-    quit_packagekit;
+    # On textmode the early PackageKit shutdown above is skipped, so stop and
+    # disable PackageKit here. On desktop it is already masked and stopped above
+    # and nothing in this module can have restarted it.
+    quit_packagekit if check_var('DESKTOP', 'textmode');
 }
 
 sub test_flags {
