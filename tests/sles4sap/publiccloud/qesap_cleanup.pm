@@ -49,7 +49,24 @@ sub run {
             "Variable 'QESAP_NO_CLEANUP' set to value " . get_var('QESAP_NO_CLEANUP'));
         return 1;
     }
-    eval { $self->cleanup($run_args); } or bmwqemu::fctwarn("self::cleanup(\$run_args) failed -- $@");
+
+    my $cleanup_success;
+    my $cleanup_completed = eval {
+        $cleanup_success = $self->cleanup($run_args);
+        1;  # for exception handling
+    };
+    my $cleanup_error = $@;
+
+    if (!$cleanup_completed) {
+        record_info('Cleanup failed',
+            "self::cleanup(\$run_args) failed:\n$cleanup_error",
+            result => 'fail');
+        record_soft_failure('jsc#10375 - Cloud resource cleanup raised an exception');
+    }
+    elsif (!$cleanup_success) {
+        # deployment_cleanup already records failed details for exhausted retries.
+        record_soft_failure('jsc#10375 - Cloud resource cleanup failed');
+    }
     $run_args->{ansible_present} = $self->{ansible_present};
 }
 

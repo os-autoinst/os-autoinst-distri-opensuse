@@ -70,6 +70,8 @@ sub cleanup {
         && (ref($args->{my_provider}) =~ /^publiccloud::(azure|ec2|gce)/)
         && (defined $self->{result})
         && ($self->{result} ne 'fail'));
+
+    return $res == 0;
 }
 
 =head2 import_context
