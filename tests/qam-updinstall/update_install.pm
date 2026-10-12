@@ -128,18 +128,6 @@ sub get_patch {
     return split(/\s+/, $patches);
 }
 
-sub get_installed_bin_version {
-    my $name = $_[0];
-    # if there are multiple versions installed, store oldest installed version when looking for old, opposite for new
-    my $age = $_[1];
-    $age = $age eq 'old' ? 'head' : 'tail';
-    if (not script_run("rpm -q $name")) {
-        return script_output "rpm -q --queryformat '%{VERSION}-%{RELEASE}\\n' $name|$age -n1", proceed_on_failure => 1;
-    } else {
-        return 0;
-    }
-}
-
 sub get_installed_bin_versions {
     my ($names, $age) = @_;
     my %ver;
@@ -390,7 +378,10 @@ sub run {
                 record_info "Patch status", "$patch_info_status";
 
                 # Store version of installed binaries before update.
-                $patch_bins{$single_package}->{old} = get_installed_bin_version($single_package, 'old') if $patch_info_status !~ /Status\s+: applied/;
+                if ($patch_info_status !~ /Status\s+: applied/) {
+                    my $old = get_installed_bin_versions([$single_package], 'old');
+                    $patch_bins{$single_package}->{old} = $old->{$single_package};
+                }
 
                 # Patch binaries already installed.
                 record_info 'Conflict install', "Install patch $patch with conflicting $single_package";
@@ -402,7 +393,10 @@ sub run {
                 }
 
                 # Store version of installed binaries after update.
-                $patch_bins{$single_package}->{new} = get_installed_bin_version($single_package, 'new') if $patch_info_status !~ /Status\s+: applied/;
+                if ($patch_info_status !~ /Status\s+: applied/) {
+                    my $new = get_installed_bin_versions([$single_package], 'new');
+                    $patch_bins{$single_package}->{new} = $new->{$single_package};
+                }
 
                 record_info 'Conflict rollback', "Rollback patch $patch with conflicting $single_package";
                 assert_script_run("snapper rollback $rollback_number") if is_sle('12-sp3+');
