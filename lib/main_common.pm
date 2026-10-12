@@ -2717,7 +2717,11 @@ sub load_hypervisor_tests {
                 loadtest "virtualization/universal/list_guests" unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1'));
             }
         }
-        loadtest "virtualization/universal/kernel" unless (check_var("UPDATE_PACKAGE", "snpguest") || check_var("UPDATE_PACKAGE", "snphost"));
+        # Install SEV-SNP host/guest tooling before the generic kernel test runs,
+        # so its generic package-installed check can validate
+        # UPDATE_PACKAGE=snphost/snpguest without kernel.pm knowing about SNP.
+        loadtest "virt_autotest/sev_snp_prepare_packages" if check_var("ENABLE_SEV_SNP", "1");
+        loadtest "virtualization/universal/kernel";
         loadtest "virtualization/universal/finish";
     }
 

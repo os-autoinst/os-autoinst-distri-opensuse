@@ -20,17 +20,19 @@ sub run {
     select_console('root-console');
     my $pkg = get_var("UPDATE_PACKAGE");
 
-    # Verify the host has the correct MU pkg installed
+    # Verify the host has the correct MU pkg installed. Callers are expected to
+    # have already installed $pkg on the host (e.g. patch_and_reboot, or
+    # virt_autotest/sev_snp_prepare_packages for SNP tooling) before this
+    # module runs, so a missing/mismatched package is a genuine failure.
     validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if ($pkg);
 
-    # For kernel updates, verify MU pkg is installed on compatible guests
+    # Verify the MU pkg is installed and up-to-date on compatible guests
     my @guests = keys %virt_autotest::common::guests;
 
     foreach my $guest (@guests) {
-        if ($pkg eq "kernel-default" && is_guest_of_host_version($guest)) {
-            validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
-            record_info("Package Validated on $guest", "$pkg validated on $guest: from TEST repository and up-to-date");
-        }
+        next unless ($pkg && is_guest_of_host_version($guest));
+        validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
+        record_info("Package Validated on $guest", "$pkg validated on $guest: from TEST repository and up-to-date");
     }
     if (check_var('PATCH_WITH_ZYPPER', '1')) {
         assert_script_run("dmesg --level=emerg,crit,alert,err -tx |sort |comm -23 - /tmp/dmesg_err_before.txt > /tmp/dmesg_err.txt");
