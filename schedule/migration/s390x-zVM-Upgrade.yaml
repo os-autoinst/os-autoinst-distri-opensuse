@@ -46,7 +46,7 @@ conditional_schedule:
         - console/ncurses
         - console/yast2_lan
         - console/curl_https
-        - console/salt
+        - console/oqa_agnostic/salt_agnostic
         - console/zypper_in
         - console/yast2_i
         - console/yast2_bootloader

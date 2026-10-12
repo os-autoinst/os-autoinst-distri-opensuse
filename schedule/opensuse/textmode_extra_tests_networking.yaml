@@ -65,5 +65,5 @@ schedule:
     - console/vsftpd
     - '{{velociraptor_tests}}'
     - console/sssd_389ds_functional
-    - console/salt
+    - console/oqa_agnostic/salt_agnostic
     - console/oqa_agnostic/ansible_agnostic
