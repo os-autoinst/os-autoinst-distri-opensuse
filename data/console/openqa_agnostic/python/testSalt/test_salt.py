@@ -64,6 +64,21 @@ def is_service_active(service):
     return result.stdout.strip() == "active"
 
 
+def is_transactional():
+    """Whether salt command execution is wrapped by transactional-update.
+
+    On MicroOS / Leap Micro salt-call and the minion's cmd.run run inside
+    `transactional-update run`. Executing commands that way takes the tukit
+    transaction lock, and salt's own calls can then race the lock (or hang),
+    so the command-execution checks are skipped there.
+    """
+    return shutil.which("transactional-update") is not None \
+        or os.path.exists("/usr/sbin/transactional-update")
+
+
+TRANSACTIONAL = is_transactional()
+
+
 def wait_for_condition(func, description, timeout=60, interval=5):
     """Poll func() until it returns True or timeout expires.
 
@@ -475,6 +490,8 @@ class TestSaltCallLocal:
         kernel = data.get("local", {}).get("kernel", "")
         assert kernel == "Linux", f"expected 'Linux', got: {kernel}"
 
+    @pytest.mark.skipif(TRANSACTIONAL,
+                        reason="salt command execution runs via transactional-update")
     def test_local_cmd_run(self):
         """salt-call --local cmd.run executes a command."""
         result = salt_call(["cmd.run", "echo salt_agnostic_test_marker"],
@@ -604,6 +621,8 @@ class TestMasterMinionCommunication:
         assert data.get(minion_id) is True, \
             f"minion {minion_id} did not respond True: {data}"
 
+    @pytest.mark.skipif(TRANSACTIONAL,
+                        reason="salt command execution runs via transactional-update")
     def test_cmd_run_uname(self, salt_keys_accepted):
         """salt '*' cmd.run 'uname -s' returns 'Linux'."""
         result = salt_cmd_retry(["*", "cmd.run", "uname -s", "--timeout=15"])
@@ -613,6 +632,8 @@ class TestMasterMinionCommunication:
         assert any("Linux" in str(v) for v in data.values()), \
             f"no minion returned Linux: {data}"
 
+    @pytest.mark.skipif(TRANSACTIONAL,
+                        reason="salt command execution runs via transactional-update")
     def test_cmd_run_hostname(self, salt_keys_accepted):
         """salt '*' cmd.run 'hostname' returns a non-empty string."""
         result = salt_cmd_retry(["*", "cmd.run", "hostname", "--timeout=15"])
@@ -660,6 +681,8 @@ class TestMasterMinionCommunication:
 class TestStateApply:
     """Test applying a salt state via master-minion communication."""
 
+    @pytest.mark.skipif(TRANSACTIONAL,
+                        reason="salt command execution runs via transactional-update")
     def test_state_apply(self, salt_state_tree, salt_keys_accepted):
         """Apply a test state and verify the managed file is created."""
         result = salt_cmd_retry(
@@ -674,6 +697,8 @@ class TestStateApply:
                     assert state_result.get("result") is True, \
                         f"state {state_id} failed on {minion_id}: {state_result}"
 
+    @pytest.mark.skipif(TRANSACTIONAL,
+                        reason="salt command execution runs via transactional-update")
     def test_state_file_exists(self, salt_state_tree, salt_keys_accepted):
         """The file created by the test state exists with correct content."""
         test_file = "/tmp/salt_agnostic_test_file"
