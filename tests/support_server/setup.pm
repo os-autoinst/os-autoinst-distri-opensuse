@@ -60,8 +60,11 @@ my $nfs_server_set = 0;
 my $disable_firewall = 0;
 
 # check_os_release() does a console round-trip and the support server's
-# release does not change during setup, so cache it here. Deliberately not
-# cached in version_utils: there the release can change across a migration run.
+# /etc/os-release does not change during setup, so cache the lookups here.
+# Not cached globally in version_utils: the support server image can differ
+# from the job's VERSION (e.g. a 12 SP3 support server in a 15 SP7 cluster,
+# where VERSION is 15 SP7 for both), which makes a VERSION-based global cache
+# unreliable.
 my %os_release_cache;
 sub is_os_release {
     my ($version) = @_;
