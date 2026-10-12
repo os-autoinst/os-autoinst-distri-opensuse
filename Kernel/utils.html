@@ -15,6 +15,7 @@
   <li>
     <ul>
       <li><a href="#is_debugfs_mounted">is_debugfs_mounted</a></li>
+      <li><a href="#get_mount_info">get_mount_info</a></li>
       <li><a href="#enable_debugfs">enable_debugfs</a></li>
       <li><a href="#get_kernel_config">get_kernel_config</a></li>
       <li><a href="#get_verified_shallow_tar">get_verified_shallow_tar</a></li>
@@ -27,6 +28,12 @@
 <pre><code>is_debugfs_mounted();</code></pre>
 
 <p>Checks whether debugfs is mounted at /sys/kernel/debug, same check as blktests&#39; <code>_have_debugfs()</code>. Returns true/false.</p>
+
+<h2 id="get_mount_info">get_mount_info</h2>
+
+<pre><code>my $mount = get_mount_info($path);</code></pre>
+
+<p>Returns a hash reference with <code>target</code>, <code>source</code>, <code>fstype</code> and <code>options</code> of the file system that <code>$path</code> is on, from <code>findmnt -T</code>. For example, <code>target</code> <code>/var</code>, <code>source</code> <code>/dev/sda2[/@/var]</code>, <code>fstype</code> <code>btrfs</code>. Dies if <code>$path</code> is on no mounted file system.</p>
 
 <h2 id="enable_debugfs">enable_debugfs</h2>
 

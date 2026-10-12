@@ -15,6 +15,7 @@
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
       <li><a href="#create_export">create_export</a></li>
+      <li><a href="#get_export_paths">get_export_paths</a></li>
       <li><a href="#setup_pnfs_client">setup_pnfs_client</a></li>
       <li><a href="#verify_pnfs_block_layout">verify_pnfs_block_layout</a></li>
       <li><a href="#kernel_supports_nfs_krb5">kernel_supports_nfs_krb5</a></li>
@@ -34,6 +35,12 @@
 <pre><code>create_export();</code></pre>
 
 <p>Create an NFS share and export it with specified settings: - <code>path</code>: Filesystem path to export - <code>cl</code>: client IP/hostname to create the share for - <code>options</code>: options to record in /etc/exports</p>
+
+<h2 id="get_export_paths">get_export_paths</h2>
+
+<pre><code>my @paths = get_export_paths();</code></pre>
+
+<p>Returns the paths exported in /etc/exports, each path once, in the order of the file. Comments and empty lines are skipped.</p>
 
 <h2 id="setup_pnfs_client">setup_pnfs_client</h2>
 
