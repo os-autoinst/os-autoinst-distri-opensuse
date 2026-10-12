@@ -132,18 +132,18 @@ sub disable_test_repositories {
     my $count = scalar(shift);
 
     record_info 'Disable update repos';
-    for my $i (0 .. $count) {
-        zypper_call("mr -d -G 'TEST_$i'");
-    }
+    # One zypper call for all the test repositories instead of one per repo.
+    my @repos = map { "TEST_$_" } 0 .. $count;
+    zypper_call('mr -d -G ' . join(' ', @repos)) if @repos;
 }
 
 sub enable_test_repositories {
     my $count = scalar(shift);
 
     record_info 'Enable update repos';
-    for my $i (0 .. $count) {
-        zypper_call("mr -e -G 'TEST_$i'");
-    }
+    # One zypper call for all the test repositories instead of one per repo.
+    my @repos = map { "TEST_$_" } 0 .. $count;
+    zypper_call('mr -e -G ' . join(' ', @repos)) if @repos;
 }
 
 # Function that will add all test repos to SSH guest
