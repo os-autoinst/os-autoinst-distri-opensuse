@@ -601,7 +601,8 @@ sub config_guest_platform {
   config_guest_osinfo($self[, guest_osinfo => 'os'])
 
 Configure [guest_osinfo_options]. User can still change [guest_osinfo]
-by passing non-empty arguments using hash. If installations already passes,
+by passing non-empty arguments using hash. Supports backward compatibility
+with legacy [guest_os_variant] parameters. If installations already passes,
 modify_guest_params will be called to modify [guest_osinfo] using already
 modified [guest_osinfo_options].
 
@@ -613,15 +614,30 @@ sub config_guest_osinfo {
     $self->reveal_myself;
     my $_current_osinfo_options = $self->{guest_osinfo_options};
     $self->config_guest_params(@_) if (scalar(@_) > 0);
-    my $_guest_osinfo = $self->{guest_osinfo} // $self->{guest_os_variant};
+    # Support backward compatibility for parameter profiles using legacy
+    # when $self->{guest_osinfo} is empty
+    my $_guest_osinfo = $self->{guest_osinfo} || $self->{guest_os_variant};
+    # Julie debug: to fake a <guest_osinfo> value to test `sle-unknown`.
+    # these lines will be removed before merging
+    $_guest_osinfo = 'sle16';
     if (($_guest_osinfo // '') ne '') {
         # Get list of supported OS names on the current host
-        my $_supported = script_output('virt-install --osinfo list || virt-install --os-variant list');
+        my $_supported = script_output('virt-install --osinfo list');
+        record_info('Supported osinfo', $_supported);
+        # Validate requested OS identifier against host capabilities;
+        # fall back to base version if minor version isn't present in host osinfo-db
         unless ($_supported =~ /(?:^|\s)\Q$_guest_osinfo\E(?:\s|$)/) {
             # Strip the minor version (e.g., sles16.1 -> sles16)
             $_guest_osinfo =~ s/\.\d+$//;
-            $_guest_osinfo = '' unless ($_supported =~ /(?:^|\s)\Q$_guest_osinfo\E(?:\s|$)/);
+            unless ($_supported =~ /(?:^|\s)\Q$_guest_osinfo\E(?:\s|$)/) {
+                if ($self->{guest_os_name} =~ /sle/i && $_supported =~ /(?:^|\s)sle-unknown(?:\s|$)/) {
+                    $_guest_osinfo = 'sle-unknown';
+                } else {
+                    $_guest_osinfo = '';
+                }
+            }
         }
+        # Build virt-install --osinfo option string
         $self->{guest_osinfo_options} = ($_guest_osinfo ne '') ? "--osinfo $_guest_osinfo" : "";
         if (($self->{guest_installation_result} eq 'PASSED') and ($_current_osinfo_options ne $self->{guest_osinfo_options})) {
             $self->modify_guest_params($self->{guest_name}, 'guest_osinfo_options');
