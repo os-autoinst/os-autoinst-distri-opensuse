@@ -12,6 +12,7 @@ conditional_schedule:
                 - console/supportutils
                 - console/rabbitmq
                 - console/redis
+                - console/erlang_smoke_test
                 - x11/ghostscript
 schedule:
     - installation/bootloader_start
