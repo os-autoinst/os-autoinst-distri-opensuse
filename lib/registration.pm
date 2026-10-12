@@ -189,15 +189,14 @@ sub add_suseconnect_product {
     my ($name, $version, $arch, $params, $timeout, $retry) = @_;
     # no SCC registration https://progress.opensuse.org/issues/131498#note-5
     record_info('skip SCC', "Skip activating product on flavor without SCC registration") && return if ((get_var('FLAVOR') =~ /TERADATA/) && is_sle('=15-SP4'));
-    assert_script_run 'source /etc/os-release';
-    $version //= '${VERSION_ID}';
-    $arch //= '${CPU}';
+    $version //= scc_version();
+    $arch //= get_required_var('ARCH');
     $params //= '';
     $retry //= 3;    # Times we retry the SUSEConnect command (besides first execution)
     $timeout //= 300;
 
     # some modules on sle12 use major version e.g. containers module
-    my $major_version = '$(echo ${VERSION_ID}|cut -c1-2)';
+    my $major_version = substr($version, 0, 2);
     $version = $major_version if $name eq 'sle-module-containers' && is_sle('<15');
     record_info('SCC product', "Activating product $name");
 
