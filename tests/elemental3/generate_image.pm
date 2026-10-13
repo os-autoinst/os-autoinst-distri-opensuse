@@ -452,7 +452,7 @@ sub post_run {
     # Create a tarball file with all and upload it
     my $k8s = get_var('K8S', 'k8s');
     my $tar_file = "${k8s}-manifest.tar.bz2";
-    script_run("cd ${tmpdir} ; tar --exclude='*.raw*' --exclude='*.qcow2*' -cvjf $tar_file *", timeout => 120);
+    script_run("cd ${tmpdir} ; tar --exclude='*.raw*' --exclude='*.qcow2*' -cvjf $tar_file *", timeout => 240);
     upload_asset("$tar_file", 1);
 }
 

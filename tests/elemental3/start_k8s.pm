@@ -113,7 +113,7 @@ sub run {
     validate_script_output_retry(
         'systemctl is-system-running',
         sub { m/running/ },
-        retry => 30,
+        retry => 45,
         delay => $default_timeout,
         die => 1,
         fail_message => 'systemd not in running state!'
@@ -141,7 +141,7 @@ sub run {
         record_info('K8s status', script_output('kubectl get pod -A 2>&1'));
 
         # Wait until node(s) is/are in Ready state
-        wait_nodes_ready(timeout => $default_timeout);
+        wait_nodes_ready(timeout => $long_timeout);
 
         # Record K8s version/nodes
         record_info('K8s version/nodes', script_output('kubectl version; kubectl get nodes'));
@@ -171,7 +171,7 @@ sub post_fail_hook {
     select_serial_terminal();
 
     # Useful to debug K8s starting issues
-    foreach my $svc ('k8s-resource-installer', 'k3s', 'rke2-server') {
+    foreach my $svc ('k8s-config-installer', 'k8s-resource-installer', 'k3s', 'rke2-server', 'rke2-agent') {
         script_run("journalctl -xeu $svc.service > /tmp/${svc}_journal.log");
         upload_logs("/tmp/${svc}_journal.log", failok => 1);
     }
