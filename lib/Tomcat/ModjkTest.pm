@@ -9,9 +9,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 package Tomcat::ModjkTest;
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
