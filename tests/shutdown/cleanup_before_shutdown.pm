@@ -20,6 +20,7 @@ use testapi;
 use serial_terminal 'prepare_serial_console';
 use utils;
 use version_utils;
+use Utils::Architectures 'is_aarch64';
 use Utils::Backends;
 use Utils::Logging 'save_and_upload_systemd_unit_log';
 
@@ -77,6 +78,9 @@ END_SCRIPT
 
     # Rest the timestamp of the last update notification (boo#1253141)
     assert_script_run("rm -f ~$testapi::username/.local/state/discovernotifierstaterc") if is_plasma6;
+
+    # Clean-up Mesa shader cache on aarch64 to avoid SIGILL (FP16 instructions can be used on older hardware)
+    assert_script_run("rm -rf ~$testapi::username/.cache/*mesa*") if is_aarch64;
 }
 
 sub post_fail_hook {
