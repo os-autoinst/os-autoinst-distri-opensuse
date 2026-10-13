@@ -29,11 +29,12 @@ sub _register_salt_module {
 sub run {
     select_serial_terminal;
     _register_salt_module();
+    my $packages = 'salt-master salt-minion';
+    $packages .= ' hostname' if is_jeos;
     # Legacy salt.pm skips salt-minion install on JeOS SLE < 16
     # (pre-installed). Unconditional install is safe -- zypper
     # handles already-installed packages as a no-op.
-    # hostname is missing on minimal images (e.g. Minimal-VM) but test_cmd_run_hostname needs it
-    install_package('salt-master salt-minion hostname', trup_continue => 1, trup_reboot => 1);
+    install_package($packages, trup_continue => 1, trup_reboot => 1);
 
     my $test = agnosticTestRunner->new({
             language => 'python',
