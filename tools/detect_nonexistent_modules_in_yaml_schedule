@@ -7,6 +7,7 @@ use warnings;
 use YAML::PP;
 use YAML::PP::Schema::Include;
 use File::Basename;
+use File::Spec;
 use Data::Dumper;
 
 =head2 parse_modules_in_schedule
