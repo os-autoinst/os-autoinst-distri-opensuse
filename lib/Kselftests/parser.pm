@@ -38,11 +38,19 @@ use warnings;
 sub factory {
     my ($collection, $sanitized_test_name) = @_;
     my $obj;
+    (my $pkg_collection = $collection) =~ s{/}{::}g;
+    (my $top_collection = $collection) =~ s{/.*}{};
     eval {
-        my $pkg = "Kselftests::parsers::${collection}::${sanitized_test_name}";
+        my $pkg = "Kselftests::parsers::${pkg_collection}::${sanitized_test_name}";
         $obj = $pkg->new();
     } or eval {
-        my $pkg = "Kselftests::parsers::${collection}";
+        my $pkg = "Kselftests::parsers::${pkg_collection}";
+        $obj = $pkg->new();
+    } or eval {
+        # Subcollections (e.g. 'net/forwarding') fall back to the parser of
+        # their top-level collection (e.g. 'net') when they don't have one
+        # of their own.
+        my $pkg = "Kselftests::parsers::${top_collection}";
         $obj = $pkg->new();
     } or do {
         $obj = Kselftests::parsers::main->new();
