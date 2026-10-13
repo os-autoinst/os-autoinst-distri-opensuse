@@ -20,9 +20,15 @@
     hashedPassword: true
   },
   software: {
+    packages: [
+      'openssh-server-config-rootlogin',
+    ],
     patterns: {
       add: ['ha_sles']
-    }
+    },
+  },
+  "access": {
+    "ssh": "enabled"
   },
   scripts: {
     pre: [
@@ -37,18 +43,7 @@
               sync
           done
         |||
-      }
-    ],
-    post: [
-      {
-        name: 'enable root login sshd',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-          systemctl enable sshd
-        |||
-      }
+      },
     ]
   }
 }
