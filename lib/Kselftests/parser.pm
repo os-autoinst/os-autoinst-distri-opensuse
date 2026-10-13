@@ -13,6 +13,8 @@ use Kselftests::parsers::main;
 use Kselftests::parsers::net;
 use Kselftests::parsers::net::l2tp_sh;
 use Kselftests::parsers::net::sctp_vrf_sh;
+use Kselftests::parsers::net::test_vxlan_under_vrf_sh;
+use Kselftests::parsers::net::test_vxlan_fdb_changelink_sh;
 
 use Kselftests::parsers::livepatch;
 
