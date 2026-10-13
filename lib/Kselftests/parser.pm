@@ -20,6 +20,7 @@ use Kselftests::parsers::net::l2_tos_ttl_inherit_sh;
 use Kselftests::parsers::net::l2tp_sh;
 use Kselftests::parsers::net::psock_snd_sh;
 use Kselftests::parsers::net::reuseport_addr_any_sh;
+use Kselftests::parsers::net::rps_default_mask_sh;
 use Kselftests::parsers::net::run_afpackettests;
 use Kselftests::parsers::net::run_netsocktests;
 use Kselftests::parsers::net::sctp_vrf_sh;
