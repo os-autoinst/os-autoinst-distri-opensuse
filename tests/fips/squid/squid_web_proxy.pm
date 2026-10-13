@@ -7,11 +7,13 @@
 # Summary: FIPS tests for squid, test squid as a web proxy
 #
 # Maintainer: QE Security <none@suse.de>
+# Tags: poo#207477
 
 use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(systemctl);
 use version_utils 'is_sle';
+use serial_terminal 'select_text_console';
 
 sub cleanup_squid {
     # run() leaves squid serving on :3128 with a generated config and credentials file.
@@ -26,18 +28,20 @@ sub configure_squid {
     script_run 'cp -a /etc/squid/squid.conf /etc/squid/squid.conf.orig';
     # configure squid as a web proxy cache
     assert_script_run 'curl ' . data_url('squid/squid_authdigest.conf') . ' -o /etc/squid/squid.conf';
-    # on Tumbleweed the auth helper path is different
-    assert_script_run 'sed -i "s|/usr/lib/squid/digest_file_auth|/usr/libexec/squid/digest_file_auth|" /etc/squid/squid.conf' unless is_sle();
+    # on Tumbleweed and SLE16.x the auth helper path is different
+    assert_script_run 'sed -i "s|/usr/lib/squid/digest_file_auth|/usr/libexec/squid/digest_file_auth|" /etc/squid/squid.conf' unless is_sle('<16.0');
     # digest is for proxyuser:proxypassword with realm SUSE
     assert_script_run 'echo "proxyuser:SUSE:7935d7d2f866548295f9b3c5400b97e6" > /etc/squid/passwd.txt';
     systemctl('restart squid', timeout => 600);
     systemctl 'status squid';
     # ensure squid is ready to serve requests before proceeding
     assert_script_run('lsof -i :3128 | grep squid');
+    # SLE16 needs to set selinux
+    assert_script_run('semanage port -a -t http_port_t -p tcp ' . (get_required_var('QEMUPORT') + 1)) if is_sle('>=16.0');
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
     configure_squid;
     my $testfile = data_url('squid/hello.html');
     # try to download file without authentication, should fail

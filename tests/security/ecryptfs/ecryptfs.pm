@@ -5,12 +5,16 @@
 #
 # Summary: Test all encrypt ciphers of ecryptfs
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#110355
+# Tags: poo#110355 poo#207477
 
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use Utils::Architectures;
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
+use serial_terminal 'select_text_console';
+use package_utils 'install_package';
 
 sub ecryptfs_mount {
     my ($cipher) = @_;
@@ -60,9 +64,13 @@ sub ecryptfs_mount {
 sub run {
     my ($self) = @_;
 
-    select_console('root-console');
+    select_text_console;
 
-    zypper_call('in ecryptfs-utils');
+    if (is_sle('>=16.0')) {
+        record_info('TEST SKIPPED', 'ecryptfs-utils package not present in SLE16');
+        return;
+    }
+    install_package('ecryptfs-utils');
     assert_script_run('modprobe ecryptfs');
     foreach my $cipher ('aes', 'blowfish', 'des3_ede', 'twofish', 'cast6', 'cast5') {
         ecryptfs_mount($cipher);
