@@ -93,12 +93,18 @@ sub check_efi_state {
 
     # get current boot information from efibootmgr
     my $found = efibootmgr_current_boot;
+
     if (exists($expected->{exec}) && $expected->{exec}) {
-        record_info "Expected", "EFI executable: $expected->{exec} ( $expected->{label} )";
-        record_info "Found", "EFI executable: $found->{exec} ( $found->{label} )";
+        my $efi_expected = "EFI expected: $expected->{exec} ( $expected->{label} )";
+        my $efi_found = "EFI found: $found->{exec} ( $found->{label} )";
+        record_info "Expected", $efi_expected;
+        record_info "Found", $efi_found;
+
         unless (exists $found->{exec} && exists $found->{label} &&
             $found->{exec} eq $expected->{exec} && $found->{label} eq $expected->{label}) {
-            push @errors, 'No efi executable found by efibootmgr or SUT booted using unexpected efi binary';
+            my $error_msg = 'No efi executable found by efibootmgr or SUT booted using unexpected efi binary';
+            $error_msg .= "\nExpected: $efi_expected\nFound: $efi_found\n";
+            push @errors, $error_msg;
         }
     } else {
         record_info "Fallback", "EFI label: $found->{label}";
