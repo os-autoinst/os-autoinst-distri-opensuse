@@ -20,6 +20,9 @@ use Kselftests::parsers::net::l2tp_sh;
 use Kselftests::parsers::net::run_afpackettests;
 use Kselftests::parsers::net::run_netsocktests;
 use Kselftests::parsers::net::sctp_vrf_sh;
+use Kselftests::parsers::net::udpgro_sh;
+use Kselftests::parsers::net::udpgro_fwd_sh;
+use Kselftests::parsers::net::veth_sh;
 use Kselftests::parsers::net::test_vxlan_under_vrf_sh;
 use Kselftests::parsers::net::test_vxlan_fdb_changelink_sh;
 
