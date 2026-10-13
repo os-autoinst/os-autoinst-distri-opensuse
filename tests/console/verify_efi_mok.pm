@@ -38,7 +38,8 @@ sub get_expected_efi_settings {
     }
 
     my $settings = {};
-    $settings->{label} = is_opensuse() ? lc(get_var('DISTRI')) : 'sles';
+    $settings->{label} = (is_jeos) ? "openSUSE Tumbleweed Minimal" : lc(get_var('DISTRI'));
+    $settings->{label} = 'sles' if !is_opensuse();
     $settings->{mount} = ESP_MOUNT;
     if (!get_var('DISABLE_SECUREBOOT', 0)) {
         $settings->{exec} = '/EFI/' . $settings->{label} . '/shim.efi';
