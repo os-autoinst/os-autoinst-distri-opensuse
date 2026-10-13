@@ -8,10 +8,11 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 use version_utils "is_opensuse";
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     if (is_opensuse) {
         assert_script_run("rpm -qi openSUSE-build-key");
