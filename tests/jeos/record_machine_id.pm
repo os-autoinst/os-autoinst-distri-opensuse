@@ -8,9 +8,10 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use serial_terminal 'select_text_console';
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
     my $machine_id = script_output('cat /etc/machine-id');
     record_info('/etc/machine-id', $machine_id);
