@@ -93,15 +93,15 @@ data/filesystem/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha 
 data/ltp/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
 
 # QE Installation and Migration
-data/yam/ @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
-lib/autoyast.pm @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
-lib/Yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
-lib/YaST @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
-schedule/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
-schedule/yast @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
-test_data/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
-test_data/yast @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
-tests/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+data/yam/ @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos
+lib/autoyast.pm @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos
+lib/Yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos
+lib/YaST @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos
+schedule/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos
+schedule/yast @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos
+test_data/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos
+test_data/yast @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos
+tests/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos
 
 # Elemental
 data/elemental @ldevulder
