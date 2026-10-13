@@ -11,6 +11,7 @@ package Kselftests::parser;
 use Kselftests::parsers::main;
 
 use Kselftests::parsers::net;
+use Kselftests::parsers::net::ipv6_flowlabel_sh;
 use Kselftests::parsers::net::l2tp_sh;
 use Kselftests::parsers::net::sctp_vrf_sh;
 use Kselftests::parsers::net::test_vxlan_under_vrf_sh;
