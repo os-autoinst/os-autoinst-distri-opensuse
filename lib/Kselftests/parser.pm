@@ -28,6 +28,7 @@ use Kselftests::parsers::net::skf_net_off_sh;
 use Kselftests::parsers::net::test_so_rcv_sh;
 use Kselftests::parsers::net::udpgro_sh;
 use Kselftests::parsers::net::udpgro_fwd_sh;
+use Kselftests::parsers::net::udpgso_sh;
 use Kselftests::parsers::net::veth_sh;
 use Kselftests::parsers::net::test_vxlan_under_vrf_sh;
 use Kselftests::parsers::net::test_vxlan_fdb_changelink_sh;
