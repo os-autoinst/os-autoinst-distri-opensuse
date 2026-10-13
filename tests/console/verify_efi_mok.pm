@@ -52,7 +52,11 @@ sub get_expected_efi_settings {
 
 sub efibootmgr_current_boot {
     my $ebm_raw = script_output 'efibootmgr --verbose';
-    my $h = {};
+    my $h = {
+        bootid => undef,
+        label => undef,
+        exec => undef,
+    };
 
     ($h->{bootid}) = $ebm_raw =~ /^BootCurrent:\s+(\d+)/m;
     die 'Missing BootCurrent: in efibootmgr\'s output' unless $h->{bootid};
@@ -60,10 +64,12 @@ sub efibootmgr_current_boot {
     if ($ebm_raw =~ /^(Boot$h->{bootid}\*\s+(.+)\s+(\S+\([^\)]+\)\/?)+.*|Boot$h->{bootid}\*\s+(.+))$/m) {
         $h->{label} = $2 // $4;
     }
-    (exists($h->{label}) && $h->{label}) or die "Missing label in Boot$h->{bootid} entry";
+    die "Missing label in Boot $h->{bootid} entry" unless $h->{label};
 
     ($h->{exec}) = $ebm_raw =~ /^Boot$h->{bootid}\*.*File\(([^\)]+)\).*/m;
-    defined($h->{exec}) && $h->{exec} =~ s'\\'/'g;
+    die "Missing efi image" if (!defined $h->{exec} || $h->{exec} eq '');
+
+    $h->{exec} =~ s'\\'/'g;
 
     return $h;
 }
@@ -100,8 +106,7 @@ sub check_efi_state {
         record_info "Expected", $efi_expected;
         record_info "Found", $efi_found;
 
-        unless (exists $found->{exec} && exists $found->{label} &&
-            $found->{exec} eq $expected->{exec} && $found->{label} eq $expected->{label}) {
+        unless ($found->{exec} eq $expected->{exec} && $found->{label} eq $expected->{label}) {
             my $error_msg = 'No efi executable found by efibootmgr or SUT booted using unexpected efi binary';
             $error_msg .= "\nExpected: $efi_expected\nFound: $efi_found\n";
             push @errors, $error_msg;
