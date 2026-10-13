@@ -10,6 +10,7 @@ package Kselftests::parser;
 
 use Kselftests::parsers::main;
 
+use Kselftests::parsers::net;
 use Kselftests::parsers::net::l2tp_sh;
 
 use Kselftests::parsers::livepatch;
