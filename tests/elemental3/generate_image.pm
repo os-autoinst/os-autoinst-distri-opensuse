@@ -167,11 +167,12 @@ sub customize_cmd {
             if (check_var('CLUSTER_TYPE', 'singlenode')) {
                 # Keep configuration for first node only
                 assert_script_run(
-                    "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $cluster_yaml"
+                    "sed -i -e '/- hostname: node02/,/^network:/ { /^network:/!d }' $cluster_yaml"
                 );
+                assert_script_run("rm -f $args{config_dir}/network/node0[2-9]*.yaml");
             }
         } else {
-            # Remove k8s-preinstall service, as this is only useful
+            # Remove network configuration and k8s-preinstall service, as this is only useful
             # for the single-node and multi-node tests
             assert_script_run("rm -rf $args{config_dir}/network");
             assert_script_run(
@@ -334,6 +335,12 @@ sub run {
     # Clean image filename (useful for cloned jobs)
     $img_filename =~ tr/\/#/_/;
 
+    # Disambiguate image filename if CLUSTER_TYPE is set to prevent
+    # concurrent generator jobs from overwriting each other's assets
+    if (my $cluster_type = get_var('CLUSTER_TYPE')) {
+        $img_filename .= "-$cluster_type" unless $img_filename =~ /$cluster_type/;
+    }
+
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
 
@@ -445,7 +452,7 @@ sub post_run {
     # Create a tarball file with all and upload it
     my $k8s = get_var('K8S', 'k8s');
     my $tar_file = "${k8s}-manifest.tar.bz2";
-    script_run("cd ${tmpdir} ; tar --exclude='*.raw*' --exclude='*.qcow2*' -cvjf $tar_file *", timeout => 120);
+    script_run("cd ${tmpdir} ; tar --exclude='*.raw*' --exclude='*.qcow2*' -cvjf $tar_file *", timeout => 240);
     upload_asset("$tar_file", 1);
 }
 

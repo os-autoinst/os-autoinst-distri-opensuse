@@ -36,6 +36,11 @@ sub run {
     if ($is_master) {
         setup_static_mm_network('10.0.2.100/24');
         configure_hostname($hostname);
+    } else {
+        # Configure worker nodes if static IP is not already configured
+        setup_static_mm_network("10.0.2.1$local_index/24")
+          if (script_run("ip -4 addr show | grep -q '10.0.2.1$local_index'") != 0);
+        configure_hostname($hostname);
     }
 
     # Wait for all nodes to be synced
