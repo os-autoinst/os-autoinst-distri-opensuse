@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2024 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: xfsprogs
@@ -14,7 +14,7 @@
 # - Save kdump data, unless NO_KDUMP is set to 1
 # - Stop heartbeat after last test on list
 # - Collect all logs
-# Maintainer: Yong Sun <yosun@suse.com>, An Long <lan@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 ## no os-autoinst style
 

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2026 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Knowledge base failure analysis for xfstests
@@ -10,7 +10,7 @@
 # QE entries override AI entries for scalar fields (description, bug_probability, etc.)
 # and prepend to list fields (common_causes, output_patterns, investigation_steps).
 # Knowledge base files are hosted in the metadata project and downloaded at runtime.
-# Maintainer: Yong Sun <yosun@suse.com>, kernel-qa <kernel-qa@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 package xfstests_ai_analysis;
 
 use base Exporter;

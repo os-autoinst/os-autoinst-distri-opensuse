@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: parted
@@ -8,7 +8,7 @@
 # - Create a gpt partition table on device
 # - Partition device according to system variable XFSTESTS_DEVICE or
 # calculated home size
-# Maintainer: Yong Sun <yosun@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 package partition;
 
 use 5.018;

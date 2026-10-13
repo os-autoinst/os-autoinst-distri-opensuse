@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: procps yast2-kdump kdump crash mokutil kernel-*-debuginfo
@@ -16,7 +16,7 @@
 # - Enable kdump service
 # - Reboot
 # - Check if kdump is enabled
-# Maintainer: Yong Sun <yosun@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 package enable_kdump;
 
 use 5.018;

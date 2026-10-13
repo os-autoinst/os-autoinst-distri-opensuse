@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: zypper xfstests fio fsverity-utils
@@ -10,7 +10,7 @@
 # - Install qa_test_xfstests fio fsverity-utils
 # - If XFSTESTS_REPO is set, install xfstests, filesystems
 # - Otherwise, run "/usr/share/qa/qa_test_xfstests/install.sh"
-# Maintainer: Yong Sun <yosun@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 ## no os-autoinst style
 
