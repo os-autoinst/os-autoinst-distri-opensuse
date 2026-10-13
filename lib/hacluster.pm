@@ -726,18 +726,37 @@ sub ha_export_logs {
 
     select_console 'root-console';
 
-    # Extract HA logs and upload them
-    script_run "touch $corosync_conf";
-    script_run "crm report $report_opt -E $bootstrap_log $crm_log", 300;
-    upload_logs("$bootstrap_log", failok => 1);
+    # The Hawk client is not a cluster node, even if crm is installed.
+    if (check_var('HAWKGUI_TEST_ROLE', 'client')) {
+        record_info('Skip CRM logs',
+            'Hawk client is not a cluster node');
+    }
+    else {
+        my $crm_available = script_run('command -v crm >/dev/null 2>&1');
 
-    my $crm_log_name = script_output("echo \"FILE=\|\$(ls $crm_log* | tail -1)\|\"");
-    $crm_log_name =~ /FILE=\|([^\|]+)\|/;
-    $crm_log_name = $1;
-    upload_logs("$crm_log_name", failok => 1);
+        if (defined($crm_available) && $crm_available == 0) {
+            # Extract HA logs and upload them
+            script_run "touch $corosync_conf";
+            script_run "crm report $report_opt -E $bootstrap_log $crm_log", 300;
+            upload_logs("$bootstrap_log", failok => 1);
 
-    record_info('crm configure show', 'Failed to run "crm configure show"', result => 'fail') if (script_run("crm configure show > /tmp/crm.txt"));
-    upload_logs('/tmp/crm.txt');
+            my $crm_log_name = script_output("echo \"FILE=\|\$(ls $crm_log* | tail -1)\|\"");
+            $crm_log_name =~ /FILE=\|([^\|]+)\|/;
+            $crm_log_name = $1;
+            upload_logs("$crm_log_name", failok => 1);
+
+            if (script_run("crm configure show > /tmp/crm.txt")) {
+                record_info('crm configure show', 'Failed to run "crm configure show"', result => 'fail');
+            }
+            upload_logs('/tmp/crm.txt');
+        }
+        else {
+            record_info('Skip CRM logs',
+                defined($crm_available)
+                ? 'crm command is not available on this host'
+                : 'Could not determine whether crm is available');
+        }
+    }
 
     # Extract YaST logs and upload them
     upload_y2logs(failok => 1) if is_sle('<16');
