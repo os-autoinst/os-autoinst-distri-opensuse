@@ -24,6 +24,7 @@ use Kselftests::parsers::net::rps_default_mask_sh;
 use Kselftests::parsers::net::run_afpackettests;
 use Kselftests::parsers::net::run_netsocktests;
 use Kselftests::parsers::net::sctp_vrf_sh;
+use Kselftests::parsers::net::skf_net_off_sh;
 use Kselftests::parsers::net::test_so_rcv_sh;
 use Kselftests::parsers::net::udpgro_sh;
 use Kselftests::parsers::net::udpgro_fwd_sh;
