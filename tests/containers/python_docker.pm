@@ -80,6 +80,12 @@ sub test ($target) {
         # https://github.com/docker/docker-py/issues/3389
         "tests.integration.api_network_test.TestNetworks::test_connect_with_mac_address",
     );
+    # These fail for unknown reason on Tumbleweed but most likely due to upgrade from gpg2 2.5.22 -> 2.5.24
+    # https://progress.opensuse.org/issues/208431
+    push @xfails, (
+        "tests.integration.credentials.store_test.TestStore::test_store_and_get",
+        "tests.integration.credentials.store_test.TestStore::test_unicode_strings",
+    ) unless (is_sle);
 
     run_timeout_command "$env pytest $pytest_args tests/$target &> $target.txt", no_assert => 1, timeout => 3600;
     upload_logs "$target.txt", failok => 1;
