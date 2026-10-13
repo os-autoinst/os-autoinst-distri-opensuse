@@ -1,0 +1,8 @@
+---
+name: sles_profile_injected_into_iso
+description: >
+  Injecting an installation profile into ISO image.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/inject_profile_to_iso
