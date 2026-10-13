@@ -224,7 +224,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     select_serial_terminal;
-    script_run("mkdir -p $logs; cat /proc/interrupts > $logs/interrupts.txt; dmesg > $logs/dmesg.txt; ip -s link > $logs/ip-link.txt");
+    script_run("mkdir -p $logs; cat /proc/interrupts > $logs/interrupts.txt; ip -s link > $logs/ip-link.txt");
     upload_logs("$logs/$_", failok => 1) for split ' ', script_output("ls $logs 2>/dev/null", proceed_on_failure => 1);
     $self->SUPER::post_fail_hook;
 }
