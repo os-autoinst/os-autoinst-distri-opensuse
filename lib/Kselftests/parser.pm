@@ -17,6 +17,7 @@ use Kselftests::parsers::net::io_uring_zerocopy_tx_sh;
 use Kselftests::parsers::net::ip_defrag_sh;
 use Kselftests::parsers::net::ipv6_flowlabel_sh;
 use Kselftests::parsers::net::l2tp_sh;
+use Kselftests::parsers::net::reuseport_addr_any_sh;
 use Kselftests::parsers::net::run_afpackettests;
 use Kselftests::parsers::net::run_netsocktests;
 use Kselftests::parsers::net::sctp_vrf_sh;
