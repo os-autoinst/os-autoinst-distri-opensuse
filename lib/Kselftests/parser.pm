@@ -11,6 +11,8 @@ package Kselftests::parser;
 use Kselftests::parsers::main;
 
 use Kselftests::parsers::net;
+use Kselftests::parsers::net::arp_ndisc_evict_nocarrier_sh;
+use Kselftests::parsers::net::route_localnet_sh;
 use Kselftests::parsers::net::ipv6_flowlabel_sh;
 use Kselftests::parsers::net::l2tp_sh;
 use Kselftests::parsers::net::run_afpackettests;
