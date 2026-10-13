@@ -175,7 +175,7 @@ sub install_dependencies
         # build
         push @deps, qw(clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema);
         # runtime
-        push @maybe_deps, qw(packetdrill libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch);
+        push @maybe_deps, qw(packetdrill libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 netcat-openbsd net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch);
     }
 
     install_package(join(' ', @deps), (@maybe_deps ? (trup_continue => 1) : ()));
