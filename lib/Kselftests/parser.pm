@@ -32,6 +32,7 @@ use Kselftests::parsers::net::udpgso_sh;
 use Kselftests::parsers::net::veth_sh;
 use Kselftests::parsers::net::test_vxlan_under_vrf_sh;
 use Kselftests::parsers::net::test_vxlan_fdb_changelink_sh;
+use Kselftests::parsers::net::netfilter::nf_conntrack_packetdrill_sh;
 
 use Kselftests::parsers::livepatch;
 
