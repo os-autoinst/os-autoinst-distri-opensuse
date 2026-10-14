@@ -16,8 +16,8 @@ set_var('QESAP_CONFIG_FILE', 'MARLIN');
 subtest '[qesap_az_get_resource_group] match job_id' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my $az_call = 0;
-    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return {data => ['BOAT1234']} });
-    $qesap->redefine(get_current_job_id => sub { return '1234'; });
+    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return ['BOAT1234'] });
+    $qesap->redefine(get_current_job_id => sub { return '1234' });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $result = qesap_az_get_resource_group();
@@ -29,7 +29,7 @@ subtest '[qesap_az_get_resource_group] match job_id' => sub {
 subtest '[qesap_az_get_resource_group] substring' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my $az_call = 0;
-    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return {data => ['BOAT1234', 'CRAB1234']} });
+    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return ['BOAT1234', 'CRAB1234'] });
     $qesap->redefine(get_current_job_id => sub { return '1234'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -42,7 +42,7 @@ subtest '[qesap_az_get_resource_group] substring' => sub {
 subtest '[qesap_az_get_resource_group] not match job_id' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my $az_call = 0;
-    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return {data => ['BOAT1234']} });
+    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return ['BOAT1234'] });
     $qesap->redefine(get_current_job_id => sub { return '3456'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -55,7 +55,7 @@ subtest '[qesap_az_get_resource_group] not match job_id' => sub {
 subtest '[qesap_az_get_resource_group] match QESAP_DEPLOYMENT_IMPORT' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my $az_call = 0;
-    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return {data => ['BOAT1234']} });
+    $qesap->redefine(az_group_name_get => sub { $az_call = 1; return ['BOAT1234'] });
     $qesap->redefine(get_current_job_id => sub { return '3456'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -76,12 +76,15 @@ subtest '[qesap_az_get_resource_group] az integrate' => sub {
     my @calls;
     $azcli->redefine(script_output => sub {
             push @calls, $_[0];
-            return '["BOAT1234", "BOAT3456"]' });
+            return 'out.json' if grep /az.json/, $_[0];
+            return '["BOAT1234", "BOAT3456"]' if grep /out.json/, $_[0]; });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
     my $result = qesap_az_get_resource_group();
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /az group list.*/ } @calls), 'az command properly composed');
+    ok((any { /group list.*/ } @calls), 'az command properly composed');
     ok($result eq 'BOAT1234', "result:$result is like expected BOAT1234");
 };
 
