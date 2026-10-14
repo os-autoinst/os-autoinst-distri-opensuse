@@ -137,4 +137,51 @@ subtest override_known_failures => sub {
 
 };
 
+subtest find_whitelist_entry_nested => sub {
+    my $tmpfile = tempfile;
+    set_var('LTP_KNOWN_ISSUES_LOCAL' => "$tmpfile");
+
+    my $known_issues_json = {
+        net => {
+            flat_subtest => [
+                {product => '^sle:15', message => 'flat top-level entry'},
+            ],
+            veth_sh => {
+                'with xdp attached - aggregation' => [
+                    {product => '^sle:15', message => 'xdp aggregation known issue'},
+                ],
+                '*' => [
+                    {test => '^wildcard', product => '^sle:15', message => 'veth_sh scoped wildcard'},
+                ],
+            },
+            other_sh => {
+                'flat_subtest' => [
+                    {product => '^sle:15', message => 'same name, different parent, must not collide'},
+                ],
+            },
+        },
+    };
+
+    $tmpfile->spew(Mojo::JSON::encode_json($known_issues_json));
+
+    my $env = {product => 'sle:15'};
+    my $whitelist = LTP::WhiteList->new();
+
+    is($whitelist->find_whitelist_entry($env, 'net', 'aggregation', 'veth_sh'), undef,
+        'nested exact lookup requires the exact subtest name');
+    is($whitelist->find_whitelist_entry($env, 'net', 'with xdp attached - aggregation', 'veth_sh')->{message},
+        'xdp aggregation known issue', 'nested exact match under the right parent');
+    is($whitelist->find_whitelist_entry($env, 'net', 'with xdp attached - aggregation'), undef,
+        'nested entry is not found without the parent argument');
+    is($whitelist->find_whitelist_entry($env, 'net', 'wildcard case', 'veth_sh')->{message},
+        'veth_sh scoped wildcard', 'nested wildcard match under the right parent');
+    is($whitelist->find_whitelist_entry($env, 'net', 'wildcard case', 'other_sh'), undef,
+        'nested wildcard of one parent does not leak into another parent');
+    is($whitelist->find_whitelist_entry($env, 'net', 'flat_subtest')->{message},
+        'flat top-level entry', 'flat whole-test array entry is unaffected by nesting support');
+    is($whitelist->find_whitelist_entry($env, 'net', 'flat_subtest', 'other_sh')->{message},
+        'same name, different parent, must not collide',
+        'a nested entry wins over a flat entry of the same name when a parent is given');
+};
+
 done_testing;

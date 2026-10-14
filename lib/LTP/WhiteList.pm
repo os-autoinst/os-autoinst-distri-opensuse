@@ -62,22 +62,36 @@ sub _download_whitelist {
 }
 
 sub find_whitelist_entry {
-    my ($self, $env, $suite, $test) = @_;
+    my ($self, $env, $suite, $test, $parent) = @_;
 
     $suite = $self->{whitelist}->{$suite};
     return undef unless ($suite);
     $test =~ s/_postun$//g if check_var('KGRAFT', 1) && (check_var('UNINSTALL_INCIDENT', 1) || check_var('KGRAFT_DOWNGRADE', 1));
 
     my @issues;
-    if (ref($suite) eq 'ARRAY') {
-        @issues = @{$suite};
+    if (defined($parent) && ref($suite->{$parent}) eq 'HASH') {
+        my $group = $suite->{$parent};
+        if (defined($group->{$test})) {
+            @issues = @{$group->{$test}};
+        }
+        elsif (defined($group->{'*'})) {
+            @issues = grep { $_->{test} && $test =~ m/$_->{test}/ } @{$group->{'*'}};
+        }
     }
-    elsif (defined($suite->{$test})) {
-        @issues = @{$suite->{$test}};
-    }
-    else {
-        return unless defined $suite->{'*'};
-        @issues = grep { $_->{test} && $test =~ m/$_->{test}/ } @{$suite->{'*'}};
+
+    unless (@issues) {
+        if (ref($suite) eq 'ARRAY') {
+            @issues = @{$suite};
+        }
+        elsif (ref($suite->{$test}) eq 'ARRAY') {
+            @issues = @{$suite->{$test}};
+        }
+        elsif (defined($parent) && ref($suite->{$parent}) eq 'ARRAY') {
+            @issues = @{$suite->{$parent}};
+        }
+        elsif (defined $suite->{'*'}) {
+            @issues = grep { $_->{test} && $test =~ m/$_->{test}/ } @{$suite->{'*'}};
+        }
     }
 
     foreach my $cond (@issues) {
@@ -174,6 +188,7 @@ sub list_skipped_tests {
 
     for my $test (keys(%$suite)) {
         next if $test eq '*';
+        next unless ref($suite->{$test}) eq 'ARRAY';
         my @entrys = grep { $_->{skip} && _whitelist_entry_match($_, $env) } @{$suite->{$test}};
         push @skipped_tests, $test if @entrys;
     }
