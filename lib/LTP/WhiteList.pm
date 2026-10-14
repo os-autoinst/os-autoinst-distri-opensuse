@@ -61,23 +61,45 @@ sub _download_whitelist {
     return $lfile;
 }
 
-sub find_whitelist_entry {
-    my ($self, $env, $suite, $test) = @_;
+=head2 find_whitelist_entry
 
-    $suite = $self->{whitelist}->{$suite};
-    return undef unless ($suite);
-    $test =~ s/_postun$//g if check_var('KGRAFT', 1) && (check_var('UNINSTALL_INCIDENT', 1) || check_var('KGRAFT_DOWNGRADE', 1));
+ find_whitelist_entry($env, @test_keys);
+
+Walk the whitelist hash following C<@test_keys>, from the least to the most
+specific (for example: collection, parent test, subtest). All but the last
+key must match exactly; the last key (the leaf) is then looked up directly,
+or, failing that, matched against a C<'*'> entry's C<test> regex at whichever
+level the walk stopped. This allows a whitelist file to nest entries to an
+arbitrary depth, with the C<'*'> wildcard always scoped to the most specific
+level reached.
+
+=cut
+
+sub find_whitelist_entry {
+    my ($self, $env, @test_keys) = @_;
+
+    my $leaf = pop(@test_keys);
+    die('find_whitelist_entry() requires at least one test key') unless defined($leaf);
+
+    $leaf =~ s/_postun$//g if check_var('KGRAFT', 1) && (check_var('UNINSTALL_INCIDENT', 1) || check_var('KGRAFT_DOWNGRADE', 1));
+
+    my $node = $self->{whitelist};
+    for my $key (@test_keys) {
+        last if ref($node) eq 'ARRAY';
+        return undef unless defined($node->{$key});
+        $node = $node->{$key};
+    }
 
     my @issues;
-    if (ref($suite) eq 'ARRAY') {
-        @issues = @{$suite};
+    if (ref($node) eq 'ARRAY') {
+        @issues = @{$node};
     }
-    elsif (defined($suite->{$test})) {
-        @issues = @{$suite->{$test}};
+    elsif (ref($node->{$leaf}) eq 'ARRAY') {
+        @issues = @{$node->{$leaf}};
     }
     else {
-        return unless defined $suite->{'*'};
-        @issues = grep { $_->{test} && $test =~ m/$_->{test}/ } @{$suite->{'*'}};
+        return undef unless defined($node->{'*'});
+        @issues = grep { $_->{test} && $leaf =~ m/$_->{test}/ } @{$node->{'*'}};
     }
 
     foreach my $cond (@issues) {
@@ -174,6 +196,7 @@ sub list_skipped_tests {
 
     for my $test (keys(%$suite)) {
         next if $test eq '*';
+        next unless ref($suite->{$test}) eq 'ARRAY';
         my @entrys = grep { $_->{skip} && _whitelist_entry_match($_, $env) } @{$suite->{$test}};
         push @skipped_tests, $test if @entrys;
     }
