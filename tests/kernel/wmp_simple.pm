@@ -136,6 +136,10 @@ sub run {
     $meminfo = script_output("cat /proc/meminfo");
     record_info("meminfo", "$meminfo");
 
+    my $swaptotal = script_output(q|awk '/SwapTotal:/ {print $2}' /proc/meminfo|);
+    record_info('SwapTotal', "$swaptotal kB");
+    record_info('Wrong size swap', 'HANA systems should be configured with 2G swap. See SAP KBA 1999997', result => 'fail')
+      if ($swaptotal < 2000000 or $swaptotal > 2500000);
 
     my @pids = sap_hdb_pids();
     die "no HANA database processes found in SAP${sid}_${instance_id}.service" unless @pids;
@@ -146,6 +150,12 @@ sub run {
 
         if ($vmswap eq "0 kB") {
             record_info("not swapped", "Process $cmdline (Pid $_) is not using swap", result => 'ok');
+        } elsif ($cmdline =~ /hdbrsutil/ && $vmswap =~ /^(\d+) kB/ && $swaptotal) {
+            # If SUT is properly configured with 2G swap, the Row Store start process can use some swap.
+            # Arbitrarily check this to be at most 20% of swap. Fail if it uses more than 20% swap or is a DB process
+            my $check = ((($1 * 100) / $swaptotal) > 20);
+            record_info("swapped", "Process $cmdline (Pid $_) is using $vmswap of swap", result => ($check ? 'fail' : 'ok'));
+            $failed = 1 if $check;
         } else {
             record_info("swapped", "Process $cmdline (Pid $_) is using $vmswap of swap", result => 'fail');
             $failed = 1;
