@@ -31,6 +31,7 @@ use transactional;
 use package_utils;
 use Kernel::block_dev qw(create_loop_backing_file attach_loop_device create_zoned_nullblk);
 use Kernel::nfs qw(setup_pnfs_client verify_pnfs_block_layout);
+use Kernel::utils 'get_kernel_config';
 use List::Util 'sum';
 use rdma;
 
@@ -250,7 +251,7 @@ sub post_env_info {
     # record version info
     my $ver_log = get_var('VERSION_LOG', '/opt/version.log');
     record_info('Version', script_output("cat $ver_log"));
-    record_info('Kernel config', script_output('cat /boot/config-$(uname -r)'));
+    get_kernel_config();
 
     # record partition size info
     my $size_info = get_var('XFSTESTS_TEST_DEV') . "    " . shift(@size) . "\n";
