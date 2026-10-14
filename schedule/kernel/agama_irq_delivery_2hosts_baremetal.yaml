@@ -1,7 +1,8 @@
 name:           agama_irq_delivery_2hosts_baremetal
 description:    >
     Install two bare metal machines with Agama, then check network card
-    interrupt delivery between them with irq_delivery_network.
+    interrupt delivery between them with irq_delivery_network, and the
+    storage interrupt delivery of each machine with irq_delivery_storage.
     The machines and their test link come from
     test_data/kernel/multimachine/irq_delivery_2hosts.yaml. Set ROLE to sut
     or peer.
@@ -21,3 +22,4 @@ schedule:
     - installation/first_boot
     - kernel/update_kernel
     - kernel/irq_delivery_network
+    - kernel/irq_delivery_storage
