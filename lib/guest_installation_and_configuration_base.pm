@@ -314,7 +314,7 @@ sub prepare_ssh_key {
     }
     $_host_params{ssh_public_key} = script_output("cat $_host_params{ssh_key_file}.pub");
     $_host_params{ssh_private_key} = script_output("cat $_host_params{ssh_key_file}");
-    if (is_sle('16+')) {
+    if (is_sle('16+') or is_tumbleweed) {
         $_host_params{ssh_command} = "ssh -vvv -o HostKeyAlgorithms=+ssh-ed25519 ";
     } else {
         $_host_params{ssh_command} = "ssh -vvv -o HostKeyAlgorithms=+ssh-rsa ";
@@ -324,7 +324,7 @@ sub prepare_ssh_key {
         $_host_params{ssh_command} .= "-o PubkeyAcceptedKeyTypes=+ssh-rsa ";
     }
     else {
-        if (is_sle('16+')) {
+        if (is_sle('16+') or is_tumbleweed) {
             $_host_params{ssh_command} .= "-o PubkeyAcceptedAlgorithms=+ssh-ed25519 ";
         } else {
             $_host_params{ssh_command} .= "-o PubkeyAcceptedAlgorithms=+ssh-rsa ";
@@ -350,7 +350,7 @@ sub prepare_non_transactional_environment {
         virt_autotest::utils::setup_rsyslog_host($_host_params{common_log_folder}) if (is_sle('<16'));
         my $_packages_to_check = 'wget curl screen dnsmasq xmlstarlet python3 nmap';
         $_packages_to_check .= ' yast2-schema' if (is_sle('<16'));
-        zypper_call("install -y $_packages_to_check");
+        zypper_call("--no-gpg-checks install -y $_packages_to_check");
         # There is already the highest version for kvm/xen packages on TW
         zypper_call("install -y -t pattern $self->{host_virt_type}_server $self->{host_virt_type}_tools") if (is_sle);
     }
@@ -2691,7 +2691,7 @@ sub config_guest_agama_shell_ssh_options {
     $args{_with_key_file} //= 1;
     my $_is_host_ltss_15_sp4_sp5 = $self->is_host_ltss_15_sp4_sp5();
     my $_ssh_opts = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ";
-    $_ssh_opts .= is_sle('15-SP7+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519 " : ($_is_host_ltss_15_sp4_sp5 ? "" : "-o PubkeyAcceptedAlgorithms=+ssh-rsa ");
+    $_ssh_opts .= (is_sle('15-SP7+') || is_tumbleweed) ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519 " : ($_is_host_ltss_15_sp4_sp5 ? "" : "-o PubkeyAcceptedAlgorithms=+ssh-rsa ");
     $_ssh_opts .= "-i $_host_params{ssh_key_file}" if $args{_with_key_file};
 
     return $_ssh_opts;
