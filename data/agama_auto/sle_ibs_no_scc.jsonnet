@@ -24,8 +24,8 @@ local version = '{{VERSION}}';
     patterns: ['base', 'minimal_base', 'selinux'],
     extraRepositories: [
       {
-        alias: 'SLES::16.0::product',
-        url: "http://dist.suse.de/ibs/SUSE:/SLFO:/Products:/SLES:/16.0:/TEST/product/repo/SLES-%s-%s" % [version, arch],
+        alias: "SLES::%s::product" % [version],
+        url: "http://dist.suse.de/ibs/SUSE:/SLFO:/Products:/SLES:/%s:/TEST/product/repo/SLES-%s-%s" % [version, version, arch],
         allowUnsigned: true
       }
     ],
