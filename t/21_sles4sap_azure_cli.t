@@ -51,57 +51,35 @@ subtest '[az_group_name_get]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
 
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azcli->redefine(script_output => sub {
-            my $cmd = shift;
-            push @calls, $cmd;
-
-            # Handle the az command
-            return '["Arlecchino","Truffaldino"]' if ($cmd =~ /az\s+.*/);
-
-            # Handle the cat command by matching 'cat /tmp/az_cli.err' (or similar)
-            return 'Mi son Arlechin batocio. Orbo de na recia e sordo da un ocio' if ($cmd =~ /cat\s+(\/tmp\/.*)/);
-
-            return 'INVALID';
-    });
+            push @calls, $_[0];
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'err.log' if grep /az.err/, $_[0];
+            return if grep /err.log/, $_[0];
+            return '["Arlecchino","Truffaldino"]' if grep /out.json/, $_[0]; });
 
     my $res = az_group_name_get();
 
     note("\n  -->  " . join("\n  -->  ", @calls));
 
     ok((any { /az group list/ } @calls), 'Correct composition of the main command');
-    ok((any { /cat \/tmp\/az_cli.err/ } @calls), 'The error file was read');
-    is_deeply($res->{data}, ["Arlecchino", "Truffaldino"], 'Data matches expected array');
-    is($res->{err}, 'Mi son Arlechin batocio. Orbo de na recia e sordo da un ocio', 'Error content correctly captured');
-};
-
-subtest '[az_group_name_get] empty stderr' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-
-    $azcli->redefine(script_output => sub {
-            my $cmd = shift;
-            push @calls, $cmd;
-
-            # Handle the az command
-            return '["Arlecchino","Truffaldino"]' if ($cmd =~ /az\s+.*/);
-
-            # Handle the cat command by matching 'cat /tmp/az_cli.err' (or similar)
-            return '' if ($cmd =~ /cat\s+(\/tmp\/.*)/);
-
-            return 'INVALID';
-    });
-
-    my $res = az_group_name_get();
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-
-    is($res->{err}, '', 'Error empty content correctly captured');
+    ok((any { /cat err.log/ } @calls), 'The error file was read');
+    is_deeply($res, ["Arlecchino", "Truffaldino"], 'Data matches expected array');
 };
 
 subtest '[az_group_name_get] query' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '{"Arlecchino": "Truffaldino"}'; });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'err.log' if grep /az.err/, $_[0];
+            return if grep /err.log/, $_[0];
+            return '["Arlecchino","Truffaldino"]' if grep /out.json/, $_[0]; });
 
     az_group_name_get(query => 'MASCHERA');
 
