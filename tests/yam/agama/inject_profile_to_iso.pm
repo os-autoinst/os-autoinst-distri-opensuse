@@ -11,10 +11,10 @@ use version_utils qw(is_sle);
 
 sub run {
     my $arch = get_var('ARCH');
-    my $test_iso = "/inject_profile_iso_" . $arch . ".iso";
+    my $version = get_var('VERSION');
+    my $test_iso = "/inject_profile_iso_" . $version . "_" . $arch . ".iso";
     my $target_iso = '/agama-auto.iso';
     my $json_file = '/tmp/data.json';
-    my $version = get_var('VERSION');
     my $profile = get_required_var('AGAMA_PROFILE');
 
     select_console 'install-shell';
