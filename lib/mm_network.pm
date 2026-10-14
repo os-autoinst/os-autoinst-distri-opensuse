@@ -49,10 +49,13 @@ sub get_host_resolv_conf {
     return \%conf;
 }
 
+# The network backend does not change during a run, so probe it once.
+my $networkmanager;
 sub is_networkmanager {
+    return $networkmanager if defined $networkmanager;
     my $is_nm = (script_run('readlink /etc/systemd/system/network.service | grep NetworkManager') == 0);
     record_info('NetworkManager', (($is_nm) ? 'NetworkManager has been detected.' : 'NetworkManager has not been detected.'));
-    return $is_nm;
+    return $networkmanager = $is_nm;
 }
 
 sub configure_static_ip {
@@ -79,10 +82,6 @@ sub configure_static_ip {
         # Get default network adapter name
         $device ||= script_output("grep $mac /sys/class/net/*/address |cut -d / -f 5");
         record_info('set_ip', "Device: $device\nIP: $ip\nMTU: $mtu");
-
-        # check for duplicate IP
-        my ($ip_no_mask, $mask) = split('/', $ip);
-        script_run "arping -w 1 -I $device $ip_no_mask";
 
         # Configure the static networking
         assert_script_run "echo -e \"STARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'\\nMTU='$mtu'\" > /etc/sysconfig/network/ifcfg-$device";

@@ -27,10 +27,13 @@ our @EXPORT = qw(
 sub configure_static_network {
     my $ip = shift;
 
-    configure_static_ip(ip => $ip);
-    configure_default_gateway;
-    configure_static_dns(get_host_resolv_conf());
-    restart_networking();
+    # is_networkmanager() probes the system on every call; detect once and
+    # pass the result to the helpers below (they all accept is_nm).
+    my $is_nm = is_networkmanager();
+    configure_static_ip(ip => $ip, is_nm => $is_nm);
+    configure_default_gateway(is_nm => $is_nm);
+    configure_static_dns(get_host_resolv_conf(), is_nm => $is_nm);
+    restart_networking(is_nm => $is_nm);
     assert_script_run "ping -c 1 10.0.2.2 || journalctl -b --no-pager -o short-precise >/dev/$serialdev";
 }
 

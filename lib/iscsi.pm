@@ -19,6 +19,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use utils qw(write_sut_file);
 use version_utils qw(check_os_release);
 
 our @EXPORT = qw(
@@ -43,6 +44,7 @@ our @EXPORT = qw(
   lio_show_backstores
   lio_global_get
   lio_global_set
+  lio_setup_server
 );
 
 =head1 SYNOPSIS
@@ -261,7 +263,7 @@ Creates new iSCSI target on LIO iSCSI server with IQN B<$iqn> and ID B<$tid>.
 sub lio_target_create {
     my ($tid, $iqn) = @_;
     # Create new TARGET on the LIO iSCSI server
-    assert_script_run("targetcli /iscsi create $iqn:$tid");
+    assert_script_run(_lio_target_create_cmd($tid, $iqn));
 }
 
 =head2 lio_target_delete
@@ -297,18 +299,8 @@ and link it to the newly created LUN on target IQN B<$iqn> , ID B<$tid>
 sub lio_lun_create {
     my ($tid, $iqn, $device) = @_;
 
-    # Chose correct name of the iSCSI back store asset, it's iblock on SLE 12, but block since 15
-    my $bs_block = check_os_release('12', 'VERSION_ID') ? 'iblock' : 'block';
-
-    # Parse LUN name from the device path
-    (my $name_lun = $device) =~ tr/\//_/;
-    $name_lun =~ s/^_//;
-
-    # Creates new LUN on LIO iSCSI server
-    assert_script_run("targetcli /backstores/$bs_block create name=$name_lun dev=$device");
-
-    # Add new LUN to the existing TARGET on LIO iSCSI server
-    assert_script_run("targetcli /iscsi/$iqn:$tid/tpg1/luns create storage_object=/backstores/$bs_block/$name_lun");
+    # Creates new LUN on the LIO iSCSI server and links it to the target
+    assert_script_run($_) for _lio_lun_create_cmds($tid, $iqn, $device);
 }
 
 =head2 lio_lun_set_attr
@@ -341,7 +333,7 @@ target with IQN B<$iqn> and ID B<$tid>
 sub lio_portal_create {
     my ($tid, $iqn, $ip, $port) = @_;
     # Adds the LIO iSCSI server portal IP and port
-    assert_script_run("targetcli /iscsi/$iqn:$tid/tpg1/portals create $ip ip_port=$port");
+    assert_script_run(_lio_portal_create_cmd($tid, $iqn, $ip, $port));
 }
 
 =head2 lio_portal_delete
@@ -375,7 +367,7 @@ sub lio_auth_all {
     # Enable iSCSI Demo Mode
     # With this mode, we don't need to manage iSCSI initiators
     # It's OK for a test/QA system, but of course not for a production one!
-    assert_script_run("targetcli /iscsi/$iqn:$tid/tpg1 set attribute demo_mode_write_protect=0 cache_dynamic_acls=1 generate_node_acls=1 authentication=0");
+    assert_script_run(_lio_auth_all_cmd($tid, $iqn));
 }
 
 =head2 lio_global_get
@@ -405,7 +397,75 @@ Set the global preference B<$global_pref> to the value B<$gp_value> in LIO iSCSI
 
 sub lio_global_set {
     my ($global_pref, $gp_value) = @_;
-    assert_script_run("targetcli set global $global_pref=$gp_value");
+    assert_script_run(_lio_global_set_cmd($global_pref, $gp_value));
+}
+
+# Command builders shared by the one-shot lio_* helpers and lio_setup_server().
+# Keeping them here is what keeps the targetcli command set in this library.
+
+sub _lio_global_set_cmd {
+    my ($global_pref, $gp_value) = @_;
+    return "targetcli set global $global_pref=$gp_value";
+}
+
+sub _lio_target_create_cmd {
+    my ($tid, $iqn) = @_;
+    return "targetcli /iscsi create $iqn:$tid";
+}
+
+sub _lio_lun_create_cmds {
+    my ($tid, $iqn, $device) = @_;
+
+    # Chose correct name of the iSCSI back store asset, it's iblock on SLE 12, but block since 15
+    my $bs_block = check_os_release('12', 'VERSION_ID') ? 'iblock' : 'block';
+
+    # Parse LUN name from the device path
+    (my $name_lun = $device) =~ tr/\//_/;
+    $name_lun =~ s/^_//;
+
+    return ("targetcli /backstores/$bs_block create name=$name_lun dev=$device",
+        "targetcli /iscsi/$iqn:$tid/tpg1/luns create storage_object=/backstores/$bs_block/$name_lun");
+}
+
+sub _lio_portal_create_cmd {
+    my ($tid, $iqn, $ip, $port) = @_;
+    return "targetcli /iscsi/$iqn:$tid/tpg1/portals create $ip ip_port=$port";
+}
+
+sub _lio_auth_all_cmd {
+    my ($tid, $iqn) = @_;
+    return "targetcli /iscsi/$iqn:$tid/tpg1 set attribute demo_mode_write_protect=0 cache_dynamic_acls=1 generate_node_acls=1 authentication=0";
+}
+
+=head2 lio_setup_server
+
+ lio_setup_server( $tid, $iqn, $ip, $port, \@devices );
+
+Usable only on the LIO iSCSI server.
+
+Creates the target B<$iqn>:B<$tid>, one LUN per device in B<@devices>, the
+portal B<$ip>:B<$port> and enables the demo-mode ACLs, in one go.
+
+The targetcli commands are uploaded as a single script and run in one console
+round-trip (one command per line, C<set -ex> for fail-fast), which is much
+cheaper than one C<assert_script_run> per command.
+
+=cut
+
+sub lio_setup_server {
+    my ($tid, $iqn, $ip, $port, $devices) = @_;
+    my @commands = (
+        _lio_global_set_cmd('auto_add_default_portal', 'false'),
+        _lio_target_create_cmd($tid, $iqn),
+    );
+    push @commands, _lio_lun_create_cmds($tid, $iqn, $_) for @$devices;
+    push @commands, _lio_portal_create_cmd($tid, $iqn, $ip, $port);
+    push @commands, _lio_auth_all_cmd($tid, $iqn);
+
+    my $script = "set -ex\n" . join("\n", @commands) . "\n";
+    bmwqemu::log_call(iscsi_setup_script => $script);
+    write_sut_file('/tmp/iscsi_lio_setup.sh', $script);
+    assert_script_run('bash /tmp/iscsi_lio_setup.sh', timeout => 120);
 }
 
 1;

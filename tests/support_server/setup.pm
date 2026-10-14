@@ -59,6 +59,38 @@ my $nfs_server_set = 0;
 
 my $disable_firewall = 0;
 
+# check_os_release() does a console round-trip and the support server's
+# /etc/os-release does not change during setup, so cache the lookups here.
+# Not cached globally in version_utils: the support server image can differ
+# from the job's VERSION (e.g. a 12 SP3 support server in a 15 SP7 cluster,
+# where VERSION is 15 SP7 for both), which makes a VERSION-based global cache
+# unreliable.
+my %os_release_cache;
+sub is_os_release {
+    my ($version) = @_;
+    return $os_release_cache{$version} //= check_os_release($version, 'VERSION_ID');
+}
+
+# The firewall state does not change during setup, so probe it once.
+my $firewall_active;
+sub is_firewall_active {
+    $firewall_active //= (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0);
+    return $firewall_active;
+}
+
+# Collect firewall-cmd rules and apply them with a single --reload at the end
+# of run() instead of reloading the firewall after every service.
+my @firewall_rules;
+sub firewall_cmd_add {
+    push @firewall_rules, @_ if is_firewall_active();
+}
+sub firewall_cmd_apply {
+    return unless @firewall_rules;
+    assert_script_run('firewall-cmd ' . join(' ', @firewall_rules) . ' --permanent', timeout => 200);
+    assert_script_run('firewall-cmd --reload', timeout => 200);
+    @firewall_rules = ();
+}
+
 
 sub chk_req_pkgs {
     # Install provided list of required packages if any of them is not present on the system
@@ -73,8 +105,6 @@ sub turnoff_gnome_screensaver_and_suspend {
 sub setup_pxe_server {
     return if $pxe_server_set;
     my $setup_script;
-    chk_req_pkgs('dhcpd tftp');
-
     $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/pxe/setup_pxe.sh  > setup_pxe.sh\n";
     my $ckrnl;
     if ($ckrnl = get_var('SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
@@ -100,11 +130,9 @@ sub setup_pxe_server {
 sub setup_http_server {
     return if $http_server_set;
     record_info 'HTTP server setup';
-    chk_req_pkgs('apache2');
 
-    systemctl('stop apache2');
     assert_script_run('curl -f -v ' . autoinst_url . '/data/supportserver/http/apache2  >/etc/sysconfig/apache2');
-    systemctl('start apache2');
+    systemctl('restart apache2');
 
     $http_server_set = 1;
 }
@@ -119,7 +147,6 @@ sub setup_ftp_server {
 sub setup_tftp_server {
     return if $tftp_server_set;
     record_info 'TFTP server setup';
-    chk_req_pkgs('tftp');
     # atftpd is available only on older products (e.g.: present on SLE-12, gone on SLE-15)
     # FIXME: other options besides RPMs atftp, tftp not considered. For SLE-15 this is enough.
     my $tftp_service = script_output("rpm --quiet -q atftp && echo atftpd || echo tftp", type_command => 1);
@@ -164,20 +191,16 @@ sub setup_networks {
     }
     # Enable IP forwarding
     $setup_script .= "echo 1 > /proc/sys/net/ipv4/ip_forward\n";
+    # Network diagnostics in the same script instead of a separate round-trip
+    $setup_script .= q{echo '=== ip route ==='; ip route; echo '=== ip addr ==='; ip addr; echo '=== iptables ==='; iptables -v -L} . "\n";
 
     bmwqemu::log_call(setup_script => $setup_script);
     record_info('Forward setup', script_output($setup_script, 300));
-
-    record_info('IP route status', script_output('ip route'));
-    record_info('IP addr status', script_output('ip addr'));
-    record_info('IPTABLES status', script_output('iptables -v -L'));
 }
 
 sub setup_dns_server {
     return if $dns_server_set;
     my $setup_script;
-    chk_req_pkgs('bind bind-utils');
-
     my $named_url = autoinst_url . '/data/supportserver/named';
     $setup_script .= qq@
         sed -i -e '/^NETCONFIG_DNS_FORWARDER=/ s/=.*/="bind"/' \\
@@ -186,11 +209,10 @@ sub setup_dns_server {
         sed -i 's|#dnssec-validation .*;|dnssec-validation no;|' /etc/named.conf
 
         echo -e '\ninclude "/etc/named.d/openqa.zones";' >> /etc/named.conf
-        curl -f -v $named_url/openqa.zones > /etc/named.d/openqa.zones
+        curl -f -v -o /etc/named.d/openqa.zones $named_url/openqa.zones \\
+                 -o /var/lib/named/master/openqa.test.zone $named_url/openqa.test.zone \\
+                 -o /var/lib/named/master/2.0.10.in-addr.arpa.zone $named_url/2.0.10.in-addr.arpa.zone
         chown :named /etc/named.d/openqa.zones
-
-        curl -f -v $named_url/openqa.test.zone > /var/lib/named/master/openqa.test.zone
-        curl -f -v $named_url/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
         chown -R named:named /var/lib/named/master
     @;
 
@@ -205,22 +227,18 @@ sub setup_dns_server {
             sed -i '/^options/a\\   response-policy { zone "rpz"; };' /etc/named.conf
         @;
     }
-    if (check_os_release('15', 'VERSION_ID')) {
+    if (is_os_release('15')) {
         $setup_script .= qq@
             sed -i -e '/^NAMED_ARGS=/ s/=.*/="-4"/' /etc/sysconfig/named
         @;
-        $setup_script .= qq@
-            firewall-cmd --add-service=dns --permanent
-            firewall-cmd --reload
-        @ if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0);
+        firewall_cmd_add('--add-service=dns');
     }
     $setup_script .= "netconfig update -f";
     bmwqemu::log_call(setup_script => $setup_script);
     record_info('DNS server setup', script_output($setup_script, 300));
     # Start services
     systemctl('start named');
-    record_info('DNS status', script_output('systemctl status named'));
-    systemctl('restart dhcpd');
+    record_info('DNS status', script_output('systemctl is-active named'));
 
     $dns_server_set = 1;
 }
@@ -293,7 +311,6 @@ sub setup_dhcp_server {
     my ($dns, $pxe, $mtu) = @_;
     return if $dhcp_server_set;
     my $setup_script;
-    chk_req_pkgs('dhcp-server');
     my $net_conf = parse_network_configuration();
 
     $setup_script .= "systemctl stop dhcpd\n";
@@ -322,15 +339,16 @@ sub setup_dhcp_server {
 sub setup_ssh_server {
     return if $ssh_server_set;
     record_info 'SSH server setup';
-    if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0) {
-        my $firewall_cmd
-          = check_os_release('12', 'VERSION_ID')
-          ? 'yast2 firewall services add zone=EXT service=service:sshd'
-          : 'firewall-cmd --add-service=ssh --permanent; firewall-cmd --reload';
-        assert_script_run($firewall_cmd, timeout => 200);
+    if (is_firewall_active()) {
+        if (is_os_release('12')) {
+            assert_script_run('yast2 firewall services add zone=EXT service=service:sshd', timeout => 200);
+        }
+        else {
+            firewall_cmd_add('--add-service=ssh');
+        }
     }
     systemctl('restart sshd');
-    record_info('SSHD status', script_output('systemctl status sshd'));
+    record_info('SSHD status', script_output('systemctl is-active sshd'));
 
     $ssh_server_set = 1;
 }
@@ -338,16 +356,13 @@ sub setup_ssh_server {
 sub setup_ntp_server {
     return if $ntp_server_set;
     record_info 'NTP setup';
-    if (check_os_release('12', 'VERSION_ID')) {
-        assert_script_run('yast2 firewall services add zone=EXT service=service:ntp')
-          if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0);
+    if (is_os_release('12')) {
+        assert_script_run('yast2 firewall services add zone=EXT service=service:ntp', timeout => 200) if is_firewall_active();
         assert_script_run('echo \'server pool.ntp.org\' >> /etc/ntp.conf');
         systemctl('restart ntpd');
     }
     else {
-        chk_req_pkgs('chrony');
-        assert_script_run('firewall-cmd --add-service=ntp --permanent; firewall-cmd --reload')
-          if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0);
+        firewall_cmd_add('--add-service=ntp');
         assert_script_run('echo \'server pool.ntp.org\' >> /etc/chrony.conf');
         systemctl('restart chronyd');
     }
@@ -360,7 +375,7 @@ sub setup_xvnc_server {
     record_info 'XVNC server setup';
 
 
-    if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc') && check_os_release('12.3', 'VERSION_ID')) {
+    if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc') && is_os_release('12.3')) {
         zypper_call('ar http://openqa.suse.de/assets/repo/fixed/SLE-12-SP3-Server-DVD-x86_64-GM-DVD1/ sles12sp3dvd1_repo');
         zypper_call('ref');
     }
@@ -393,7 +408,6 @@ sub setup_xvnc_server {
 sub setup_xdmcp_server {
     return if $xdmcp_server_set;
     record_info 'XDMCP server setup';
-    chk_req_pkgs('xrdp');
 
     if (check_var('REMOTE_DESKTOP_TYPE', 'xdmcp_xdm')) {
         assert_script_run "sed -i -e 's|^DISPLAYMANAGER=.*|DISPLAYMANAGER=\"xdm\"|' /etc/sysconfig/displaymanager";
@@ -413,12 +427,6 @@ sub setup_iscsi_lio_server {
     # Setup of the iSCSI LIO server by 'targercli' from lib/iscsi.pm
     return if $iscsi_lio_server_set;
     record_info 'iSCSI LIO server setup';
-    # Add the targetcli package now used for the iSCSI server configuration
-    # but name is different on SLE 12.x and 15.x+
-    my $lio_pkg = check_os_release('12', 'VERSION_ID')
-      ? 'targetcli' : 'python3-targetcli-fb';
-    chk_req_pkgs($lio_pkg);
-
     # Get the iSCSI server settings
     my $iscsi_iqn = get_var('ISCSI_IQN', 'iqn.2016-02.de.openqa');
     my $iscsi_identifier = get_var('ISCSI_IDENTIFIER', '132');
@@ -441,42 +449,38 @@ sub setup_iscsi_lio_server {
 
     # Needed if a firewall is configured
     # FIXME: remove the `yast` dependency
-    if (script_run('systemctl is-active -q ' . opensusebasetest::firewall) == 0) {
-        my $firewall_cmd
-          = check_os_release('12', 'VERSION_ID')
-          ? 'yast2 firewall services add zone=EXT service=service:target'
-          : 'firewall-cmd --add-port=3260/tcp --permanent;firewall-cmd --reload';
-        assert_script_run($firewall_cmd, timeout => 200);
+    if (is_firewall_active()) {
+        if (is_os_release('12')) {
+            assert_script_run('yast2 firewall services add zone=EXT service=service:target', timeout => 200);
+        }
+        else {
+            firewall_cmd_add('--add-port=3260/tcp');
+        }
     }
-    # Create partitions on devices for the iSCSI LUNs
-    script_run "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";
-    my $start = 0;
-    my $size = 0;
+    # Create all partitions in a single parted command instead of one per LUN
+    my $parted_cmd = "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";
+    my $part_start = 0;
+    my $part_size = 0;
     for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
-        $start = $size + 1;
-        # Last partition size in percentage to ensure it is not larger that device size.
-        $size = $num_lun eq $num_luns ? '100%' : $num_lun * $lun_size * 1024 . 'MiB';
-        script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}";
+        $part_start = $part_size + 1;
+        $part_size = $num_lun eq $num_luns ? '100%' : $num_lun * $lun_size * 1024 . 'MiB';
+        $parted_cmd .= " mkpart primary ${part_start}MiB ${part_size}";
     }
+    assert_script_run($parted_cmd);
 
-    # Disable auto portal creation
-    lio_global_set('auto_add_default_portal', 'false');
+    # Create the target, one LUN per partition, the portal and the demo-mode
+    # ACLs from an uploaded script (one console round-trip instead of one per
+    # targetcli command).
+    my @devices = map { "$hdd_lun$_" } (1 .. $num_luns);
+    lio_setup_server($iscsi_identifier, $iscsi_iqn, $iscsi_ip, $iscsi_port, \@devices);
 
-    # Creation of the iSCSI target
-    lio_target_create($iscsi_identifier, $iscsi_iqn);
-
-    # Add LUNs
-    for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
-        lio_lun_create($iscsi_identifier, $iscsi_iqn, $hdd_lun . $num_lun);
-    }
-
-    # Add the Portal IP
-    lio_portal_create($iscsi_identifier, $iscsi_iqn, $iscsi_ip, $iscsi_port);
-
-    # Now we need to enable iSCSI Demo Mode
-    # With this mode, we don't need to manage iSCSI initiators
-    # It's OK for a test/QA system, but of course not for a production one!
-    lio_auth_all($iscsi_identifier, $iscsi_iqn);
+    # Fail fast: targetcli/rtslib can report success while creating nothing
+    # (its restore path is non-fatal, and targetcli still exits 0), so assert
+    # the target and all LUNs actually exist instead of only recording them.
+    my $target_path = "/sys/kernel/config/target/iscsi/$iscsi_iqn:$iscsi_identifier";
+    assert_script_run("test -d $target_path", fail_message => 'iSCSI LIO target was not created');
+    assert_script_run("test \$(ls -1 $target_path/tpgt_1/lun | grep -c '^lun_') -eq $num_luns",
+        fail_message => "iSCSI LIO target does not export the expected $num_luns LUN(s)");
 
     # Start and enable iSCSI Target in systemctl
     systemctl('enable --now target');
@@ -527,19 +531,18 @@ sub setup_iscsi_tgt_server {
 
 sub setup_aytests {
     return if $aytests_set;
-    my $setup_script;
     record_info 'AYTESTS server setup';
-    chk_req_pkgs('apache2 git-core');
 
     # install the aytests-tests package and export the tests over http
     my $aytests_repo = get_var("AYTESTS_REPO_BRANCH", 'master');
+    my $setup_script = "set -e\n";
     # Get profiles
-    assert_script_run('git clone --single-branch -b ' . $aytests_repo . ' https://github.com/yast/aytests-tests.git /tmp/ay');
-    assert_script_run('mv -f /tmp/ay/aytests /srv/www/htdocs/');
+    $setup_script .= "git clone --single-branch -b $aytests_repo https://github.com/yast/aytests-tests.git /tmp/ay\n";
+    $setup_script .= "mv -f /tmp/ay/aytests /srv/www/htdocs/\n";
     # Download apache configuration and cgi script used for dynamically set paramaters expansion
-    assert_script_run('curl -f -v ' . autoinst_url . '/data/supportserver/aytests/aytests.conf >/etc/apache2/vhosts.d/aytests.conf');
-    assert_script_run('curl -f -v ' . autoinst_url . '/data/supportserver/aytests/aytests.cgi >/srv/www/cgi-bin/aytests');
-    assert_script_run('chmod 755 /srv/www/cgi-bin/aytests');
+    $setup_script .= 'curl -f -v ' . autoinst_url . "/data/supportserver/aytests/aytests.conf >/etc/apache2/vhosts.d/aytests.conf\n";
+    $setup_script .= 'curl -f -v ' . autoinst_url . "/data/supportserver/aytests/aytests.cgi >/srv/www/cgi-bin/aytests\n";
+    $setup_script .= "chmod 755 /srv/www/cgi-bin/aytests\n";
     $setup_script .= "
     # Expand variables
     sed -i -e 's|{{SCC_REGCODE}}|" . get_var('SCC_REGCODE') . "|g' \\
@@ -562,7 +565,6 @@ sub setup_aytests {
 sub setup_stunnel_server {
     return if $stunnel_server_set;
     record_info 'STUNNEL server setup';
-    chk_req_pkgs('stunnel');
     configure_stunnel(1);
     assert_script_run 'mkdir -p ~/.vnc/';
     assert_script_run "vncpasswd -f <<<$password > ~/.vnc/passwd";
@@ -581,8 +583,6 @@ sub setup_mariadb_server {
     record_info 'MariaDB server setup';
     my $ip = '10.0.2.%';
     my $passwd = 'suse';
-
-    chk_req_pkgs('mariadb');
     systemctl('start mysql');
 
     # Enter MySQL command to grant the access privileges to root
@@ -602,7 +602,6 @@ sub setup_mariadb_server {
 sub setup_nfs_server {
     return if $nfs_server_set;
     record_info 'NFS server setup';
-    chk_req_pkgs('rpcbind nfs-kernel-server');
     my $nfs_mount = "/nfs/shared";
     my $nfs_permissions = "rw,sync,no_root_squash";
 
@@ -615,13 +614,11 @@ sub setup_nfs_server {
 
     systemctl("start rpcbind");
     systemctl("start nfs-server");
-    assert_script_run("nfsstat –s");
+    assert_script_run("nfsstat -s");
     assert_script_run("mkdir -p $nfs_mount");
     assert_script_run("chmod 777 $nfs_mount");
     assert_script_run("echo $nfs_mount 10.0.2.2/24\\($nfs_permissions\\) >> /etc/exports");
     assert_script_run("exportfs -r");
-    systemctl("restart nfs-server");
-    systemctl("restart rpcbind");
     systemctl("is-active nfs-server -a rpcbind");
     $nfs_server_set = 1;
 }
@@ -642,7 +639,7 @@ sub run {
     # someone mess up directly with QCOW images instead of regeneration of them
     # and could be removed when this ancient 12SP3 image is no longer used
 
-    if (check_os_release('12.3', 'VERSION_ID')) {
+    if (is_os_release('12.3')) {
 
         # Get the Support server architecture
         my $cpu_arch = get_var('ARCH');
@@ -650,16 +647,38 @@ sub run {
         # So messed up, that someone add x86_64 repo to the AARCH64 image
         zypper_call('removerepo 1') if $cpu_arch eq 'aarch64';
 
-        # Adding back the pool and updates repositories which should be registered
-        zypper_ar("http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/$cpu_arch/product", name => 'sles12sp3-pool');
-        zypper_ar("http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/$cpu_arch/update", name => 'sles12sp3-update');
-        zypper_call('lr -u');
+        # Add both repos and refresh once instead of per-repo zypper_ar
+        # (each zypper_ar does lr + ar + ref = 3 calls per repo)
+        zypper_call("--gpg-auto-import-keys ar -f http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/$cpu_arch/product sles12sp3-pool");
+        zypper_call("--gpg-auto-import-keys ar -f http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/$cpu_arch/update sles12sp3-update");
+        zypper_call('--gpg-auto-import-keys ref');
 
     }
     # -----> END OF SLE 12 SP3 BACKWARD COMPATIBILITY BLOCK
 
     # Networks setup
     setup_networks($mtu);
+
+    # Install all required packages in one zypper transaction to avoid
+    # repeated repository refreshes. Each setup_* sub had its own
+    # chk_req_pkgs() call; batching them into one saves a zypper refresh
+    # per role. Keep this list in sync when adding a new role or package.
+    my %pkgs = ();
+    $pkgs{dhcpd} = $pkgs{tftp} = 1 if exists $server_roles{pxe};
+    $pkgs{'dhcp-server'} = 1 if exists $server_roles{dhcp} || exists $server_roles{pxe};
+    $pkgs{tftp} = 1 if exists $server_roles{tftp};
+    $pkgs{apache2} = 1 if exists $server_roles{qemuproxy} || exists $server_roles{aytests};
+    $pkgs{'git-core'} = 1 if exists $server_roles{aytests};
+    $pkgs{bind} = $pkgs{'bind-utils'} = 1 if exists $server_roles{dns};
+    $pkgs{chrony} = 1 if exists $server_roles{ntp} && !is_os_release('12');
+    $pkgs{xrdp} = 1 if exists $server_roles{xdmcp};
+    if (exists $server_roles{iscsi}) {
+        is_os_release('12') ? $pkgs{targetcli} = 1 : $pkgs{'python3-targetcli-fb'} = 1;
+    }
+    $pkgs{stunnel} = 1 if exists $server_roles{stunnel};
+    $pkgs{mariadb} = 1 if exists $server_roles{mariadb};
+    $pkgs{rpcbind} = $pkgs{'nfs-kernel-server'} = 1 if exists $server_roles{nfs};
+    chk_req_pkgs(keys %pkgs) if %pkgs;
     # Wait until all nodes boot first
     if (get_var 'SLENKINS_CONTROL') {
         barrier_wait 'HOSTNAMES_CONFIGURED';
@@ -732,6 +751,9 @@ sub run {
 
     die "no services configured, SUPPORT_SERVER_ROLES variable missing?" unless %server_roles;
 
+    # Apply all collected firewall-cmd rules with a single reload
+    firewall_cmd_apply() unless $disable_firewall;
+
     assert_script_run opensusebasetest::firewall . ' stop' if $disable_firewall;
 
     # Create mutexes for running services
@@ -744,25 +766,18 @@ sub run {
 sub pre_run_hook {
     my ($self) = @_;
 
-    # Comment /etc/named.conf.include inclusion from /etc/named.conf in those
-    # cases this module runs on support servers which were configured in a
-    # previous job (for example, on migration scenarios)
-    my $openqa_zones_exists = !script_run 'test -f /etc/named.d/openqa.zones';
-    my $openqa_zones_in_include = !script_run q|grep -q -E "^include \"/etc/named.d/openqa.zones\";" /etc/named.conf.include|;
-    my $named_conf_include = !script_run q|grep -q -E "^include \"/etc/named.conf.include\";" /etc/named.conf|;
-    if ($openqa_zones_exists && $openqa_zones_in_include && $named_conf_include) {
-        # This is running in a support server which was configured on a previous job.
-        # Comment line with 'include "/etc/named.conf.include";' from /etc/named.conf
-        # as in some older versions, leaving the line causes /etc/named.d/openqa.zones
-        # to be included twice, which prevents named from starting
-        assert_script_run q|sed -i -e '/^include \"\/etc\/named.conf.include\";/ s/^/#/' /etc/named.conf|;
-    }
-
-    assert_script_run q|sed -i -e '/^include \"\/etc\/named.d\/openqa.zones\";/ s/^/#/' /etc/named.conf|
-      unless (script_run q|grep -E "^include \"/etc/named.d/openqa.zones\";" /etc/named.conf|);
-
-    # Disable gpg cheks in zypper globaly
-    assert_script_run(q|sed -i -e '/^# repo_gpgcheck =/ i gpgcheck = off' /etc/zypp/zypp.conf|);
+    # The old pre_run_hook ran three checks as separate console round-trips;
+    # combined into one command (script_output cannot be used here because
+    # the network is not up yet):
+    #   1. On a support server configured by a previous job (e.g. migration),
+    #      comment the named.conf.include include out; leaving it can pull
+    #      openqa.zones in twice and prevent named from starting.
+    #   2. Comment the openqa.zones include out if it is still present.
+    #   3. Disable zypper's repo gpg checks.
+    my $named_conf_fix = q{if [ -f /etc/named.d/openqa.zones ] && grep -q -E '^include "/etc/named.d/openqa.zones";' /etc/named.conf.include && grep -q -E '^include "/etc/named.conf.include";' /etc/named.conf; then sed -i -e '/^include "\/etc\/named.conf.include";/ s/^/#/' /etc/named.conf || exit $?; fi; }
+      . q{if grep -q -E '^include "/etc/named.d/openqa.zones";' /etc/named.conf; then sed -i -e '/^include "\/etc\/named.d\/openqa.zones";/ s/^/#/' /etc/named.conf || exit $?; fi; }
+      . q{sed -i -e '/^# repo_gpgcheck =/ i gpgcheck = off' /etc/zypp/zypp.conf};
+    assert_script_run($named_conf_fix);
 
     # Disable GNOME screen saver and suspend
     turnoff_gnome_screensaver_and_suspend if check_var('DESKTOP', 'gnome');
