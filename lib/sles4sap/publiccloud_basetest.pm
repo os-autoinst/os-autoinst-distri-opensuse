@@ -128,7 +128,17 @@ sub post_fail_hook {
         diag('Skip post fail', "Variable 'QESAP_NO_CLEANUP_ON_FAILURE' defined.");
         return;
     }
-    eval { $self->cleanup(); } or bmwqemu::fctwarn("self::cleanup() failed -- $@");
+
+    # Non-exception failures already have failed details from deployment_cleanup.
+    eval {
+        $self->cleanup();
+        1;
+    } or do {
+        my $error = $@ || 'Cleanup raised an exception, but no error details were available';
+        record_info('Cleanup failed',
+            "self::cleanup() died in post_fail_hook:\n$error",
+            result => 'fail');
+    };
 }
 
 sub post_run_hook {

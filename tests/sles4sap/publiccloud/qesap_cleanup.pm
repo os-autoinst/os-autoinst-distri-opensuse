@@ -49,7 +49,18 @@ sub run {
             "Variable 'QESAP_NO_CLEANUP' set to value " . get_var('QESAP_NO_CLEANUP'));
         return 1;
     }
-    eval { $self->cleanup($run_args); } or bmwqemu::fctwarn("self::cleanup(\$run_args) failed -- $@");
+
+    # Keep cleanup exceptions non-fatal and visible in the test details.
+    eval {
+        $self->cleanup($run_args);
+        1;
+    } or do {
+        my $error = $@ || 'Cleanup raised an exception, but no error details were available';
+        record_info('Cleanup failed',
+            "self::cleanup(\$run_args) failed:\n$error",
+            result => 'fail');
+    };
+
     $run_args->{ansible_present} = $self->{ansible_present};
 }
 
