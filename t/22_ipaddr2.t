@@ -1639,7 +1639,7 @@ subtest '[ipaddr2_logs_collect]' => sub {
     note("\n  " . join("\n", @calls));
 
     is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal called " . (scalar @ssh_calls) . " and expected 8 times (4 log files * 2 VM)");
-    is(scalar @upload_calls, 10, "upload_logs called 10 times (4 log files * 2 VM + 2 ssh local logs)");
+    is(scalar @upload_calls, 11, "upload_logs called 11 times (4 log files * 2 VM + 2 ssh local logs + az cli logs)");
 
     ok((any { /crm report/ } @ssh_calls), "crm report command called");
     ok((any { /save_y2logs/ } @ssh_calls), "YaST2 logs collected");
@@ -1649,6 +1649,39 @@ subtest '[ipaddr2_logs_collect]' => sub {
     ok((any { /crm_report_.*gz/ } @upload_calls), "crm_report.tar.gz uploaded");
     ok((any { /y2logs/ } @upload_calls), "y2logs uploaded");
     ok((any { /supportconfig.*/ } @upload_calls), "supportconfig uploaded");
+
+    ok((any { /tar .*-C \/root\/\.azure commands az\.sess az\.json/ } @calls), "az cli logs collected");
+    ok((none { /msal_token_cache|service_principal_entries/ } @calls), "az credential files not collected");
+    ok((any { /azure_cli_logs\.tar\.gz/ } @upload_calls), "az cli logs uploaded");
+};
+
+subtest '[ipaddr2_logs_collect] az cli logs failure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @upload_calls;
+    $ipaddr2->redefine(upload_logs => sub { push @upload_calls, $_[0]; return; });
+    my @record_info_calls;
+    $ipaddr2->redefine(record_info => sub { push @record_info_calls, $_[0]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
+    $ipaddr2->redefine(assert_script_run => sub { return; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.0.0'; });
+
+    # Run the same scenario for the two tar failures:
+    # 1 is a non-zero exit code, undef is a script_run timeout.
+    foreach my $tar_ret (1, undef) {
+        @upload_calls = ();
+        # Only the tar command fails, all the other script_run calls
+        # (like mkdir in the remote log loop) succeed.
+        $ipaddr2->redefine(script_run => sub { return $_[0] =~ /^tar / ? $tar_ret : 0; });
+        ipaddr2_logs_collect();
+        ok((none { /azure_cli_logs/ } @upload_calls), "az cli logs not uploaded when tar returns " . ($tar_ret // 'undef'));
+    }
+
+    @upload_calls = ();
+    $ipaddr2->redefine(script_run => sub { die "script_run timeout" if $_[0] =~ /^tar /; return 0; });
+    lives_ok { ipaddr2_logs_collect() } "No die when tar dies";
+    ok((none { /azure_cli_logs/ } @upload_calls), "az cli logs not uploaded when tar dies");
+    is((scalar grep { /az cli logs/ } @record_info_calls), 3, "record_info called for each az cli logs failure");
 };
 
 subtest '[ipaddr2_logs_collect] skip scp on failure' => sub {
@@ -1688,7 +1721,7 @@ subtest '[ipaddr2_logs_collect] skip scp on failure' => sub {
     note("\n" . join("\n", @calls));
     is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal still called 8 times for log generation");
     is(scalar @scp_calls, 0, "scp is NOT called because all log generation failed");
-    is(scalar @upload_calls, 2, "upload_logs called only 2 times for local logs");
+    is(scalar @upload_calls, 3, "upload_logs called only 3 times for local logs (2 ssh logs + az cli logs)");
 };
 
 
@@ -2085,8 +2118,8 @@ subtest '[ipaddr2_logs_collect] no_supportconfig skips supportconfig' => sub {
     # supportconfig is skipped entirely
     is(scalar @ssh_cmds, 6, "ipaddr2_ssh_internal called 6 times (supportconfig skipped)");
     ok((none { /supportconfig/ } @ssh_cmds), "no supportconfig command called");
-    # 3 remote log types * 2 VMs + 2 local logs = 8 uploads
-    is(scalar @upload_calls, 8, "upload_logs called 8 times (supportconfig skipped)");
+    # 3 remote log types * 2 VMs + 2 ssh local logs + az cli logs = 9 uploads
+    is(scalar @upload_calls, 9, "upload_logs called 9 times (supportconfig skipped)");
 };
 
 subtest '[ipaddr2_logs_collect] terminal stuck detection' => sub {

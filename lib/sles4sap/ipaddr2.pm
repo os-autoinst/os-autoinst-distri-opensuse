@@ -2788,6 +2788,34 @@ sub ipaddr2_logs_collect(%args) {
             upload_logs($log_data{file});
         }
     }
+    _ipaddr2_azure_cli_logs();
+}
+
+=head2 _ipaddr2_azure_cli_logs
+
+    _ipaddr2_azure_cli_logs();
+
+Collect the az cli logs from the worker in a tarball and upload it.
+The az cli writes one log file for each command in /root/.azure/commands,
+with the start and the end timestamps and the exit code.
+The other files in /root/.azure are not collected: they contain credentials.
+Failures are not fatal.
+
+=cut
+
+sub _ipaddr2_azure_cli_logs {
+    my $file = '/tmp/azure_cli_logs.tar.gz';
+    my $ret;
+    eval {
+        $ret = script_run(
+            "tar -czf $file --ignore-failed-read -C /root/.azure commands az.sess az.json",
+            timeout => 60);
+    };
+    if ($@ || !defined $ret || $ret != 0) {
+        record_info('az cli logs', 'Failed to collect the az cli logs: ' . ($@ || 'Exit code: ' . ($ret // 'undef')));
+        return;
+    }
+    upload_logs($file, failok => 1);
 }
 
 =head2 ipaddr2_ssh_intrusion_detection
