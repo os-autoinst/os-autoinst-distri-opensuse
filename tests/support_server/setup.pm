@@ -468,28 +468,11 @@ sub setup_iscsi_lio_server {
     }
     assert_script_run($parted_cmd);
 
-    # Build the list of targetcli commands and run them from an uploaded
-    # script. assert_script_run types its command character by character, so
-    # the ~800-char chain spent ~30s typing and only ~5s running; the uploaded
-    # script runs with `set -e` (fail-fast). Each command runs in
-    # non-interactive (single-command) mode.
-    my $bs_block = is_os_release('12') ? 'iblock' : 'block';
-    my @tcli_cmds;
-    push @tcli_cmds, 'targetcli "set global auto_add_default_portal=false"';
-    push @tcli_cmds, "targetcli '/iscsi create $iscsi_iqn:$iscsi_identifier'";
-    for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
-        my $device = "$hdd_lun$num_lun";
-        (my $name_lun = $device) =~ tr/\//_/;
-        $name_lun =~ s/^_//;
-        push @tcli_cmds, "targetcli '/backstores/$bs_block create name=$name_lun dev=$device'";
-        push @tcli_cmds, "targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1/luns create storage_object=/backstores/$bs_block/$name_lun'";
-    }
-    push @tcli_cmds, "targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1/portals create $iscsi_ip ip_port=$iscsi_port'";
-    push @tcli_cmds, "targetcli '/iscsi/$iscsi_iqn:$iscsi_identifier/tpg1 set attribute demo_mode_write_protect=0 cache_dynamic_acls=1 generate_node_acls=1 authentication=0'";
-    my $setup_script = "set -ex\n" . join("\n", @tcli_cmds) . "\n";
-    bmwqemu::log_call(setup_script => $setup_script);
-    write_sut_file('/tmp/iscsi_lio_setup.sh', $setup_script);
-    assert_script_run('bash /tmp/iscsi_lio_setup.sh', timeout => 120);
+    # Create the target, one LUN per partition, the portal and the demo-mode
+    # ACLs from an uploaded script (one console round-trip instead of one per
+    # targetcli command).
+    my @devices = map { "$hdd_lun$_" } (1 .. $num_luns);
+    lio_setup_server($iscsi_identifier, $iscsi_iqn, $iscsi_ip, $iscsi_port, \@devices);
 
     # Fail fast: targetcli/rtslib can report success while creating nothing
     # (its restore path is non-fatal, and targetcli still exits 0), so assert
