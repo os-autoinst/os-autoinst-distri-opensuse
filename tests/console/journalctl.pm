@@ -313,6 +313,7 @@ sub cleanup {
     script_run('rm -f /var/tmp/reboottime');
     script_run("rm -rf ${\ DROPIN_DIR }");
     systemctl('stop haveged') if (is_sle('=15') && is_s390x);
+    script_run('systemctl disable --now chrony-wait.service') if (is_sle('>=15'));
 }
 
 sub post_fail_hook {

@@ -28,6 +28,7 @@ sub run {
     my $path = (is_sle('>=15-SP6') || is_leap('>=15.6') || is_tumbleweed) ? "/etc/systemd/journald.conf.d" : "/etc/systemd";
     my $journald_conf = "$path/journald.conf";
 
+    assert_script_run("mkdir -p $path") if script_run("test -d $path");
     assert_script_run("sed -i -e 's/^Storage/#Storage/g' -e 's/^Seal/#Seal/g' $journald_conf") if is_sle('<=15-SP5') || is_leap('<=15.5');
     script_output("echo -e \"Storage=persistent\nSeal=yes\" >> $journald_conf");
     assert_script_run("rm -rf /var/log/journal; mkdir -p /var/log/journal");
