@@ -1,0 +1,26 @@
+---
+name: agama
+description: >
+    Install SLE16 Full via agama and publish qcow2 images
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - security/installation/enable_repos
+  - console/zypper_lr
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - security/secureboot/validate_keylength
+  - '{{validate_snapshot}}'
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+conditional_schedule:
+  validate_snapshot:
+    TRANSACTIONAL:
+      '1':
+        - yam/validate/validate_snapshots

@@ -9,18 +9,17 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
-use version_utils qw(is_transactional);
-use transactional;
+use version_utils 'is_transactional';
+use package_utils 'install_package';
 
 sub run {
     my ($self) = shift;
     select_serial_terminal;
-    if (is_transactional) {
-        trup_install('go curl');
-    }
-    else {
-        zypper_call('in go');
-    }
+    # Full flavors have disabled default DVD repo
+    zypper_call("mr -e 1") if (check_var('FLAVOR', 'Full') || (check_var('FLAVOR', 'Full-Immutable')));
+    my $packages = 'go';
+    $packages .= ' curl' if is_transactional();
+    install_package($packages, trup_reboot => 1);
     # download and compile the go program to check the key length
     # upstream project: https://github.com/ilmanzo/autograph-pls
     # to update: $ curl -O --output-dir data/security/secureboot https://raw.githubusercontent.com/ilmanzo/autograph-pls/main/parsesign.go

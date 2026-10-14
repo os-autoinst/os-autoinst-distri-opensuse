@@ -15,13 +15,13 @@ use serial_terminal 'select_serial_terminal';
 
 sub run {
     is_ppc64le() ? select_console('root-console') : select_serial_terminal();
-    return unless check_var('FLAVOR', 'Full-QR') || check_var('FLAVOR', 'Full');
+    return unless (get_var('FLAVOR', '') =~ /^Full(-QR|-Immutable)?$/);
     zypper_call('mr -e -a');
 
     # On s390x the Full medium is not attached as a DVD, Agama installs from
     # inst.install_url instead and no longer copies that agama-N repository
     # to the target (bsc#1264277), so add it back.
-    return unless is_s390x && is_agama && check_var('FLAVOR', 'Full');
+    return unless is_s390x && is_agama && (get_var('FLAVOR', '') =~ /^Full(-QR|-Immutable)?$/);
     my $install_url = get_required_var('INST_INSTALL_URL');
     $install_url .= '/$basearch' if get_var('SPLIT_REPODATA');
     zypper_call("ar -c '$install_url' Installation");
