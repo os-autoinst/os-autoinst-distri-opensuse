@@ -35,6 +35,7 @@
       <li><a href="#lio_auth_all">lio_auth_all</a></li>
       <li><a href="#lio_global_get">lio_global_get</a></li>
       <li><a href="#lio_global_set">lio_global_set</a></li>
+      <li><a href="#lio_setup_server">lio_setup_server</a></li>
     </ul>
   </li>
 </ul><h1>lib/iscsi.pm</h1>
@@ -214,6 +215,16 @@
 <p>Usable only on the LIO iSCSI server.</p>
 
 <p>Set the global preference <b>$global_pref</b> to the value <b>$gp_value</b> in LIO iSCSI server.</p>
+
+<h2 id="lio_setup_server">lio_setup_server</h2>
+
+<pre><code>lio_setup_server( $tid, $iqn, $ip, $port, \@devices );</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Creates the target <b>$iqn</b>:<b>$tid</b>, one LUN per device in <b>@devices</b>, the portal <b>$ip</b>:<b>$port</b> and enables the demo-mode ACLs, in one go.</p>
+
+<p>The targetcli commands are uploaded as a single script and run in one console round-trip (one command per line, <code>set -ex</code> for fail-fast), which is much cheaper than one <code>assert_script_run</code> per command.</p>
 
 
 </body>
