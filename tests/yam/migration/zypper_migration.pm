@@ -11,6 +11,7 @@ use Mojo::Base 'opensusebasetest';
 use power_action_utils 'power_action';
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging 'upload_solvertestcase_logs';
+use utils 'zypper_call';
 
 sub run {
     my $self = shift;
@@ -25,6 +26,9 @@ sub run {
     };
 
     select_console 'root-console';
+
+    # Install suseconnect-ng for Leap because the package is not installed by default.
+    zypper_call("in suseconnect-ng") if (get_var("ISO") =~ /Leap/);
 
     # Register openSUSE Leap against SCC; Leap can not be registered against ProxySCC, it is not available on ProxySCC.
     assert_script_run("SUSEConnect -r " . get_var("SCC_REGCODE"), timeout => 60) if (get_var("ISO") =~ /Leap/);
