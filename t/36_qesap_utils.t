@@ -52,14 +52,25 @@ subtest '[qesap_get_public_cloud_tags] HTTP/HTTPS URLs with and without trailing
             set_var('OPENQA_URL', undef);
             set_var('NAME', undef);
 
-            is_deeply(
-                \%tags,
-                {
-                    openqa_var_job_id => '42',
-                    openqa_var_name => $test_data{name},
-                    openqa_var_server => $test_data{host},
-                },
-                "Tags generated correctly, stripped prefix/slash from: $url"
+            is(
+                $tags{openqa_var_job_id},
+                '42',
+                "openqa_var_job_id tag is '" . ($tags{openqa_var_job_id} // 'undef') . "' and expect '42'"
+            );
+            is(
+                $tags{openqa_var_name},
+                $test_data{name},
+                "openqa_var_name tag is '" . ($tags{openqa_var_name} // 'undef') . "' and expect '$test_data{name}'"
+            );
+            is(
+                $tags{openqa_var_server},
+                $test_data{host},
+                "openqa_var_server tag is '" . ($tags{openqa_var_server} // 'undef') . "' and expect '$test_data{host}' for $url"
+            );
+            like(
+                $tags{openqa_created_date},
+                qr/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/,
+                "openqa_created_date tag is '" . ($tags{openqa_created_date} // 'undef') . "' and expect ISO 8601 format"
             );
         }
     }
@@ -79,7 +90,12 @@ subtest '[qesap_get_public_cloud_tags] Fallback to OPENQA_HOSTNAME' => sub {
     is(
         $tags_fallback{openqa_var_server},
         'openqa.USS.Enterprise.NCC-1701',
-        'Falls back to OPENQA_HOSTNAME when OPENQA_URL is empty'
+        "openqa_var_server tag is '" . ($tags_fallback{openqa_var_server} // 'undef') . "' and expect 'openqa.USS.Enterprise.NCC-1701'"
+    );
+    like(
+        $tags_fallback{openqa_created_date},
+        qr/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/,
+        "openqa_created_date tag is '" . ($tags_fallback{openqa_created_date} // 'undef') . "' and expect ISO 8601 format"
     );
 };
 
