@@ -11,7 +11,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use utils qw(systemctl);
+use utils qw(systemctl script_retry);
 use version_utils 'is_sle';
 use serial_terminal 'select_text_console';
 
@@ -34,8 +34,8 @@ sub configure_squid {
     assert_script_run 'echo "proxyuser:SUSE:7935d7d2f866548295f9b3c5400b97e6" > /etc/squid/passwd.txt';
     systemctl('restart squid', timeout => 600);
     systemctl 'status squid';
-    # ensure squid is ready to serve requests before proceeding
-    assert_script_run('lsof -i :3128 | grep squid');
+    # ensure squid is ready to serve requests before proceeding, serial console is too fast, retry
+    script_retry 'lsof -i :3128 | grep squid', delay => 30, retry => 3, timeout => 600, fail_message => 'squid is not listening on :3128';
     # SLE16 needs to set selinux
     assert_script_run('semanage port -a -t http_port_t -p tcp ' . (get_required_var('QEMUPORT') + 1)) if is_sle('>=16.0');
 }
