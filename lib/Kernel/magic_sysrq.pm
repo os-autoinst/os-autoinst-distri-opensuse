@@ -54,7 +54,7 @@ Returns C<1> if pattern is found else C<0>.
 
 sub sysrq_dump_all_cpu_backtrace {
     send_key 'alt-sysrq-l';
-    my ($out) = script_output('journalctl -k -n100', proceed_on_failure => 1) =~ m/(sysrq:.*CPUs(.*?[\s\S]*Call\sTrace)[\s\S]*0x[0-9a-fA-F]{1,4})/i;
+    my ($out) = script_output('journalctl -k -n10000', proceed_on_failure => 1) =~ m/(sysrq:.*CPUs(.*?[\s\S]*Call\sTrace)[\s\S]*0x[0-9a-fA-F]{1,4})/i;
 
     return 0 unless (defined $out && $out =~ /\b(0[xX])[0-9a-fA-F]+\b/);
     return 1;
