@@ -7,7 +7,7 @@
 # Package: curl_https
 # Summary: ensure curl is able to successfully connect to a https site
 #          without certificate errors.
-#          - switch to normal user
+#          - run curl as the regular user on the serial console
 #          - connect to a website using https (retry multiple times in case of failure)
 #
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>, QE Security <none@suse.de>
@@ -15,9 +15,8 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use utils qw(clear_console ensure_serialdev_permissions);
+use utils qw(ensure_serialdev_permissions);
 use Utils::Architectures;
-use Utils::Backends;
 use serial_terminal 'select_serial_terminal';
 
 # test for bug https://bugzilla.novell.com/show_bug.cgi?id=598574
@@ -29,14 +28,15 @@ sub run {
     select_serial_terminal;    # Switch to root user at first if not
     ensure_serialdev_permissions if (is_s390x);
 
-    # Switch to user console: exclude ipmi backends as under non-root user session the $serialdev can not be found
-    select_console 'user-console' if (!is_ipmi);
+    # Run as the regular user on the serial console; no need to switch to the
+    # graphical user console (and its needle) just to drop privileges.
+    my $curl = "sudo -u $testapi::username curl -f -v https://httpbin.org/get 2>&1";
 
     # arbitrary number of retries
     my $max_retries = 7;
     for (1 .. $max_retries) {
         eval {
-            validate_script_output('curl -f -v https://httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?httpbin.org["]? matche[ds], }, timeout => 90, proceed_on_failure => 1, quiet => 1);
+            validate_script_output($curl, sub { m,subjectAltName:[\w\s]+["]?httpbin.org["]? matche[ds], }, timeout => 90, proceed_on_failure => 1, quiet => 1);
         };
         last unless ($@);
         diag "curl -f -v https://eu.httpbin.org/get failed: $@";
