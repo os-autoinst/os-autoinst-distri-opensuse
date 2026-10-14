@@ -127,7 +127,7 @@ sub run_cmd {
     delete($args{ssh_keepalive});
 
     $self->{my_instance}->update_instance_ip();
-    $self->{my_instance}->wait_for_ssh(timeout => $timeout);
+    _wait_for_instance_ssh($self->{my_instance}, timeout => $timeout);
     if ($args{rc_only}) {
         delete($args{rc_only});
         return $self->{my_instance}->ssh_script_run(cmd => "sudo $cmd", timeout => $timeout, %args);
@@ -429,6 +429,7 @@ sub wait_hana_node_up {
 
     # Make sure SSH port 22 is reachable or timeout
     while (($duration = time() - $start_time) < $args{timeout}) {
+        _refresh_public_ip($instance);
         $exit_code = script_run('nc -vz -w 1 ' . $instance->{public_ip} . ' 22', quiet => 1);
         record_info("WAIT_FOR_SSH_PORT_OPEN", "exit_code = $exit_code, duration = $duration");
         last if (defined($exit_code) and $exit_code == 0);
@@ -506,7 +507,7 @@ sub stop_hana {
 
         # Ensure the remote node is in a normal state before to trigger the crash
         $self->{my_instance}->update_instance_ip();
-        $self->{my_instance}->wait_for_ssh(timeout => $timeout, scan_ssh_host_key => 1);
+        _wait_for_instance_ssh($self->{my_instance}, timeout => $timeout, scan_ssh_host_key => 1);
 
         $self->{my_instance}->ssh_assert_script_run(cmd => 'sudo su -c sync', timeout => $timeout);
 
@@ -550,7 +551,11 @@ sub stop_hana {
         my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
         $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $timeout);
         $self->{my_instance}->update_instance_ip();
-        $self->{my_instance}->wait_for_ssh(timeout => $timeout, username => 'cloudadmin', scan_ssh_host_key => 1);
+        _wait_for_instance_ssh(
+            $self->{my_instance},
+            timeout => $timeout,
+            username => 'cloudadmin',
+            scan_ssh_host_key => 1);
     }
 }
 
@@ -1146,6 +1151,81 @@ sub sbd_delay_formula() {
     my $calculated_delay = calculate_sbd_start_delay(\%params);
     record_info('SBD wait', "Calculated SBD start delay: $calculated_delay");
     return $calculated_delay;
+}
+
+# update_instance_ip() is a no-op for PUBLIC_CLOUD_SLES4SAP.
+sub _refresh_public_ip {
+    my ($instance) = @_;
+
+    return unless get_var('USE_SAP_HANA_SR_ANGI');
+    return unless check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+
+    my $tag = get_required_var('QESAP_DEPLOYMENT_NAME') . '-cluster';
+    my $ip = eval {
+        sles4sap::qesap::aws::qesap_aws_filter_query(
+            cmd => 'describe-instances',
+            filter => join(' ',
+                "'Name=tag:$tag,Values=$instance->{instance_id}'",
+                "'Name=instance-state-name,Values=running'"),
+            query => "'Reservations[].Instances[].PublicIpAddress'");
+    };
+
+    if ($@) {
+        record_info('IP LOOKUP', "Unable to refresh public IP: $@");
+        return;
+    }
+
+    # Missing IPs and multiple matches must not replace the current address.
+    return unless defined $ip;
+    chomp $ip;
+    return unless $ip =~ /^\d{1,3}(?:\.\d{1,3}){3}$/;
+
+    if ($ip ne $instance->public_ip) {
+        record_info('IP CHANGED', $instance->public_ip . " -> $ip");
+        $instance->public_ip($ip);
+    }
+
+    return $ip;
+}
+
+# Refresh the address between SSH attempts, including while fencing finishes.
+sub _wait_for_instance_ssh {
+    my ($instance, %args) = @_;
+
+    return $instance->wait_for_ssh(%args)
+      unless get_var('USE_SAP_HANA_SR_ANGI')
+      && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+
+    my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
+    my $deadline = time + $timeout;
+    my $ssh_opts = $instance->ssh_opts()
+      . ' -o ControlPath=none -o ConnectTimeout=10'
+      . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+
+    while (time < $deadline) {
+        my $ip = _refresh_public_ip($instance);
+        my $remaining = $deadline - time;
+        last if $remaining <= 0;
+
+        if (defined $ip) {
+            my $rc = $instance->ssh_script_run(
+                cmd => 'true',
+                ssh_opts => $ssh_opts,
+                (defined $args{username} ? (username => $args{username}) : ()),
+                timeout => ($remaining < 15 ? $remaining : 15),
+                apply_graceful_timeout => 1,
+                quiet => 1);
+
+            if (defined $rc && $rc == 0) {
+                $instance->scan_ssh_host_key() if $args{scan_ssh_host_key};
+                return;
+            }
+        }
+
+        sleep 5 if time < $deadline;
+    }
+
+    die "SSH recovery timed out after $timeout seconds for $instance->{instance_id}";
 }
 
 =head2 cloud_file_content_replace
