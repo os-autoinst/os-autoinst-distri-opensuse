@@ -66,6 +66,7 @@
       <li><a href="#ipaddr2_cleanup">ipaddr2_cleanup</a></li>
       <li><a href="#ipaddr2_logs_collect_cmds">ipaddr2_logs_collect_cmds</a></li>
       <li><a href="#ipaddr2_logs_collect">ipaddr2_logs_collect</a></li>
+      <li><a href="#ipaddr2_azure_cli_logs">_ipaddr2_azure_cli_logs</a></li>
       <li><a href="#ipaddr2_ssh_intrusion_detection">ipaddr2_ssh_intrusion_detection</a></li>
     </ul>
   </li>
@@ -1068,6 +1069,12 @@
 
 </dd>
 </dl>
+
+<h2 id="ipaddr2_azure_cli_logs">_ipaddr2_azure_cli_logs</h2>
+
+<pre><code>_ipaddr2_azure_cli_logs();</code></pre>
+
+<p>Collect the az cli logs from the worker in a tarball and upload it. The az cli writes one log file for each command in /root/.azure/commands, with the start and the end timestamps and the exit code. The other files in /root/.azure are not collected: they contain credentials. Failures are not fatal.</p>
 
 <h2 id="ipaddr2_ssh_intrusion_detection">ipaddr2_ssh_intrusion_detection</h2>
 
