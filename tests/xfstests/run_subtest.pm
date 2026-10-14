@@ -1,11 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2024 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: xfsprogs
 # Summary: Run single xfstests subtest
-# Maintainer: Yong Sun <yosun@suse.com>, An Long <lan@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 ## no os-autoinst compile-check
 

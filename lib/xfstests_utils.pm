@@ -1,10 +1,10 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Some functions to run test for xfstests
-# Maintainer: Yong Sun <yosun@suse.com>, Long An <lan@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 package xfstests_utils;
 
 use base Exporter;

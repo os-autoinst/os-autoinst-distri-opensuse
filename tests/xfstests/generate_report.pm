@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2019 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Upload logs and generate junit report
@@ -11,7 +11,7 @@
 # - Parse /opt/status.log for PASSED/FAILED/SKIPPED
 # - Generate XML file using parsed results from previous step
 # - Upload XML file for analysis by OpenQA::Parser
-# Maintainer: Yong Sun <yosun@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 ## no os-autoinst style
 
