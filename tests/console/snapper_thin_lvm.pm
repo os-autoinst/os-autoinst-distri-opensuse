@@ -24,10 +24,13 @@
 use Mojo::Base 'btrfs_test';
 use testapi;
 use utils 'zypper_call';
+use serial_terminal 'select_text_console';
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    # The --no-dbus run checks the emergency shell with needles and needs the
+    # VGA console; the default run only uses the shell.
+    get_var('SNAPPER_NODBUS') ? select_console 'root-console' : select_text_console;
 
     my @snapper_runs = 'snapper';
     push @snapper_runs, 'snapper --no-dbus' if get_var('SNAPPER_NODBUS');
