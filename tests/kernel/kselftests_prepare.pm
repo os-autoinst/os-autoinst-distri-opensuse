@@ -12,7 +12,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(write_sut_file systemctl);
-use version_utils qw(is_sle has_selinux);
+use version_utils qw(is_sle is_opensuse has_selinux);
 use Kernel::utils qw(is_debugfs_mounted enable_debugfs get_verified_shallow_tar);
 use Utils::Systemd qw(disable_and_stop_service);
 use Kselftests::utils;
@@ -97,7 +97,7 @@ sub run {
     disable_and_stop_service('firewalld');
 
     if ($collection =~ m{^net(/|$)}) {
-        if (is_sle('>=16.0')) {
+        if (is_sle('>=16.0') || is_opensuse) {
             # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
             my $netdevsim_mask = <<'EOF';
 [main]
