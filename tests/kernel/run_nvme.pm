@@ -44,6 +44,30 @@ sub build_nvmecli_from_source {
     return $nvme_bin;
 }
 
+# Run the upstream CLI test for "nvme connect-all --nbft" against the sample
+# NBFT tables of the cloned tree. The test needs no NVMe-oF target. It fails
+# only if nvme is terminated by a signal, for example on a segfault.
+sub run_nbft_check {
+    my ($nvme_bin) = @_;
+    my $nvme = $nvme_bin // script_output('command -v nvme');
+    my $log = '/tmp/nvme_nbft_test.log';
+
+    assert_script_run('test -f tests/cli/nvme_nbft_test.py', fail_message => 'NBFT CLI test not found in the cloned nvme-cli tree');
+    record_info('NBFT', script_output("$nvme version"));
+    my $ret = script_run("python3 tests/cli/nvme_nbft_test.py $nvme libnvme/tests/nbft/tables/NBFT-* > $log 2>&1", 300);
+    upload_logs($log);
+
+    if ($ret == 77) {
+        record_info('NBFT skipped', 'The test skips itself when /dev/nvme-fabrics exists');
+        return 0;
+    }
+    if ($ret) {
+        record_info('RESULT', "NBFT check failed:\n" . script_output("cat $log"), result => 'fail');
+        return 1;
+    }
+    return 0;
+}
+
 sub run {
     my ($self) = @_;
     select_serial_terminal;
@@ -57,6 +81,7 @@ sub run {
     my $version = get_var('NVMECLI_VERSION');
     my $issues = get_var('NVMECLI_KNOWN_ISSUES');
     my $build_from_source = get_var('NVMECLI_BUILD_FROM_SOURCE');
+    my $nbft_check = get_var('NVMECLI_NBFT_CHECK');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
     save_and_upload_log('(rpm -qi kernel-default; uname -a)', 'kernel_bug_report.txt');
@@ -106,6 +131,8 @@ sub run {
             $failed = 1;
         }
     }
+
+    $failed = 1 if $nbft_check && run_nbft_check($nvme_bin);
 
     $self->result('fail') if $failed;
 }
@@ -173,6 +200,16 @@ F<tests/config.json>'s C<nvme_bin> at the resulting binary instead of
 the packaged C<nvme> command, so the suite exercises the CLI actually
 shipped with the cloned test source rather than the version installed
 by C<install_package>. Nothing is installed system-wide.
+
+=head2 NVMECLI_NBFT_CHECK
+
+Optional. When true, run the upstream CLI test
+F<tests/cli/nvme_nbft_test.py> after the e2e tests. The test runs
+C<nvme connect-all --nbft> against each sample table in
+F<libnvme/tests/nbft/tables/> and fails if C<nvme> is terminated by a
+signal (bsc#1283955). It needs no NVMe-oF target. It uses the same C<nvme>
+binary as the e2e tests. The upstream test skips itself if
+F</dev/nvme-fabrics> exists.
 
 =head2 NVMECLI_KNOWN_ISSUES
 
