@@ -160,6 +160,111 @@ and additionally the following rules:
   Comments in the source code should describe the choices made, to answer the
   question "why is the code like this". The git commit message should describe
   "why did we change it".
+
+#### Test module categories: infrastructure vs. product tests
+
+Test modules in this repository fall into two categories. Recognising which
+category code belongs to, even within a single file, helps you decide how to
+organise the commands in the module.
+
+**Infrastructure / setup modules** bring the SUT into a testable state or tear
+it down afterwards. Examples: `tests/boot/boot_to_desktop.pm`,
+`tests/console/system_prepare.pm`, `tests/console/consoletest_setup.pm`,
+`tests/shutdown/shutdown.pm`.
+
+**Product test modules** validate specific product functionality. Examples:
+`tests/console/firewalld.pm`, `tests/console/bind.pm`,
+`tests/x11/firefox.pm`, `tests/kernel/kdump.pm`.
+
+The two categories differ in what a failure must tell you. In a product test a
+failure must point at one product property, so separate calls matter. In setup
+code a failure usually means the environment did not come up, and a trivial
+step such as `mkdir` or `touch` failing rarely changes what you investigate.
+
+A setup step can still expose a product bug or regression, especially on a new
+product. When a step is such a signal, keep it a separate call so the failing
+command is clear.
+
+Consider the runtime cost when choosing between equally readable
+options. A setup module runs in a large share of jobs, hundreds of
+thousands per year, so a small per-run cost adds up to days of
+machine time in aggregate.
+
+Batch related setup commands into a single `assert_script_run` call joined with
+`&&` instead of calling `assert_script_run` once per trivial operation. This
+reduces the number of serial-console round trips. The `&&` chain short-circuits,
+so a later step runs only after the earlier ones succeeded. The wrapping
+`assert_script_run` still stops the module if a prerequisite breaks, and each
+command's output stays in the serial log. Consider adding a
+`fail_message` that names the block. If a setup step is allowed to fail, check
+its exit code explicitly rather than asserting on it.
+
+Batch related setup prerequisites. Keep a step separate when its
+own failure changes the triage decision (e.g. a network operation
+whose error is different from a local `mkdir` or `chmod`).
+
+For a product test, each logical check should be its own assertion so the
+openQA log pinpoints the failing command. Consider a `fail_message` when the
+command alone does not make the tested property obvious, and omit it when the
+command is self-explanatory:
+
+```perl
+# The command does not say why the result matters:
+assert_script_run('systemctl is-active firewalld');
+
+# The fail_message states the expectation:
+assert_script_run('systemctl is-active firewalld',
+    fail_message => 'firewalld must be active before rule tests');
+```
+
+For richer validation, prefer `validate_script_output` which checks
+the command output against a pattern and records a structured result:
+
+```perl
+validate_script_output('firewall-cmd --state', qr/^running$/,
+    fail_message => 'firewalld must report running state before rule tests');
+```
+
+Pitfalls:
+
+* Avoid `script_run` for setup prerequisites. If one fails, the module
+  continues on a broken environment.
+* Avoid naming a specific failure mode in `fail_message`. A command can fail
+  for reasons other than the expected one, and a message such as "firewalld is
+  not running" can mislead the investigator.
+* Avoid batching a step whose own failure is diagnostic. Keep it a separate
+  call.
+
+**Avoid mixing the two roles in one module when possible.** Prefer
+splitting environment preparation into a dedicated setup module that
+runs earlier in the schedule. When mixing is unavoidable (e.g. a test
+that needs a one-off SSH key exchange before testing a network
+feature), keep the setup block visually and logically separated from
+the test block, and apply the appropriate style to each:
+
+```perl
+# --- setup: batch local prerequisites ---
+assert_script_run(
+    'mkdir -p ~/.ssh'
+    . ' && ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519',
+    fail_message => 'local SSH key generation failed'
+);
+
+# --- setup: network step kept separate because its failure
+#     points at a different problem than the local steps ---
+assert_script_run(
+    'ssh-copy-id -o StrictHostKeyChecking=no root@node2',
+    timeout => 60,
+    fail_message => 'SSH key copy to node2 failed'
+);
+
+# --- product test (one assertion per check) ---
+assert_script_run('ssh root@node2 hostname',
+    fail_message => 'key-based SSH login to node2 must work');
+assert_script_run('ssh root@node2 systemctl is-active firewalld',
+    fail_message => 'firewalld must be running on node2');
+```
+
 * Consider "multi-tag `assert_screen` with `match_has_tag`": Please use a
   multi-tag `assert_screen` with `match_has_tag` instead of `check_screen`
   with non-zero timeout to prevent introducing any timing dependent behaviour,
