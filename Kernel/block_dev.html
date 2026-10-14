@@ -16,6 +16,9 @@
     <ul>
       <li><a href="#is_block_device">is_block_device</a></li>
       <li><a href="#record_storage_info">record_storage_info</a></li>
+      <li><a href="#get_block_dev_kernel_name">get_block_dev_kernel_name</a></li>
+      <li><a href="#get_block_dev_size">get_block_dev_size</a></li>
+      <li><a href="#get_block_dev_pci_device">get_block_dev_pci_device</a></li>
       <li><a href="#create_loop_backing_file">create_loop_backing_file</a></li>
       <li><a href="#attach_loop_device">attach_loop_device</a></li>
       <li><a href="#create_zoned_nullblk">create_zoned_nullblk</a></li>
@@ -37,6 +40,24 @@
 <pre><code>record_storage_info();</code></pre>
 
 <p>Records block device layout into the openQA test log as a diagnostic snapshot.</p>
+
+<h2 id="get_block_dev_kernel_name">get_block_dev_kernel_name</h2>
+
+<pre><code>my $kernel_name = get_block_dev_kernel_name($dev);</code></pre>
+
+<p>Returns the kernel name of a block device, for example <code>nvme0n1</code> for <code>/dev/disk/by-id/nvme-...</code>. This is the name in <code>/sys/class/block</code> and in kernel messages.</p>
+
+<h2 id="get_block_dev_size">get_block_dev_size</h2>
+
+<pre><code>my $bytes = get_block_dev_size($dev);</code></pre>
+
+<p>Returns the size of a block device in bytes.</p>
+
+<h2 id="get_block_dev_pci_device">get_block_dev_pci_device</h2>
+
+<pre><code>my $pci = get_block_dev_pci_device($dev);</code></pre>
+
+<p>Returns the sysfs path of the PCI device of a block device, for example <code>/sys/devices/pci0000:00/0000:00:01.0</code> for an NVMe disk or the SATA controller for a SATA disk. If there are PCI bridges, this is the PCI device closest to the disk. Dies if the block device is not under a PCI device in sysfs, for example a loop or device mapper device.</p>
 
 <h2 id="create_loop_backing_file">create_loop_backing_file</h2>
 
