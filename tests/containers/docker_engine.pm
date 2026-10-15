@@ -127,10 +127,11 @@ sub run {
         "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80",
         "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80/AF_ALG",
     ) if (is_sle(">=16") || get_var("DOCKER_SELINUX"));
-    # This fails for unknown reason on SLES 16.1 Build74.1
+    # NRI is New Relic infrastructure which we don't support.
+    # This is fixed in Docker v29.7 on Tumbleweed so likely a test issue.
     push @xfails, (
         "github.com/moby/moby/v2/integration/daemon/nri::TestNRIReload",
-    ) if (is_sle(">16"));
+    ) if (is_sle);
 
     my $tags = "apparmor selinux seccomp pkcs11";
 
