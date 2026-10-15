@@ -31,15 +31,16 @@ sub run {
         send_key "ret";    # &Ok
     }
     else {
+        assert_and_click "seahorse-name-new-keyring";    # Selection: Name field for the new keyring
         type_string "Default Keyring";    # Name of the keyring
         wait_still_screen(1, 2);
-        send_key "alt-o";    # &Ok
+        send_key "alt-a";    # &Add
     }
     assert_screen "seahorse-password-dialog";    # Dialog "Passphrase for the new keyring"
     type_password;    # Users password (for auto unlock, it has to be the same)
     send_key "ret";    # Next field (confirm PW)
     type_password;    # Re-type user password
-    send_key "ret";    # Confirm password
+    assert_and_click "seahorse-continue";    # Confirm password
     wait_still_screen 1;
     if (check_screen "seahorse-keyring-locked") {
         assert_and_click "unlock";
@@ -48,7 +49,7 @@ sub run {
     }
     assert_screen [qw(seahorse-collecton-is-empty seahorse-default_keyring)];
     if (match_has_tag "seahorse-collecton-is-empty") {
-        record_soft_failure 'Missing entries of Passwords, Keys, Certificates, see boo#1175513';
+        record_soft_failure 'Did not go back to the main page after adding Password Keyring, see boo#1285405';
         send_key_until_needlematch("generic-desktop", "alt-f4", 6, 5);
     }
     elsif (match_has_tag "seahorse-default_keyring") {
