@@ -25,6 +25,8 @@ our @EXPORT_OK = qw(
   remove_vlan
   get_port_pvid
   set_port_pvid
+  create_vlan_network
+  remove_vlan_network
 );
 
 =head1 SYNOPSIS
@@ -167,6 +169,42 @@ sub set_port_pvid {
     _check_vlan_id($vlan_id);
     my $bridge_port = _get_bridge_port($port_name);
     _request('PATCH', "interface/bridge/port/$bridge_port->{'.id'}", {pvid => $vlan_id});
+}
+
+=head2 create_vlan_network
+
+ create_vlan_network(vlan_id => 4, ports => ['sfp-sfpplus9', 'sfp-sfpplus23']);
+
+Creates an isolated network for one test: a new VLAN on C<bridge>
+(default 'bridge') with the C<ports> as untagged members, and the PVID of
+each port set to the VLAN. Dies if the VLAN already exists, so that a
+test does not take over the network of another test.
+
+=cut
+
+sub create_vlan_network {
+    my (%args) = @_;
+    my $vlan_id = $args{vlan_id} // die 'create_vlan_network requires a vlan_id';
+    my @ports = @{$args{ports} // die 'create_vlan_network requires ports'};
+    add_vlan(bridge => $args{bridge} // 'bridge', vlan_id => $vlan_id, untagged => join(',', @ports));
+    set_port_pvid($_, $vlan_id) for @ports;
+}
+
+=head2 remove_vlan_network
+
+ remove_vlan_network(vlan_id => 4, ports => ['sfp-sfpplus9', 'sfp-sfpplus23']);
+
+Removes the network that C<create_vlan_network> created: sets the PVID of
+the C<ports> back to 1 and removes the VLAN. Does not die if the VLAN
+does not exist, so that it can also clean up after a failed test.
+
+=cut
+
+sub remove_vlan_network {
+    my (%args) = @_;
+    my $vlan_id = $args{vlan_id} // die 'remove_vlan_network requires a vlan_id';
+    set_port_pvid($_, 1) for @{$args{ports} // []};
+    remove_vlan($vlan_id) if grep { $_->{'vlan-ids'} eq $vlan_id && ($_->{dynamic} // 'false') ne 'true' } get_all_vlans();
 }
 
 sub _check_vlan_id {
