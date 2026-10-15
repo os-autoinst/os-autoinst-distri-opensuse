@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kselftests/parsers/net/udpgso_sh.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#parse_line">parse_line</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kselftests/parsers/net/udpgso_sh.pm</h1>
+
+<h2 id="parse_line">parse_line</h2>
+
+<pre><code>parse_line($string);</code></pre>
+
+<p>This test echoes a description, then runs the udpgso binary, which prints one diagnostic line per internal case (some intentionally marked &#39;(fail)&#39;, meaning that specific case is expected to reject the send) and a bare &#39;OK&#39; once all of them behaved as expected, e.g.:</p>
+
+<pre><code># ipv4 cmsg
+# ipv4 tx:1 gso:0
+# ipv4 tx:1473 gso:0 (fail)
+# ...
+# OK</code></pre>
+
+<p>The script uses &#39;set -o errexit&#39; and never wraps the binary call, so any unexpected result aborts the script immediately; a bare &#39;OK&#39; is only ever reached when the whole case succeeded. The &#39;(fail)&#39; tag is part of the diagnostic text, not a result, so lines starting with &#39;ipv4 tx:&#39;/&#39;ipv6 tx:&#39; are not treated as a new description. Lines that do not match this format are returned unchanged.</p>
+
+
+</body>
+
+</html>
+
+

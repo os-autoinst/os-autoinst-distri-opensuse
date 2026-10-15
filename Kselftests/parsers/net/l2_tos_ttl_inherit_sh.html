@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kselftests/parsers/net/l2_tos_ttl_inherit_sh.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#parse_line">parse_line</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kselftests/parsers/net/l2_tos_ttl_inherit_sh.pm</h1>
+
+<h2 id="parse_line">parse_line</h2>
+
+<pre><code>parse_line($string);</code></pre>
+
+<p>This test prints a box-drawn table, one row per case, with the result in the last column, e.g.:</p>
+
+<pre><code>&#x2502;    gre &#x2502;     4 &#x2502;     4 &#x2502; inherit 0x08 &#x2502;  inherit 134 &#x2502; false &#x2502;     OK &#x2502;</code></pre>
+
+<p>Table headers and separator lines don&#39;t have &#39;OK&#39;/&#39;FAIL&#39; in the last column and are returned unchanged, same as the extra diagnostic rows printed below a failing row. This module is saved as UTF-8 without &#39;use utf8&#39;, so the box-drawing character below is matched as its raw byte sequence, same as the unencoded log lines coming from Kselftests::utils::post_process_single().</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kselftests/parsers/net/skf_net_off_sh.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#parse_line">parse_line</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kselftests/parsers/net/skf_net_off_sh.pm</h1>
+
+<h2 id="parse_line">parse_line</h2>
+
+<pre><code>parse_line($string);</code></pre>
+
+<p>This test echoes a description, then runs the skf_net_off binary, which only ever prints one of three fixed diagnostic lines before a bare &#39;OK&#39;, e.g.:</p>
+
+<pre><code># filter, fragmented skb (-f) (-F)
+# bpf filter enabled
+# napi frags mode enabled
+# raw recv: 0xabababab
+# OK</code></pre>
+
+<p>A one-time &#39;net.ipv4.ip_early_demux = 0&#39; line (from the sysctl call before the first case) is excluded the same way. Any other line is assumed to be the pending description for the next &#39;OK&#39;. Lines that do not match this format are returned unchanged.</p>
+
+
+</body>
+
+</html>
+
+

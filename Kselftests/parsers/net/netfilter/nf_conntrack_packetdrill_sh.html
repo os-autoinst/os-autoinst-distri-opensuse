@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kselftests/parsers/net/netfilter/nf_conntrack_packetdrill_sh.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#parse_line">parse_line</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kselftests/parsers/net/netfilter/nf_conntrack_packetdrill_sh.pm</h1>
+
+<h2 id="parse_line">parse_line</h2>
+
+<pre><code>parse_line($string);</code></pre>
+
+<p>This test prints a description with &#39;printf&#39; (no trailing newline), then runs packetdrill, whose own diagnostics (if any) land on the same line and on following lines, before a bare &#39;OK&#39; or &#39;FAIL&#39; marks the actual verdict, e.g.:</p>
+
+<pre><code># packetdrill/conntrack_syn_challenge_ack.pkt       (ipv4)                    packetdrill/conntrack_syn_challenge_ack.pkt:38: warning handling packet: ...
+# script packet:  0.223897 . 1:1(0) ack 1 win 256 &lt;nop,nop,TS val 1 ecr 1&gt;
+# actual packet:  0.213892 . 1:1(0) ack 1 win 1050 &lt;nop,nop,TS val 115 ecr 1&gt;
+# OK</code></pre>
+
+<p>or, with no diagnostics, directly on one line:</p>
+
+<pre><code># packetdrill/conntrack_ack_loss_stall.pkt          (ipv4)                    OK</code></pre>
+
+<p>The subtest name from the last &#39;packetdrill/... (ipvN)&#39; prefix is kept and used once the bare &#39;OK&#39;/&#39;FAIL&#39; line shows up. Lines that do not match this format are returned unchanged.</p>
+
+
+</body>
+
+</html>
+
+

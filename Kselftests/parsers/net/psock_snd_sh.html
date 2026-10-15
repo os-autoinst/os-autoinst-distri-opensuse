@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kselftests/parsers/net/psock_snd_sh.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#parse_line">parse_line</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kselftests/parsers/net/psock_snd_sh.pm</h1>
+
+<h2 id="parse_line">parse_line</h2>
+
+<pre><code>parse_line($string);</code></pre>
+
+<p>This test echoes a description, then runs the psock_snd binary, whose first action is always &#39;system(&quot;sysctl -w net.ipv4.conf.lo.accept_local=1&quot;)&#39;, printing &#39;net.ipv4.conf.lo.accept_local = 1&#39; before anything else, e.g.:</p>
+
+<pre><code># raw csum_off with bad offset (expected to fail)
+# net.ipv4.conf.lo.accept_local = 1
+# ./psock_snd: write: Invalid argument
+# raw min size
+# net.ipv4.conf.lo.accept_local = 1
+# tx: 42
+# rx: 0
+# OK</code></pre>
+
+<p>Cases labelled &#39;(expected to fail)&#39; are wrapped in &#39;(! cmd)&#39; by the script and print no &#39;OK&#39;; the script uses &#39;set -e&#39; otherwise, so reaching the next case&#39;s sysctl line (or the closing &#39;OK. All tests passed&#39;) proves the previous one behaved as expected. The description is therefore resolved one case late, when its successor starts. An actual, unexpected failure aborts the script and leaves the last case unresolved. Lines that do not match this format are returned unchanged.</p>
+
+
+</body>
+
+</html>
+
+
