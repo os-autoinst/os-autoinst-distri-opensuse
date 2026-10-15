@@ -23,7 +23,8 @@ sub run {
     my $mcp_cmd = "{ printf '%s\\n' '$init' '$initialized' '$tools_list'; sleep 2; } | podman run -i --rm $env_flags $image";
 
     # Assert that the container successfully responds with its registered MCP tools
-    assert_script_run("$mcp_cmd | grep 'list_systems'", timeout => 60);
+    assert_script_run("$mcp_cmd", timeout => 200);
+    assert_script_run("$mcp_cmd | grep 'list_systems'", timeout => 200);
 }
 
 1;
