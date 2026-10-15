@@ -70,6 +70,17 @@ sub run {
         zypper_call "-n rm hello{1..9}";
 
         assert_script_run 'unset ZYPP_SINGLE_RPMTRANS';
+
+        # Check Ctrl-C aborting of zypper midway and resuming (>=sle15sp4)
+        select_console 'root-console';
+        type_string "zypper -n in git\n";
+
+        wait_still_screen 0.1;
+        send_key 'ctrl-c';
+        assert_screen "exit_gracefully";
+        send_key 'ret';
+        zypper_call 'in git';
+        assert_script_run('zypper -n rm git && ! rpm -q git');
     }
 }
 
