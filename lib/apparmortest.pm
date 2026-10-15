@@ -13,6 +13,7 @@ package apparmortest;
 
 use strict;
 use warnings;
+use File::Basename 'basename';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
@@ -675,6 +676,8 @@ sub yast2_apparmor_is_enabled {
 
 # Yast2 Apparmor clean up
 sub yast2_apparmor_cleanup {
+    my ($self) = @_;
+
     # Exit x11 and turn to console
     close_gui_terminal;
     select_console("root-console");
@@ -683,7 +686,7 @@ sub yast2_apparmor_cleanup {
     select_serial_terminal;
 
     # Upload logs for reference
-    upload_logs("$audit_log");
+    $self->upload_logs_from_tmp("$audit_log");
 }
 
 # Create a test profile with name contains '('
@@ -761,6 +764,27 @@ sub create_log_content_is_special {
     validate_script_output("cat $audit_log", sub { m/.*type=AVC.*profile=.*$test_special.*/sx });
 }
 
+=head2 upload_logs_from_tmp
+
+ $self->upload_logs_from_tmp($file [, %args]);
+
+Since AppArmor 5.0, the shipped curl profile only allows curl to read
+files below C</tmp/> and C<$HOME> (poo#204771), so C<upload_logs()> fails
+with C<curl: (26) read error getting mime data> for files elsewhere, e.g.
+C</var/log/**>. Work around this by copying C<$file> to C</tmp/> (keeping
+its basename, so the uploaded name is unaffected) before uploading it.
+
+=cut
+
+sub upload_logs_from_tmp {
+    my ($self, $file, %args) = @_;
+
+    my $tmp_file = '/tmp/' . basename($file);
+    assert_script_run("cp $file $tmp_file");
+    upload_logs($tmp_file, %args);
+    script_run("rm -f $tmp_file");
+}
+
 =head2 upload_logs_mail
 
  upload_logs_mail();
@@ -770,15 +794,17 @@ Upload mail warn, err and info logs for reference
 =cut
 
 sub upload_logs_mail {
+    my ($self) = @_;
+
     # Upload mail warn, err and info logs for reference
     if (script_run("! [[ -e $mail_err_log ]]")) {
-        upload_logs("$mail_err_log");
+        $self->upload_logs_from_tmp("$mail_err_log");
     }
     if (script_run("! [[ -e $mail_warn_log ]]")) {
-        upload_logs("$mail_warn_log");
+        $self->upload_logs_from_tmp("$mail_warn_log");
     }
     if (script_run("! [[ -e $mail_info_log ]]")) {
-        upload_logs("$mail_info_log");
+        $self->upload_logs_from_tmp("$mail_info_log");
     }
 }
 
@@ -818,7 +844,7 @@ sub post_fail_hook {
     send_key("alt-f4");
     select_console("root-console");
     if (script_run("! [[ -e $audit_log ]]")) {
-        upload_logs("$audit_log");
+        $self->upload_logs_from_tmp("$audit_log");
     }
     $self->SUPER::post_fail_hook;
 }

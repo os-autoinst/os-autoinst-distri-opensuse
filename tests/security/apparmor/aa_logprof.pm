@@ -14,7 +14,7 @@
 # - Check if smb could start with the temporary apparmor profiles
 # - Cleanup temporary directory
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#36892, poo#45803, poo#81730, tc#1767574
+# Tags: poo#36892, poo#45803, poo#81730, tc#1767574, poo#204771
 
 use Mojo::Base 'apparmortest';
 use testapi;
@@ -63,7 +63,7 @@ sub run {
     assert_script_run "aa-status | tee /dev/$serialdev";
 
     # Upload audit.log for reference
-    upload_logs "$log_file";
+    $self->upload_logs_from_tmp("$log_file");
 
     select_console 'root-console';
     script_run_interactive("aa-logprof -d $aa_tmp_prof", $interactive_str, 30);

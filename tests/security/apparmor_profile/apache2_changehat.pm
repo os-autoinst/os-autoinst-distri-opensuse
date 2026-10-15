@@ -36,7 +36,7 @@
 #   $audit_log" and fail test.
 # - upload /var/log/apache2/error_log and audit.log
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#48773, tc#1695946, poo#111036
+# Tags: poo#48773, tc#1695946, poo#111036, poo#204771
 
 
 use Mojo::Base 'apparmortest';
@@ -183,8 +183,8 @@ sub run {
     }
 
     # Upload logs for reference
-    upload_logs("/var/log/apache2/error_log");
-    upload_logs("$audit_log");
+    $self->upload_logs_from_tmp("/var/log/apache2/error_log");
+    $self->upload_logs_from_tmp("$audit_log");
 }
 
 1;

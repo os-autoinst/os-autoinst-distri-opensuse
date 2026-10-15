@@ -18,7 +18,7 @@
 # - Create and delete a test folder inside the share
 # - Check audit.log for error messages related to smbd
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#48776, poo#134780
+# Tags: poo#48776, poo#134780, poo#204771
 
 use Mojo::Base 'apparmortest';
 use testapi;
@@ -120,8 +120,8 @@ sub run {
     }
 
     # Upload logs for reference
-    upload_logs("/var/log/samba/log.smbd");
-    upload_logs("$audit_log");
+    $self->upload_logs_from_tmp("/var/log/samba/log.smbd");
+    $self->upload_logs_from_tmp("$audit_log");
 }
 
 1;
