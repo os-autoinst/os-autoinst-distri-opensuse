@@ -20,18 +20,25 @@ sub run {
     my $node = get_local_node();
     my $interface = get_node_interface($node, 0);
     my $network = get_topology_network($interface->{network});
+    my $dev = $interface->{device};
     my @ports = map { get_node_interface($_, 0)->{switch_port} } ($node, @{get_peers($node)});
-    create_vlan_network(vlan_id => $network->{vlan_id}, ports => \@ports);
+    record_info('Network before', script_output('ip -br addr; ip route'));
 
-    # NetworkManager must not reset the interface, for example after a
-    # failed DHCP request, because that removes the static address.
-    script_run("nmcli device set $interface->{device} managed no");
-    set_link_up($interface->{device});
+    # The test NIC can have a lab address from DHCP, in the same subnet as
+    # the management NIC. Remove it before its switch port moves, so that
+    # the connection of openQA to the SUT uses only the management NIC.
+    # Keep NetworkManager off the NIC, so that it does not reset the static
+    # address later.
+    script_run("nmcli device disconnect $dev; nmcli device set $dev managed no; ip addr flush dev $dev");
+
+    create_vlan_network(vlan_id => $network->{vlan_id}, ports => \@ports);
+    set_link_up($dev);
     add_ipv4_addr(
         ip => $interface->{ipv4},
-        dev => $interface->{device},
+        dev => $dev,
         plen => get_net_prefix_len(net => $network->{ipv4_cidr}),
     );
+    record_info('Network after', script_output('ip -br addr; ip route'));
 }
 
 sub test_flags {
@@ -45,6 +52,11 @@ sub test_flags {
 Creates an isolated network for the test on the Mikrotik switch: a new
 VLAN from the C<multimachine_topology> test data with the switch ports of
 all nodes as untagged members. Then adds the address of the local node.
+
+Before the switch port of the local node moves, the module removes any
+other address from its test NIC, for example a lab address from DHCP.
+Otherwise the SUT can send part of the openQA traffic over the test NIC,
+and the connection of openQA to the SUT breaks when the port moves.
 Dies if the VLAN already exists, for example because another test uses
 it. C<kernel/san_network_cleanup> removes the network.
 
