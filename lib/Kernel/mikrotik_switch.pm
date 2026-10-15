@@ -192,18 +192,23 @@ sub create_vlan_network {
 
 =head2 remove_vlan_network
 
- remove_vlan_network(vlan_id => 4, ports => ['sfp-sfpplus9', 'sfp-sfpplus23']);
+ remove_vlan_network(vlan_id => 4, ports => ['sfp-sfpplus9', 'sfp-sfpplus23'], pvid => 3);
 
 Removes the network that C<create_vlan_network> created: sets the PVID of
-the C<ports> back to 1 and removes the VLAN. Does not die if the VLAN
-does not exist, so that it can also clean up after a failed test.
+the C<ports> back to C<pvid> and removes the VLAN. Does not die if the
+VLAN does not exist, so that it can also clean up after a failed test.
+
+C<pvid> defaults to 3, the default VLAN of the ports on the lab switch.
+Do not use 1: VLAN 1 is the VLAN of the uplink to the lab network, so a
+test NIC in VLAN 1 gets a lab address, and a second NIC of the SUT in the
+lab network can break the connection of openQA to the SUT.
 
 =cut
 
 sub remove_vlan_network {
     my (%args) = @_;
     my $vlan_id = $args{vlan_id} // die 'remove_vlan_network requires a vlan_id';
-    set_port_pvid($_, 1) for @{$args{ports} // []};
+    set_port_pvid($_, $args{pvid} // 3) for @{$args{ports} // []};
     remove_vlan($vlan_id) if grep { $_->{'vlan-ids'} eq $vlan_id && ($_->{dynamic} // 'false') ne 'true' } get_all_vlans();
 }
 
