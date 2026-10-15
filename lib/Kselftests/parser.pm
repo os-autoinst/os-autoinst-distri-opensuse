@@ -10,7 +10,30 @@ package Kselftests::parser;
 
 use Kselftests::parsers::main;
 
+use Kselftests::parsers::net;
+use Kselftests::parsers::net::arp_ndisc_evict_nocarrier_sh;
+use Kselftests::parsers::net::route_localnet_sh;
+use Kselftests::parsers::net::io_uring_zerocopy_tx_sh;
+use Kselftests::parsers::net::ip_defrag_sh;
+use Kselftests::parsers::net::ipv6_flowlabel_sh;
+use Kselftests::parsers::net::l2_tos_ttl_inherit_sh;
 use Kselftests::parsers::net::l2tp_sh;
+use Kselftests::parsers::net::psock_snd_sh;
+use Kselftests::parsers::net::reuseport_addr_any_sh;
+use Kselftests::parsers::net::rps_default_mask_sh;
+use Kselftests::parsers::net::run_afpackettests;
+use Kselftests::parsers::net::run_netsocktests;
+use Kselftests::parsers::net::sctp_vrf_sh;
+use Kselftests::parsers::net::skf_net_off_sh;
+use Kselftests::parsers::net::test_so_rcv_sh;
+use Kselftests::parsers::net::udpgro_sh;
+use Kselftests::parsers::net::udpgro_fwd_sh;
+use Kselftests::parsers::net::udpgso_sh;
+use Kselftests::parsers::net::veth_sh;
+use Kselftests::parsers::net::test_vxlan_under_vrf_sh;
+use Kselftests::parsers::net::test_vxlan_fdb_changelink_sh;
+use Kselftests::parsers::net::netfilter::nf_conntrack_packetdrill_sh;
+use Kselftests::parsers::net::netfilter::nft_concat_range_sh;
 
 use Kselftests::parsers::livepatch;
 
@@ -38,11 +61,19 @@ use warnings;
 sub factory {
     my ($collection, $sanitized_test_name) = @_;
     my $obj;
+    (my $pkg_collection = $collection) =~ s{/}{::}g;
+    (my $top_collection = $collection) =~ s{/.*}{};
     eval {
-        my $pkg = "Kselftests::parsers::${collection}::${sanitized_test_name}";
+        my $pkg = "Kselftests::parsers::${pkg_collection}::${sanitized_test_name}";
         $obj = $pkg->new();
     } or eval {
-        my $pkg = "Kselftests::parsers::${collection}";
+        my $pkg = "Kselftests::parsers::${pkg_collection}";
+        $obj = $pkg->new();
+    } or eval {
+        # Subcollections (e.g. 'net/forwarding') fall back to the parser of
+        # their top-level collection (e.g. 'net') when they don't have one
+        # of their own.
+        my $pkg = "Kselftests::parsers::${top_collection}";
         $obj = $pkg->new();
     } or do {
         $obj = Kselftests::parsers::main->new();

@@ -38,7 +38,7 @@ sub run {
         return;
     }
 
-    setup_repos;
+    setup_repos($collection);
     install_dependencies($collection);
 
     eval {
