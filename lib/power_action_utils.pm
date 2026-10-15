@@ -18,7 +18,7 @@ use Exporter;
 use strict;
 use warnings;
 use utils;
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 use Utils::Architectures;
 use Utils::Backends;
 use version_utils qw(is_sle is_leap is_opensuse is_tumbleweed is_vmware is_jeos);
@@ -271,6 +271,9 @@ C<$keepconsole> prevents a console change, which we do by default to make sure t
 desktop which was in text console at the time of C<power_action> call, is switched to the expected
 console, that is 'root-console' for textmode, 'x11' otherwise. The actual execution happens in a shell
 for textmode or with GUI commands otherwise unless explicitly overridden by setting C<$textmode> to either 0 or 1.
+With C<$keepconsole>, a C<reboot> without C<$observe> issued from a serial terminal on
+qemu still switches to 'root-console' or 'x11', because the boot that follows can only
+be watched on the VGA console.
 C<$force> sets force option to reboot command in textmode.
 
 =cut
@@ -286,7 +289,10 @@ sub power_action {
 
     prepare_system_shutdown;
 
-    unless ($args{keepconsole}) {
+    # A serial terminal has no framebuffer, so the boot that follows a
+    # reboot from it would be watched on a stale screen.
+    my $leave_serial = $args{keepconsole} && $action eq 'reboot' && !$args{observe} && is_qemu && is_serial_terminal();
+    if (!$args{keepconsole} || $leave_serial) {
         select_console $args{textmode} ? 'root-console' : 'x11';
     }
 
