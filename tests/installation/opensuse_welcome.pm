@@ -32,7 +32,7 @@ sub run {
 
     turn_off_plasma_tooltips if check_var('DESKTOP', 'kde');
 
-    update_x11_vt if get_var('DESKTOP', '') =~ /^(kde|xfce|lxde)$/;
+    update_x11_vt if get_var('DESKTOP', '') =~ /^(kde|xfce|lxde|gnome)$/;
 }
 
 sub test_flags {
