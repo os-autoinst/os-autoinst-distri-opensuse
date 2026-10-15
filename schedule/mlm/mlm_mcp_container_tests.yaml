@@ -1,0 +1,9 @@
+---
+name: mlm_mcp_container_tests
+description: >
+  Maintainer: MLM team <multi-linux-manager@suse.de>
+  MLM MCP container rebuild validation on a pre-installed SLES
+  openQA VM. The test is a smoke test on the model context protocol,
+schedule:
+  - boot/boot_to_desktop
+  - containers/mlm_mcp.pm
