@@ -34,6 +34,7 @@ use Mojo::JSON qw(decode_json);
 use Exporter 'import';
 use testapi;
 use mmapi qw( get_current_job_id );
+use Time::Piece;
 
 our @EXPORT = qw(
   qesap_is_job_finished
@@ -99,6 +100,7 @@ sub qesap_get_public_cloud_tags {
         openqa_var_job_id => get_current_job_id(),
         openqa_var_name => get_var('NAME', ''),
         openqa_var_server => $openqa_var_server,
+        openqa_created_date => gmtime->datetime(),
     );
     return %tags;
 }
