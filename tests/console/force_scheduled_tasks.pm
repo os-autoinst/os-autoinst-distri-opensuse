@@ -6,7 +6,7 @@
 # Package: cronie btrfsmaintenance
 # Summary: Avoid suprises later and run scheduled tasks explicitly, be it cron
 #   jobs or systemd timer
-# - Show kernel messages on the VGA console during the cron run
+# - Show dmesg output in console during cron run
 # - Settle system load before starting tasks
 # - Run cron jobs and systemd timers
 # - Disable btrfs cron jobs symlinking them to /bin/true
@@ -15,20 +15,15 @@
 # Tags: bsc#1017461, bsc#1063638
 
 use Mojo::Base 'consoletest';
-use testapi qw(is_serial_terminal :DEFAULT);
-use serial_terminal 'select_text_console';
+use testapi;
 use utils 'assert_screen_with_soft_timeout';
 use version_utils 'is_jeos';
 
 sub settle_load {
-    # top output is only useful on the VGA console, so skip running it on the
-    # serial terminal, where it would just slow the loop down.
-    my $top = is_serial_terminal ? '' : 'top -n1 -b | head -n30 ;';
-    my $loop = "read load dummy < /proc/loadavg  ; $top test \"\${load/./}\" -le \$limit && break ; sleep 5";
+    my $loop = 'read load dummy < /proc/loadavg  ; top -n1 -b| head -n30 ; test "${load/./}" -le $limit && break ; sleep 5';
+    script_run "limit=11; for c in `seq 1 200`; do $loop; done; echo TOP-DONE > /dev/$serialdev", 0;
     my $before = time;
-    # Blocking script_run waits on openQA's own markers, which work on the VGA
-    # console and the serial terminal alike.
-    script_run("limit=11; for c in `seq 1 200`; do $loop; done", timeout => 1120);
+    wait_serial('TOP-DONE', 1120) || die 'load not settled';
     # JeOS is different to SLE general as it extends the appliance's disk on first boot,
     # so the balance is a different challenge to SLE. Elapsed time is not necessary a key
     # measure here, responsiveness of the system is.
@@ -36,12 +31,10 @@ sub settle_load {
 }
 
 sub run {
-    select_text_console;
+    select_console 'root-console';
 
-    # Only raise the log level on the VGA console: on the serial terminal the
-    # extra kernel messages are noise, and on the VGA foreground they break a
-    # later user-console needle.
-    assert_script_run "dmesg -n 7" unless is_serial_terminal;
+    # show dmesg output in console during cron run
+    assert_script_run "dmesg -n 7";
 
     # Make sure there's no load before we trigger one via cron.
     my $is_settled = settle_load;
