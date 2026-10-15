@@ -1,3 +1,11 @@
+# SUSE's openQA tests
+#
+# Copyright 2026 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: MLM MCP container tests
+# Maintainer: Jordi Massaguer Pla <jmassaguerpla@suse.com>
+
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
