@@ -198,7 +198,8 @@ sub setup_xfstests_devices {
             script_run("echo export SCRATCH_MNT=/opt/nfs/scratch >> $CONFIG_FILE");
             script_run("echo export FSTYP=nfs >> $CONFIG_FILE");
             if ($NFS_VERSION =~ 'pnfs') {
-                script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=4.1,minorversion=1\"' >> $CONFIG_FILE");
+                my $rdma = $NFS_VERSION =~ 'rdma' ? ',rdma' : '';
+                script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=4.1,minorversion=1$rdma\"' >> $CONFIG_FILE");
             }
             elsif ($NFS_VERSION =~ 'TLS') {
                 script_run('modprobe tls');
@@ -534,6 +535,10 @@ sub setup_nfs_client {
         script_run("mount -t nfs4 -o vers=4.1,minorversion=1,rdma $ip_addr:/opt/export/test /opt/nfs/test");
         record_info('pNFS_checkpoint', script_output('cat /proc/self/mountstats | grep pnfs', proceed_on_failure => 1));
         record_info('rdma mount checkpoint', script_output('cat /proc/fs/nfsfs/servers; grep opts: /proc/self/mountstats; grep xprt: /proc/self/mountstats', proceed_on_failure => 1));
+        # NFSv4.1 trunking makes later mounts of the same server reuse the
+        # nfs_client of this mount, also over TCP. Then all RPCs go over RDMA,
+        # which rxe loops back inside the kernel, and tcpdump captures nothing.
+        script_run('umount /opt/nfs/test');
     }
     elsif ($nfsversion =~ 'pnfs') {
         script_run('mount -t nfs4 -o vers=4.1,minorversion=1 localhost:/opt/export/test /opt/nfs/test');
