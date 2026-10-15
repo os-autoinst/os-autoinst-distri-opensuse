@@ -6,7 +6,7 @@
 # Package: cronie btrfsmaintenance
 # Summary: Avoid suprises later and run scheduled tasks explicitly, be it cron
 #   jobs or systemd timer
-# - Show dmesg output in console during cron run
+# - Show kernel messages on the VGA console during the cron run
 # - Settle system load before starting tasks
 # - Run cron jobs and systemd timers
 # - Disable btrfs cron jobs symlinking them to /bin/true
@@ -15,15 +15,20 @@
 # Tags: bsc#1017461, bsc#1063638
 
 use Mojo::Base 'consoletest';
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
+use serial_terminal 'select_text_console';
 use utils 'assert_screen_with_soft_timeout';
 use version_utils 'is_jeos';
 
 sub settle_load {
-    my $loop = 'read load dummy < /proc/loadavg  ; top -n1 -b| head -n30 ; test "${load/./}" -le $limit && break ; sleep 5';
-    script_run "limit=11; for c in `seq 1 200`; do $loop; done; echo TOP-DONE > /dev/$serialdev", 0;
+    # top output is only useful on the VGA console, so skip running it on the
+    # serial terminal, where it would just slow the loop down.
+    my $top = is_serial_terminal ? '' : 'top -n1 -b | head -n30 ;';
+    my $loop = "read load dummy < /proc/loadavg  ; $top test \"\${load/./}\" -le \$limit && break ; sleep 5";
     my $before = time;
-    wait_serial('TOP-DONE', 1120) || die 'load not settled';
+    # Blocking script_run waits on openQA's own markers, which work on the VGA
+    # console and the serial terminal alike.
+    script_run("limit=11; for c in `seq 1 200`; do $loop; done", timeout => 1120);
     # JeOS is different to SLE general as it extends the appliance's disk on first boot,
     # so the balance is a different challenge to SLE. Elapsed time is not necessary a key
     # measure here, responsiveness of the system is.
@@ -31,10 +36,12 @@ sub settle_load {
 }
 
 sub run {
-    select_console 'root-console';
+    select_text_console;
 
-    # show dmesg output in console during cron run
-    assert_script_run "dmesg -n 7";
+    # Only raise the log level on the VGA console: on the serial terminal the
+    # extra kernel messages are noise, and on the VGA foreground they would
+    # clutter the console for the needle checks of later modules.
+    assert_script_run "dmesg -n 7" unless is_serial_terminal;
 
     # Make sure there's no load before we trigger one via cron.
     my $is_settled = settle_load;
@@ -60,6 +67,12 @@ sub run {
 
     # return dmesg output to normal
     assert_script_run "dmesg -n 1";
+
+    # End on the VGA root console so the consoletest post_run_hook clears and
+    # verifies it. Later modules assert the root-console needle there (for
+    # example shutdown_ltp via power_action); LTP turns on ignore_loglevel and
+    # its kernel message flood would otherwise scroll a stale prompt away.
+    select_console 'root-console' if is_serial_terminal;
 }
 
 sub test_flags {
