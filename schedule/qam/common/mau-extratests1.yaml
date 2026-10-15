@@ -58,6 +58,9 @@ conditional_schedule:
       15-SP4: *chrony
       15-SP3: *chrony
       15-SP2: *chrony
+      12-SP5: &ntp
+        - console/ntp
+      12-SP3: *ntp
   version_specific:
     VERSION:
       '16.0':
