@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Utils/Bootloader.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#get_command_line_size">_get_command_line_size</a></li>
+  <li><a href="#check_kernel_arg_len">check_kernel_arg_len</a></li>
+</ul><h1>lib/Utils/Bootloader.pm</h1>
+
+<h1 id="get_command_line_size">_get_command_line_size</h1>
+
+<pre><code>_get_command_line_size()</code></pre>
+
+<p>Returns the <code>COMMAND_LINE_SIZE</code> value for the current worker architecture from <code>COMMAND_LINE_SIZE_BY_ARCH</code>. Dies if the architecture is not supported.</p>
+
+<h1 id="check_kernel_arg_len">check_kernel_arg_len</h1>
+
+<pre><code>check_kernel_arg_len()</code></pre>
+
+<p>Validates whether the length of the longest kernel command line found in <i>/boot/grub2/grub.cfg</i> exceeds the architecture-specific <code>COMMAND_LINE_SIZE</code> limit defined in <code>COMMAND_LINE_SIZE_BY_ARCH</code>.</p>
+
+
+</body>
+
+</html>
+
+
