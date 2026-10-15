@@ -24,7 +24,7 @@ sub run {
 =head1 Description
 
 Removes the VLAN that C<kernel/san_network> created and sets the switch
-ports back to PVID 1. Schedule it as the last module, so that it also
-runs after a failed test.
+ports back to their default VLAN 3. Schedule it as the last module, so
+that it also runs after a failed test.
 
 =cut
