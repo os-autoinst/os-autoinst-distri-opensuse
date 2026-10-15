@@ -62,7 +62,9 @@ sub run {
     # Also cleanup machine-id to avoid duplicate ipv6 link local address in mutli-machine setup.
     script_run('echo -n >/etc/machine-id');
 
-    power_action('poweroff');
+    # Stay on the serial console: after LTP runs VNC is flooded with kmsg
+    # and no longer matches root-console (poo#208620).
+    power_action('poweroff', keepconsole => 1);
 }
 
 sub post_fail_hook {
