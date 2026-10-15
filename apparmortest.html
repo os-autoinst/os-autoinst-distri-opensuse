@@ -28,6 +28,7 @@
       <li><a href="#mariadb_setup">mariadb_setup</a></li>
       <li><a href="#adminer_setup">adminer_setup</a></li>
       <li><a href="#adminer_database_delete">adminer_database_delete</a></li>
+      <li><a href="#upload_logs_from_tmp">upload_logs_from_tmp</a></li>
       <li><a href="#upload_logs_mail">upload_logs_mail</a></li>
       <li><a href="#pre_run_hook">pre_run_hook</a></li>
       <li><a href="#post_fail_hook">post_fail_hook</a></li>
@@ -169,6 +170,12 @@
 
 </li>
 </ul>
+
+<h2 id="upload_logs_from_tmp">upload_logs_from_tmp</h2>
+
+<pre><code>upload_logs_from_tmp($file [, %args]);</code></pre>
+
+<p>Workaround for bsc#1273046: the AppArmor 5.0 curl profile only allows reading files below <code>/tmp/</code> and <code>$HOME</code>. Copy <code>$file</code> to a new directory under <code>/tmp/</code> before uploading it. Remove when bsc#1273046 is fixed.</p>
 
 <h2 id="upload_logs_mail">upload_logs_mail</h2>
 
