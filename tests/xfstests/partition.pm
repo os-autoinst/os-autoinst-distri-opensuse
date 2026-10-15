@@ -30,7 +30,8 @@ use Utils::Architectures 'is_ppc64le';
 use transactional;
 use package_utils;
 use Kernel::block_dev qw(create_loop_backing_file attach_loop_device create_zoned_nullblk);
-use Kernel::nfs qw(setup_pnfs_client verify_pnfs_block_layout);
+use Kernel::nfs qw(setup_pnfs_client verify_pnfs_block_layout setup_nfs_krb5_server);
+use Kernel::krb5 qw(add_principal);
 use Kernel::utils 'get_kernel_config';
 use List::Util 'sum';
 use rdma;
@@ -410,35 +411,19 @@ END
 }
 
 sub setup_krb5 {
-    script_run('hostname localhost');
+    # The server is also the client: use "localhost" for the principals
+    assert_script_run('hostname localhost');
     script_run('echo "127.0.0.1 localhost localhost.localdomain" >> /etc/hosts');
-    my $content = <<END;
-includedir  /etc/krb5.conf.d
 
-[libdefaults]
-    dns_canonicalize_hostname = false
-    rdns = false
-    verify_ap_req_nofail = true
-    default_ccache_name = KEYRING:persistent:%{uid}
-    default_realm = SUSETEST.COM
-    dns_lookup_realm = false
-    dns_lookup_kdc = false
-
-[realms]
-       SUSETEST.COM = {
-        kdc = 127.0.0.1:88
-        admin_server = 127.0.0.1:749
-    }
-
-[logging]
-    kdc = FILE:/var/log/krb5/krb5kdc.log
-    admin_server = FILE:/var/log/krb5/kadmind.log
-    default = SYSLOG:NOTICE:DAEMON
-END
-    write_sut_file('/etc/krb5.conf', $content);
+    # Set up the KDC and the GSS service of the server, add nfs/localhost
+    setup_nfs_krb5_server(
+        realm => 'SUSETEST.COM',
+        admin_pass => 'susetest',
+        db_pass => 'susetest',
+        libdefaults => {default_ccache_name => 'KEYRING:persistent:%{uid}'});
 
     #Config idmapd.conf
-    $content = <<END;
+    my $content = <<END;
 [General]
 Domain = susetest.com
 
@@ -448,27 +433,11 @@ Nobody-Group = nobody
 END
     write_sut_file('/etc/idmapd.conf', $content);
 
-    #create KDC database, start service and setup key
-    script_run('kdb5_util create -s -P susetest -r SUSETEST.COM');
-    script_run('systemctl start krb5kdc kadmind; systemctl enable krb5kdc kadmind');
-    script_run('echo -e "susetest\nsusetest" | kadmin.local -q "addprinc root/admin@SUSETEST.COM"');
-    script_run('kadmin.local -q "addprinc -randkey nfs/localhost@SUSETEST.COM"');
-    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab nfs/localhost@SUSETEST.COM"');
-
     #create fsgqa/fsgqa2 users for some xfstests
-    script_run('kadmin.local -q "addprinc -randkey fsgqa@SUSETEST.COM"');
-    script_run('kadmin.local -q "addprinc -randkey fsgqa2@SUSETEST.COM"');
-    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab fsgqa@SUSETEST.COM"');
-    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab fsgqa2@SUSETEST.COM"');
-
-    #verify the key
-    script_run('klist -kte /etc/krb5.keytab');
-    script_run('kadmin.local -q "getprinc nfs/localhost@SUSETEST.COM"');
+    add_principal($_, keytab => 1) foreach (qw(fsgqa fsgqa2));
 
     #get kerberos ticket and check
-    script_run('kinit -k host/localhost@SUSETEST.COM');
-    script_run('klist');
-    script_run('kinit -k nfs/localhost@SUSETEST.COM');
+    assert_script_run('kinit -k nfs/localhost@SUSETEST.COM');
     script_run('klist');
 
     script_run("systemctl restart nfs-idmapd");
