@@ -183,8 +183,8 @@ sub run {
     }
 
     # Upload logs for reference
-    upload_logs("/var/log/apache2/error_log");
-    upload_logs("$audit_log");
+    apparmortest::upload_logs_from_tmp("/var/log/apache2/error_log");
+    apparmortest::upload_logs_from_tmp("$audit_log");
 }
 
 1;

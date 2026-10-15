@@ -96,7 +96,7 @@ sub run {
     smbd_service_autorestart(DISABLED) unless is_sle('<=15-sp4');
 
     systemctl("restart $test_service", expect_false => 1);
-    upload_logs($audit_log);
+    apparmortest::upload_logs_from_tmp($audit_log);
 
     validate_script_output "aa-notify -s 1 -v", sub {
         m/
@@ -105,10 +105,11 @@ sub run {
             AppArmor\sdenials?:\s+[0-9]+\s+\(since/sxx
     } if is_sle('<=15-sp4');
 
+    # AppArmor 5.0 reports "Denied: c" where older versions report "Denied: ac"
     validate_script_output "aa-notify -s 1 -v", sub {
         m/
             Name:.*samba.*
-            Denied:\s+ac.*
+            Denied:\s+a?c.*
             AppArmor\sdenials?:\s+[0-9]+\s+\(since/sxx
     } unless is_sle('<=15-sp4');
 

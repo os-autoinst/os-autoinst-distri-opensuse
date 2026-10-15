@@ -13,6 +13,7 @@ package apparmortest;
 
 use strict;
 use warnings;
+use File::Basename 'basename';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
@@ -683,7 +684,7 @@ sub yast2_apparmor_cleanup {
     select_serial_terminal;
 
     # Upload logs for reference
-    upload_logs("$audit_log");
+    upload_logs_from_tmp("$audit_log");
 }
 
 # Create a test profile with name contains '('
@@ -761,6 +762,25 @@ sub create_log_content_is_special {
     validate_script_output("cat $audit_log", sub { m/.*type=AVC.*profile=.*$test_special.*/sx });
 }
 
+=head2 upload_logs_from_tmp
+
+ upload_logs_from_tmp($file [, %args]);
+
+Workaround for bsc#1273046: the AppArmor 5.0 curl profile only allows
+reading files below C</tmp/> and C<$HOME>. Copy C<$file> to a new directory
+under C</tmp/> before uploading it. Remove when bsc#1273046 is fixed.
+
+=cut
+
+sub upload_logs_from_tmp {
+    my ($file, %args) = @_;
+
+    my $tmp_dir = script_output('mktemp -d /tmp/apparmor_upload.XXXXXX');
+    assert_script_run("cp $file $tmp_dir/");
+    upload_logs("$tmp_dir/" . basename($file), %args);
+    script_run("rm -rf $tmp_dir");
+}
+
 =head2 upload_logs_mail
 
  upload_logs_mail();
@@ -772,13 +792,13 @@ Upload mail warn, err and info logs for reference
 sub upload_logs_mail {
     # Upload mail warn, err and info logs for reference
     if (script_run("! [[ -e $mail_err_log ]]")) {
-        upload_logs("$mail_err_log");
+        upload_logs_from_tmp("$mail_err_log");
     }
     if (script_run("! [[ -e $mail_warn_log ]]")) {
-        upload_logs("$mail_warn_log");
+        upload_logs_from_tmp("$mail_warn_log");
     }
     if (script_run("! [[ -e $mail_info_log ]]")) {
-        upload_logs("$mail_info_log");
+        upload_logs_from_tmp("$mail_info_log");
     }
 }
 
@@ -818,7 +838,7 @@ sub post_fail_hook {
     send_key("alt-f4");
     select_console("root-console");
     if (script_run("! [[ -e $audit_log ]]")) {
-        upload_logs("$audit_log");
+        upload_logs_from_tmp("$audit_log");
     }
     $self->SUPER::post_fail_hook;
 }
