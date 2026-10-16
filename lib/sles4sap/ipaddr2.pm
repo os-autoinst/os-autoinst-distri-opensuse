@@ -851,11 +851,7 @@ az command line. Die in case of failure
 
 sub ipaddr2_deployment_sanity {
     my $rg = ipaddr2_azure_resource_group();
-    my $result = az_group_name_get();
-    if ($result->{err}) {
-        record_info('AZ ERROR', $result->{err});
-    }
-    my $res = $result->{data};
+    my $res = az_group_name_get();
     my $count = grep(/$rg/, @$res);
     die "There are not exactly one but $count resource groups with name $rg" unless $count == 1;
 
