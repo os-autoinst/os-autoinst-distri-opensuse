@@ -25,6 +25,8 @@ our @EXPORT_OK = qw(
   remove_vlan
   get_port_pvid
   set_port_pvid
+  create_vlan_network
+  remove_vlan_network
 );
 
 =head1 SYNOPSIS
@@ -39,11 +41,28 @@ coordinated with any wider address plan, since the switch's uplink to
 the managed network stays untagged/access-only (see that ticket for
 why).
 
-add_vlan() and set_port_pvid() enforce the VLAN id rule and die for any
-id outside 1..MAX_VLAN_ID.
+VLANs on the lab switch:
+
+=over
+
+=item VLAN 1 (UPLINK_VLAN): the uplink to the lab network. Never used by
+tests: a test NIC in VLAN 1 gets a lab address.
+
+=item VLAN 3 (DEFAULT_VLAN): the default VLAN of all other ports.
+Tests do not create or remove it, they only move ports back to it.
+
+=item VLANs 4..9 (MIN_TEST_VLAN_ID..MAX_VLAN_ID): test VLANs.
+
+=back
+
+add_vlan() and remove_vlan() die for any VLAN id other than a test VLAN,
+set_port_pvid() also accepts DEFAULT_VLAN.
 
 =cut
 
+use constant UPLINK_VLAN => 1;
+use constant DEFAULT_VLAN => 3;
+use constant MIN_TEST_VLAN_ID => 4;
 use constant MAX_VLAN_ID => 9;
 
 =head2 get_all_vlans
@@ -89,7 +108,7 @@ required. 'tagged' and 'untagged' are optional comma-separated interface
 lists (as accepted by RouterOS) naming the bridge member ports to attach
 to the VLAN. Returns the created entry.
 
-Dies if vlan_id is outside 1..MAX_VLAN_ID (see L</VLAN AND NETWORK CONVENTIONS>).
+Dies if vlan_id is not a test VLAN (see L</VLAN AND NETWORK CONVENTIONS>).
 
 Dies if an entry already exists for that bridge/vlan_id - use
 update_vlan() (not yet implemented) to change an existing VLAN's port
@@ -103,7 +122,7 @@ sub add_vlan {
     my (%args) = @_;
     my $bridge = $args{bridge} // die 'add_vlan requires a bridge';
     my $vlan_id = $args{vlan_id} // die 'add_vlan requires a vlan_id';
-    _check_vlan_id($vlan_id);
+    _check_test_vlan_id($vlan_id);
 
     die "Mikrotik switch add_vlan($vlan_id) failed: a VLAN with that id already exists on bridge '$bridge'\n"
       if grep { $_->{bridge} eq $bridge && $_->{'vlan-ids'} eq $vlan_id } get_all_vlans();
@@ -120,7 +139,8 @@ sub add_vlan {
  remove_vlan($vlan_id);
 
 Removes the bridge VLAN table entry for a given VLAN id, e.g. remove_vlan(5).
-Dies if no entry with that VLAN id exists.
+Dies if no entry with that VLAN id exists, or if vlan_id is not a test
+VLAN (see L</VLAN AND NETWORK CONVENTIONS>).
 
 Dies on any non-2xx response.
 
@@ -128,6 +148,7 @@ Dies on any non-2xx response.
 
 sub remove_vlan {
     my ($vlan_id) = @_;
+    _check_test_vlan_id($vlan_id);
     my $vlan = get_vlan($vlan_id);
     _request('DELETE', "interface/bridge/vlan/$vlan->{'.id'}");
 }
@@ -156,7 +177,8 @@ sub get_port_pvid {
 Sets the PVID (untagged/native VLAN id) of a bridge port, e.g.
 set_port_pvid('ether5', 5). This is what makes a port an untagged member
 of a VLAN. Dies if the port is not a member of any bridge, or if
-vlan_id is outside 1..MAX_VLAN_ID (see L</VLAN AND NETWORK CONVENTIONS>).
+vlan_id is neither a test VLAN nor DEFAULT_VLAN (see
+L</VLAN AND NETWORK CONVENTIONS>).
 
 Dies on any non-2xx response.
 
@@ -164,15 +186,56 @@ Dies on any non-2xx response.
 
 sub set_port_pvid {
     my ($port_name, $vlan_id) = @_;
-    _check_vlan_id($vlan_id);
+    _check_test_vlan_id($vlan_id) unless defined $vlan_id && $vlan_id eq DEFAULT_VLAN;
     my $bridge_port = _get_bridge_port($port_name);
     _request('PATCH', "interface/bridge/port/$bridge_port->{'.id'}", {pvid => $vlan_id});
 }
 
-sub _check_vlan_id {
+=head2 create_vlan_network
+
+ create_vlan_network(vlan_id => 4, ports => ['sfp-sfpplus9', 'sfp-sfpplus23']);
+
+Creates an isolated network for one test: a new VLAN on C<bridge>
+(default 'bridge') with the C<ports> as untagged members, and the PVID of
+each port set to the VLAN. Dies if the VLAN already exists, so that a
+test does not take over the network of another test.
+
+=cut
+
+sub create_vlan_network {
+    my (%args) = @_;
+    my $vlan_id = $args{vlan_id} // die 'create_vlan_network requires a vlan_id';
+    my @ports = @{$args{ports} // die 'create_vlan_network requires ports'};
+    add_vlan(bridge => $args{bridge} // 'bridge', vlan_id => $vlan_id, untagged => join(',', @ports));
+    set_port_pvid($_, $vlan_id) for @ports;
+}
+
+=head2 remove_vlan_network
+
+ remove_vlan_network(vlan_id => 4, ports => ['sfp-sfpplus9', 'sfp-sfpplus23'], pvid => 3);
+
+Removes the network that C<create_vlan_network> created: sets the PVID of
+the C<ports> back to C<pvid> and removes the VLAN. Does not die if the
+VLAN does not exist, so that it can also clean up after a failed test.
+
+C<pvid> defaults to DEFAULT_VLAN (3). VLAN 1 is not allowed: it is the
+VLAN of the uplink to the lab network, so a test NIC in VLAN 1 gets a lab
+address, and a second NIC of the SUT in the lab network can break the
+connection of openQA to the SUT.
+
+=cut
+
+sub remove_vlan_network {
+    my (%args) = @_;
+    my $vlan_id = $args{vlan_id} // die 'remove_vlan_network requires a vlan_id';
+    set_port_pvid($_, $args{pvid} // DEFAULT_VLAN) for @{$args{ports} // []};
+    remove_vlan($vlan_id) if grep { $_->{'vlan-ids'} eq $vlan_id && ($_->{dynamic} // 'false') ne 'true' } get_all_vlans();
+}
+
+sub _check_test_vlan_id {
     my ($vlan_id) = @_;
-    die "Mikrotik switch: VLAN id '" . ($vlan_id // 'undef') . "' is not allowed, use 1.." . MAX_VLAN_ID . " (progress#188433)\n"
-      unless defined $vlan_id && $vlan_id =~ /^\d+$/ && $vlan_id >= 1 && $vlan_id <= MAX_VLAN_ID;
+    die "Mikrotik switch: VLAN id '" . ($vlan_id // 'undef') . "' is not allowed, use a test VLAN " . MIN_TEST_VLAN_ID . ".." . MAX_VLAN_ID . " (VLAN " . UPLINK_VLAN . " is the uplink, VLAN " . DEFAULT_VLAN . " the default VLAN)\n"
+      unless defined $vlan_id && $vlan_id =~ /^\d+$/ && $vlan_id >= MIN_TEST_VLAN_ID && $vlan_id <= MAX_VLAN_ID;
 }
 
 sub _get_bridge_port {
