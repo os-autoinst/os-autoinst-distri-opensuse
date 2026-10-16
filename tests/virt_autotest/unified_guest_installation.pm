@@ -40,6 +40,7 @@
 # UNIFIED_GUEST_PRODUCT_MODES
 # UNIFIED_GUEST_NETWORK_TYPES
 # UNIFIED_GUEST_NETWORK_MODES
+# UNIFIED_GUEST_OSINFOS
 # They are assigned to guest parameters:
 # [guest_registration_server]
 # [guest_build]
@@ -88,7 +89,7 @@ sub run {
     croak("Guest names and profiles must be given to create, configure and install guests.") if ((scalar(@guest_names) eq 0) or (scalar(@guest_profiles) eq 0));
     my %store_of_guests;
     my @guest_installation_media = my @guest_installation_fine_grained_media = my @guest_installation_fine_grained_repos = ('') x scalar @guest_names;
-    my @guest_product_modes = my @guest_installation_builds = my @guest_network_types = my @guest_network_modes = ('') x scalar @guest_names;
+    my @guest_product_modes = my @guest_installation_builds = my @guest_network_types = my @guest_network_modes = my @guest_osinfo = ('') x scalar @guest_names;
     my @guest_registration_servers = my @guest_registration_codes = my @guest_registration_extensions_codes = ('') x scalar @guest_names;
     @guest_installation_media = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_MEDIA', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_MEDIA', '') ne '');
     @guest_installation_builds = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_BUILDS', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_BUILDS', '') ne '');
@@ -100,6 +101,7 @@ sub run {
     @guest_product_modes = split(/\|/, get_var('UNIFIED_GUEST_PRODUCT_MODES', '')) if (get_var('UNIFIED_GUEST_PRODUCT_MODES', '') ne '');
     @guest_network_types = split(/\|/, get_var('UNIFIED_GUEST_NETWORK_TYPES', '')) if (get_var('UNIFIED_GUEST_NETWORK_TYPES', '') ne '');
     @guest_network_modes = split(/\|/, get_var('UNIFIED_GUEST_NETWORK_MODES', '')) if (get_var('UNIFIED_GUEST_NETWORK_MODES', '') ne '');
+    @guest_osinfo = split(/\|/, get_var('UNIFIED_GUEST_OSINFOS', '')) if (get_var('UNIFIED_GUEST_OSINFOS', '') ne '');
     while (my ($index, $element) = each @guest_names) {
         $store_of_guests{$element}{PROFILE} = $guest_profiles[$index];
         $store_of_guests{$element}{INSTALL_MEDIA} = $guest_installation_media[$index];
@@ -112,6 +114,7 @@ sub run {
         $store_of_guests{$element}{PRODUCT_MODE} = $guest_product_modes[$index];
         $store_of_guests{$element}{NETWORK_TYPE} = $guest_network_types[$index];
         $store_of_guests{$element}{NETWORK_MODE} = $guest_network_modes[$index];
+        $store_of_guests{$element}{OSINFO} = $guest_osinfo[$index];
     }
 
     $self->concurrent_guest_installations_run(\%store_of_guests);
