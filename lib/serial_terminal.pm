@@ -203,6 +203,15 @@ sub login {
 }
 
 sub serial_term_prompt {
+    # The prompt of the console that is currently selected. The distro keeps
+    # $testapi::distri->{serial_term_prompt} in sync on every select_console
+    # (console_selected), and sles4sap overrides it for its custom prompts,
+    # while the module global is only set when a console is activated. A plain
+    # re-select of an already active console would leave the global stale, so
+    # code that waits for the prompt (cmd_run, wait_serial) would look for the
+    # wrong one.
+    return $testapi::distri->{serial_term_prompt}
+      if $testapi::distri && defined $testapi::distri->{serial_term_prompt};
     return $serial_term_prompt;
 }
 
