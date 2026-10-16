@@ -1,0 +1,24 @@
+---
+name: nvme_tcp_2vms
+description: >
+    NVMe/TCP between two QEMU VMs that boot a SLE HDD image: the job with
+    ROLE=nvme_target exports its second disk (NUMDISKS=2), the job with
+    ROLE=nvme_initiator connects to it and does I/O. The initiator is the
+    parallel child of the target. The addresses come from the topology.
+    Both jobs need BOOT_HDD_IMAGE=1, DESKTOP=textmode and NICTYPE=tap.
+test_data:
+    <<: !include test_data/kernel/multimachine/nvme_tcp_2vms.yaml
+    multimachine_barriers:
+        - NVME_TARGET_READY
+        - NVME_TEST_DONE
+conditional_schedule:
+    nvme:
+        ROLE:
+            nvme_target:
+                - kernel/nvme_tcp_target
+            nvme_initiator:
+                - kernel/nvme_tcp_initiator
+schedule:
+    - kernel/multimachine_barriers
+    - boot/boot_to_desktop
+    - '{{nvme}}'
