@@ -112,12 +112,13 @@ subtest '[az_group_name_get] query' => sub {
 subtest '[az_group_delete]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azcli->redefine(az => sub { my %args = @_; push @calls, $args{az_args}; return {rc => 0}; });
 
     az_group_delete(name => 'Arlecchino');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /az group delete/ } @calls), 'Correct composition of the main command');
+    ok((any { /group delete/ } @calls), 'Correct composition of the main command');
+    ok((none { /^az\s/ } @calls), 'Command "az" must not be present in az_args');
 };
 
 subtest '[az_network_vnet_create]' => sub {

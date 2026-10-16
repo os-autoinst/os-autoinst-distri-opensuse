@@ -1985,7 +1985,8 @@ Destroy the deployment by deleting the resource group
 =cut
 
 sub ipaddr2_infra_destroy {
-    az_group_delete(name => ipaddr2_azure_resource_group(), timeout => 600);
+    my $result = az_group_delete(name => ipaddr2_azure_resource_group(), timeout => 600);
+    die("Resource group deletion failed:\n$result->{error}") if $result->{rc} != 0;
 }
 
 =head2 ipaddr2_get_internal_vm_name
