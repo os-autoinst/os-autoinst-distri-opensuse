@@ -124,7 +124,8 @@ Destroy the deployment by deleting the resource group and created network peerin
 sub zp_azure_destroy {
     my (%args) = @_;
     my $rg = zp_azure_resource_group();
-    az_group_delete(name => $rg, timeout => 600);
+    my $result = az_group_delete(name => $rg, timeout => 600);
+    die("Resource group deletion failed:\n$result->{error}") if $result->{rc} != 0;
 
     if ($args{ibsm_rg}) {
         my $target_vnet = az_network_vnet_get(resource_group => $args{ibsm_rg});

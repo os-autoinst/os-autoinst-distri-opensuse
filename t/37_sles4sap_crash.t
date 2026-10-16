@@ -253,20 +253,14 @@ subtest '[crash_cleanup] AZURE' => sub {
     $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my @calls;
-    my $azure = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    $azure->redefine(assert_script_run => sub {
-            my ($cmd, %args) = @_;
-            push @calls, $cmd;
-            return; });
-    $azure->redefine(script_run => sub {
-            my ($cmd, %args) = @_;
-            push @calls, $cmd;
-            return 0; });
+    $crash->redefine(az_group_delete => sub {
+            @calls = @_;
+            return {rc => 0, output => '', error => ''}; });
 
     crash_cleanup(provider => 'AZURE', region => 'reg1');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /az group delete --name crashRussulaEmetica/ } @calls), 'Correct resource group deleted via crash_cleanup');
+    ok((any { /crashRussulaEmetica/ } @calls), 'Correct resource group deleted via crash_cleanup');
 };
 
 subtest '[crash_cleanup] GCE' => sub {

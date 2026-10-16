@@ -319,24 +319,24 @@ sub az_group_name_get(%args) {
 
     az_group_delete( name => 'openqa-rg' );
 
-Delete a resource group with a specific name
+Delete a resource group with a specific name.
+Returns structure passed by C<az()>. Failure is handled by the caller.
 
 =over
 
 =item B<name> - full name of the resource group
 
-=item B<timeout> - timeout, default 60
+=item B<timeout> - timeout, default inherited by az()
 
 =back
 =cut
 
 sub az_group_delete(%args) {
     croak('Argument < name > missing') unless $args{name};
-    $args{timeout} //= 60;
-    my $az_cmd = join(' ',
-        'az group delete',
-        '--name', $args{name}, '-y');
-    assert_script_run($az_cmd, timeout => $args{timeout});
+    return az(
+        az_args => join(' ', 'group delete', '--name', $args{name}, '-y'),
+        timeout => $args{timeout},
+        failok => 1);
 }
 
 =head2 az_group_exists
