@@ -7,7 +7,7 @@
 # Package: curl_https
 # Summary: ensure curl is able to successfully connect to a https site
 #          without certificate errors.
-#          - switch to normal user
+#          - run curl as the regular user on the serial console
 #          - connect to a website using https (retry multiple times in case of failure)
 #
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>, QE Security <none@suse.de>
@@ -18,7 +18,7 @@ use testapi;
 use utils qw(clear_console ensure_serialdev_permissions);
 use Utils::Architectures;
 use Utils::Backends;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 
 # test for bug https://bugzilla.novell.com/show_bug.cgi?id=598574
 sub run {
@@ -29,8 +29,10 @@ sub run {
     select_serial_terminal;    # Switch to root user at first if not
     ensure_serialdev_permissions if (is_s390x);
 
-    # Switch to user console: exclude ipmi backends as under non-root user session the $serialdev can not be found
-    select_console 'user-console' if (!is_ipmi);
+    # Run as the regular user on the user serial console. No graphical
+    # user-console switch (and its needle), and no sudo/runuser: the serial
+    # user console already provides a real user session.
+    select_user_serial_terminal unless is_ipmi;
 
     # arbitrary number of retries
     my $max_retries = 7;
