@@ -82,6 +82,10 @@ use constant SSH_VERBOSE => '-vvv';
 use constant SSH_LOG => '/var/tmp/ssh_sut.log.txt';
 use constant SSH_PROXY_LOG => '/var/tmp/ssh_proxy_sut.log.txt';
 use constant PING_CMD => 'ping -c 3';
+# Shell-level time limit, in seconds, for each ssh command from the worker to the bastion.
+# 30 s is the minimum allowed value: the slowest observed call (ping -c 3) took 3.3 s,
+# so the margin is far larger than needed.
+use constant BASTION_SSH_TIMEOUT => 30;
 
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
@@ -504,21 +508,22 @@ sub ipaddr2_bastion_ssh_addr(%args) {
 
 =head2 ipaddr2_bastion_key_accept
 
-    ipaddr2_bastion_key_accept()
+    my $ret = ipaddr2_bastion_key_accept(bastion_ip => '1.2.3.4');
 
-For the worker to accept the ssh key of the bastion
+For the worker to accept the ssh key of the bastion.
+Return the exit code of the first ssh command that fails, or 0 on success.
+The return value is always defined, see B<ipaddr2_ssh_bastion_script_run>
+for the meaning of the exit codes.
 
 =over
 
-=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
-                      Providing it as an argument is recommended
-                      to avoid having to query Azure to get it.
+=item B<bastion_ip> - Public IP address of the bastion. Mandatory.
 
 =back
 =cut
 
 sub ipaddr2_bastion_key_accept(%args) {
-    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    croak("Argument < bastion_ip > missing") unless $args{bastion_ip};
 
     # Clean up known_hosts on the machine running the test script
     #    ssh-keygen -R $bastion_ssh_addr
@@ -527,8 +532,8 @@ sub ipaddr2_bastion_key_accept(%args) {
     # Not strictly needed in this context as each test
     # in openQA start from a clean environment
 
-    die "Problem getting bastion public IP" unless $args{bastion_ip};
     my $cmd = join(' ',
+        'timeout', '-k', '5', BASTION_SSH_TIMEOUT,
         'ssh',
         '-E', SSH_LOG,
         SSH_VERBOSE,
@@ -536,26 +541,28 @@ sub ipaddr2_bastion_key_accept(%args) {
         '-oStrictHostKeyChecking=accept-new',
         ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
         'whoami');
-    assert_script_run($cmd);
+    my $ret = script_run($cmd, timeout => BASTION_SSH_TIMEOUT + 10);
+    return $ret if $ret;
 
     # one more without StrictHostKeyChecking=accept-new just to verify it is ok
-    ipaddr2_ssh_bastion_assert_script_run(
+    $ret = ipaddr2_ssh_bastion_script_run(
         cmd => 'whoami',
         bastion_ip => $args{bastion_ip});
+    return $ret if $ret;
+    return 0;
 }
 
 =head2 ipaddr2_internal_key_accept
 
-    ipaddr2_internal_key_accept()
+    my $ret = ipaddr2_internal_key_accept(bastion_ip => '1.2.3.4');
 
 For the worker to accept the host key of the internal VMs.
 This function always use cloudadmin as user in any ssh connections.
+Returns 0 on success, or a non-zero exit code on failure.
 
 =over
 
-=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
-                      Providing it as an argument is recommended
-                      to avoid having to query Azure to get it.
+=item B<bastion_ip> - Public IP address of the bastion. Mandatory.
 
 =item B<key_checking> - optional parameter allow to tune value for StrictHostKeyChecking
                         ssh option. default to 'accept-new'
@@ -564,9 +571,8 @@ This function always use cloudadmin as user in any ssh connections.
 =cut
 
 sub ipaddr2_internal_key_accept(%args) {
-    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    croak("Argument < bastion_ip > missing") unless $args{bastion_ip};
     $args{key_checking} //= 'accept-new';
-    die "Problem getting bastion public IP" unless $args{bastion_ip};
 
     my $key_policy = '-oStrictHostKeyChecking=' . $args{key_checking};
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
@@ -599,7 +605,10 @@ sub ipaddr2_internal_key_accept(%args) {
             $score += (defined($exit_code) && $exit_code == 0) ? +1 : -1;
             last if $score > 1;
         }
-        die "ssh port 22 not available on VM $vm_name" if (!(defined($exit_code) && $exit_code == 0));
+        if ($exit_code // 1) {
+            record_info('Port 22 closed', "ssh port 22 not available on VM $vm_name", result => 'fail');
+            return 1;
+        }
 
         # Try two different variants of the same command.
         $ret = script_run(join(' ',
@@ -613,7 +622,7 @@ sub ipaddr2_internal_key_accept(%args) {
                 'whoami',
                 '2>>' . SSH_PROXY_LOG));
 
-        if ($ret) {
+        if ($ret // 1) {
             $ret = script_run(join(' ',
                     'ssh',
                     '-E', SSH_LOG,
@@ -623,13 +632,16 @@ sub ipaddr2_internal_key_accept(%args) {
                     $key_policy,
                     #'-oConnectionAttempts=60',
                     'whoami'));
-            die "2 StrictHostKeyChecking --> ret:$ret" if $ret;
+            return $ret if ($ret // 1);
         }
         # one more without StrictHostKeyChecking just to verify it is ok
-        ipaddr2_ssh_internal(id => $i,
+        $ret = ipaddr2_ssh_internal(id => $i,
             cmd => 'whoami',
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            no_assert => 1);
+        return $ret if ($ret // 1);
     }
+    return 0;
 }
 
 =head2 ipaddr2_internal_key_gen
@@ -1036,9 +1048,10 @@ sub ipaddr2_os_connectivity_sanity(%args) {
             my @cmds = (PING_CMD);
             push @cmds, 'dig' if $args{enable_dig};
             foreach my $cmd (@cmds) {
-                ipaddr2_ssh_bastion_assert_script_run(
+                my $ret = ipaddr2_ssh_bastion_script_run(
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
+                die "Command '$cmd $addr' failed on bastion with exit code $ret" if $ret;
             }
         }
     }
@@ -1219,66 +1232,56 @@ sub ipaddr2_os_ssh_sanity(%args) {
     }
 }
 
-=head2 ipaddr2_ssh_bastion_assert_script_run
-
-    ipaddr2_ssh_bastion_assert_script_run(
-        bastion_ip => '1.2.3.4',
-        cmd => 'whoami');
-
-Run a command on the bastion using assert_script_run
-
-=over
-
-=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
-                      Providing it as an argument is recommended
-                      to avoid having to query Azure to get it.
-
-=item B<cmd> - command to run there
-
-=back
-=cut
-
-sub ipaddr2_ssh_bastion_assert_script_run(%args) {
-    croak("Argument < cmd > missing") unless $args{cmd};
-    $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    die "Problem getting bastion public IP" unless $args{bastion_ip};
-
-    assert_script_run(join(' ',
-            'ssh',
-            '-E', SSH_LOG,
-            ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
-            "'$args{cmd}'"));
-}
-
 =head2 ipaddr2_ssh_bastion_script_run
 
     my $ret = ipaddr2_ssh_bastion_script_run(
         bastion_ip => '1.2.3.4',
         cmd => 'whoami');
 
-Run a command on the bastion using script_run
+Run a command on the bastion using script_run.
+The ssh command is wrapped in a shell C<timeout -k 5>, so a hung ssh
+connection is killed on the worker and does not block the console.
+
+The return value is always defined:
 
 =over
 
-=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
-                      Providing it as an argument is recommended
-                      to avoid having to query Azure to get it.
+=item C<0> - success
 
-=item B<cmd> - command to run there
+=item C<124> or C<137> - the shell timeout expired (137: ssh was killed after the 5 s grace period)
+
+=item C<255> - ssh error, for example the connection failed
+
+=item any other value - exit code of B<cmd> on the bastion
+
+=back
+
+The only exception left is a hung console: then script_run dies
+after B<timeout> + 10 seconds.
+
+=over
+
+=item B<bastion_ip> - Public IP address of the bastion. Mandatory.
+
+=item B<cmd> - command to run there. Mandatory.
+
+=item B<timeout> - shell timeout in seconds. Default is BASTION_SSH_TIMEOUT.
 
 =back
 =cut
 
 sub ipaddr2_ssh_bastion_script_run(%args) {
-    croak("Argument < cmd > missing") unless $args{cmd};
-    $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    die "Problem getting bastion public IP" unless $args{bastion_ip};
+    foreach (qw(cmd bastion_ip)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= BASTION_SSH_TIMEOUT;
 
-    return script_run(join(' ',
-            'ssh',
-            '-E', SSH_LOG,
-            ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
-            "'$args{cmd}'"));
+    my $command = join(' ',
+        'timeout', '-k', '5', $args{timeout},
+        'ssh',
+        '-E', SSH_LOG,
+        ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
+        "'$args{cmd}'");
+    return script_run($command, timeout => $args{timeout} + 10);
 }
 
 =head2 ipaddr2_ssh_bastion_script_output

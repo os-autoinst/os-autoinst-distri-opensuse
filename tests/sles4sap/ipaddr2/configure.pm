@@ -73,12 +73,14 @@ sub run {
     record_info("TEST STAGE", "Prepare all the ssh connections within the 2 internal VMs");
     my $bastion_ip = ipaddr2_bastion_pubip();
     die "Problem getting bastion public IP" unless $bastion_ip;
-    ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
+    my $ret = ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
+    die "Bastion key accept failed with exit code $ret" if $ret;
 
     my %int_key_args = (bastion_ip => $bastion_ip);
     # unsupported option "accept-new" for default ssh used in 12sp5
     $int_key_args{key_checking} = 'no' if (check_var('IPADDR2_KEYCHECK_OLD', '1'));
-    ipaddr2_internal_key_accept(%int_key_args);
+    $ret = ipaddr2_internal_key_accept(%int_key_args);
+    die "Internal key accept failed with exit code $ret" if $ret;
 
     # default for ipaddr2_internal_key_gen is cloudadmin
     $int_key_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');

@@ -269,34 +269,119 @@ subtest '[ipaddr2_infra_destroy]' => sub {
 subtest '[ipaddr2_bastion_key_accept]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
-    my $ret = ipaddr2_bastion_key_accept();
+    my $ret = ipaddr2_bastion_key_accept(bastion_ip => '1.2.3.4');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 0, 'Return 0 on success');
     ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
     ok((scalar @calls eq 2), "Exactly 2 calls and get " . (scalar @calls));
 };
 
-subtest '[ipaddr2_bastion_key_accept] without providing the bastion_ip' => sub {
+subtest '[ipaddr2_bastion_key_accept] no Azure query for the bastion IP' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { die 'ipaddr2_bastion_pubip must not be called'; });
 
     my $ret = ipaddr2_bastion_key_accept(bastion_ip => '1.2.3.4');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 0, 'Return 0 on success');
     ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
     ok((scalar @calls eq 2), "Exactly 2 calls and get " . (scalar @calls));
+};
+
+subtest '[ipaddr2_bastion_key_accept] missing bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+
+    dies_ok { ipaddr2_bastion_key_accept() } 'Croak if bastion IP is missing';
+};
+
+subtest '[ipaddr2_bastion_key_accept] ssh failure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 1; });
+
+    my $ret = ipaddr2_bastion_key_accept(bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 1, 'Return non-zero exit code if ssh command fails');
+};
+
+subtest '[ipaddr2_bastion_key_accept] second ssh check failure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $call = 0;
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; $call++; return ($call == 1) ? 0 : 2; });
+
+    my $ret = ipaddr2_bastion_key_accept(bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 2, 'Return non-zero exit code if second ssh check fails');
+};
+
+subtest '[ipaddr2_bastion_key_accept] ssh timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 124; });
+
+    my $ret = ipaddr2_bastion_key_accept(bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 124, 'Return 124 if the ssh command times out');
+    ok((scalar @calls == 1), 'Stop after the first ssh timeout');
+    like($calls[0], qr/^timeout -k 5 \d+ ssh/, 'accept-new ssh is wrapped in timeout');
+};
+
+subtest '[ipaddr2_ssh_bastion_script_run]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my ($cmd, %sr_args);
+    $ipaddr2->redefine(script_run => sub { ($cmd, %sr_args) = @_; return 0; });
+    my $to = sles4sap::ipaddr2::BASTION_SSH_TIMEOUT;
+
+    my $ret = sles4sap::ipaddr2::ipaddr2_ssh_bastion_script_run(cmd => 'whoami', bastion_ip => '1.2.3.4');
+
+    note("C--> $cmd timeout:$sr_args{timeout}");
+    is($ret, 0, 'Return 0 on success');
+    like($cmd, qr/^timeout -k 5 $to ssh .*1\.2\.3\.4 'whoami'$/, 'ssh wrapped in timeout -k 5 BASTION_SSH_TIMEOUT');
+    is($sr_args{timeout}, $to + 10, 'script_run timeout is BASTION_SSH_TIMEOUT + 10');
+};
+
+subtest '[ipaddr2_ssh_bastion_script_run] custom timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my ($cmd, %sr_args);
+    $ipaddr2->redefine(script_run => sub { ($cmd, %sr_args) = @_; return 124; });
+
+    my $ret = sles4sap::ipaddr2::ipaddr2_ssh_bastion_script_run(cmd => 'whoami', bastion_ip => '1.2.3.4', timeout => 7);
+
+    is($ret, 124, 'Return the timeout exit code');
+    like($cmd, qr/^timeout -k 5 7 ssh/, 'Custom shell timeout');
+    is($sr_args{timeout}, 17, 'script_run timeout follows the custom timeout');
+};
+
+subtest '[ipaddr2_ssh_bastion_script_run] missing arguments' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my $called = 0;
+    $ipaddr2->redefine(script_run => sub { $called = 1; return 0; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { $called = 1; return '1.2.3.4'; });
+
+    dies_ok { sles4sap::ipaddr2::ipaddr2_ssh_bastion_script_run(cmd => 'whoami') } 'Croak if bastion_ip is missing';
+    dies_ok { sles4sap::ipaddr2::ipaddr2_ssh_bastion_script_run(bastion_ip => '1.2.3.4') } 'Croak if cmd is missing';
+    is($called, 0, 'No script_run and no Azure query');
 };
 
 subtest '[ipaddr2_internal_key_accept]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(script_run => sub {
             push @calls, $_[0];
             if ($_[0] =~ /nc.*22/) { return 0; }
@@ -306,9 +391,10 @@ subtest '[ipaddr2_internal_key_accept]' => sub {
     $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = ipaddr2_internal_key_accept();
+    my $ret = ipaddr2_internal_key_accept(bastion_ip => '1.2.3.4');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 0, 'Return 0 on success');
     ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
     ok((any { /0\.41/ } @calls), 'Internal VM1 IP in the ssh command');
@@ -318,7 +404,6 @@ subtest '[ipaddr2_internal_key_accept]' => sub {
 subtest '[ipaddr2_internal_key_accept] key_checking' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(script_run => sub {
             push @calls, $_[0];
             if ($_[0] =~ /nc.*22/) { return 0; }
@@ -328,16 +413,16 @@ subtest '[ipaddr2_internal_key_accept] key_checking' => sub {
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
 
-    my $ret = ipaddr2_internal_key_accept(key_checking => 'LuigiTorchi');
+    my $ret = ipaddr2_internal_key_accept(bastion_ip => '1.2.3.4', key_checking => 'LuigiTorchi');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 0, 'Return 0 on success');
     ok((any { /StrictHostKeyChecking=LuigiTorchi/ } @calls), 'Correct call ssh command value StrictHostKeyChecking');
 };
 
 subtest '[ipaddr2_internal_key_accept] nc timeout' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(script_run => sub {
             push @calls, $_[0];
             if ($_[0] =~ /nc.*22/) { return 1; }
@@ -345,11 +430,75 @@ subtest '[ipaddr2_internal_key_accept] nc timeout' => sub {
             return 1; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    dies_ok { ipaddr2_internal_key_accept() } "die if ssh port 22 is not open";
+    my $ret;
+    lives_ok { $ret = ipaddr2_internal_key_accept(bastion_ip => '1.2.3.4') } "live if ssh port 22 is not open";
+    isnt($ret, 0, 'Return non-zero if ssh port 22 is not open');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((none { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
+};
+
+subtest '[ipaddr2_internal_key_accept] missing bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+
+    dies_ok { ipaddr2_internal_key_accept() } 'Croak if bastion IP is missing';
+};
+
+subtest '[ipaddr2_internal_key_accept] ssh failure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /nc.*22/) { return 0; }
+            return 2; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+
+    my $ret = ipaddr2_internal_key_accept(bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 2, 'Return non-zero exit code on ssh failure');
+};
+
+subtest '[ipaddr2_internal_key_accept] ssh timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /nc.*22/) { return 0; }
+            return 124; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+
+    my $ret = ipaddr2_internal_key_accept(bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 124, 'Return 124 on ssh timeout');
+};
+
+subtest '[ipaddr2_internal_key_accept] last check failure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, $_[0];
+            if ($_[0] =~ /nc.*22/) { return 0; }
+            if ($_[0] =~ /StrictHostKeyChecking/) { return 0; }
+            # ipaddr2_ssh_internal calls script_run
+            return 3; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+
+    my $ret = ipaddr2_internal_key_accept(bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 3, 'Return non-zero exit code on last check failure');
 };
 
 subtest '[ipaddr2_cluster_create]' => sub {
@@ -466,9 +615,10 @@ subtest '[ipaddr2_os_sanity]' => sub {
             push @calls, ['local', $_[0]]; });
     $ipaddr2->redefine(assert_script_run => sub {
             push @calls, ['local', $_[0]]; });
-    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub {
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub {
             my (%args) = @_;
-            push @calls, ['bastion', $args{cmd}]; });
+            push @calls, ['bastion', $args{cmd}];
+            return 0; });
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
             push @calls, ["VM$args{id}", $args{cmd}];
@@ -502,9 +652,10 @@ subtest '[ipaddr2_os_sanity] root' => sub {
             push @calls, ['local', $_[0]]; });
     $ipaddr2->redefine(assert_script_run => sub {
             push @calls, ['local', $_[0]]; });
-    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub {
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub {
             my (%args) = @_;
-            push @calls, ['bastion', $args{cmd}]; });
+            push @calls, ['bastion', $args{cmd}];
+            return 0; });
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
             push @calls, ["VM$args{id}", $args{cmd}];
@@ -535,9 +686,10 @@ subtest '[ipaddr2_os_sanity] enable_dig' => sub {
             push @calls, ['local', $_[0]]; });
     $ipaddr2->redefine(assert_script_run => sub {
             push @calls, ['local', $_[0]]; });
-    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub {
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub {
             my (%args) = @_;
-            push @calls, ['bastion', $args{cmd}]; });
+            push @calls, ['bastion', $args{cmd}];
+            return 0; });
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
             push @calls, ["VM$args{id}", $args{cmd}];
@@ -571,9 +723,10 @@ subtest '[ipaddr2_os_sanity] Failure Scenarios' => sub {
             push @calls, ['local', $_[0]]; });
     $ipaddr2->redefine(assert_script_run => sub {
             push @calls, ['local', $_[0]]; });
-    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub {
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub {
             my (%args) = @_;
-            push @calls, ['bastion', $args{cmd}]; });
+            push @calls, ['bastion', $args{cmd}];
+            return 0; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
             push @calls, ["VM$args{id}", $args{cmd}];
@@ -594,6 +747,9 @@ subtest '[ipaddr2_os_sanity] Failure Scenarios' => sub {
             return 3 if ($args{id} == 2);
             return 0; });
     throws_ok { ipaddr2_os_sanity(); } qr/VM 2 .* with exit code 3/, 'Unexpected non-zero exit code';
+
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub { return 1; });
+    throws_ok { ipaddr2_os_sanity(); } qr/failed on bastion with exit code 1/, 'Test dies due to bastion command failure';
 };
 
 subtest '[ipaddr2_os_sanity] cleanoldsepoldir failure in 16.1' => sub {
@@ -602,7 +758,7 @@ subtest '[ipaddr2_os_sanity] cleanoldsepoldir failure in 16.1' => sub {
     $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
     $ipaddr2->noop(qw(script_run assert_script_run));
-    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub { return; });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub { return 0; });
 
     my @soft_failures;
     $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
@@ -632,7 +788,7 @@ subtest '[ipaddr2_os_sanity] cleanoldsepoldir in 16.1 and snapper installed' => 
     $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
     $ipaddr2->noop(qw(script_run assert_script_run));
-    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub { return; });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub { return 0; });
 
     my @soft_failures;
     $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
@@ -662,7 +818,7 @@ subtest '[ipaddr2_os_sanity] multiple failed services' => sub {
     $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
     $ipaddr2->noop(qw(script_run assert_script_run));
-    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub { return; });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub { return 0; });
 
     my @soft_failures;
     $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
@@ -692,7 +848,7 @@ subtest '[ipaddr2_os_sanity] cleanoldsepoldir failure non-SLE 16.1' => sub {
     $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
     $ipaddr2->noop(qw(script_run assert_script_run));
-    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub { return; });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub { return 0; });
 
     my @soft_failures;
     $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
