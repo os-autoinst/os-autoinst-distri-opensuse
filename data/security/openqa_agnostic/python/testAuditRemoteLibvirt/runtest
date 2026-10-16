@@ -1,0 +1,61 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: audit-test audit-remote-libvirt
+# desc: >
+#   Runs the 'audit-remote-libvirt' case of the audit-test (EAL4) suite against
+#   a nested L2 guest running on the same host, and compares every result with
+#   the suite's baseline_run.log. The "remote" VM is local, so no second host
+#   is involved.
+# steps:
+#   - 1. Install the nested-L2-vm libvirt domain definition.
+#   - 2. Define and start the libvirt 'default' network if it is not active.
+#   - 3. Define and start the nested-L2-vm guest.
+#   - 4. Run audit-remote-libvirt/run.bash from the audit-test suite.
+#   - 5. Compare each '[id] name RESULT' line with the baseline.
+#   - 6. Destroy the guest and undo the network changes made in step 2.
+# requires: >
+#   libvirt installed and its daemons running (virtqemud or libvirtd), the
+#   audit-test suite unpacked in $AUDIT_TEST_DIR (default
+#   /usr/local/eal4_testing), the guest disk image at
+#   /var/lib/libvirt/images/nested-L2-vm.qcow2 and nested KVM support
+# author: <mmilian@suse.de>
+# maintainer: QE Security <none@suse.de>
+# expected: >
+#   every result matches the baseline, or is PASS where the baseline is not
+#   (reported as a softfail property, not as a failure)
+# platform: SLE15 x86_64 (Common Criteria system role)
+# tags: security cc audit libvirt poo#96531
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_audit_remote_libvirt.py nested-L2-vm.xml)
+
+handle_args "$0" "$@"
+
+ensure_root
+ensure_command_available virsh
+
+echo "--- Test directory: $PWD ---"
+ls -l
+echo "----------------------------"
+
+# Installing libvirt, starting its daemons and providing the guest disk image is
+# the caller's job: under openQA the wrapper module
+# tests/security/oqa_agnostic/audit_remote_libvirt.pm does it, a standalone run
+# is expected to have them in place already.
+VM_XML='/var/lib/libvirt/images/nested-L2-vm.xml'
+install -m 0644 nested-L2-vm.xml "$VM_XML"
+
+echo "--- $VM_XML ---"
+cat "$VM_XML"
+echo "------------------"
+
+rc=0
+pytest -v test_audit_remote_libvirt.py --junitxml=results.xml || rc=$?
+[ -f results.xml ] && grep -q '<testcase' results.xml && exit 0
+exit $rc
