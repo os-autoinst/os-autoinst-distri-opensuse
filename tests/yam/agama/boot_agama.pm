@@ -15,6 +15,7 @@ use Mojo::Util 'trim';
 use File::Basename;
 use Yam::Agama::agama_base 'upload_agama_logs';
 use Yam::Agama::LiveIso qw(read_live_iso);
+use lockapi 'mutex_wait';
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../installation';
@@ -132,6 +133,7 @@ sub run {
     $grub_menu->select_check_installation_medium_entry() if check_var('AGAMA_GRUB_SELECTION', 'check_medium');
     $grub_menu->select_rescue_system_entry() if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
     $grub_menu->edit_current_entry();
+    mutex_wait 'support_server_ready' if get_var('AGAMA_ISCSI_MM');
     $grub_entry_edition->move_cursor_to_end_of_kernel_line();
     $grub_entry_edition->type(\@params);
     $grub_entry_edition->boot();
