@@ -1,0 +1,26 @@
+multimachine_topology:
+  name: nvme_tcp_2hosts
+
+  networks:
+    - id: storage_vlan
+      ipv4_cidr: "192.168.5.0/24"
+      vlan_id: 5
+
+  nodes:
+    - id: merckx
+      role: nvme_target
+      interfaces:
+        - id: eth0
+          network: storage_vlan
+          device: enp20s0f0np0
+          switch_port: sfp-sfpplus11
+          ipv4: "192.168.5.1"
+
+    - id: coppi
+      role: nvme_initiator
+      interfaces:
+        - id: eth0
+          network: storage_vlan
+          device: enp20s0f0np0
+          switch_port: sfp-sfpplus9
+          ipv4: "192.168.5.10"

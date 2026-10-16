@@ -1,0 +1,36 @@
+---
+name: nvme_tcp_2hosts_baremetal
+description: >
+    NVMe/TCP between two bare metal hosts in their own VLAN on the Mikrotik
+    switch: the job with ROLE=nvme_target (merckx) exports NVMET_DEVICE, the
+    job with ROLE=nvme_initiator (coppi) connects to it and does I/O. The
+    initiator is the parallel child of the target. The hosts, the VLAN and
+    the addresses come from test_data/kernel/multimachine/nvme_tcp_2hosts.yaml.
+    Both jobs need INST_AUTO=agama_auto/sle_default_ipmi.jsonnet,
+    DESKTOP=textmode and the MIKROTIK_SWITCH_* settings, the target also
+    NVMET_DEVICE with the /dev/disk/by-id path of a disk whose data may be
+    lost.
+test_data:
+    <<: !include test_data/kernel/multimachine/nvme_tcp_2hosts.yaml
+    multimachine_barriers:
+        - NVME_TARGET_READY
+        - NVME_TEST_DONE
+conditional_schedule:
+    nvme:
+        ROLE:
+            nvme_target:
+                - kernel/nvme_tcp_target
+            nvme_initiator:
+                - kernel/nvme_tcp_initiator
+schedule:
+    - kernel/multimachine_barriers
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - kernel/san_network
+    - '{{nvme}}'
+    - kernel/san_network_cleanup
