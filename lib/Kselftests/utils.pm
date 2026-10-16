@@ -269,7 +269,7 @@ sub post_process_single
         if ($test_ln =~ /^#?\s?not\sok\s(\d+)\s(.*?)\s*(?=#|$)/) {
             my $subtest_idx = $1;
             my $subtest_name = $2;
-            my $wl_entry = $whitelist->find_whitelist_entry($env, $args{collection}, $subtest_name);
+            my $wl_entry = $whitelist->find_whitelist_entry($env, $args{collection}, $subtest_name, $sanitized_test_name);
             if (defined($wl_entry) && exists($wl_entry->{skip}) && $wl_entry->{skip}) {
                 $test_ln = "# ok $subtest_idx $subtest_name # SKIP";
             } elsif (defined($wl_entry)) {
