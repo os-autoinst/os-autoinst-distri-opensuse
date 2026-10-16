@@ -925,7 +925,8 @@ sub sdaf_destroy_resources(%args) {
     my $resource_present = az_group_exists(name => $resource_name);
     # No need to delete resource if there is none.
     return unless $resource_present eq 'true';
-    az_group_delete(name => $resource_name, timeout => 1800);
+    my $result = az_group_delete(name => $resource_name, timeout => 1800);
+    die("Resource group deletion failed:\n$result->{error}") if $result->{rc} != 0;
 }
 
 =head2 get_sdaf_instance_id
