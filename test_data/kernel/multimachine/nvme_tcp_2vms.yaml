@@ -1,0 +1,23 @@
+multimachine_topology:
+  name: nvme_tcp_2vms
+
+  networks:
+    - id: mm
+      ipv4_cidr: "10.0.2.0/24"
+
+  nodes:
+    - id: target
+      role: nvme_target
+      hostname: nvme-target
+      interfaces:
+        - id: eth0
+          network: mm
+          ipv4: "10.0.2.1"
+
+    - id: initiator
+      role: nvme_initiator
+      hostname: nvme-initiator
+      interfaces:
+        - id: eth0
+          network: mm
+          ipv4: "10.0.2.10"
