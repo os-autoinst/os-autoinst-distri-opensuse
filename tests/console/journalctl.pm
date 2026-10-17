@@ -145,22 +145,25 @@ sub run {
     );
     my @boots;
 
-    # Ensure the time is correct, otherwise we might run into issues with the persistent journal
-    # See e.g. https://bugzilla.suse.com/show_bug.cgi?id=1182802
+    # this schedule uses ntp and chrony test for time synchronization
+    unless (check_var('YAML_SCHEDULE', 'schedule/qam/common/mau-extratests1.yaml')) {
+        # Ensure the time is correct, otherwise we might run into issues with the persistent journal
+        # See e.g. https://bugzilla.suse.com/show_bug.cgi?id=1182802
 
-    if (is_sle("<15")) {
-        # SLES12 on Publiccloud has ntp enabled by default.
-        if (!is_public_cloud) {
-            # SLE 12 has no chrony by default but uses ntp
-            assert_script_run('echo "server 0.suse.pool.ntp.org" >> /etc/ntp.conf');
-            assert_script_run("ntpdate -b 0.suse.pool.ntp.org", fail_message => "forced time sync failed");
-            assert_script_run("systemctl enable --now ntpd");
-            assert_script_run("systemctl enable ntp-wait.service");
+        if (is_sle("<15")) {
+            # SLES12 on Publiccloud has ntp enabled by default.
+            if (!is_public_cloud) {
+                # SLE 12 has no chrony by default but uses ntp
+                assert_script_run('echo "server 0.suse.pool.ntp.org" >> /etc/ntp.conf');
+                assert_script_run("ntpdate -b 0.suse.pool.ntp.org", fail_message => "forced time sync failed");
+                assert_script_run("systemctl enable --now ntpd");
+                assert_script_run("systemctl enable ntp-wait.service");
+            }
+        } else {
+            assert_script_run("systemctl start chronyd");
+            assert_script_run("chronyc makestep", timeout => 30, fail_message => "chrony time synchronization failed");
+            systemctl('enable chrony-wait.service');
         }
-    } else {
-        assert_script_run("systemctl start chronyd");
-        assert_script_run("chronyc makestep", timeout => 30, fail_message => "chrony time synchronization failed");
-        systemctl('enable chrony-wait.service');
     }
 
     # create dropin directory for further journal.conf updates if it does not exists
