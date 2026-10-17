@@ -35,7 +35,14 @@ sub run {
         # KF5-based account assistant ignores alt-f4
         wait_screen_change { send_key 'alt-c' } if match_has_tag('test-kontact-1');
     } until (match_has_tag('kontact-window'));
-    assert_and_click 'close_kontact';
+
+    # Exercise all of the components
+    foreach my $component (qw( mail contacts calendar todo feeds journal )) {
+        assert_and_click "kontact-tab-$component";
+        assert_screen "kontact-$component";
+    }
+
+    wait_screen_change { send_key 'alt-f4' };
 
     # Since gcc7 used for packages within openSUSE Factory kontact seems to
     # persist consistently as a process in the background causing kontact to
