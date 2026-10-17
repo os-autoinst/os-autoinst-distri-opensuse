@@ -776,6 +776,10 @@ sub create_guest {
 
         # Run unattended installation for selected guest
         my ($autoinstall_url, $diskformat, $virtinstall);
+        # TDX cannot convert VGA's legacy memory aperture to private guest memory.
+        my $display_options = $launch_security eq 'tdx'
+          ? '--graphics none --video none'
+          : '--vnc';
         $autoinstall_url = $autoyast;    # Can be autoyast XML or Agama jsonnet URL
         $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
 
@@ -806,7 +810,7 @@ sub create_guest {
             $extra_args = "autoyast=$autoinstall_url $extra_args";
         }
         $extra_args = trim($extra_args);
-        $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
+        $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory $display_options";
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
         $virtinstall .= " --network $network --autostart";
         record_info("Network Config", "Guest $name using network: $network");

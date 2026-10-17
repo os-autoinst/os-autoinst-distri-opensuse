@@ -153,18 +153,18 @@ sub gen_osinfo {
     # Generate OS identifier based on guest version
     my $info_val;
     if ($g_version >= 16) {
-        # SLES16 series: keep sles prefix, support SP versions
-        # sles16efi_online -> sles16
-        # sles16sp1efi -> sles16sp1
-        # sles16sp2efi_full -> sles16sp2
-        $info_val = $clean_name;    # Keep original sles16[spX] format
+        # libosinfo uses dot-based IDs for SLES16+ service packs
+        # (e.g. sles16sp1efi -> sles16.1), not the openQA guest name.
+        $info_val = $clean_name =~ s/(sles\d+)sp(\d+)/$1.$2/r;
     } elsif ($g_version > 12.5) {
         $info_val = $clean_name =~ s/sles/sle/r;    # SLES15: convert sles->sle
     } else {
         $info_val = $clean_name;    # SLES12: keep as-is
     }
 
-    # Handle host/guest version compatibility issues
+    # Keep SLES 16 OS IDs tied to the guest release, regardless of host release.
+    if ($g_version == 16) { $info_val = "sles16.0"; }
+    if ($g_version == 16.1) { $info_val = "sles16.1"; }
     if ($h_version == 12.3 && $g_version > 15.1) { $info_val = "sle15-unknown"; }
     if ($h_version == 12.3 && $g_version == 12.5) { $info_val = "sles12-unknown"; }
     if ($h_version == 12.4 && $g_version > 15.2) { $info_val = "sle15-unknown"; }
