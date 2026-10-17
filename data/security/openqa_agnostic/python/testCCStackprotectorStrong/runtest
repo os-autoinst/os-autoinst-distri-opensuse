@@ -1,0 +1,38 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: kernel CONFIG_STACKPROTECTOR_STRONG
+# desc: >
+#   Verify that the running kernel is built with the strong stack protector
+#   (CONFIG_STACKPROTECTOR_STRONG=y), which gives better protection against
+#   stack based buffer overflows. The feature is not enabled on s390x, so
+#   on that architecture the test passes only if the option is absent.
+#   Ported from tests/security/check_kernel_config/CC_STACKPROTECTOR_STRONG.pm.
+# steps:
+#   - locate the kernel configuration file /boot/config-$(uname -r)
+#   - on s390x verify CONFIG_STACKPROTECTOR_STRONG=y is not set
+#   - on all other architectures verify CONFIG_STACKPROTECTOR_STRONG=y is set
+# author: Evgueni Tchubykalo <etchubykalo@suse.com>
+# maintainer: QE Security <none@suse.de>
+# expected: no errors raised
+# platform: SLE
+# tags: security kernel config stackprotector poo#64084 tc#1744070 poo#206535
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_cc_stackprotector_strong.py)
+
+handle_args "$0" "$@"
+
+# Run tests with pytest and generate junitxml results.
+# The outer agnosticTestRunner chains `./runtest && mv results.xml ...`, so
+# exit 0 whenever results exist. pytest failures are then surfaced by
+# parse_extra_log('XUnit', ...) and parse_results from the XML.
+rc=0
+pytest -v test_cc_stackprotector_strong.py --junitxml=results.xml || rc=$?
+[ -f results.xml ] && grep -q '<testcase' results.xml && exit 0
+exit $rc

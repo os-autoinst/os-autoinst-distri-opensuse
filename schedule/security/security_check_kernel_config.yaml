@@ -13,3 +13,4 @@ conditional_schedule:
         DISTRI:
             sle:
                 - security/check_kernel_config/CC_STACKPROTECTOR_STRONG
+                - security/oqa_agnostic/stackprotector_strong
