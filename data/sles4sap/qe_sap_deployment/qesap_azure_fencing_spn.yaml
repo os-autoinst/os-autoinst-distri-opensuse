@@ -21,6 +21,7 @@ terraform:
     drbd_cluster_fencing_mechanism: 'native'
     netweaver_cluster_fencing_mechanism: 'native'
     iscsi_enabled: false
+    custom_tags: { 'openqa_var_job_id': '%CUSTOM_TAGS_JOB_ID%', 'openqa_var_name': '%CUSTOM_TAGS_NAME%', 'openqa_var_server': '%CUSTOM_TAGS_SERVER%', 'openqa_created_date': '%CUSTOM_TAGS_CREATEDATE%'}
 ansible:
   roles_path: '%ANSIBLE_ROLES%'
   az_storage_account_name: '%HANA_ACCOUNT%'

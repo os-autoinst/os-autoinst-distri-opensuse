@@ -95,10 +95,17 @@ sub qesap_get_public_cloud_tags {
       or die("Neither 'OPENQA_URL' nor 'OPENQA_HOSTNAME' is set");
     # Remove the http://, https://, and/or the slash at the end
     $openqa_var_server =~ s@^https?://|/$@@g;
+    # Replace dots with dashes for GCP label compatibility
+    $openqa_var_server =~ s/\./-/g;
+
+    my $openqa_var_name = get_var('NAME', '');
+    # Remove the @... suffix (e.g. @64bit) and truncate to max 63 characters
+    $openqa_var_name =~ s/@.*$//;
+    $openqa_var_name = substr($openqa_var_name, 0, 63);
 
     my %tags = (
         openqa_var_job_id => get_current_job_id(),
-        openqa_var_name => get_var('NAME', ''),
+        openqa_var_name => $openqa_var_name,
         openqa_var_server => $openqa_var_server,
         openqa_created_date => gmtime->datetime(),
     );
