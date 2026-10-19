@@ -31,7 +31,8 @@ sub run {
     $self->run_in_powershell(
         cmd => '$port.WriteLine($(wsl /bin/bash -c "systemctl is-system-running"))',
         code => sub {
-            $systemd_on_by_default = 0 if wait_serial("offline", timeout => 90);
+            my $systemd_status = wait_serial(qr/running|offline/, timeout => 90);
+            $systemd_on_by_default = 0 if $systemd_status eq "offline";
         }
     );
     record_info('systemd', $systemd_on_by_default ?
