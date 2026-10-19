@@ -17,7 +17,7 @@ sub run {
     my $instance = $args->{my_instance};
 
     if (is_ec2) {
-        pc_zypper_call($instance, 'in python3-ec2metadata') unless $instance->ssh_script_run('rpm -q python3-ec2metadata') == 0;
+        pc_zypper_call($instance, 'in python-ec2metadata') unless $instance->ssh_script_run('rpm -q python-ec2metadata') == 0;
         # Dump all available fields
         record_info('ec2metadata', $instance->ssh_script_output('ec2metadata'));
         # Instance identity document (signed JSON with instanceId, region, accountId, etc.)
@@ -26,7 +26,7 @@ sub run {
         record_info('ec2metadata fields', $instance->ssh_script_output('ec2metadata --api latest --ami-id --instance-type --local-ipv4 --hostname'));
     }
     elsif (is_azure) {
-        pc_zypper_call($instance, 'in python3-azuremetadata') unless $instance->ssh_script_run('rpm -q python3-azuremetadata') == 0;
+        pc_zypper_call($instance, 'in python-azuremetadata') unless $instance->ssh_script_run('rpm -q python-azuremetadata') == 0;
         # Dump all available fields as plain text
         record_info('azuremetadata', $instance->ssh_script_output('/usr/bin/azuremetadata'));
         # JSON output format
