@@ -668,6 +668,13 @@ sub configure_guest_for_sev_snp {
     # Delete existing OS section and insert SEV-compatible OS configuration
     record_info('OS Section', "Updating OS section for SEV-SNP compatibility");
 
+    # Keep only the global OS boot order added below; do not mix in per-device boot orders.
+    script_run("sed -i '/<boot order=/d' $xml_file");
+    if (script_run("grep -q '<boot order=' $xml_file") == 0) {
+        record_info('Boot Configuration Error', 'Could not remove device-level boot order before adding global OS boot order', result => 'fail');
+        return 0;
+    }
+
     # First delete the existing OS section (if exists)
     script_run("sed -i '/<os/,/<\\/os>/d' $xml_file");
 

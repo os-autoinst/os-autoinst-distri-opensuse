@@ -776,6 +776,10 @@ sub create_guest {
 
         # Run unattended installation for selected guest
         my ($autoinstall_url, $diskformat, $virtinstall);
+        # TDX cannot convert VGA's legacy memory aperture to private guest memory.
+        my $display_options = $launch_security eq 'tdx'
+          ? '--graphics none --video none'
+          : '--vnc';
         $autoinstall_url = $autoyast;    # Can be autoyast XML or Agama jsonnet URL
         $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
 
@@ -806,7 +810,7 @@ sub create_guest {
             $extra_args = "autoyast=$autoinstall_url $extra_args";
         }
         $extra_args = trim($extra_args);
-        $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
+        $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory $display_options";
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
         $virtinstall .= " --network $network --autostart";
         record_info("Network Config", "Guest $name using network: $network");
@@ -1176,12 +1180,15 @@ sub wait_guests_shutdown {
 
 # Start all guests and wait until they are online
 sub start_guests {
-    script_run("virsh start '$_'") foreach (keys %virt_autotest::common::guests);
-
     # IP could change compared to last time, only observed in sle16 MU test for sle16 vms
     if (is_sles16_mu_virt_test) {
         assert_script_run("rm -rf /tmp/guests_ip/sles16*");
         assert_script_run("ls -l /tmp/guests_ip/");
+    }
+
+    script_run("virsh start '$_'") foreach (keys %virt_autotest::common::guests);
+
+    if (is_sles16_mu_virt_test) {
         my @wait_reboot = keys %virt_autotest::common::guests;
         my $count = 0;
         my $retry = 30;
