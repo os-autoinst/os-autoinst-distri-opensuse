@@ -1101,7 +1101,7 @@ sub zypper_patches {
         $cmd = "lp -a";
         @fields = ('repository', 'name', 'category', 'severity',
             'interactive', 'status');
-        push @fields, 'since' if is_sle('15+');
+        push @fields, 'since' if is_sle('15+') && is_sle('<16.1');
         push @fields, 'summary';
     }
 
