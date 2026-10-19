@@ -21,7 +21,7 @@ sub update_system {
         fully_patch_system(trup_call_timeout => 1800);
     } else {
         record_info('UPDATE', 'Updating system');
-        trup_call('up', timeout => 1800);
+        trup_call('-c up', timeout => 1800);
         process_reboot(trigger => 1);
     }
 }
