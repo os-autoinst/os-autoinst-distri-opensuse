@@ -1,0 +1,25 @@
+---
+name: iSCSI QNAP Baremetal
+description: >
+    Bare metal iSCSI initiator test against the QNAP storage. The machines
+    come from test_data/kernel/multimachine/iscsi_qnap.yaml. Set ROLE to
+    iscsi_initiator.
+
+vars:
+    INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+    DESKTOP: textmode
+
+test_data:
+    <<: !include test_data/kernel/multimachine/iscsi_qnap.yaml
+
+schedule:
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - kernel/san_network
+    - kernel/iscsi_initiator
+    - kernel/san_network_cleanup

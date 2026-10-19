@@ -1,0 +1,28 @@
+---
+multimachine_topology:
+  name: iscsi_qnap
+
+  networks:
+    - id: storage_vlan
+      ipv4_cidr: "192.168.4.0/24"
+      vlan_id: 4
+
+  nodes:
+    - id: qnap
+      role: iscsi_target
+      external: 1
+      hostname: qnap-ts-873aeu-2.bmt.prg2.suse.org
+      interfaces:
+        - id: lan2
+          network: storage_vlan
+          switch_port: sfp-sfpplus23
+          ipv4: "192.168.4.1"
+
+    - id: merckx
+      role: iscsi_initiator
+      interfaces:
+        - id: eth0
+          network: storage_vlan
+          device: enp20s0f0np0
+          switch_port: sfp-sfpplus11
+          ipv4: "192.168.4.10"
