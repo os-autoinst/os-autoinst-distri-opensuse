@@ -37,5 +37,6 @@ schedule:
     - console/libxslt
     - console/ds389_advanced_functional
     - console/synce4l_gpsd
+    - console/stalld
     - network/samba/samba_adcli
     - shutdown/shutdown
