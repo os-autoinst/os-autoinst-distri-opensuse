@@ -11,13 +11,56 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use publiccloud::utils qw(is_azure is_ec2 is_gce);
 use publiccloud::zypper qw(pc_zypper_call);
+use version_utils qw(is_sle is_sle_micro);
+
+sub metadata {
+    return lc(get_var('PUBLIC_CLOUD_PROVIDER')) . "metadata";
+}
+
+sub metadata_package {
+    # ref: https://scc.suse.com/psearch/
+    my $package;
+
+    if (is_sle()) {
+        # sles
+        if (is_azure()) {
+            $package = 'python-' . metadata() if (is_sle(">=16.0"));
+            $package = 'python3-' . metadata() if (is_sle("<=15-SP7"));
+        }
+        elsif (is_ec2()) {
+            $package = 'python-' . metadata() if (is_sle(">=16.0"));
+            $package = 'python3-' . metadata() if (is_sle("<=15-SP7"));
+        }
+        elsif (is_gce()) {
+            $package = 'python-' . metadata();
+        }
+        return $package;
+    } elsif (is_sle_micro()) {
+        # sle micro
+        if (is_azure()) {
+            $package = 'python-' . metadata() if (is_sle_micro(">=6.2"));
+            $package = 'python3-' . metadata() if (is_sle_micro("<=6.1"));
+        }
+        elsif (is_ec2()) {
+            $package = 'python-' . metadata() if (is_sle_micro(">=6.2"));
+            $package = 'python3-' . metadata() if (is_sle_micro("<=6.1"));
+        }
+        elsif (is_gce()) {
+            $package = 'python-' . metadata() if (is_sle_micro(">=6.0"));
+            $package = 'python3-' . metadata() if (is_sle_micro("<=5.5"));
+        }
+        return $package;
+    } else {
+        die "Unsupported OS for metadata package installation";
+    }
+}
 
 sub run {
     my ($self, $args) = @_;
     my $instance = $args->{my_instance};
 
     if (is_ec2) {
-        pc_zypper_call($instance, 'in python-ec2metadata') unless $instance->ssh_script_run('rpm -q python-ec2metadata') == 0;
+        pc_zypper_call($instance, 'in ' . metadata_package()) unless $instance->ssh_script_run('rpm -q ' . metadata_package()) == 0;
         # Dump all available fields
         record_info('ec2metadata', $instance->ssh_script_output('ec2metadata'));
         # Instance identity document (signed JSON with instanceId, region, accountId, etc.)
@@ -26,7 +69,7 @@ sub run {
         record_info('ec2metadata fields', $instance->ssh_script_output('ec2metadata --api latest --ami-id --instance-type --local-ipv4 --hostname'));
     }
     elsif (is_azure) {
-        pc_zypper_call($instance, 'in python-azuremetadata') unless $instance->ssh_script_run('rpm -q python-azuremetadata') == 0;
+        pc_zypper_call($instance, 'in ' . metadata_package()) unless $instance->ssh_script_run('rpm -q ' . metadata_package()) == 0;
         # Dump all available fields as plain text
         record_info('azuremetadata', $instance->ssh_script_output('/usr/bin/azuremetadata'));
         # JSON output format
@@ -37,7 +80,7 @@ sub run {
         record_info('azuremetadata detail', $instance->ssh_script_output('sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml'));
     }
     elsif (is_gce) {
-        pc_zypper_call($instance, 'in python-gcemetadata') unless $instance->ssh_script_run('which gcemetadata') == 0;
+        pc_zypper_call($instance, 'in ' . metadata_package()) unless $instance->ssh_script_run('which gcemetadata') == 0;
         # Dump all instance metadata
         record_info('gcemetadata instance', $instance->ssh_script_output('gcemetadata --query instance'));
         # XML output format - skipped due to upstream gcemetadata bug: passing --xml with --query
