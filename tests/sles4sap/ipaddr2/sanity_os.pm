@@ -66,8 +66,8 @@ use version_utils qw( is_sle );
 use sles4sap::ipaddr2 qw(
   ipaddr2_bastion_pubip
   ipaddr2_os_sanity
-  ipaddr2_cleanup
-  ipaddr2_logs_collect);
+  ipaddr2_post_fail_hook
+);
 
 sub run {
     my ($self) = @_;
@@ -93,12 +93,8 @@ sub test_flags {
 }
 
 sub post_fail_hook {
-    my ($self) = shift;
-    ipaddr2_logs_collect();
-    ipaddr2_cleanup(
-        diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
-        cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
-        ibsm_rg => get_var('IBSM_RG'));
+    my ($self) = @_;
+    ipaddr2_post_fail_hook();
 }
 
 1;
