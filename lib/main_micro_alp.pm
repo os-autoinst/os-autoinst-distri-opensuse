@@ -55,7 +55,7 @@ sub load_config_tests {
     loadtest 'rt/rt_is_realtime' if is_rt;
     loadtest 'transactional/enable_selinux' if (get_var('ENABLE_SELINUX') && is_image);
     loadtest 'console/suseconnect_scc' if (get_var('SCC_REGISTER') && !is_dvd);
-    loadtest 'transactional/install_updates' if (is_sle_micro && is_released);
+    loadtest 'transactional/install_updates' if (is_transactional && is_released);
     # Enable FIPS before installing k3s/helm so the container host HDD is FIPS-ready, see poo#206766
     # Limited to sle-micro to avoid AutoYAST-installed systems, which already get FIPS via their own install-time flow
     loadtest 'fips/fips_setup' if (get_var('CONTAINER_UPDATE_HOST') && get_var('FIPS_ENABLED') && is_sle_micro);
