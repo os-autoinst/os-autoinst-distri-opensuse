@@ -17,7 +17,7 @@ our $test_idx = 1;
 
 sub parse_line {
     my ($self, $test_ln) = @_;
-    if ($test_ln =~ /^#\s*TEST:\s+(.*?)\s+\[\s*(OK|FAIL|SKIP|XFAIL|XPASS|ERROR|WARN)\s*\]\s*$/i) {
+    if ($test_ln =~ /^#\s*TEST:\s+(.*?)\s+\[\s*(OK|FAIL|SKIP|XFAIL|XPASS|ERROR)\s*\]\s*$/i) {
         my ($description, $st) = ($1, uc $2);
         my $normalized;
         if ($st eq 'OK' or $st eq 'XPASS') {
@@ -30,7 +30,7 @@ sub parse_line {
             $normalized = "# ok $test_idx $description # TODO Expected failure";
         }
         else {
-            #FAIL / ERROR / WARN
+            #FAIL / ERROR
             $normalized = "# not ok $test_idx $description";
         }
         $test_idx++;

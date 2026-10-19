@@ -41,7 +41,7 @@ sub parse_line {
         $self->{category} = $1;
         return $test_ln;
     }
-    if ($ln =~ /^#\s+(.*?)\s+\d+s\s+\[\s*(OK|FAIL|SKIP|XFAIL|XPASS|ERROR|WARN)\s*\]$/i) {
+    if ($ln =~ /^#\s+(.*?)\s+\d+s\s+\[\s*(OK|FAIL|SKIP|XFAIL|XPASS|ERROR)\s*\]$/i) {
         my ($description, $st) = ($1, uc $2);
         return $test_ln if $st eq 'SKIP';
         $description = "$self->{category}: $description" if $self->{category};
@@ -51,7 +51,7 @@ sub parse_line {
         } elsif ($st eq 'XFAIL') {
             return "# ok $idx $description # TODO Expected failure";
         }
-        # FAIL / ERROR / WARN
+        # FAIL / ERROR
         return "# not ok $idx $description";
     }
     return $test_ln;
