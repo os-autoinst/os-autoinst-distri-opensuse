@@ -562,12 +562,13 @@ subtest '[ipaddr2_deployment_sanity] Pass' => sub {
             my (%args) = @_;
             push @vm_waits, $args{name};
     });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, ['azure_cli', $_[0]]; return 0; });
     $azcli->redefine(script_output => sub {
             push @calls, ['azure_cli', $_[0]];
-            # Simulate az cli to return 2 resource groups
-            # one for the current jobId Volta and another one
-            if ($_[0] =~ /az group list*/) { return '["ip2tVolta","ip2tFermi"]'; }
-    });
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'err.log' if grep /az.err/, $_[0];
+            return '["ip2tVolta","ip2tFermi"]' if grep /out.json/, $_[0]; });
 
     ipaddr2_deployment_sanity();
 

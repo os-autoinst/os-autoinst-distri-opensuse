@@ -504,7 +504,7 @@ subtest '[sdaf_upload_logs]' => sub {
 subtest '[get_sdaf_resource_group]' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->noop('record_info');
-    $ms_sdaf->redefine(az_group_name_get => sub { return {data => ['Resource_group']}; });
+    $ms_sdaf->redefine(az_group_name_get => sub { return ['Resource_group']; });
 
     is get_sdaf_resource_group(deployment_id => '123',
         resource_group_type => 'workload_zone'), 'Resource_group', 'Return exactly one RG';
@@ -513,24 +513,7 @@ subtest '[get_sdaf_resource_group]' => sub {
 subtest '[get_sdaf_resource_group] errors' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
-    $ms_sdaf->redefine(az_group_name_get => sub { return {data => ['Resource_group'], err => ''}; });
-
-    is get_sdaf_resource_group(deployment_id => '123',
-        resource_group_type => 'workload_zone'), 'Resource_group', 'Return exactly one RG';
-};
-
-subtest '[get_sdaf_resource_group] flake errors' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
-    $ms_sdaf->redefine(az_group_name_get => sub {
-            return {
-                data => ['Resource_group'],
-                err => "✓ Launching flake
-✓ Launching flake
-✓ Launching flake
-✓ Launching flake
-FutureWarning: some random message
-"}; });
+    $ms_sdaf->redefine(az_group_name_get => sub { return ['Resource_group']; });
 
     is get_sdaf_resource_group(deployment_id => '123',
         resource_group_type => 'workload_zone'), 'Resource_group', 'Return exactly one RG';
