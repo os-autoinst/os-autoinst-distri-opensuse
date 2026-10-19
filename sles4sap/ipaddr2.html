@@ -67,6 +67,7 @@
       <li><a href="#ipaddr2_logs_collect">ipaddr2_logs_collect</a></li>
       <li><a href="#ipaddr2_azure_cli_logs">_ipaddr2_azure_cli_logs</a></li>
       <li><a href="#ipaddr2_ssh_intrusion_detection">ipaddr2_ssh_intrusion_detection</a></li>
+      <li><a href="#ipaddr2_post_fail_hook">ipaddr2_post_fail_hook</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -1099,6 +1100,14 @@ return 0 if no problem detected.</code></pre>
 
 </dd>
 </dl>
+
+<h2 id="ipaddr2_post_fail_hook">ipaddr2_post_fail_hook</h2>
+
+<pre><code>ipaddr2_post_fail_hook();</code></pre>
+
+<p>Consolidated post_fail_hook handler for ipaddr2 test modules.</p>
+
+<p>Collects diagnostic logs from the cluster and SUT before destroying the Azure infrastructure to avoid resource leakage.</p>
 
 
 </body>
