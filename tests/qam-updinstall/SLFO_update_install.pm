@@ -33,12 +33,7 @@ use version_utils qw(is_sle);
 
 my @conflicting_packages = (
     'coreutils-single',
-    'nvidia-open-driver-G06-signed-kmp-default',
-    'nvidia-open-driver-G06-signed-cuda-kmp-default',
-    'nvidia-open-driver-G06-signed-cuda-default-devel',
-    'nvidia-open-driver-G07-signed-kmp-default',
-    'nvidia-open-driver-G07-signed-cuda-kmp-default',
-    'nvidia-open-driver-G07-signed-cuda-default-devel',
+    qr/nvidia-open-driver-G\d+-signed-(?:cuda-(?:kmp-default|(?:default|rt)-devel)|kmp-(?:default|rt))/,
     'ImageMagick-config-7-upstream-limited',
     'ImageMagick-config-7-upstream-open',
     'ImageMagick-config-7-upstream-secure',
@@ -52,7 +47,7 @@ my @conflicting_packages = (
 
 push(@conflicting_packages, (
         'nv-prefer-signed-open-driver',
-        qr/^nvidia-open-driver-G\d+-signed-(?:64kb-devel|cuda-kmp-64kb)$/,
+        qr/^nvidia-open-driver-G\d+-signed-(?:64kb-devel|kmp-64kb|cuda-(?:kmp-64kb|kmp-rt|nvidia-devel))$/,
 )) if is_aarch64;
 
 # We may need to skip installing some packages based on test requirements
