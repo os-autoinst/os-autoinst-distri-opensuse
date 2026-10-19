@@ -21,6 +21,8 @@
       <li><a href="#remove_vlan">remove_vlan</a></li>
       <li><a href="#get_port_pvid">get_port_pvid</a></li>
       <li><a href="#set_port_pvid">set_port_pvid</a></li>
+      <li><a href="#create_vlan_network">create_vlan_network</a></li>
+      <li><a href="#remove_vlan_network">remove_vlan_network</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/mikrotik_switch.pm</h1>
@@ -33,7 +35,25 @@
 
 <p>Per progress#188433: pick a VLAN id below 10, and any subnet within 192.168.0.0/16 - both are only locally significant to this switch, not coordinated with any wider address plan, since the switch&#39;s uplink to the managed network stays untagged/access-only (see that ticket for why).</p>
 
-<p>add_vlan() and set_port_pvid() enforce the VLAN id rule and die for any id outside 1..MAX_VLAN_ID.</p>
+<p>VLANs on the lab switch:</p>
+
+<dl>
+
+<dt id="VLAN-1-UPLINK_VLAN-:-the-uplink-to-the-lab-network.-Never-used-by-tests:-a-test-NIC-in-VLAN-1-gets-a-lab-address">VLAN 1 (UPLINK_VLAN): the uplink to the lab network. Never used by tests: a test NIC in VLAN 1 gets a lab address.</dt>
+<dd>
+
+</dd>
+<dt id="VLAN-3-DEFAULT_VLAN-:-the-default-VLAN-of-all-other-ports.-Tests-do-not-create-or-remove-it-they-only-move-ports-back-to-it">VLAN 3 (DEFAULT_VLAN): the default VLAN of all other ports. Tests do not create or remove it, they only move ports back to it.</dt>
+<dd>
+
+</dd>
+<dt id="VLANs-4..9-MIN_TEST_VLAN_ID..MAX_VLAN_ID-:-test-VLANs">VLANs 4..9 (MIN_TEST_VLAN_ID..MAX_VLAN_ID): test VLANs.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>add_vlan() and remove_vlan() die for any VLAN id other than a test VLAN, set_port_pvid() also accepts DEFAULT_VLAN.</p>
 
 <h2 id="get_all_vlans">get_all_vlans</h2>
 
@@ -57,7 +77,7 @@
 
 <p>Adds a new entry to the bridge VLAN table. &#39;bridge&#39; and &#39;vlan_id&#39; are required. &#39;tagged&#39; and &#39;untagged&#39; are optional comma-separated interface lists (as accepted by RouterOS) naming the bridge member ports to attach to the VLAN. Returns the created entry.</p>
 
-<p>Dies if vlan_id is outside 1..MAX_VLAN_ID (see <a href="#VLAN-AND-NETWORK-CONVENTIONS">&quot;VLAN AND NETWORK CONVENTIONS&quot;</a>).</p>
+<p>Dies if vlan_id is not a test VLAN (see <a href="#VLAN-AND-NETWORK-CONVENTIONS">&quot;VLAN AND NETWORK CONVENTIONS&quot;</a>).</p>
 
 <p>Dies if an entry already exists for that bridge/vlan_id - use update_vlan() (not yet implemented) to change an existing VLAN&#39;s port membership.</p>
 
@@ -67,7 +87,7 @@
 
 <pre><code>remove_vlan($vlan_id);</code></pre>
 
-<p>Removes the bridge VLAN table entry for a given VLAN id, e.g. remove_vlan(5). Dies if no entry with that VLAN id exists.</p>
+<p>Removes the bridge VLAN table entry for a given VLAN id, e.g. remove_vlan(5). Dies if no entry with that VLAN id exists, or if vlan_id is not a test VLAN (see <a href="#VLAN-AND-NETWORK-CONVENTIONS">&quot;VLAN AND NETWORK CONVENTIONS&quot;</a>).</p>
 
 <p>Dies on any non-2xx response.</p>
 
@@ -83,9 +103,23 @@
 
 <pre><code>set_port_pvid($port_name, $vlan_id);</code></pre>
 
-<p>Sets the PVID (untagged/native VLAN id) of a bridge port, e.g. set_port_pvid(&#39;ether5&#39;, 5). This is what makes a port an untagged member of a VLAN. Dies if the port is not a member of any bridge, or if vlan_id is outside 1..MAX_VLAN_ID (see <a href="#VLAN-AND-NETWORK-CONVENTIONS">&quot;VLAN AND NETWORK CONVENTIONS&quot;</a>).</p>
+<p>Sets the PVID (untagged/native VLAN id) of a bridge port, e.g. set_port_pvid(&#39;ether5&#39;, 5). This is what makes a port an untagged member of a VLAN. Dies if the port is not a member of any bridge, or if vlan_id is neither a test VLAN nor DEFAULT_VLAN (see <a href="#VLAN-AND-NETWORK-CONVENTIONS">&quot;VLAN AND NETWORK CONVENTIONS&quot;</a>).</p>
 
 <p>Dies on any non-2xx response.</p>
+
+<h2 id="create_vlan_network">create_vlan_network</h2>
+
+<pre><code>create_vlan_network(vlan_id =&gt; 4, ports =&gt; [&#39;sfp-sfpplus9&#39;, &#39;sfp-sfpplus23&#39;]);</code></pre>
+
+<p>Creates an isolated network for one test: a new VLAN on <code>bridge</code> (default &#39;bridge&#39;) with the <code>ports</code> as untagged members, and the PVID of each port set to the VLAN. Dies if the VLAN already exists, so that a test does not take over the network of another test.</p>
+
+<h2 id="remove_vlan_network">remove_vlan_network</h2>
+
+<pre><code>remove_vlan_network(vlan_id =&gt; 4, ports =&gt; [&#39;sfp-sfpplus9&#39;, &#39;sfp-sfpplus23&#39;], pvid =&gt; 3);</code></pre>
+
+<p>Removes the network that <code>create_vlan_network</code> created: sets the PVID of the <code>ports</code> back to <code>pvid</code> and removes the VLAN. Does not die if the VLAN does not exist, so that it can also clean up after a failed test.</p>
+
+<p><code>pvid</code> defaults to DEFAULT_VLAN (3). VLAN 1 is not allowed: it is the VLAN of the uplink to the lab network, so a test NIC in VLAN 1 gets a lab address, and a second NIC of the SUT in the lab network can break the connection of openQA to the SUT.</p>
 
 
 </body>

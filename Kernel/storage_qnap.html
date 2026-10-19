@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kernel/storage_qnap.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#create_iscsi_target">create_iscsi_target</a></li>
+      <li><a href="#remove_iscsi_target">remove_iscsi_target</a></li>
+      <li><a href="#create_iscsi_lun">create_iscsi_lun</a></li>
+      <li><a href="#remove_iscsi_lun">remove_iscsi_lun</a></li>
+      <li><a href="#map_iscsi_lun">map_iscsi_lun</a></li>
+      <li><a href="#unmap_iscsi_lun">unmap_iscsi_lun</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kernel/storage_qnap.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>API client for the QNAP storage used in kernel storage tests. It provisions the storage that tests use, for example iSCSI targets and LUNs.</p>
+
+<p>QTS has no documented REST API. This module uses the CGI interface of the QTS web UI, as the QNAP driver of OpenStack Cinder does. The calls run from the openQA worker, not from the SUT.</p>
+
+<p>Job settings: <code>QNAP_USER</code>, <code>_SECRET_QNAP_PASSWORD</code>, optionally <code>QNAP_PORT</code> (default 8080).</p>
+
+<p>The calls match the requests of the QTS 5.2.4 web UI.</p>
+
+<p>Each function dies if QTS reports an error, so the caller does not need to check a return value. Each change on the QNAP is shown with <code>record_info</code>.</p>
+
+<h2 id="create_iscsi_target">create_iscsi_target</h2>
+
+<pre><code>my $target = create_iscsi_target(host =&gt; $host, name =&gt; &#39;openqa&#39;, interface =&gt; &#39;eth1&#39;);</code></pre>
+
+<p>Creates an iSCSI target that listens on <code>interface</code> and returns <code>{index =&gt; ..., iqn =&gt; ...}</code>. <code>interface</code> is the QTS name of the network adapter: QTS counts from eth0, so &quot;Adapter 2&quot; is eth1. CHAP is disabled.</p>
+
+<h2 id="remove_iscsi_target">remove_iscsi_target</h2>
+
+<pre><code>remove_iscsi_target(host =&gt; $host, index =&gt; $target-&gt;{index});</code></pre>
+
+<h2 id="create_iscsi_lun">create_iscsi_lun</h2>
+
+<pre><code>my $lun = create_iscsi_lun(host =&gt; $host, name =&gt; &#39;openqa_lun0&#39;, size_gb =&gt; 10, pool =&gt; 1);</code></pre>
+
+<p>Creates a thin block-based LUN in the storage pool <code>pool</code> (default 1) and returns its index.</p>
+
+<h2 id="remove_iscsi_lun">remove_iscsi_lun</h2>
+
+<pre><code>remove_iscsi_lun(host =&gt; $host, index =&gt; $lun);</code></pre>
+
+<p>Removes an unmapped LUN. QTS removes it in the background.</p>
+
+<h2 id="map_iscsi_lun">map_iscsi_lun</h2>
+
+<pre><code>map_iscsi_lun(host =&gt; $host, target =&gt; $target-&gt;{index}, lun =&gt; $lun);</code></pre>
+
+<p>Maps a LUN to a target.</p>
+
+<h2 id="unmap_iscsi_lun">unmap_iscsi_lun</h2>
+
+<pre><code>unmap_iscsi_lun(host =&gt; $host, target =&gt; $target-&gt;{index}, lun =&gt; $lun);</code></pre>
+
+<p>Disables a LUN and unmaps it from a target.</p>
+
+
+</body>
+
+</html>
+
+
