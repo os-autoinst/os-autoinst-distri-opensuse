@@ -19,7 +19,7 @@ sub run {
     select_serial_terminal;
 
     # Get the old version of clamav
-    my $old_version = script_output("zypper se -s clamav | grep \"| package\" | awk -F '|' 'NR==2 {print \$4}' | xargs", timeout => 300);
+    my $old_version = script_output("zypper se -s -x clamav | grep \"| package\" | awk -F '|' 'NR==1 {print \$4}' | xargs", timeout => 300);
     record_info("Version Found", "Targeting old version: $old_version");
 
     # Install the specific old versions
