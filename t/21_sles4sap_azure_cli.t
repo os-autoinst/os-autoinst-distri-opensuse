@@ -1809,10 +1809,21 @@ subtest '[az_network_dns_link_delete] Compose command' => sub {
     ok(grep(/--yes/, @calls), 'Check for autoapprove argument "--yes"');
 };
 
-# Error text that az() raises when Azure still lists a just deleted DNS link as nested resource of the zone
-my $az_dns_nested_err = "Error messages present during az cli execution:\n"
-  . "ERROR: (CannotDeleteResource) Cannot delete resource while nested resources exist. Some existing nested resource IDs include: "
+# stderr that Azure returns when it still lists a just deleted DNS link as nested resource of the zone
+my $az_dns_nested_stderr = "ERROR: (CannotDeleteResource) Cannot delete resource while nested resources exist. Some existing nested resource IDs include: "
   . "'Microsoft.Network/privateDnsZones/calzini/virtualNetworkLinks/Colombina'.\n";
+
+subtest '[az_network_dns_zone_delete] Always failok and return the az() result' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my %az_args;
+    my $az_res = {rc => 1, output => {}, error => $az_dns_nested_stderr};
+    $azcli->redefine(az => sub { %az_args = @_; return $az_res; });
+
+    my $res;
+    lives_ok { $res = az_network_dns_zone_delete(resource_group => 'Pantalone', zone_name => 'calzini') } 'No die on az cli error';
+    ok($az_args{failok}, 'failok is always passed to az()');
+    is_deeply($res, $az_res, 'Whole az() result returned');
+};
 
 subtest '[az_network_dns_zones_cleanup] retry zone deletion refused because of nested resources' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
@@ -1823,8 +1834,9 @@ subtest '[az_network_dns_zones_cleanup] retry zone deletion refused because of n
             my %args = @_;
             push @calls, $args{zone_name};
             # Azure refuses the first two deletions of 'camicia' and accepts all the others
-            die $az_dns_nested_err if $args{zone_name} eq 'camicia' && grep(/camicia/, @calls) < 3;
-            return 0; });
+            return {rc => 1, output => {}, error => $az_dns_nested_stderr}
+              if $args{zone_name} eq 'camicia' && grep(/camicia/, @calls) < 3;
+            return {rc => 0, output => {}, error => ''}; });
 
     my $start_time = time();
     az_network_dns_zones_cleanup(resource_group => 'Pantalone');
@@ -1837,14 +1849,15 @@ subtest '[az_network_dns_zones_cleanup] retry zone deletion refused because of n
 subtest '[az_network_dns_zones_cleanup] give up and keep the original error' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my $attempts = 0;
-    my $err = $az_dns_nested_err;
+    my $res = {rc => 1, output => {}, error => $az_dns_nested_stderr};
     $azcli->noop('record_info');
     $azcli->redefine(az_network_dns_zone_list => sub { return ['calzini']; });
-    $azcli->redefine(az_network_dns_zone_delete => sub { $attempts++; die $err; });
+    $azcli->redefine(az_network_dns_zone_delete => sub { $attempts++; return $res; });
 
     my $start_time = time();
     throws_ok { az_network_dns_zones_cleanup(resource_group => 'Pantalone') } qr/CannotDeleteResource/, 'Die when Azure never accepts the deletion';
-    is($@, $az_dns_nested_err, 'The error is the original one');
+    is($@, "Error messages present during az cli execution:\n$az_dns_nested_stderr", 'The error is the same az() would die with');
+    is($attempts, 13, 'Default timeout 120s and retry_delay 10s: 1 attempt + 12 retries');
     is(time() - $start_time, 120, 'Overall wait is limited to the default timeout of 120s');
 
     $attempts = 0;
@@ -1854,15 +1867,24 @@ subtest '[az_network_dns_zones_cleanup] give up and keep the original error' => 
     is(time() - $start_time, 0, 'No wait with timeout 0');
 
     $attempts = 0;
-    $err = "Error messages present during az cli execution:\nERROR: (ResourceNotFound) The Resource 'calzini' was not found.\n";
+    $res = {rc => 1, output => {}, error => "ERROR: (ResourceNotFound) The Resource 'calzini' was not found.\n"};
     throws_ok { az_network_dns_zones_cleanup(resource_group => 'Pantalone') } qr/ResourceNotFound/, 'Die for any other error';
     is($attempts, 1, 'Other errors are not retried');
+
+    $attempts = 0;
+    $res = {rc => 2, output => {}, error => ''};
+    throws_ok { az_network_dns_zones_cleanup(resource_group => 'Pantalone') } qr/^AZ CLI returned non zero value:2/, 'Die for non zero rc without stderr';
+    is($attempts, 1, 'Non zero rc without stderr is not retried');
+    dies_ok { az_network_dns_zones_cleanup(resource_group => 'Pantalone', retry_delay => 0) } 'retry_delay 0 is refused';
+    dies_ok { az_network_dns_zones_cleanup(resource_group => 'Pantalone', timeout => -10) } 'Negative timeout is refused';
 };
 
 subtest '[az_network_dns_zones_cleanup] retry is driven by the real az() stderr' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my ($last_az, $stderr, $zone_deletions) = ('', '', 0);
-    $azcli->noop('assert_script_run', 'record_info');
+    my @rm;
+    $azcli->noop('record_info');
+    $azcli->redefine(assert_script_run => sub { push @rm, $_[0] if $_[0] =~ /^rm /; return; });
     $azcli->redefine(script_run => sub {
             $last_az = $_[0];
             return 0 unless $last_az =~ /zone delete/;
@@ -1877,6 +1899,7 @@ subtest '[az_network_dns_zones_cleanup] retry is driven by the real az() stderr'
 
     lives_ok { az_network_dns_zones_cleanup(resource_group => 'Pantalone') } 'Zone deletion is retried after the Azure refusal';
     is($zone_deletions, 2, 'Zone deleted at second attempt');
+    is(scalar(@rm), 3, 'Temporary files removed for every az call (1 list + 2 deletions), also the refused one');
 };
 
 subtest '[az_role_definition_list]' => sub {

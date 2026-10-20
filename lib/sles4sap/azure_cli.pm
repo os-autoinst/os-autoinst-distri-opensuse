@@ -2474,9 +2474,13 @@ sub az_network_dns_zone_create {
 
 =head2 az_network_dns_zone_delete
 
-    az_network_dns_zone_delete(resource_group=>'resource group name', zone_name=>'default.com');
+    my $res = az_network_dns_zone_delete(resource_group=>'resource group name', zone_name=>'default.com');
 
 Deletes private DNS zone within B<resource_group> specified by B<zone_name>.
+
+The az cli command is always executed with B<failok>: the function never dies on
+az cli errors. It returns the whole B<az()> result hash
+(keys B<rc>, B<output>, B<error>) and the caller has to check it.
 
 =over
 
@@ -2496,8 +2500,7 @@ sub az_network_dns_zone_delete {
         '--yes'
     );
 
-    my $az_out = az(az_args => (join(' ', @az_args)));
-    return $az_out->{rc};
+    return az(az_args => join(' ', @az_args), failok => 1);
 }
 
 =head2 az_network_dns_zone_list
@@ -2705,22 +2708,23 @@ sub az_network_dns_links_cleanup {
 
 =head2 az_network_dns_zones_cleanup
 
-    az_network_dns_zones_cleanup(resource_group=>'resource group name');
+    az_network_dns_zones_cleanup(resource_group=>'resource group name' [, timeout => 120, retry_delay => 10]);
 
 Searches and deletes all DNS zones within specified B<resource_group>.
 
 Azure can keep reporting a just deleted DNS link as nested resource of the zone for a while.
-Therefore, a zone deletion failing with B<CannotDeleteResource> is retried until B<timeout> expires.
-Any other error, or the timeout expiring, dies with the original error message.
+Therefore, a zone deletion failing with B<CannotDeleteResource> is retried, for each zone,
+at most B<timeout>/B<retry_delay> times and never longer than B<timeout> seconds.
+Any other error, or the retry limit being reached, dies with the original error message.
 
 =over
 
 =item B<resource_group> Resource group name
 
-=item B<timeout> Overall time in seconds to keep retrying deletions refused with B<CannotDeleteResource>.
+=item B<timeout> Time in seconds, per zone, to keep retrying deletions refused with B<CannotDeleteResource>.
 Value 0 disables retrying (exact previous behavior). Default: 120
 
-=item B<retry_delay> Time in seconds between attempts. Default: 10
+=item B<retry_delay> Time in seconds between attempts. Must be greater than 0. Default: 10
 
 =back
 =cut
@@ -2730,22 +2734,30 @@ sub az_network_dns_zones_cleanup {
     croak 'Missing mandatory argument: <resource_group>' unless $args{resource_group};
     $args{timeout} //= 120;
     $args{retry_delay} //= 10;
+    croak 'Argument <retry_delay> must be greater than 0' unless $args{retry_delay} > 0;
+    croak 'Argument <timeout> must be 0 or greater' unless $args{timeout} >= 0;
+    my $max_retries = int($args{timeout} / $args{retry_delay});
     my @zones = @{az_network_dns_zone_list(resource_group => $args{resource_group})};
-    my $start_time = time();
-    my $deadline = $start_time + $args{timeout};
 
     for my $zone (@zones) {
-        my $retries = 0;
-        while (1) {
-            if (eval { az_network_dns_zone_delete(resource_group => $args{resource_group}, zone_name => $zone); 1 }) {
-                record_info('DNS cleanup', "DNS zone '$zone' deleted after $retries retries, " . (time() - $start_time) . 's') if $retries;
+        my $start_time = time();
+        my $deadline = $start_time + $args{timeout};
+        for my $retry (0 .. $max_retries) {
+            my $res = az_network_dns_zone_delete(resource_group => $args{resource_group}, zone_name => $zone);
+            if (!$res->{error} && !$res->{rc}) {
+                record_info('DNS cleanup', "DNS zone '$zone' deleted after $retry retries, " . (time() - $start_time) . 's') if $retry;
                 last;
             }
-            my $err = $@;
-            die $err if $err !~ /CannotDeleteResource/ || time() + $args{retry_delay} > $deadline;
-            $retries++;
+            # Same messages az() dies with when called without failok
+            my $err = $res->{error}
+              ? "Error messages present during az cli execution:\n$res->{error}"
+              : "AZ CLI returned non zero value:$res->{rc}";
+            die $err if $err !~ /CannotDeleteResource/
+              || $retry >= $max_retries
+              || time() + $args{retry_delay} > $deadline;
             record_info('DNS cleanup',
-                "Deleting DNS zone '$zone' refused (retry $retries after " . (time() - $start_time) . "s):\n$err\nRetrying in $args{retry_delay}s");
+                "Deleting DNS zone '$zone' refused (attempt " . ($retry + 1) . '/' . ($max_retries + 1)
+                  . ', ' . (time() - $start_time) . "s elapsed):\n$err\nRetrying in $args{retry_delay}s");
             sleep $args{retry_delay};
         }
     }
