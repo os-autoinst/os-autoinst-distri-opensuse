@@ -34,3 +34,5 @@ terraform:
     machine_type: '%PUBLIC_CLOUD_INSTANCE_TYPE%'
     hana_data_disk_type: '%HANA_DISK_TYPE%'
     hana_log_disk_type: '%HANA_DISK_TYPE%'
+  
+    custom_tags: { 'openqa_var_job_id': '%SLES4SAP_CUSTOM_TAGS_JOB_ID%', 'openqa_var_name': '%SLES4SAP_CUSTOM_TAGS_NAME%', 'openqa_var_server': '%SLES4SAP_CUSTOM_TAGS_SERVER%'}
