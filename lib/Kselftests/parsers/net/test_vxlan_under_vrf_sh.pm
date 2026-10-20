@@ -31,7 +31,7 @@ sub parse_line {
     my ($self, $test_ln) = @_;
     my $ln = $test_ln =~ s/\s+$//r;
 
-    if ($ln =~ /^#\s*(\S.*?)\s+\[\s*(OK|PASS|FAIL|SKIP|XFAIL|XPASS|ERROR|WARN)\s*\]$/i) {
+    if ($ln =~ /^#\s*(\S.*?)\s+\[\s*(OK|PASS|FAIL|SKIP|XFAIL|XPASS|ERROR)\s*\]$/i) {
         my ($description, $st) = ($1, uc $2);
         return $test_ln if $st eq 'SKIP';
         my $idx = ++$self->{idx};
@@ -40,7 +40,7 @@ sub parse_line {
         } elsif ($st eq 'XFAIL') {
             return "# ok $idx $description # TODO Expected failure";
         }
-        # FAIL / ERROR / WARN
+        # FAIL / ERROR
         return "# not ok $idx $description";
     }
     return $test_ln;

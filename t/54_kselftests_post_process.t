@@ -133,6 +133,12 @@ subtest 'net default parser' => sub {
     is $p->parse_line('# XFAIL: veth0: ethtool dump not supported'),
       '# ok 5 veth0: ethtool dump not supported # TODO Expected failure', 'XFAIL: ... is converted';
     is $p->parse_line('# SKIP: kernel is tainted'), '# SKIP: kernel is tainted', 'SKIP: ... is left untouched';
+    is $p->parse_line('# WARN: Could not test offloaded functionality'),
+      '# WARN: Could not test offloaded functionality',
+      'WARN: ... is an unconditional disclaimer, not a subtest result, and is left untouched';
+    is $p->parse_line('# TEST: some check                                                    [WARN]'),
+      '# TEST: some check                                                    [WARN]',
+      'TEST: ... [WARN] is left untouched too, no script emits it';
     is $p->parse_line('# some random text'), '# some random text', 'unmatched lines are left untouched';
 };
 

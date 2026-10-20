@@ -45,9 +45,9 @@ sub parse_line {
     my $ln = $test_ln =~ s/\s+$//r;
 
     my ($description, $st);
-    if ($ln =~ /^#\s*TEST:\s+(.*?)\s+\[\s*(OK|PASS|FAIL|SKIP|XFAIL|XPASS|ERROR|WARN)\s*\]$/i) {
+    if ($ln =~ /^#\s*TEST:\s+(.*?)\s+\[\s*(OK|PASS|FAIL|SKIP|XFAIL|XPASS|ERROR)\s*\]$/i) {
         ($description, $st) = ($1, uc $2);
-    } elsif ($ln =~ /^#\s*(OK|PASS|FAIL|SKIP|XFAIL|XPASS|ERROR|WARN):\s+(.*)$/i) {
+    } elsif ($ln =~ /^#\s*(OK|PASS|FAIL|SKIP|XFAIL|XPASS|ERROR):\s+(.*)$/i) {
         ($description, $st) = ($2, uc $1);
     } else {
         return $test_ln;
@@ -60,7 +60,7 @@ sub parse_line {
     } elsif ($st eq 'XFAIL') {
         return "# ok $idx $description # TODO Expected failure";
     }
-    # FAIL / ERROR / WARN
+    # FAIL / ERROR
     return "# not ok $idx $description";
 }
 

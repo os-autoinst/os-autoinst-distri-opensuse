@@ -41,7 +41,7 @@ sub parse_line {
         $self->{pending} = $1;
         return $test_ln;
     }
-    if ($ln =~ /^#\s*\[\s*(OK|PASS|FAIL|SKIP|XFAIL|XPASS|ERROR|WARN)\s*\]\s*$/i) {
+    if ($ln =~ /^#\s*\[\s*(OK|PASS|FAIL|SKIP|XFAIL|XPASS|ERROR)\s*\]\s*$/i) {
         my $st = uc $1;
         return $test_ln if $st eq 'SKIP';
         my $description = delete $self->{pending} // 'result';
@@ -51,7 +51,7 @@ sub parse_line {
         } elsif ($st eq 'XFAIL') {
             return "# ok $idx $description # TODO Expected failure";
         }
-        # FAIL / ERROR / WARN
+        # FAIL / ERROR
         return "# not ok $idx $description";
     }
     return $test_ln;
