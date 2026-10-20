@@ -627,7 +627,8 @@ sub crash_destroy_azure(%args) {
     crash_network_peering_delete(provider => 'AZURE', ibsm_rg => $args{ibsm_rg}) if ($args{ibsm_ip});
     my $rg = crash_deploy_name();
     record_info('AZURE CLEANUP', "Deleting resource group: $rg");
-    az_group_delete(name => $rg, timeout => 360);
+    my $result = az_group_delete(name => $rg, timeout => 360);
+    die("Resource group deletion failed:\n$result->{error}") if $result->{rc} != 0;
 }
 
 

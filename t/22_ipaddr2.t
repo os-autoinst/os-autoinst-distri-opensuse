@@ -259,11 +259,18 @@ subtest '[ipaddr2_infra_destroy]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my $az_called = 0;
-    $ipaddr2->redefine(az_group_delete => sub { $az_called = 1; return; });
+    $ipaddr2->redefine(az_group_delete => sub { $az_called = 1; return {rc => 0}; });
 
     ipaddr2_infra_destroy();
 
     ok(($az_called eq 1), 'az_group_delete called');
+};
+
+subtest '[ipaddr2_infra_destroy] Test failure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(az_group_delete => sub { return {rc => 42}; });
+
+    dies_ok { ipaddr2_infra_destroy() } 'Dies with "az group delete" non zero RC';
 };
 
 subtest '[ipaddr2_bastion_key_accept]' => sub {

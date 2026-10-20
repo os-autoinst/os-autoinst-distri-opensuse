@@ -111,7 +111,8 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    az_group_delete(name => DEPLOY_PREFIX . get_current_job_id(), timeout => 600);
+    my $result = az_group_delete(name => DEPLOY_PREFIX . get_current_job_id(), timeout => 600);
+    die("Resource group deletion failed:\n$result->{error}") if $result->{rc} != 0;
     $self->SUPER::post_fail_hook;
 }
 

@@ -47,7 +47,7 @@ subtest '[zp_azure_destroy]' => sub {
     my $zp = Test::MockModule->new('sles4sap::cloud_zypper_patch', no_auto => 1);
     my $called = 0;
     $zp->redefine(zp_azure_resource_group => sub { $called++; return 'SPIAGGIA'; });
-    $zp->redefine(az_group_delete => sub { $called++; });
+    $zp->redefine(az_group_delete => sub { $called++; return {rc => 0}; });
 
     zp_azure_destroy();
 
@@ -58,7 +58,7 @@ subtest '[zp_azure_destroy] network peering' => sub {
     my $zp = Test::MockModule->new('sles4sap::cloud_zypper_patch', no_auto => 1);
     my $called = 0;
     $zp->redefine(zp_azure_resource_group => sub { $called++; return 'SPIAGGIA'; });
-    $zp->redefine(az_group_delete => sub { $called++; });
+    $zp->redefine(az_group_delete => sub { $called++; return {rc => 0}; });
     my @vnets = ('ONDE');
     $zp->redefine(az_network_vnet_get => sub { $called++; return \@vnets; });
     $zp->redefine(az_network_peering_delete => sub { $called++; });
@@ -66,6 +66,13 @@ subtest '[zp_azure_destroy] network peering' => sub {
     zp_azure_destroy(ibsm_rg => 'PEDALO`');
 
     ok $called eq 4;
+};
+
+subtest '[zp_azure_destroy]  Test failure' => sub {
+    my $zp = Test::MockModule->new('sles4sap::cloud_zypper_patch', no_auto => 1);
+    $zp->redefine(zp_azure_resource_group => sub { return 'SPIAGGIA'; });
+    $zp->redefine(az_group_delete => sub { return {rc => 1}; });
+    dies_ok { zp_azure_destroy(ibsm_rg => 'PEDALO`') } 'Dies with "az group delete" non zero RC';
 };
 
 subtest '[zp_azure_netpeering]' => sub {
