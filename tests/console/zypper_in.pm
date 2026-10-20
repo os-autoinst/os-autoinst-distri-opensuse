@@ -16,7 +16,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_jeos);
 use serial_terminal 'select_serial_terminal';
 # rpm -q --scripts hello0.rpm
 # preinstall scriptlet (using /bin/sh):
@@ -72,15 +72,18 @@ sub run {
         assert_script_run 'unset ZYPP_SINGLE_RPMTRANS';
 
         # Check Ctrl-C aborting of zypper midway and resuming (>=sle15sp4)
-        select_console 'root-console';
-        type_string "zypper -n in git\n";
+        # It is too fast to run ctrl-c on jeos
+        if (!is_jeos()) {
+            select_console 'root-console';
+            type_string "zypper -n in git\n";
 
-        wait_still_screen 0.1;
-        send_key 'ctrl-c';
-        assert_screen "exit_gracefully";
-        send_key 'ret';
-        zypper_call 'in git';
-        assert_script_run('zypper -n rm git && ! rpm -q git');
+            wait_still_screen 0.1;
+            send_key 'ctrl-c';
+            assert_screen "exit_gracefully";
+            send_key 'ret';
+            zypper_call 'in git';
+            assert_script_run('zypper -n rm git && ! rpm -q git');
+        }
     }
 }
 
