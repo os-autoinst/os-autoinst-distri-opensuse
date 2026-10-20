@@ -144,7 +144,7 @@ sub run {
         wait_nodes_ready(timeout => $long_timeout);
 
         # Record K8s version/nodes
-        record_info('K8s version/nodes', script_output('kubectl version; kubectl get nodes'));
+        record_info('K8s version/nodes', script_output('kubectl version; kubectl get nodes -o wide'));
 
         # Record K8s services
         record_info('K8s services', script_output('kubectl get services -A'));
