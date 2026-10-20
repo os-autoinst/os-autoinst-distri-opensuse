@@ -27,6 +27,8 @@ use LTP::WhiteList;
 use bugzilla;
 use xfstests_utils;
 use xfstests_ai_analysis;
+use Kernel::nfs qw(start_pnfs_debug stop_pnfs_debug collect_pnfs_debug);
+use List::Util qw(uniq);
 use lockapi;
 
 # xfstests general variables
@@ -59,6 +61,12 @@ my $LOOP_DEVICE = get_var('XFSTESTS_LOOP_DEVICE');
 my $INJECT_INFO = get_var('INJECT_INFO', '');
 my $RAW_DUMP = get_var('RAW_DUMP', 0);
 my $XFSTESTS_DEEP_CLEAN = get_var('XFSTESTS_CLEAN_BEFORE_TEST');
+
+# - XFSTESTS_PNFS_DEBUG: collect pNFS debug data for each failed subtest, see
+#     Kernel::nfs::start_pnfs_debug(). run.pm installs the fio wrapper that
+#     writes to $PNFS_DEBUG_DIR/fio.
+my $PNFS_DEBUG = get_var('XFSTESTS_PNFS_DEBUG');
+my $PNFS_DEBUG_DIR = '/opt/pnfs_debug';
 
 # Heartbeat mode variables
 # - XFSTESTS_HEARTBEAT_INTERVAL: Set how long to send/receive a heartbeat
@@ -119,12 +127,13 @@ sub override_known_failures {
 # run() below so both heartbeat and non-heartbeat modes behave identically to a
 # regular run. Returns ($status, $duration).
 sub run_sporadic_once {
-    my ($self, $test, $enable_heartbeat, $my_instance) = @_;
+    my ($self, $test, $enable_heartbeat, $my_instance, $iteration) = @_;
     my ($category, $num) = split(/\//, $test);
 
     # Each iteration starts from a clean, unmounted state, like a normal run.
     umount_xfstests_dev($TEST_DEV, $SCRATCH_DEV, $SCRATCH_DEV_POOL) unless get_var('XFSTESTS_HIGHSPEED');
     enter_cmd("echo $test > /dev/$serialdev");
+    start_pnfs_debug($PNFS_DEBUG_DIR) if $PNFS_DEBUG;
 
     my ($status, $duration);
     # Non-heartbeat mode: test_run_without_heartbeat runs the test, waits for it
@@ -151,6 +160,7 @@ sub run_sporadic_once {
         }
         heartbeat_stop($VIRTIO_CONSOLE);
     }
+    finish_pnfs_debug($test, $status, "iter_$iteration") if $PNFS_DEBUG;
 
     # On failure, push the key logs to the openQA result DB via record_info so
     # they survive a later snapshot rollback that would wipe the /opt/log tarball.
@@ -213,6 +223,51 @@ sub collect_iteration_logs {
     for my $ext (qw(full out.bad dmesg)) {
         script_run("cp $INST_DIR/results/$category/$num.$ext $iter_dir/ 2>/dev/null");
     }
+}
+
+# The failures of the pNFS block layout are sporadic, so the debug data is
+# collected for each subtest but only kept for a failed one. A tag, e.g. the
+# iteration of the sporadic loop, keeps the uploads apart.
+sub finish_pnfs_debug {
+    my ($test, $status, $tag) = @_;
+
+    if ($status !~ /FAILED/) {
+        stop_pnfs_debug;
+        return;
+    }
+    (my $name = $test) =~ s/\//-/;
+    my $tarball = "/opt/pnfs_debug-$name" . ($tag ? "-$tag" : '') . '.tar.gz';
+    script_run("cp $INST_DIR/results/$test.full $PNFS_DEBUG_DIR/");
+    collect_pnfs_debug($PNFS_DEBUG_DIR, $tarball, failed_fio_ios($test));
+    upload_logs($tarball, failok => 1);
+}
+
+# Find the failed I/O of fio in the logs of a test, e.g.
+#   fio: io_u error on file /opt/nfs/scratch/file2: Invalid argument: read offset=413696, buflen=1024
+# and map the file below TEST_DIR or SCRATCH_MNT to its NFS export, see
+# Kernel::nfs::collect_pnfs_debug(). Return at most 5 of them.
+sub failed_fio_ios {
+    my ($test) = @_;
+    my @errors = uniq split(/\n/, script_output(
+            "grep -ho 'io_u error on file .* offset=[0-9]*, buflen=[0-9]*' $INST_DIR/results/$test.full $PNFS_DEBUG_DIR/fio/*.out 2>/dev/null || true",
+            proceed_on_failure => 1));
+    my ($test_dir, $test_dev, $scratch_mnt, $scratch_dev, $mount_opts) = split(/\n/, script_output(
+            ". $INST_DIR/local.config; printf '%s\\n' \"\$TEST_DIR\" \"\$TEST_DEV\" \"\$SCRATCH_MNT\" \"\$SCRATCH_DEV\" \"\$NFS_MOUNT_OPTIONS\"",
+            proceed_on_failure => 1));
+    my @ios;
+    foreach my $error (@errors) {
+        my ($path, $op, $offset, $len) = $error =~ /io_u error on file (\S+): .*: (\w+) offset=(\d+), buflen=(\d+)/ or next;
+        foreach ([$scratch_mnt, $scratch_dev], [$test_dir, $test_dev]) {
+            my ($mnt, $dev) = @$_;
+            next unless $mnt && index($path, "$mnt/") == 0;
+            (my $export = $dev) =~ s/^[^:]*://;
+            push @ios, {path => $path, op => $op, offset => $offset, len => $len, mnt => $mnt, nfs_dev => $dev,
+                mount_opts => $mount_opts, export_path => $export . substr($path, length($mnt))};
+            last;
+        }
+        last if @ios == 5;
+    }
+    return @ios;
 }
 
 # Diff the first passing iteration against the first failing one. Uses a temp
@@ -331,7 +386,7 @@ sub run_sporadic_loop {
         my ($mem_mb, $disk_mb) = capture_metrics();
         snapshot_env($iter_dir, 'before');
         my $start_time = time();
-        my ($iter_status, $duration) = run_sporadic_once($self, $test_name, $enable_heartbeat, $my_instance);
+        my ($iter_status, $duration) = run_sporadic_once($self, $test_name, $enable_heartbeat, $my_instance, $iteration);
         snapshot_env($iter_dir, 'after');
         collect_iteration_logs($category, $num, $iter_dir);
 
@@ -378,6 +433,7 @@ sub run {
     $whitelist_env->{libc} = script_output('rpm -q glibc');
     $whitelist_env->{ltp_version} = script_output('rpm -q xfstests');
     enter_cmd("echo $test > /dev/$serialdev");
+    start_pnfs_debug($PNFS_DEBUG_DIR) if $PNFS_DEBUG;
     if ($enable_heartbeat == 0) {
         $self->{result_args} = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $XFSTESTS_DEEP_CLEAN, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
         $status = $self->{result_args}->{status};
@@ -408,6 +464,7 @@ sub run {
         }
         heartbeat_stop($VIRTIO_CONSOLE);
     }
+    finish_pnfs_debug($test, $status) if $PNFS_DEBUG;
 
     (my $generate_name = $test) =~ s/-/\//;
     my $test_path = '/opt/log/' . $generate_name;

@@ -522,6 +522,7 @@ sub capture_tcpdump {
 
  start_packet_capture($dev, $pcap);
  start_packet_capture($dev, $pcap, $filter);
+ start_packet_capture($dev, $pcap, $filter, snaplen => $bytes);
 
 Start a background C<tcpdump> writing a pcap file, to capture traffic across a
 whole test sequence instead of a fixed duration. Use C<stop_packet_capture> to
@@ -531,6 +532,8 @@ Arguments:
   $dev    - Network interface to capture on (e.g. 'lo')
   $pcap   - Path of the pcap file to write
   $filter - Optional BPF filter (e.g. 'port 2049')
+  snaplen - Optional number of bytes to keep of each packet, to limit the
+            pcap size of long captures
 
 The tcpdump diagnostics are kept in $pcap.log.
 
@@ -539,10 +542,11 @@ Returns: the tcpdump pid
 =cut
 
 sub start_packet_capture {
-    my ($dev, $pcap, $filter) = @_;
+    my ($dev, $pcap, $filter, %args) = @_;
     $filter = $filter ? "'$filter'" : '';
+    my $snaplen = $args{snaplen} ? "-s $args{snaplen} " : '';
 
-    return background_script_run("tcpdump -i $dev -U -w $pcap $filter > $pcap.log 2>&1");
+    return background_script_run("tcpdump -i $dev $snaplen-U -w $pcap $filter > $pcap.log 2>&1");
 }
 
 =head2 stop_packet_capture

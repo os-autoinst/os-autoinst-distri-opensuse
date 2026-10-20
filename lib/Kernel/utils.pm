@@ -13,7 +13,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use utils 'systemctl';
+use utils qw(systemctl write_sut_file);
 use Mojo::JSON 'decode_json';
 
 our @EXPORT_OK = qw(
@@ -22,7 +22,12 @@ our @EXPORT_OK = qw(
   enable_debugfs
   get_kernel_config
   get_verified_shallow_tar
+  start_trace_events
+  save_trace
+  install_fio_debug_wrapper
 );
+
+my $TRACEFS = '/sys/kernel/tracing';
 
 =head2 is_debugfs_mounted
 
@@ -125,6 +130,113 @@ sub get_verified_shallow_tar {
     my $cmd = "./$script $tree $branch";
     $cmd .= " $commit" if $commit;
     assert_script_run($cmd, 1800);
+}
+
+=head2 start_trace_events
+
+ start_trace_events(\@events);
+ start_trace_events(\@events, filters => {$event => $filter}, buffer_kb => $kb);
+
+Enable kernel tracepoints in tracefs and start to trace. Each event is
+C<system/event>, a shell glob selects several events, e.g. C<nfs4/pnfs_*>.
+Events that the kernel does not provide are skipped.
+
+The events go to the trace ring buffer, which keeps the newest events when it
+is full. Thus the trace can run for a long time without filling the disk.
+C<save_trace> saves it.
+
+If the first event is enabled already, e.g. by an earlier call before each
+subtest, only clear the trace. This keeps repeated calls short. After a
+reboot the events are enabled again.
+
+Arguments:
+  \@events  - Events to enable
+  filters   - Optional event filters, e.g. C<'dev == 7340033'>
+  buffer_kb - Optional ring buffer size per CPU in KiB (default: 8192)
+
+=cut
+
+sub start_trace_events {
+    my ($events, %args) = @_;
+    my $filters = $args{filters} // {};
+    my $buffer_kb = $args{buffer_kb} // 8192;
+
+    return if script_run("grep -qsx 1 $TRACEFS/events/$events->[0]/enable && echo > $TRACEFS/trace") == 0;
+    my @cmds = ('echo 0 > tracing_on', 'echo > trace', "echo $buffer_kb > buffer_size_kb");
+    push @cmds, 'for e in ' . join(' ', map { "events/$_" } @$events) . '; do [ -f $e/enable ] && echo 1 > $e/enable; done';
+    push @cmds, "echo '$filters->{$_}' > events/$_/filter" foreach sort keys %$filters;
+    push @cmds, 'echo 1 > tracing_on';
+    script_run("(cd $TRACEFS && " . join('; ', @cmds) . ')');
+}
+
+=head2 save_trace
+
+ save_trace($file);
+
+Save the trace started by C<start_trace_events> to C<$file>.
+
+=cut
+
+sub save_trace {
+    my ($file) = @_;
+
+    script_run("cat $TRACEFS/trace > $file");
+}
+
+=head2 install_fio_debug_wrapper
+
+ install_fio_debug_wrapper($dir);
+
+Install a wrapper as F</usr/local/bin/fio>, so that tests which call fio from
+C<PATH> run it with C<--debug=file,mem> and C<strace> of the failed syscalls.
+For each fio run the wrapper keeps the job file, the command line, the debug
+output and the strace output in C<$dir>, named by the pid of the wrapper.
+
+Only fio runs that write the results to a file with C<--output=> are changed,
+else the debug output would change the output of the test. The debug output is
+kept out of the C<--output> file too, tests often copy this file to their logs.
+
+Without C<strace> 5.2 or newer (for C<-Z>) fio runs without strace.
+
+=cut
+
+sub install_fio_debug_wrapper {
+    my ($dir) = @_;
+    my $wrapper = '/usr/local/bin/fio';
+
+    return if script_run("test -e $wrapper") == 0;
+    my $fio = script_output('type -P fio', proceed_on_failure => 1);
+    return unless $fio =~ m{^/};
+    my $strace = script_run('strace -f -Z -o /dev/null true') == 0 ? 'strace -f -tt -Z -o "$dir/$$.strace"' : '';
+
+    my $script = <<'END';
+#!/bin/bash
+# Installed by Kernel::utils::install_fio_debug_wrapper
+dir=@DIR@
+args=()
+for arg in "$@"; do
+    if [[ $arg == --output=* ]]; then
+        out=${arg#--output=}
+        arg="--output=$dir/$$.out"
+    fi
+    args+=("$arg")
+done
+[ -n "$out" ] && mkdir -p "$dir" || exec @FIO@ "$@"
+for arg in "$@"; do
+    [ -f "$arg" ] && cp "$arg" "$dir/$$.job"
+done
+echo "@FIO@ $*" > "$dir/$$.cmd"
+# fio writes the debug output to stdout until it opens the output file
+@STRACE@ @FIO@ --debug=file,mem "${args[@]}" > "$dir/$$.stdout"
+ret=$?
+grep -Ev '^(file|mem) +[0-9]+ ' "$dir/$$.out" > "$out"
+exit $ret
+END
+    $script =~ s/\@DIR\@/$dir/g;
+    $script =~ s/\@FIO\@/$fio/g;
+    $script =~ s/\@STRACE\@/$strace/g;
+    write_sut_file($wrapper, $script);
+    assert_script_run("chmod a+x $wrapper");
 }
 
 1;
