@@ -2709,9 +2709,18 @@ sub az_network_dns_links_cleanup {
 
 Searches and deletes all DNS zones within specified B<resource_group>.
 
+Azure can keep reporting a just deleted DNS link as nested resource of the zone for a while.
+Therefore, a zone deletion failing with B<CannotDeleteResource> is retried until B<timeout> expires.
+Any other error, or the timeout expiring, dies with the original error message.
+
 =over
 
 =item B<resource_group> Resource group name
+
+=item B<timeout> Overall time in seconds to keep retrying deletions refused with B<CannotDeleteResource>.
+Value 0 disables retrying (exact previous behavior). Default: 120
+
+=item B<retry_delay> Time in seconds between attempts. Default: 10
 
 =back
 =cut
@@ -2719,10 +2728,26 @@ Searches and deletes all DNS zones within specified B<resource_group>.
 sub az_network_dns_zones_cleanup {
     my (%args) = @_;
     croak 'Missing mandatory argument: <resource_group>' unless $args{resource_group};
+    $args{timeout} //= 120;
+    $args{retry_delay} //= 10;
     my @zones = @{az_network_dns_zone_list(resource_group => $args{resource_group})};
+    my $start_time = time();
+    my $deadline = $start_time + $args{timeout};
 
     for my $zone (@zones) {
-        az_network_dns_zone_delete(resource_group => $args{resource_group}, zone_name => $zone);
+        my $retries = 0;
+        while (1) {
+            if (eval { az_network_dns_zone_delete(resource_group => $args{resource_group}, zone_name => $zone); 1 }) {
+                record_info('DNS cleanup', "DNS zone '$zone' deleted after $retries retries, " . (time() - $start_time) . 's') if $retries;
+                last;
+            }
+            my $err = $@;
+            die $err if $err !~ /CannotDeleteResource/ || time() + $args{retry_delay} > $deadline;
+            $retries++;
+            record_info('DNS cleanup',
+                "Deleting DNS zone '$zone' refused (retry $retries after " . (time() - $start_time) . "s):\n$err\nRetrying in $args{retry_delay}s");
+            sleep $args{retry_delay};
+        }
     }
 }
 
