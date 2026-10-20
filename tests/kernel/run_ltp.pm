@@ -15,6 +15,7 @@ use power_action_utils 'power_action';
 use utils;
 use version_utils 'is_sle';
 use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
+use Config;
 use Utils::Backends qw(is_backend_s390x is_pvm);
 use serial_terminal;
 use Mojo::File 'path';
@@ -22,6 +23,9 @@ use Mojo::JSON;
 use LTP::utils qw(prepare_ltp_env unmask_serial_failures);
 use LTP::WhiteList;
 require bmwqemu;
+
+# The shell reports a process killed by signal N as exit code 128 + N.
+use constant SHELL_SIGNAL_OFFSET => 128;
 
 sub do_reboot {
     my $self = shift;
@@ -82,6 +86,18 @@ sub parse_result_line {
     }
 }
 
+sub killed_by_signal {
+    my ($exit_code) = @_;
+    return if $exit_code <= SHELL_SIGNAL_OFFSET;
+
+    my $signal_number = $exit_code - SHELL_SIGNAL_OFFSET;
+    return if $signal_number >= $Config{sig_count};
+    my @signal_names = split(' ', $Config{sig_name});
+    my $signal_name = $signal_names[$signal_number];
+
+    return $signal_name ? "SIG$signal_name" : "signal $signal_number";
+}
+
 sub parse_ltp_log {
     my ($self, $test_log, $fin_msg, $fh) = @_;
     my $results = {
@@ -131,6 +147,10 @@ sub parse_ltp_log {
             elsif ($1 == 1) {
                 say $fh 'Failed.';
                 $results->{fail}++;
+            }
+            elsif (my $signal = killed_by_signal($1)) {
+                say $fh "Test process was killed by $signal.";
+                $results->{brok}++;
             }
             else {
                 say $fh "Test process returned unknown non-zero value ($1).";
