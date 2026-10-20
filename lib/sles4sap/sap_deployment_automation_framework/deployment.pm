@@ -428,7 +428,7 @@ Location for stored tfstate files. Default 'SDAF_TFSTATE_STORAGE_ACCOUNT'
 
 sub set_common_sdaf_os_env {
     my (%args) = @_;
-    my $deployment_dir = deployment_dir(create => 'yes');
+    my $deployment_dir = deployment_dir(check => 'yes');
 
     $args{env_code} //= get_required_var('SDAF_ENV_CODE');
     $args{deployer_vnet_code} //= get_required_var('SDAF_DEPLOYER_VNET_CODE');
@@ -708,7 +708,7 @@ sub prepare_sdaf_project {
     $args{sap_sid} //= get_required_var('SAP_SID');
     my $workload_vnet_code = get_workload_vnet_code();
 
-    my $deployment_dir = deployment_dir(create => 'yes');
+    my $deployment_dir = deployment_dir(check => 'yes');
 
     assert_script_run("cd $deployment_dir");
     assert_script_run('mkdir -p ' . log_dir());
@@ -738,15 +738,6 @@ sub prepare_sdaf_project {
         single_branch => 'yes',
         output_log_file => log_dir() . '/git_clone_automation.txt');
 
-    assert_script_run('rm -rf sap-automation-samples');
-    git_clone(get_required_var('SDAF_GIT_TEMPLATES_REPO'),
-        branch => get_var('SDAF_GIT_TEMPLATES_BRANCH'),
-        depth => '1',
-        single_branch => 'yes',
-        output_log_file => log_dir() . '/git_clone_templates.log');
-
-    assert_script_run("cp -Rp sap-automation-samples/Terraform/WORKSPACES $deployment_dir/WORKSPACES");
-    assert_script_run("cp -Rp ~/Azure_SAP_Automated_Deployment/WORKSPACES/.sap_deployment_automation $deployment_dir/WORKSPACES");
     # Ensure correct directories are in place
     my %vnet_codes = (
         workload_zone => $workload_vnet_code,

@@ -19,7 +19,6 @@ sub undef_variables {
       _SECRET_AZURE_SDAF_TENANT_ID
       PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID
       SDAF_GIT_AUTOMATION_REPO
-      SDAF_GIT_TEMPLATES_REPO
       SDAF_DEPLOYMENT_ID
       SDAF_ENV_CODE
       PUBLIC_CLOUD_NAMESPACE
@@ -53,7 +52,6 @@ subtest '[prepare_sdaf_project]' => sub {
             $vnet_checks{$args{deployment_type}} = $args{vnet_code};
             return '/some/useless/path'; });
     set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation.git');
-    set_var('SDAF_GIT_TEMPLATES_REPO', 'https://github.com/Azure/sap-automation-samples.git');
     set_var('SDAF_GIT_AUTOMATION_BRANCH', 'latest');
 
     prepare_sdaf_project(%arguments);
@@ -88,7 +86,6 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
     $ms_sdaf->redefine(get_workload_vnet_code => sub { return 'SAP04'; });
 
     set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation/tree/main');
-    set_var('SDAF_GIT_TEMPLATES_REPO', 'https://github.com/Azure/SAP-automation-samples/tree/main');
     set_var('SDAF_GIT_AUTOMATION_BRANCH', 'latest');
 
     prepare_sdaf_project(%arguments);

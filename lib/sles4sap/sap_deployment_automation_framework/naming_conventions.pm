@@ -149,23 +149,22 @@ sub homedir {
 
 =head2 deployment_dir
 
-    deployment_dir([create=>1]);
+    deployment_dir([check=>1]);
 
-Returns deployment directory path with job ID appended as unique identifier.
-Optionally it can create directory if it does not exists.
+Checks and returns deployment directory path.
+Optionally it can check if directory exists.
 
 =over
 
-=item * B<create>: Create directory if it does not exist.
+=item * B<check>: Check if directory exists.
 
 =back
 =cut
 
 sub deployment_dir {
     my (%args) = @_;
-    my $deployment_dir =
-      get_var('DEPLOYMENT_ROOT_DIR', '/tmp') . '/Azure_SAP_Automated_Deployment_' . find_deployment_id();
-    assert_script_run("mkdir -p $deployment_dir") if $args{create};
+    my $deployment_dir = '/home/' . get_var('PUBLIC_CLOUD_USER', 'azureadm') . '/Azure_SAP_Automated_Deployment';
+    assert_script_run("ls $deployment_dir") if $args{check};
     return $deployment_dir;
 }
 

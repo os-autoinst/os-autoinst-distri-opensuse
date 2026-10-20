@@ -17,16 +17,15 @@ subtest '[homedir]' => sub {
 subtest '[deployment_dir]' => sub {
     my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
     my @calls;
-    $mock_lib->redefine(get_var => sub { return '/tmp' });
-    $mock_lib->redefine(find_deployment_id => sub { return '42' });
+    $mock_lib->redefine(get_var => sub { return 'azureadm' });
     $mock_lib->redefine(assert_script_run => sub { push(@calls, $_[0]); return });
 
-    is deployment_dir(), '/tmp/Azure_SAP_Automated_Deployment_42', 'Return deployment path';
-    ok(!@calls, "Call without creating deployment dir");
-    deployment_dir(create => 1);
+    is deployment_dir(), '/home/azureadm/Azure_SAP_Automated_Deployment', 'Return deployment path';
+    ok(!@calls, "Call without checking deployment dir");
+    deployment_dir(check => 1);
     note("\n  CMD: " . join("\n  -->  ", @calls));
-    ok(grep(/mkdir -p/, @calls), 'Check for "mkdir" command');
-    ok(grep(/\/tmp\/Azure_SAP_Automated_Deployment_42/, @calls), 'Create correct directory');
+    ok(grep(/ls /, @calls), 'Check for "mkdir" command');
+    ok(grep(/\/home\/azureadm\/Azure_SAP_Automated_Deployment/, @calls), 'Check correct directory');
 };
 
 subtest '[log_dir]' => sub {
