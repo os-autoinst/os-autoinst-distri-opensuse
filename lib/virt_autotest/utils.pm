@@ -110,6 +110,7 @@ our @EXPORT = qw(
   select_backend_console
   double_check_xen_role
   check_kvm_modules
+  check_host_version
   install_product_software
   collect_guests_supportconfig_and_logs
   reset_network_config
@@ -2051,6 +2052,35 @@ sub check_kvm_modules {
         }
     }
     record_info("KVM", "kvm modules are loaded!");
+}
+
+=head2 check_host_version
+
+  check_host_version(expected => '15-SP7')
+
+Make sure that the running SLE host has the expected product version. Compare
+VERSION_ID in /etc/os-release with C<expected> and die if they do not match.
+This finds a host that did not do a fresh installation, for example a host that
+booted the old system from its disk instead of from iPXE.
+
+C<expected> is mandatory. It can use the format of VERSION (15-SP7, 16.0) or of
+UPGRADE_PRODUCT (sles-15-sp7).
+=cut
+
+sub check_host_version {
+    my (%args) = @_;
+    die 'check_host_version: argument expected is not given' unless $args{expected};
+
+    # Convert the expected version to the VERSION_ID format: 15-SP7 to 15.7, sles-15-sp0 to 15
+    my $expected_id = uc($args{expected}) =~ s/^SLES-//r;
+    if ($expected_id =~ /^(\d+)-SP(\d+)$/) {
+        $expected_id = ($2 == 0 and $1 < 16) ? $1 : "$1.$2";
+    }
+    my $actual_id = script_output('. /etc/os-release && echo $VERSION_ID');
+    my $pretty_name = script_output('. /etc/os-release && echo $PRETTY_NAME');
+    die "Host version mismatch: expected $args{expected} (VERSION_ID $expected_id), but running $pretty_name (VERSION_ID $actual_id). Host installation or upgrade probably failed."
+      unless $actual_id eq $expected_id;
+    record_info('Host version', "Host runs the expected version: $pretty_name");
 }
 
 sub extract_kernel_initrd_from_iso {
