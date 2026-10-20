@@ -13,7 +13,8 @@
 # INSTALLONLY - 1
 # SYSTEM_ROLE - Common_Criteria
 # DEFAULT_PASSWORD - password for root, the first user and disk encryption,
-#   default: $testapi::password
+#   default: $testapi::password. The test also sets $testapi::password to it,
+#   because the serial terminal login and the later modules use that variable.
 # USERNAME - login name of the first user, default: bernhard
 #   ($testapi::username). The installer default is sysadmin, so the name is
 #   replaced. The later modules, like console/consoletest_setup, need this user.
@@ -107,6 +108,9 @@ sub check_os_release {
 
 sub run {
     my $password = get_var('DEFAULT_PASSWORD', $testapi::password);
+    # The installer sets this password for root. The serial terminal login
+    # (select_serial_terminal) and the later modules type $testapi::password.
+    $testapi::password = $password;
     my $user = get_var('USERNAME', $testapi::username);
 
     select_cc_grub_entry();
