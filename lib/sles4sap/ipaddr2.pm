@@ -2691,6 +2691,10 @@ sub ipaddr2_logs_collect(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     # No die, let the test run
     return unless $args{bastion_ip};
+    my $ret = ipaddr2_ssh_bastion_script_run(
+        bastion_ip => $args{bastion_ip},
+        cmd => 'true');
+    return if $ret;
     $args{no_supportconfig} //= 0;
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     my $vm_addr;
