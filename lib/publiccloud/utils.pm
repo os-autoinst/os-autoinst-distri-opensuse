@@ -523,6 +523,9 @@ sub prepare_ssh_tunnel {
     } else {
         $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
         $instance->ssh_assert_script_run('sudo sed -i "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (is_hardened());
+        # Newer hardened images keep these settings in sshd_config.d drop-ins, which sshd reads first and which override sshd_config
+        $instance->ssh_assert_script_run(q(test ! -d /etc/ssh/sshd_config.d || sudo find /etc/ssh/sshd_config.d -type f -name '*.conf' -exec sed -Ei 's/^\s*PermitRootLogin\s+.*/PermitRootLogin prohibit-password/' {} +));
+        $instance->ssh_assert_script_run(q(test ! -d /etc/ssh/sshd_config.d || sudo find /etc/ssh/sshd_config.d -type f -name '*.conf' -exec sed -Ei 's/^\s*AllowTcpForwarding\s+.*/AllowTcpForwarding yes/' {} +)) if (is_hardened());
     }
     $instance->ssh_assert_script_run('sudo systemctl reload sshd');
     $instance->wait_for_ssh();
