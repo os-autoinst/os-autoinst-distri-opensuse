@@ -12,10 +12,11 @@ use base "Exporter";
 use Exporter;
 
 use testapi;
-use utils qw(zypper_call handle_screen zypper_patches zypper_repos upload_y2logs);
+use utils qw(zypper_call handle_screen zypper_patches zypper_repos upload_y2logs set_zypper_lock_timeout);
 use JSON;
 use List::Util qw(max uniq);
 use version_utils qw(is_sle is_transactional);
+use transactional qw(trup_call);
 
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
@@ -94,6 +95,7 @@ sub add_test_repositories {
 
     my $oldrepo = get_var('PATCH_TEST_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    set_zypper_lock_timeout();
 
     add_extra_customer_repositories if get_var('MAINT_TEST_REPO');
 
@@ -121,8 +123,12 @@ sub add_test_repositories {
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
     # For sle16 staging tests, PR should be untrusted key
-    my $import_key = is_sle('>=16') ? '--gpg-auto-import-keys' : '';
-    zypper_call("$import_key ref", timeout => 1400, exitcode => [0, 106]);
+    if (is_transactional) {
+        trup_call('-c run zypper -n --gpg-auto-import-keys ref', timeout => 1400);
+    } else {
+        my $import_key = is_sle('>=16') ? '--gpg-auto-import-keys' : '';
+        zypper_call("$import_key ref", timeout => 1400, exitcode => [0, 106]);
+    }
 
     # return the count of repos-1 because counter is increased also on last cycle
     return --$counter;
