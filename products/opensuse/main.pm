@@ -151,7 +151,7 @@ sub load_consoletests_minimal {
     loadtest "console/consoletest_setup";
     loadtest "console/textinfo";
     loadtest "console/hostname";
-    if (!get_var("LIVETEST")) {
+    if (!get_var("LIVETEST") && has_yast) {
         loadtest "console/yast2_bootloader";
     }
     loadtest "console/consoletest_finish";

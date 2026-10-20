@@ -1150,7 +1150,7 @@ sub load_inst_tests {
 }
 
 sub load_console_server_tests {
-    if (is_qemu && !is_jeos) {
+    if (is_qemu && !is_jeos && has_yast) {
         # The NFS test expects the IP to be 10.0.2.15
         loadtest "console/yast2_nfs_server";
     }
@@ -1256,7 +1256,7 @@ sub load_consoletests {
     }
     loadtest 'console/systemd_wo_udev' if (is_sle('15-sp4+') || is_leap('15.4+') || is_tumbleweed);
     loadtest "console/ncurses" if is_leap;
-    loadtest "console/yast2_lan" unless ((is_sle("16+") || is_leap("16.0+")) || is_bridged_networking);
+    loadtest "console/yast2_lan" if (has_yast && !is_bridged_networking);
     # no local certificate store
     if (!is_krypton_argon) {
         loadtest "console/curl_https";
@@ -1283,8 +1283,8 @@ sub load_consoletests {
     load_system_update_tests(console_updates => 1);
     loadtest "console/console_reboot" if is_jeos;
     if (!get_var("LIVETEST")) {
-        loadtest "console/yast2_i" unless (is_sle("16+") || is_leap("16.0+"));
-        loadtest "console/yast2_bootloader" unless ((is_sle("16+") || is_leap("16.0+")) || is_bootloader_sdboot || is_bootloader_grub2_bls);
+        loadtest "console/yast2_i" if has_yast;
+        loadtest "console/yast2_bootloader" if (has_yast && !is_bootloader_sdboot && !is_bootloader_grub2_bls);
     }
     loadtest "console/vim" if is_opensuse || is_sle('<15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
     # textmode install comes without firewall by default atm on openSUSE.
@@ -1429,7 +1429,7 @@ sub load_x11tests {
         loadtest "x11/konsole";
     }
     # SLES4SAP default installation does not configure snapshots
-    if (snapper_is_applicable() and !is_sles4sap()) {
+    if (snapper_is_applicable() and !is_sles4sap() and has_yast) {
         loadtest "x11/yast2_snapper";
     }
     loadtest "x11/thunar" if xfcestep_is_applicable();
