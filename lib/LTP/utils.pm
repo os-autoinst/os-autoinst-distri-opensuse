@@ -445,6 +445,12 @@ sub parse_runtest_file {
     my $whitelist = LTP::WhiteList->new();
     my @tests = ();
 
+    # VR only, never merge: fake tests that die by a signal or exit high
+    unshift @$cmds,
+      "vr_sigkill sh -c 'kill -KILL \$\$'\n",
+      "vr_sigsegv sh -c 'kill -SEGV \$\$'\n",
+      "vr_exit200 sh -c 'exit 200'\n";
+
     for my $line (@$cmds) {
         next if ($line =~ /(^#)|(^$)/);
         #Command format is "<name> <command> [<args>...] [#<comment>]"
