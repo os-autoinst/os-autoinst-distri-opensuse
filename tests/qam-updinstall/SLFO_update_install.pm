@@ -43,7 +43,7 @@ my @conflicting_packages = (
     'ImageMagick-config-7-upstream-open',
     'ImageMagick-config-7-upstream-secure',
     'ImageMagick-config-7-upstream-websafe',
-    'tomcat10', 'tomcat',
+    'tomcat10', 'tomcat', 'libtcnative-1-0-devel',
     'raspberrypi-firmware-config',
     'rmt-server-pubcloud', 'rmt-server-config',
     'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
