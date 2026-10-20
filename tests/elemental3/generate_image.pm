@@ -450,9 +450,8 @@ sub post_run {
     upload_logs($_, failok => 1) foreach (@files_to_upload);
 
     # Create a tarball file with all and upload it
-    my $k8s = get_var('K8S', 'k8s');
-    my $tar_file = "${k8s}-manifest.tar.bz2";
-    script_run("cd ${tmpdir} ; tar --exclude='*.raw*' --exclude='*.qcow2*' -cvjf $tar_file *", timeout => 240);
+    my $tar_file = get_required_var('IMG_NAME') . '_' . get_required_var('CLUSTER_TYPE') . '_manifest.tar.bz2';
+    script_run("cd ${tmpdir} ; tar --exclude='*.raw*' --exclude='*.qcow2*' --exclude='*.iso*' -cvjf $tar_file *", timeout => 240);
     upload_asset("$tar_file", 1);
 }
 
