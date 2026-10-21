@@ -210,6 +210,54 @@ subtest 'has_selinux' => sub {
     ok !has_selinux, "check !has_selinux for Tumbleweed with SELINUX=0";
 };
 
+subtest 'has_yast_by_default' => sub {
+    # MicroOS / transactional (is_micro)
+    set_var('DISTRI', 'microos');
+    ok !version_utils::has_yast_by_default, "";
+
+    # SLE boundary (<16 vs 16.0+)
+    set_var('DISTRI', 'sle');
+    set_var('VERSION', '15-SP6');
+    ok version_utils::has_yast_by_default, "Old SLE versions have yast in patterns_base";
+    set_var('VERSION', '16.0');
+    ok !version_utils::has_yast_by_default, "New SLE versions don't have yast in patterns_base";
+
+    # Leap boundary (<16.0 vs 16.0+)
+    set_var('DISTRI', 'opensuse');
+    set_var('VERSION', '15.6');
+    ok version_utils::has_yast_by_default, "Old Leap versions have yast in patterns_base";
+    set_var('VERSION', '16.0');
+    ok !version_utils::has_yast_by_default, "New Leap versions don't have yast in patterns_base";
+
+    # Tumbleweed
+    set_var('VERSION', 'Tumbleweed');
+    ok !version_utils::has_yast_by_default, "Tumbleweed doesn't have yast in patterns_base";
+
+    set_var('DISTRI', undef);
+    set_var('VERSION', undef);
+};
+
+subtest 'has_yast' => sub {
+    use version_utils 'has_yast';
+
+    set_var('DISTRI', 'opensuse');
+    set_var('VERSION', 'Tumbleweed');
+    ok !has_yast, "Tumbleweed doesn't have yast in patterns_base";
+    set_var('HAS_YAST', '1');
+    ok has_yast, "check has_yast with HAS_YAST=1";
+
+    set_var('DISTRI', 'sle');
+    set_var('VERSION', '15-SP6');
+    ok has_yast, "SLE 15-SP6 has yast in patterns_base";
+
+    set_var('HAS_YAST', '0');
+    ok !has_yast, "HAS_YAST=0 can overriden for older systems that have yast in patterns_base";
+
+    set_var('DISTRI', undef);
+    set_var('VERSION', undef);
+    set_var('HAS_YAST', undef);
+};
+
 subtest 'bootloader_tests' => sub {
     use version_utils qw(get_default_bootloader get_bootloader);
 

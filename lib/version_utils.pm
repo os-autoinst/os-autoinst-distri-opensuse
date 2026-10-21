@@ -67,6 +67,7 @@ use constant {
           php_version
           has_selinux_by_default
           has_selinux
+          has_yast
           is_wsl
           is_ltss
         )
@@ -1066,6 +1067,25 @@ sub has_selinux {
     return get_var('SELINUX', has_selinux_by_default);
 }
 
+=head2 has_yast_by_default
+
+Returns true if the distribution is expected to pull YaST via patterns_base.
+=cut
+
+sub has_yast_by_default {
+    return 0 if is_jeos || is_micro;
+    return is_sle('<16') || is_leap('<16.0');
+}
+
+=head2 has_yast
+
+Returns true if YaST is available in default installation, C<HAS_YAST> will override the default.
+=cut
+
+sub has_yast {
+    return get_var('HAS_YAST', has_yast_by_default);
+}
+
 =head2 is_agama
 
 Check if agama installation is being used
@@ -1114,5 +1134,3 @@ sub is_ltss {
     # Check if current date is past the lifecycle date
     return $general_ends{$version} <= $current_date;
 }
-
-
