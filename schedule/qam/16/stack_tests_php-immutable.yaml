@@ -1,0 +1,10 @@
+---
+name: stack_tests_php-immutable
+description: PHP tests
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/php_mysql
+  - console/php_timezone
+  - console/php_pcre

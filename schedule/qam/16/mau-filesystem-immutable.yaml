@@ -1,0 +1,14 @@
+---
+name: mau-filesystem-immutable
+schedule:
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/lsof
+  - console/snapper_create
+  - console/btrfsmaintenance
+  - console/btrfs_autocompletion
+  - console/udisks2
+  - network/samba/server
+  - console/coredump_collect
+...
