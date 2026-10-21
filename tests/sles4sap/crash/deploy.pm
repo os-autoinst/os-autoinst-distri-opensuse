@@ -104,9 +104,12 @@ sub run {
             address_range => $range{main_address_range},
             subnet_range => $range{subnet_address_range});
 
-        my $ip_address = aws_get_ip_address(instance_id => $instance_id);
+        my $ip_address = aws_pubip_get(
+            region => $provider->provider_client->region,
+            instance_id => $instance_id);
+        die("No public IP for EC2 instance $instance_id") unless $ip_address;
         my $ssh_cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ec2-user\@$ip_address";
-        script_retry("$ssh_cmd hostnamectl", 90, delay => 15, retry => 12);
+        script_retry("$ssh_cmd hostnamectl", timeout => 90, delay => 15, retry => 12);
     }
     elsif ($provider_type eq 'AZURE') {
         my $os_ver = get_var('PUBLIC_CLOUD_IMAGE_LOCATION') ?

@@ -42,9 +42,11 @@ our @EXPORT = qw(
   aws_route_create
   aws_vm_create
   aws_vm_get_id
+  aws_vm_get_diagnostics
+  aws_vm_describe_status
   aws_vm_wait_status_ok
   aws_vm_terminate
-  aws_get_ip_address
+  aws_pubip_get
   aws_ssh_key_pair_import
   aws_tgw_vpc_attachment_get_id
   aws_tgw_get_id
@@ -54,6 +56,12 @@ our @EXPORT = qw(
   aws_tgw_attachment_delete
   aws_route_create_tgw
 );
+
+# Timeout in seconds for the 'timeout' command around aws
+use constant AWS_CMD_TIMEOUT => 60;
+# Timeout in seconds for script_output: larger than AWS_CMD_TIMEOUT
+# so that 'timeout' always stops aws first
+use constant AWS_SO_TIMEOUT => 90;
 
 
 =head2 aws_vpc_create
@@ -754,15 +762,61 @@ sub aws_vm_create(%args) {
             '--output', 'text'), 240);
 }
 
+=head2 _aws_ec2_describe_instances
+
+    my $data = _aws_ec2_describe_instances(
+        region => 'us-west-1',
+        filters => "'Name=instance-id,Values=i-12345'",
+        query => 'Reservations[0].Instances[0].State.Name');
+
+Internal function. Run C<aws ec2 describe-instances> with JSON output.
+The C<timeout> command stops aws before the script_output timeout.
+The function uses proceed_on_failure.
+Return the decoded JSON data structure.
+Return undef if the output is empty.
+Die if the output is not valid JSON.
+
+=over
+
+=item B<region> - AWS region
+
+=item B<filters> - value for C<--filters>, already quoted for the shell
+
+=item B<query> - JMESPath query, without quotes
+
+=back
+=cut
+
+sub _aws_ec2_describe_instances(%args) {
+    foreach (qw(region filters query)) {
+        croak("Argument < $_ > missing") unless $args{$_};
+    }
+    my $output = script_output(
+        join(' ',
+            'timeout -k 5', AWS_CMD_TIMEOUT,
+            'aws ec2 describe-instances',
+            '--region', $args{region},
+            '--filters', $args{filters},
+            '--query', "'$args{query}'",
+            '--output', 'json'),
+        timeout => AWS_SO_TIMEOUT,
+        proceed_on_failure => 1);
+    return unless defined($output) && $output =~ /\S/;
+    return decode_json($output);
+}
+
 =head2 aws_vm_get_id
 
-    my $instance_id = aws_vm_get_id(
+    my @instance_ids = aws_vm_get_id(
         region => 'us-west-1',
         job_id => '67890'
     );
 
-Retrieve the EC2 instance ID associated with a specific OpenQA job
-Returns the instance ID
+Retrieve the IDs of the EC2 instances associated with a specific OpenQA job.
+Terminated and shutting-down instances are ignored.
+Return a list of instance IDs. The list is empty if no instance
+is found or if the aws command fails.
+The caller must check how many elements the list has.
 
 =over
 
@@ -777,67 +831,165 @@ sub aws_vm_get_id(%args) {
     foreach (qw(region job_id)) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
-    return script_output(join(' ',
-            'aws ec2 describe-instances',
-            '--filters', "'Name=tag:OpenQAJobVm,Values=$args{job_id}'",
-            '--query', "'Reservations[*].Instances[*].InstanceId'",
-            '--output', 'text',
-            '--region', $args{region}));
+    my $data = _aws_ec2_describe_instances(
+        region => $args{region},
+        filters => "'Name=tag:OpenQAJobVm,Values=$args{job_id}' 'Name=instance-state-name,Values=pending,running,stopping,stopped'",
+        query => 'Reservations[].Instances[].InstanceId');
+    # Guard: _aws_ec2_describe_instances returns undef, a scalar, or a hash ref
+    # on failure. Filter: JMESPath can emit null entries (e.g. ["i-123", null])
+    # which decode_json turns into undef; drop them so callers get only real IDs.
+    return () unless ref($data) eq 'ARRAY';
+    return grep { defined } @$data;
 }
 
-=head2 aws_vm_wait_status_ok
+=head2 aws_vm_get_diagnostics
 
-    aws_vm_wait_status_ok(
-        instance_id => 'i-12345'
+    my $diag = aws_vm_get_diagnostics(
+        region => 'us-west-2',
+        instance_id => 'i-09dadefca25944818'
     );
 
-Wait for an EC2 instance to reach 'running' state with a timeout of 600 seconds
+Return a hash reference with diagnostic data about the instance:
+id, state, state_transition, state_reason, public_ip, private_ip, launch_time.
+Return undef if the instance is not found or if the aws command fails.
+Never dies at runtime.
 
 =over
 
-=item B<instance_id> - ID of the instance to monitor
-
-=back
-=cut
-
-sub aws_vm_wait_status_ok(%args) {
-    croak("Argument < instance_id > missing") unless $args{instance_id};
-
-    script_retry(join(' ',
-            'aws ec2 describe-instances',
-            '--instance-ids', $args{instance_id},
-            '--query', "'Reservations[*].Instances[*].State.Name'",
-            '--output', 'text',
-            '|', 'grep', "'running'"
-    ), 90, delay => 15, retry => 12);
-}
-
-=head2 aws_get_ip_address
-
-    my $ip = aws_get_ip_address(
-        instance_id => 'i-12345'
-    );
-
-Retrieve the public IP address of an EC2 instance
-Returns the public IP address
-
-=over
+=item B<region> - AWS region where the instance is located
 
 =item B<instance_id> - ID of the instance
 
 =back
 =cut
 
-sub aws_get_ip_address(%args) {
-    foreach (qw(instance_id)) {
+sub aws_vm_get_diagnostics(%args) {
+    foreach (qw(region instance_id)) { croak("Argument < $_ > missing") unless $args{$_}; }
+    my $data = _aws_ec2_describe_instances(
+        region => $args{region},
+        filters => "'Name=instance-id,Values=$args{instance_id}'",
+        query => 'Reservations[0].Instances[0].{id:InstanceId,state:State.Name,state_transition:StateTransitionReason,state_reason:StateReason.Message,public_ip:PublicIpAddress,private_ip:PrivateIpAddress,launch_time:LaunchTime}');
+    return ref($data) eq 'HASH' ? $data : undef;
+}
+
+=head2 aws_vm_describe_status
+
+    my $out = aws_vm_describe_status(
+        region => 'us-west-2',
+        instance_id => 'i-09dadefca25944818'
+    );
+
+    Return the output of describe-instance-status: instance state and
+    system/instance status checks, also for not running instances.
+    Never dies: the aws command is killed by C<timeout> before the
+    script_output timeout, and a failure or a kill returns the command
+    output (proceed_on_failure).
+
+=over
+
+=item B<region> - AWS region where the instance is located
+
+=item B<instance_id> - ID of the instance
+
+=back
+=cut
+
+sub aws_vm_describe_status(%args) {
+    foreach (qw(region instance_id)) { croak("Argument < $_ > missing") unless $args{$_}; }
+    # 'timeout' stops aws well before script_output gives up,
+    # so a slow AWS API ends as exit code 124 instead of a croak
+    return script_output(
+        join(' ',
+            'timeout -k 5', AWS_CMD_TIMEOUT,
+            'aws ec2 describe-instance-status',
+            '--region', $args{region},
+            '--instance-ids', $args{instance_id},
+            '--include-all-instances'),
+        timeout => AWS_SO_TIMEOUT,
+        proceed_on_failure => 1
+    );
+}
+
+=head2 aws_vm_wait_status_ok
+
+    die 'VM not running' if aws_vm_wait_status_ok(
+        region => 'us-west-1',
+        instance_id => 'i-12345'
+    );
+
+Wait for an EC2 instance to reach the 'running' state.
+A failed aws command counts as "not running yet".
+Return 0 if the instance reaches 'running' in time.
+Die with the last known state if it does not.
+
+=over
+
+=item B<region> - AWS region where the instance is located
+
+=item B<instance_id> - ID of the instance to monitor
+
+=item B<timeout> - maximum time to wait in seconds (default 600)
+
+=item B<delay> - time between two checks in seconds (default 15)
+
+=back
+=cut
+
+sub aws_vm_wait_status_ok(%args) {
+    foreach (qw(region instance_id)) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
-    return script_output(join(' ',
-            'aws ec2 describe-instances',
-            '--instance-ids', $args{instance_id},
-            '--query', "'Reservations[0].Instances[0].PublicIpAddress'",
-            '--output', 'text'),
-        90);
+    $args{timeout} //= 600;
+    $args{delay} //= 15;
+    croak 'Argument <delay> must be greater than 0' unless $args{delay} > 0;
+    croak 'Argument <timeout> must be 0 or greater' unless $args{timeout} >= 0;
+    my $max_checks = int($args{timeout} / $args{delay}) + 1;
+
+    my $state;
+    for my $check (0 .. $max_checks) {
+        $state = _aws_ec2_describe_instances(
+            region => $args{region},
+            filters => "'Name=instance-id,Values=$args{instance_id}'",
+            query => 'Reservations[0].Instances[0].State.Name');
+        if (defined($state) && !ref($state)) {
+            return 0 if $state eq 'running';
+        }
+        last if $check == $max_checks;
+        sleep $args{delay};
+    }
+    my $last_state = (defined($state) && !ref($state)) ? $state : 'unknown';
+    die("Instance $args{instance_id} not running after $args{timeout} seconds, last state: '$last_state'");
+}
+
+=head2 aws_pubip_get
+
+    my $ip = aws_pubip_get(
+        region => 'us-west-1',
+        instance_id => 'i-12345'
+    );
+
+Retrieve the public IP address of an EC2 instance.
+Return the public IP address, or undef if the instance has no public IP,
+is not found, or if the aws command fails.
+
+=over
+
+=item B<region> - AWS region where the instance is located
+
+=item B<instance_id> - ID of the instance
+
+=back
+=cut
+
+sub aws_pubip_get(%args) {
+    foreach (qw(region instance_id)) {
+        croak("Argument < $_ > missing") unless $args{$_};
+    }
+    my $ip = _aws_ec2_describe_instances(
+        region => $args{region},
+        filters => "'Name=instance-id,Values=$args{instance_id}'",
+        query => 'Reservations[0].Instances[0].PublicIpAddress');
+    return (defined($ip) && !ref($ip)) ? $ip : undef;
 }
 
 =head2 aws_vm_terminate

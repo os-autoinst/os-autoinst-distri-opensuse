@@ -13,16 +13,19 @@ use publiccloud::instance;
 use sles4sap::crash;
 
 my $qesap_utils_mock = Test::MockModule->new('sles4sap::qesap::utils', no_auto => 1);
+$qesap_utils_mock->redefine(record_info => sub { note(join(' ', 'RECORD_INFO (utils) -->', @_)); });
 $qesap_utils_mock->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
 
 subtest '[crash_deploy_azure]' => sub {
     set_var('WORKER_ID', 1);
     my @calls;
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
     $crash->redefine(az_vm_wait_running => sub { push @calls, 'az_vm_wait_running'; return; });
     $crash->redefine(qesap_get_public_cloud_tags => sub { return (); });
     my $azure = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azure->redefine(record_info => sub { note(join(' ', 'RECORD_INFO (azure_cli) -->', @_)); });
     $azure->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $azure->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azure->redefine(script_output => sub {
@@ -45,6 +48,7 @@ subtest '[crash_deploy_azure] tags' => sub {
     set_var('WORKER_ID', 1);
     my @calls;
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
     $crash->redefine(az_vm_wait_running => sub { push @calls, 'az_vm_wait_running'; return; });
     my %mock_tags = (
@@ -54,6 +58,7 @@ subtest '[crash_deploy_azure] tags' => sub {
     );
     $crash->redefine(qesap_get_public_cloud_tags => sub { return %mock_tags; });
     my $azure = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azure->redefine(record_info => sub { note(join(' ', 'RECORD_INFO (azure_cli) -->', @_)); });
     $azure->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $azure->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azure->redefine(script_output => sub {
@@ -80,12 +85,14 @@ subtest '[crash_deploy_azure] tags' => sub {
 
 subtest '[crash_deploy_aws]' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
     my @calls;
     my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $aws->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $aws->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $aws->redefine(script_output => sub { push @calls, $_[0]; return 'LactariusTorminosus'; });
-    $aws->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
+    $crash->redefine(aws_vm_wait_status_ok => sub { push @calls, 'aws_vm_wait_status_ok'; return 0; });
 
     my $id = crash_deploy_aws(
         region => 'SclerodermaCitrinum',
@@ -98,14 +105,17 @@ subtest '[crash_deploy_aws]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /run-instance/ } @calls), 'Run VM');
+    ok((any { /aws_vm_wait_status_ok/ } @calls), 'Wait for VM running');
 };
 
 subtest '[crash_deploy_gcp]' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
     $crash->redefine(gcp_vm_wait_running => sub { return; });
     my @calls;
     my $gcp = Test::MockModule->new('sles4sap::gcp_cli', no_auto => 1);
+    $gcp->redefine(record_info => sub { note(join(' ', 'RECORD_INFO (gcp_cli) -->', @_)); });
     $gcp->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $gcp->redefine(script_output => sub {
             push @calls, $_[0];
@@ -136,9 +146,11 @@ subtest '[crash_pubip] not supported csp' => sub {
 
 subtest '[crash_pubip] AZURE' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(crash_deploy_name => sub { return 'ImperatorTorosus'; });
     my @calls;
     my $azure = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azure->redefine(record_info => sub { note(join(' ', 'RECORD_INFO (azure_cli) -->', @_)); });
     $azure->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $azure->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azure->redefine(script_output => sub {
@@ -154,24 +166,48 @@ subtest '[crash_pubip] AZURE' => sub {
 
 subtest '[crash_pubip] EC2' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(crash_deploy_name => sub { return 'ImperatorTorosus'; });
-    my @calls;
-    my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
-    $aws->redefine(script_output => sub {
-            push @calls, $_[0];
-            return 'Inoc.ybe.Geo.phylla'; });
+    my %ip_args;
+    $crash->redefine(aws_vm_get_id => sub { return ('BoletusEdulis'); });
+    $crash->redefine(aws_pubip_get => sub { %ip_args = @_; return 'Inoc.ybe.Geo.phylla'; });
 
     my $res = crash_pubip(provider => 'EC2', region => 'AmanitaFalloide');
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
     ok(($res eq 'Inoc.ybe.Geo.phylla'), "Expected 'Inoc.ybe.Geo.phylla' IP address and get $res");
+    is($ip_args{instance_id}, 'BoletusEdulis', 'IP requested for the found instance');
+    is($ip_args{region}, 'AmanitaFalloide', 'Region passed to aws_pubip_get');
+};
+
+subtest '[crash_pubip] EC2 not exactly one instance' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $crash->redefine(crash_deploy_name => sub { return 'ImperatorTorosus'; });
+    $crash->redefine(aws_pubip_get => sub { return 'Inoc.ybe.Geo.phylla'; });
+
+    $crash->redefine(aws_vm_get_id => sub { return (); });
+    dies_ok { crash_pubip(provider => 'EC2', region => 'AmanitaFalloide') } 'Die with no instance';
+    $crash->redefine(aws_vm_get_id => sub { return ('CantharellusCibarius', 'MorchellaEsculenta'); });
+    dies_ok { crash_pubip(provider => 'EC2', region => 'AmanitaFalloide') } 'Die with two instances';
+};
+
+subtest '[crash_pubip] EC2 no IP' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $crash->redefine(crash_deploy_name => sub { return 'ImperatorTorosus'; });
+    $crash->redefine(aws_vm_get_id => sub { return ('BoletusEdulis'); });
+    $crash->redefine(aws_pubip_get => sub { return undef; });
+
+    dies_ok { crash_pubip(provider => 'EC2', region => 'AmanitaFalloide') } 'Die without public IP';
 };
 
 subtest '[crash_pubip] GCP' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(crash_deploy_name => sub { return 'ImperatorTorosus'; });
     my @calls;
     my $gcp = Test::MockModule->new('sles4sap::gcp_cli', no_auto => 1);
+    $gcp->redefine(record_info => sub { note(join(' ', 'RECORD_INFO (gcp_cli) -->', @_)); });
     $gcp->redefine(script_output => sub {
             push @calls, $_[0];
             return 'GyromitraEsculenta'; });
@@ -197,10 +233,11 @@ subtest '[crash_get_username] invalid csp' => sub {
 
 subtest '[crash_get_instance]' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(crash_pubip => sub { return 'Inoc.ybe.Geo.phylla'; });
     $crash->redefine(crash_get_username => sub { return 'cloudadmin'; });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
-    $crash->redefine(aws_vm_get_id => sub { return 'AmanitaBisporigera'; });
+    $crash->redefine(aws_vm_get_id => sub { return ('AmanitaBisporigera'); });
     my $mock_instance = Test::MockObject->new();
     my @new_args;
     my $instance_mock = Test::MockModule->new('publiccloud::instance', no_auto => 1);
@@ -218,6 +255,7 @@ subtest '[crash_get_instance]' => sub {
 
 subtest '[crash_get_instance] GCE with availability_zone' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
     my $mock_instance = Test::MockObject->new();
     my @new_args;
@@ -229,6 +267,7 @@ subtest '[crash_get_instance] GCE with availability_zone' => sub {
 
     my @calls;
     my $gcp = Test::MockModule->new('sles4sap::gcp_cli', no_auto => 1);
+    $gcp->redefine(record_info => sub { note(join(' ', 'RECORD_INFO (gcp_cli) -->', @_)); });
     $gcp->redefine(script_output => sub {
             push @calls, $_[0];
             return 'Inoc.ybe.Geo.phylla'; });
@@ -272,6 +311,7 @@ subtest '[crash_cleanup] GCE' => sub {
 
     my @calls;
     my $gcp = Test::MockModule->new('sles4sap::gcp_cli', no_auto => 1);
+    $gcp->redefine(record_info => sub { note(join(' ', 'RECORD_INFO (gcp_cli) -->', @_)); });
     $gcp->redefine(assert_script_run => sub {
             my ($cmd, %args) = @_;
             push @calls, $cmd;
@@ -298,9 +338,12 @@ subtest '[crash_cleanup] GCE' => sub {
 
 subtest '[crash_cleanup] EC2' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    $crash->redefine(aws_vm_get_id => sub { return ('LactariusTorminosus'); });
     my @calls;
     my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $aws->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $aws->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $aws->redefine(script_output => sub {
             my $cmd = shift;
@@ -318,9 +361,12 @@ subtest '[crash_cleanup] EC2' => sub {
 
 subtest '[crash_cleanup] EC2 failure' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    $crash->redefine(aws_vm_get_id => sub { return ('LactariusTorminosus'); });
     my @calls;
     my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $aws->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $aws->redefine(script_run => sub { push @calls, $_[0]; return 42; });
     $aws->redefine(script_output => sub {
             my $cmd = shift;
@@ -338,6 +384,7 @@ subtest '[crash_cleanup] EC2 failure' => sub {
 
 subtest '[crash_system_ready]' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $crash->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
@@ -424,6 +471,7 @@ subtest '[crash_wait_back] failed services' => sub {
 
 subtest '[crash_network_peering_create] AZURE' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
     $crash->redefine(crash_pubip => sub { return 'Inoc.ybe.Geo.phylla'; });
     $crash->redefine(crash_get_username => sub { return 'cloudadmin'; });
@@ -451,6 +499,7 @@ subtest '[crash_network_peering_create] AZURE' => sub {
 
 subtest '[crash_network_peering_create] GCE' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
     $crash->redefine(crash_pubip => sub { return 'GyromitraEsculenta'; });
     $crash->redefine(crash_get_username => sub { return 'cloudadmin'; });
@@ -488,6 +537,7 @@ subtest '[crash_network_peering_create] unsupported provider' => sub {
 
 subtest '[crash_network_peering_create] missing arguments' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(crash_pubip => sub { return '1.2.3.4'; });
     $crash->redefine(crash_get_username => sub { return 'cloudadmin'; });
     $crash->redefine(ibsm_network_peering_azure_create => sub { });
@@ -506,6 +556,7 @@ subtest '[crash_network_peering_create] missing arguments' => sub {
 subtest '[crash_network_peering_delete] AZURE' => sub {
     set_var('IBSM_IP', '1.2.3.4');
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
 
     my @delete_args;
@@ -524,6 +575,7 @@ subtest '[crash_network_peering_delete] AZURE' => sub {
 subtest '[crash_network_peering_delete] GCE' => sub {
     set_var('IBSM_IP', '1.2.3.4');
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
 
     my @delete_args;
