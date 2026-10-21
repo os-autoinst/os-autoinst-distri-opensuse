@@ -26,6 +26,7 @@ subtest '[ipaddr2_infra_deploy]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+    $azcli->redefine(az => sub { my %args = @_; push @calls, ['azure_cli', $args{az_args}]; return {rc => 0}; });
 
     ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci');
 
@@ -62,6 +63,11 @@ subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+    $azcli->redefine(az => sub {
+            my %args = @_;
+            push @calls, ['azure_cli', $args{az_args}];
+            return {rc => 0, stdout => '{"id": "fake_id"}'};
+    });
 
     ipaddr2_infra_deploy(
         region => 'Marconi',
@@ -78,7 +84,7 @@ subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
 
     # Todo : expand it
     ok(($#calls > 0), "There are some command calls");
-    ok((any { /az vm create.*custom-data/ } @cmds), 'custom-data in az vm create when cloud-init is enabled');
+    ok((any { /vm create.*custom-data/ } @cmds), 'custom-data in az vm create when cloud-init is enabled');
     ok((any { /sudo cloud-init status/ } @cmds), 'wait cloud-init when cloud-init is enabled');
 };
 
@@ -95,6 +101,7 @@ subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+    $azcli->redefine(az => sub { my %args = @_; push @calls, ['azure_cli', $args{az_args}]; return {rc => 0}; });
 
     ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS');
 
@@ -125,6 +132,7 @@ subtest '[ipaddr2_infra_deploy] diagnostic' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Fermi'; });
+    $azcli->redefine(az => sub { my %args = @_; push @calls, ['azure_cli', $args{az_args}]; return {rc => 0}; });
 
     ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', diagnostic => 1);
 
@@ -147,6 +155,7 @@ subtest '[ipaddr2_infra_deploy] with .vhd' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+    $azcli->redefine(az => sub { my %args = @_; push @calls, ['azure_cli', $args{az_args}]; return {rc => 0}; });
 
     ipaddr2_infra_deploy(region => 'Sithonia', os => 'Toroni.vhd');
 
@@ -175,6 +184,7 @@ subtest '[ipaddr2_infra_deploy] tags' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+    $azcli->redefine(az => sub { my %args = @_; push @calls, ['azure_cli', $args{az_args}]; return {rc => 0}; });
 
     ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci');
 

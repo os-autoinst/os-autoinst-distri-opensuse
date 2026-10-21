@@ -445,7 +445,12 @@ subtest '[az_vm_as_show]' => sub {
 subtest '[az_vm_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'err.log' if grep /az.err/, $_[0]; });
 
     az_vm_create(
         resource_group => 'Arlecchino',
@@ -459,7 +464,12 @@ subtest '[az_vm_create]' => sub {
 subtest '[az_vm_create] with public IP' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'err.log' if grep /az.err/, $_[0]; });
 
     az_vm_create(
         resource_group => 'Arlecchino',
@@ -479,6 +489,12 @@ subtest '[az_vm_create] with no public IP' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'err.log' if grep /az.err/, $_[0]; });
 
     az_vm_create(
         resource_group => 'Arlecchino',
@@ -497,6 +513,12 @@ subtest '[az_vm_create] with empty public IP' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'err.log' if grep /az.err/, $_[0]; });
 
     az_vm_create(
         resource_group => 'Arlecchino',
@@ -511,8 +533,14 @@ subtest '[az_vm_create] with empty public IP' => sub {
 subtest '[az_vm_create] SDAF mix' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     my $tags = 'Balanzone=CapitanSpaventa';
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'err.log' if grep /az.err/, $_[0]; });
 
     az_vm_create(
         resource_group => 'Arlecchino',
@@ -1122,7 +1150,12 @@ subtest '[az_network_peering_delete]' => sub {
 subtest '[az_disk_create] Create disk by cloning with source' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'err.log' if grep /az.err/, $_[0]; });
 
     az_disk_create(
         resource_group => 'Pa_a_Pi',
@@ -1139,7 +1172,12 @@ subtest '[az_disk_create] Create disk by cloning with source' => sub {
 subtest '[az_disk_create] Create empty disk defining size' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'err.log' if grep /az.err/, $_[0]; });
 
     az_disk_create(
         resource_group => 'Pa_a_Pi',

@@ -32,6 +32,7 @@ subtest '[zp_azure_deploy] integration test' => sub {
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'PALETTA'; });
+    $azcli->redefine(az => sub { my %args = @_; push @calls, ['azure_cli', $args{az_args}]; return {rc => 0}; });
 
     zp_azure_deploy(region => 'SABBIA', os => 'MARE');
 
