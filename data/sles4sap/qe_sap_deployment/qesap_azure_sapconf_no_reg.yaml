@@ -15,6 +15,7 @@ terraform:
     public_key: '%SLES4SAP_PUBSSHKEY%'
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
+    custom_tags: { 'openqa_var_job_id': '%CUSTOM_TAGS_JOB_ID%', 'openqa_var_name': '%CUSTOM_TAGS_NAME%', 'openqa_var_server': '%CUSTOM_TAGS_SERVER%', 'openqa_created_date': '%CUSTOM_TAGS_CREATEDATE%'}
 ansible:
   az_storage_account_name: '%HANA_ACCOUNT%'
   az_container_name:  '%HANA_CONTAINER%'

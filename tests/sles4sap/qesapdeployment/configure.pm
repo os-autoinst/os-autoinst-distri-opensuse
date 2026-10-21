@@ -178,6 +178,7 @@ use qam 'get_test_repos';
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::publiccloud;
 use sles4sap::ibsm;
+use sles4sap::qesap::utils qw( qesap_get_public_cloud_tags );
 
 sub run {
     my ($self) = @_;
@@ -222,6 +223,12 @@ sub run {
     $variables{SLES4SAP_PUBSSHKEY} = get_ssh_private_key_path() . '.pub';
     $variables{REGISTRATION_PLAYBOOK} = get_var('QESAPDEPLOY_REGISTRATION_PLAYBOOK', 'registration');
     $variables{REGISTRATION_PLAYBOOK} =~ s/\.yaml$//;
+
+    my %tags = qesap_get_public_cloud_tags();
+    $variables{CUSTOM_TAGS_JOB_ID} = $tags{openqa_var_job_id};
+    $variables{CUSTOM_TAGS_NAME} = $tags{openqa_var_name};
+    $variables{CUSTOM_TAGS_SERVER} = $tags{openqa_var_server};
+    $variables{CUSTOM_TAGS_CREATEDATE} = $tags{openqa_created_date};
 
     my $reg_args;
     if (get_var('QESAPDEPLOY_FORCE_FLAVOR')) {
