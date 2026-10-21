@@ -235,7 +235,7 @@
 
 <pre><code>config_guest_osinfo($self[, guest_osinfo =&gt; &#39;os&#39;])</code></pre>
 
-<p>Configure [guest_osinfo_options]. User can still change [guest_osinfo] by passing non-empty arguments using hash. If installations already passes, modify_guest_params will be called to modify [guest_osinfo] using already modified [guest_osinfo_options].</p>
+<p>Configure [guest_osinfo_options]. User can still change [guest_osinfo] by passing non-empty arguments using hash. Supports backward compatibility with legacy [guest_os_variant] parameters. If installations already passes, modify_guest_params will be called to modify [guest_osinfo] using already modified [guest_osinfo_options].</p>
 
 <h2 id="config_guest_graphics_and_video">config_guest_graphics_and_video</h2>
 
