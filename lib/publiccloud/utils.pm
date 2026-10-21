@@ -497,6 +497,23 @@ sub permit_root_login {
     $instance->ssh_assert_script_run(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
 }
 
+# Permit root login with a key and, on hardened images, TCP forwarding (the ssh tunnel needs both).
+sub _permit_root_login_and_tcp_forwarding {
+    my ($instance) = @_;
+    my $hardened = is_hardened();
+
+    # SLE 16 and Micro 6 read overrides from sshd_config.d drop-ins
+    if (is_sle('>=16') || is_sle_micro('>=6.0')) {
+        $instance->ssh_assert_script_run(q(echo "PermitRootLogin without-password" | sudo tee /etc/ssh/sshd_config.d/10-root-login.conf));
+        $instance->ssh_assert_script_run(q(echo "AllowTcpForwarding yes" | sudo tee /etc/ssh/sshd_config.d/10-tcp-forwarding.conf)) if ($hardened);
+    }
+    # Hardened images keep these settings in sshd_config or in an sshd_config.d drop-in, and sshd uses
+    # the first value it finds, so a later drop-in cannot override them. Patch every sshd config file.
+    my $sshd_files = q(find /etc/ssh -maxdepth 2 -type f -path '/etc/ssh/sshd_config*');
+    $instance->ssh_assert_script_run(qq(sudo $sshd_files -exec sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" {} +));
+    $instance->ssh_assert_script_run(qq(sudo $sshd_files -exec sed -i "/^AllowTcpForwarding/c\\AllowTcpForwarding yes" {} +)) if ($hardened);
+}
+
 sub prepare_ssh_tunnel {
     my ($instance) = @_;
 
@@ -517,13 +534,7 @@ sub prepare_ssh_tunnel {
     assert_script_run("install -o $testapi::username -g users -m 0600 ~/.ssh/* /home/$testapi::username/.ssh/");
 
     # Permit root passwordless login and TCP forwarding over SSH
-    if (is_sle('>=16') || is_sle_micro('>=6.0')) {
-        $instance->ssh_assert_script_run(q(echo "PermitRootLogin without-password" | sudo tee /etc/ssh/sshd_config.d/10-root-login.conf));
-        $instance->ssh_assert_script_run(q(echo "AllowTcpForwarding yes" | sudo tee /etc/ssh/sshd_config.d/10-tcp-forwarding.conf)) if (is_hardened());
-    } else {
-        $instance->ssh_assert_script_run('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
-        $instance->ssh_assert_script_run('sudo sed -i "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (is_hardened());
-    }
+    _permit_root_login_and_tcp_forwarding($instance);
     $instance->ssh_assert_script_run('sudo systemctl reload sshd');
     $instance->wait_for_ssh();
     record_info('sshd -G', $instance->ssh_script_output('sudo sshd -G', proceed_on_failure => 1));
