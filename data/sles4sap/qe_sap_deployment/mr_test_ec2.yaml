@@ -21,6 +21,7 @@ terraform:
     os_owner: '%SLES4SAP_OS_OWNER%'
     vpc_address_range: '%MAIN_ADDRESS_RANGE%'
     ibsm_project_tag: '%IBSM_PRJ_TAG%'
+    allowed_ssh_cidr_csv: '%SLES4SAP_WORKER_IP%'
 
     # HANA
     hana_count: '%NODE_COUNT%'
