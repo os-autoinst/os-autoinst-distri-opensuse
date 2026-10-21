@@ -11,12 +11,11 @@ apiver: 4
 terraform:
   bin: '%TERRAFORM_RUNNER%'
   variables:
-    # GENERAL VARIABLES #
     az_region: '%PUBLIC_CLOUD_REGION%'
     deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: 'cloudadmin'
-    public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
+    public_key: '%SLES4SAP_PUBSSHKEY%'
     allowed_ssh_cidr_csv: '%SLES4SAP_WORKER_IP%'
 
     # IBSm network peering
@@ -37,7 +36,7 @@ terraform:
     drbd_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
     netweaver_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
     iscsi_enabled: '%ISCSI_ENABLED%'
-
+    custom_tags: { 'openqa_var_job_id': '%SLES4SAP_CUSTOM_TAGS_JOB_ID%', 'openqa_var_name': '%SLES4SAP_CUSTOM_TAGS_NAME%', 'openqa_var_server': '%SLES4SAP_CUSTOM_TAGS_SERVER%', 'openqa_created_date': '%SLES4SAP_CUSTOM_TAGS_CREATEDATE%'}
 ansible:
   verbosity: 3
   az_storage_account_name: '%HANA_ACCOUNT%'

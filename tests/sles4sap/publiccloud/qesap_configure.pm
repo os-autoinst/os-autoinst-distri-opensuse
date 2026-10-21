@@ -156,6 +156,7 @@ use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
 use sles4sap::azure_cli;
 use sles4sap::ibsm;
+use sles4sap::qesap::utils 'qesap_get_public_cloud_tags';
 use serial_terminal 'select_serial_terminal';
 use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
 use qam;
@@ -219,6 +220,12 @@ sub run {
     } elsif (is_ec2()) {
         set_var('IBSM_PRJ_TAG', '') unless (get_var('IBSM_PRJ_TAG'));
     }
+
+    my %tags = qesap_get_public_cloud_tags();
+    set_var('SLES4SAP_CUSTOM_TAGS_JOB_ID', $tags{openqa_var_job_id});
+    set_var('SLES4SAP_CUSTOM_TAGS_NAME', $tags{openqa_var_name});
+    set_var('SLES4SAP_CUSTOM_TAGS_SERVER', $tags{openqa_var_server});
+    set_var('SLES4SAP_CUSTOM_TAGS_CREATEDATE', $tags{openqa_created_date});
 
     # Select console on the host (not the PC instance) to reset 'TUNNELED',
     # otherwise select_serial_terminal() will be failed

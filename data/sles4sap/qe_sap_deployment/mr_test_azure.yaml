@@ -31,4 +31,4 @@ terraform:
     hana_vm_size: '%PUBLIC_CLOUD_INSTANCE_TYPE%'
     hana_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
     iscsi_enabled: '%ISCSI_ENABLED%'
-
+    custom_tags: { 'openqa_var_job_id': '%SLES4SAP_CUSTOM_TAGS_JOB_ID%', 'openqa_var_name': '%SLES4SAP_CUSTOM_TAGS_NAME%', 'openqa_var_server': '%SLES4SAP_CUSTOM_TAGS_SERVER%', 'openqa_created_date': '%SLES4SAP_CUSTOM_TAGS_CREATEDATE%'}
