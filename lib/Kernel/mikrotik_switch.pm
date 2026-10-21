@@ -26,6 +26,8 @@ our @EXPORT_OK = qw(
   get_port_pvid
   set_port_pvid
   create_vlan_network
+  add_vlan_ports
+  wait_for_vlan
   remove_vlan_network
 );
 
@@ -208,6 +210,52 @@ sub create_vlan_network {
     my @ports = @{$args{ports} // die 'create_vlan_network requires ports'};
     add_vlan(bridge => $args{bridge} // 'bridge', vlan_id => $vlan_id, untagged => join(',', @ports));
     set_port_pvid($_, $vlan_id) for @ports;
+}
+
+=head2 add_vlan_ports
+
+ add_vlan_ports(vlan_id => 5, ports => ['sfp-sfpplus9']);
+
+Adds C<ports> as untagged members to the existing test VLAN C<vlan_id> and
+sets their PVID to it. Use it when more than one job joins the network of
+C<create_vlan_network>: each job adds its own port after it released its
+test NIC. Dies if the VLAN does not exist.
+
+=cut
+
+sub add_vlan_ports {
+    my (%args) = @_;
+    my $vlan_id = $args{vlan_id} // die 'add_vlan_ports requires a vlan_id';
+    my @ports = @{$args{ports} // die 'add_vlan_ports requires ports'};
+    _check_test_vlan_id($vlan_id);
+    my ($vlan) = grep { $_->{'vlan-ids'} eq $vlan_id && ($_->{dynamic} // 'false') ne 'true' } get_all_vlans();
+    die "Mikrotik switch add_vlan_ports($vlan_id) failed: no such VLAN\n" unless $vlan;
+
+    my %seen;
+    my @untagged = grep { length && !$seen{$_}++ } (split(/,/, $vlan->{untagged} // ''), @ports);
+    _request('PATCH', "interface/bridge/vlan/$vlan->{'.id'}", {untagged => join(',', @untagged)});
+    set_port_pvid($_, $vlan_id) for @ports;
+}
+
+=head2 wait_for_vlan
+
+ wait_for_vlan(vlan_id => 5, timeout => 1800);
+
+Waits until the VLAN C<vlan_id> exists on the switch, for example until the
+job that runs C<create_vlan_network> created it. Checks every 10 seconds.
+Dies after C<timeout> seconds (default 1800).
+
+=cut
+
+sub wait_for_vlan {
+    my (%args) = @_;
+    my $vlan_id = $args{vlan_id} // die 'wait_for_vlan requires a vlan_id';
+    my $timeout = $args{timeout} // 1800;
+    for (my $waited = 0; $waited < $timeout; $waited += 10) {
+        return if grep { $_->{'vlan-ids'} eq $vlan_id && ($_->{dynamic} // 'false') ne 'true' } get_all_vlans();
+        sleep 10;
+    }
+    die "Mikrotik switch: VLAN $vlan_id does not exist after $timeout seconds\n";
 }
 
 =head2 remove_vlan_network
