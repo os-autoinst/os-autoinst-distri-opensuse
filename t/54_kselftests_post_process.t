@@ -15,8 +15,11 @@ package FakeWhitelist {
     sub new { bless {}, shift }
 
     sub find_whitelist_entry {
-        my ($self, $env, $collection, $name) = @_;
+        my ($self, $env, $collection, @keys) = @_;
+        my $name = $keys[-1];
+        my $parent = @keys > 1 ? $keys[0] : undef;
         return {} if $name =~ /^(test_memcg_reclaim|test_memcg_swap_max_peak)$/;
+        return {} if $name eq 'scoped_by_parent' && defined($parent) && $parent eq 'test_memcontrol';
         return undef;
     }
 }
@@ -120,6 +123,12 @@ subtest 'post_process keeps the failed top-level result of a timed out test' => 
     chdir $cwd;
     ok $h > 0, 'hard failures reported';
     is $ktap->[-1], 'not ok 1 selftests: cgroup: test_memcontrol # TIMEOUT 300 seconds', 'top-level TIMEOUT result kept';
+};
+
+subtest 'subtest lookup is scoped to its parent test' => sub {
+    my ($ktap, $s, $h) = run_single(memcontrol_log(1, ['# not ok 1 scoped_by_parent'], 'not ok 1 selftests: cgroup: test_memcontrol # exit=1'));
+    is $s, 1, 'the subtest is matched only because the parent test name was passed through';
+    is $h, 0, 'no hard failures';
 };
 
 subtest 'net default parser' => sub {
