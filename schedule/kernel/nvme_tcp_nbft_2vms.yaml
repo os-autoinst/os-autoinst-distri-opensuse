@@ -35,3 +35,4 @@ conditional_schedule:
 schedule:
     - kernel/multimachine_barriers
     - '{{nvme}}'
+    - kernel/multimachine_barriers

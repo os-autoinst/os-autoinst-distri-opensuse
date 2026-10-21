@@ -34,3 +34,4 @@ schedule:
     - kernel/san_network
     - '{{nvme}}'
     - kernel/san_network_cleanup
+    - kernel/multimachine_barriers

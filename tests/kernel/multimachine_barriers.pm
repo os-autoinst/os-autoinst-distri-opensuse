@@ -2,19 +2,31 @@
 #
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Summary: Create the barriers of a multimachine test in its parallel parent job.
+# Summary: Create the barriers of a multimachine test and keep the parallel parent until the end
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
-use mmapi qw(get_parents get_children);
+use mmapi qw(get_parents get_children wait_for_children);
 use scheduler 'get_test_suite_data';
 use Kernel::multimachine_topology 'get_job_nodes';
 
 my $ready = 'mm_barriers_ready';
 
 sub run {
+    # Scheduled again at the end of the job: the barriers belong to the
+    # parallel parent, and a child that still waits on a barrier fails as
+    # soon as the parent job is done. So the parent waits for its children.
+    if (get_var('MM_BARRIERS_CREATED')) {
+        my $children = get_children() // die 'Cannot get the parallel children of this job';
+        return record_info('Done', 'This job is a parallel child, it does not wait') unless %$children;
+        record_info('Wait', 'Waiting until the parallel children are done: ' . join(' ', sort keys %$children));
+        wait_for_children;
+        return;
+    }
+    set_var('MM_BARRIERS_CREATED', 1);
+
     my $data = get_test_suite_data() // {};
     my $barriers = $data->{multimachine_barriers};
     die 'multimachine_barriers missing from test_data' unless ref $barriers eq 'ARRAY' && @$barriers;
@@ -53,7 +65,8 @@ sub test_flags {
 =head1 Description
 
 Create the barriers of a multimachine test from C<test_data>. Schedule
-this module first in every job of the setup, before the installation.
+this module first in every job of the setup, before the installation, and
+again as the last module of every job.
 
 openQA finds the barriers of a job only in the job itself and its
 parallel parents. So the job without parallel parents creates the
@@ -67,6 +80,12 @@ a job with more than one parallel parent fails. If the schedule has a
 C<multimachine_topology>, the parent also checks that the number of its
 nodes that run a job matches the number of jobs (see C<get_job_nodes> in
 C<Kernel::multimachine_topology>).
+
+The barriers belong to the parent job. When the parent job is done, a child
+that still waits on a barrier fails with "lock owner already finished",
+also if the barrier was already released. So in its second run at the end
+of the job, the module waits in the parent job until all its parallel
+children are done. In the child jobs, the second run does nothing.
 
 =head1 Configuration
 
