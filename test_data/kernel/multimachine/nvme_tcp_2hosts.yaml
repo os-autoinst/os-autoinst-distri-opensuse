@@ -3,8 +3,8 @@ multimachine_topology:
 
   networks:
     - id: storage_vlan
-      ipv4_cidr: "192.168.5.0/24"
-      vlan_id: 5
+      ipv4_cidr: "192.168.6.0/24"
+      vlan_id: 6
 
   nodes:
     - id: merckx
@@ -14,7 +14,7 @@ multimachine_topology:
           network: storage_vlan
           device: enp20s0f0np0
           switch_port: sfp-sfpplus11
-          ipv4: "192.168.5.1"
+          ipv4: "192.168.6.1"
 
     - id: coppi
       role: nvme_initiator
@@ -23,4 +23,4 @@ multimachine_topology:
           network: storage_vlan
           device: enp20s0f0np0
           switch_port: sfp-sfpplus9
-          ipv4: "192.168.5.10"
+          ipv4: "192.168.6.10"
