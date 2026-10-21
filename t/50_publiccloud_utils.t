@@ -426,6 +426,50 @@ subtest '[ssh_allow_openqa_port_selinux] addresses $instance directly, not the c
     _unset(qw/QEMUPORT/);
 };
 
+subtest '[prepare_ssh_tunnel] patches every sshd config file on the instance' => sub {
+    # poo#208953: hardened images set PermitRootLogin/AllowTcpForwarding in an sshd_config.d drop-in
+    # that sshd reads before any drop-in the test adds, so the test must edit that file itself.
+    my $utils = Test::MockModule->new('publiccloud::utils', no_auto => 1);
+    $utils->redefine(assert_script_run => sub { 0 });
+    $utils->redefine(record_info => sub { 1 });
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('DISTRI', 'sle');
+    $testapi::username = 'bernhard';
+    $testapi::password = 'secret';
+
+    my @cmds;
+    my $inst = Test::MockObject->new;
+    $inst->mock(ssh_assert_script_run => sub { push @cmds, $_[1]; return 0; });
+    $inst->mock(ssh_script_output => sub { '' });
+    $inst->mock(wait_for_ssh => sub { 1 });
+    $inst->mock(public_ip => sub { '192.0.2.1' });
+    $inst->{username} = 'susetest';
+
+    my $find = q(sudo find /etc/ssh -maxdepth 2 -type f -path '/etc/ssh/sshd_config*' -exec sed -i );
+    my $root = qr/^\Q$find\E"s\/PermitRootLogin no\/PermitRootLogin prohibit-password\/g" \{\} \+$/;
+    my $fwd = qr/^\Q$find\E"\/\^AllowTcpForwarding\/c\\AllowTcpForwarding yes" \{\} \+$/;
+    my $dropin = qr/sudo tee \/etc\/ssh\/sshd_config\.d\/10-/;
+
+    for my $case ({version => '15-SP7', flavor => 'GCE-BYOS-Hardened-Incidents', fwd => 1, dropin => 0},
+        {version => '16.0', flavor => 'GCE-BYOS-Hardened-Incidents', fwd => 1, dropin => 2},
+        {version => '15-SP7', flavor => 'GCE-BYOS-Incidents', fwd => 0, dropin => 0},
+        {version => '16.0', flavor => 'GCE-BYOS-Incidents', fwd => 0, dropin => 1}) {
+        @cmds = ();
+        set_var('VERSION', $case->{version});
+        set_var('FLAVOR', $case->{flavor});
+        prepare_ssh_tunnel($inst);
+        my $name = "$case->{version} $case->{flavor}";
+        is((grep { $_ =~ $root } @cmds), 1, "$name: PermitRootLogin patched in any sshd config file");
+        is((grep { $_ =~ $fwd } @cmds), $case->{fwd}, "$name: AllowTcpForwarding patched in any sshd config file only on hardened");
+        is((grep { $_ =~ $dropin } @cmds), $case->{dropin}, "$name: drop-in files written only on SLE16");
+        my ($patch) = grep { $_ =~ $root } @cmds;
+        my ($reload) = grep { /systemctl reload sshd/ } @cmds;
+        ok(index(join("\n", @cmds), $patch) < index(join("\n", @cmds), $reload), "$name: sshd reloaded after the patch");
+    }
+
+    _unset(qw/PUBLIC_CLOUD DISTRI VERSION FLAVOR/);
+};
+
 subtest '[calculate_custodian_ttl] ISO 8601 with offset' => sub {
     my $res = calculate_custodian_ttl(3600);
     like($res, qr{^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$}, 'ISO 8601 Z format');
