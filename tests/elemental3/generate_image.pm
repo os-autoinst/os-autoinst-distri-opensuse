@@ -450,7 +450,8 @@ sub post_run {
     upload_logs($_, failok => 1) foreach (@files_to_upload);
 
     # Create a tarball file with all and upload it
-    my $tar_file = get_required_var('IMG_NAME') . '_' . get_required_var('CLUSTER_TYPE') . '_manifest.tar.bz2';
+    # NOTE: NAME variable is the only value that is unique per job!
+    my $tar_file = get_required_var('NAME') . '_manifest.tar.bz2';
     script_run("cd ${tmpdir} ; tar --exclude='*.raw*' --exclude='*.qcow2*' --exclude='*.iso*' -cvjf $tar_file *", timeout => 240);
     upload_asset("$tar_file", 1);
 }
