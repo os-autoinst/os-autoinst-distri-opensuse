@@ -60,15 +60,15 @@ systemd:
         [Unit]
         Description=K8s Pre-Installation
         ConditionFirstBoot=true
-        Wants=network-online.target
+        Requires=network-online.target
         After=network-online.target
         Before=k8s-config-installer.service
 
         [Service]
         Type=oneshot
         Restart=on-failure
-        ExecStart=/bin/sh -c 'mkdir -p /etc/rancher/rke2'
-        ExecStart=/bin/sh -c 'ip=$$(ip -o route get 1 2>/dev/null | cut -d" " -f7); [ -n "$$ip" ] && echo "node-external-ip: $$ip" > /etc/rancher/rke2/config.yaml || true'
+        ExecStart=/bin/sh -c 'mkdir -p /etc/rancher/rke2/config.yaml.d && touch /etc/rancher/rke2/config.yaml'
+        ExecStart=/bin/sh -c 'ip=$$(ip -o route get 1 2>/dev/null | cut -d" " -f7); [ -n "$$ip" ] && echo "node-external-ip: $$ip" > /etc/rancher/rke2/config.yaml.d/99-node-external-ip.yaml || true'
         ExecStartPost=/bin/sh -c 'systemctl disable k8s-preinstall.service'
         ExecStartPost=/bin/sh -c 'rm -rf /etc/systemd/system/k8s-preinstall.service'
 
