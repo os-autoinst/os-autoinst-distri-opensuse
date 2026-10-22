@@ -32,6 +32,9 @@ sub run {
         zypper_call("ar --refresh -p 90 '$repo_url' devel_DMS");
     }
 
+    assert_script_run('echo migration_product: ' . get_var('AGAMA_PRODUCT_ID') . '/' . get_var('VERSION') . '/'
+          . get_var('ARCH') . ' > /etc/sle-migration-service.yml');
+
     # install the migration image and active it
     my $migration_tool = is_s390x ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
     record_info("installing DMS", script_output("zypper --gpg-auto-import-keys -n in $migration_tool"));
