@@ -81,6 +81,16 @@ sub qesap_is_job_finished {
     return ($job_state ne 'running');
 }
 
+sub _sanitize_gcp_label {
+    my ($value) = @_;
+    # GCP label values must be lowercase
+    $value =~ tr/A-Z/a-z/;
+    # GCP label values allow only [a-z0-9_-]
+    $value =~ s/[^a-z0-9_-]//g;
+    # GCP label values are at most 63 characters
+    return substr($value, 0, 63);
+}
+
 =head3 qesap_get_public_cloud_tags
 
     my %tags = qesap_get_public_cloud_tags();
@@ -91,17 +101,15 @@ Return a dictionary.
 =cut
 
 sub qesap_get_public_cloud_tags {
-    my $openqa_var_server = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'))
-      or die("Neither 'OPENQA_URL' nor 'OPENQA_HOSTNAME' is set");
+    my $openqa_var_server = get_var('OPENQA_URL') // get_required_var('OPENQA_HOSTNAME');
     # Remove the http://, https://, and/or the slash at the end
     $openqa_var_server =~ s@^https?://|/$@@g;
-    # Replace dots with dashes for GCP label compatibility
-    $openqa_var_server =~ s/\./-/g;
+    $openqa_var_server = _sanitize_gcp_label($openqa_var_server);
 
     my $openqa_var_name = get_var('NAME', '');
-    # Remove the @... suffix (e.g. @64bit) and truncate to max 63 characters
+    # Remove the @... suffix (e.g. @64bit)
     $openqa_var_name =~ s/@.*$//;
-    $openqa_var_name = substr($openqa_var_name, 0, 63);
+    $openqa_var_name = _sanitize_gcp_label($openqa_var_name);
 
     my %tags = (
         openqa_var_job_id => get_current_job_id(),
