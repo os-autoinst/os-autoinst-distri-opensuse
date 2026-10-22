@@ -35,6 +35,8 @@ use version_utils 'is_public_cloud';
 use LTP::utils;
 use LTP::WhiteList;
 use xfstests_utils;
+use package_utils 'install_available_packages';
+use Kernel::utils 'install_fio_debug_wrapper';
 use lockapi;
 
 # xfstests general variables
@@ -112,6 +114,12 @@ sub run {
     # Get wrapper
     assert_script_run("curl -o $TEST_WRAPPER " . data_url('xfstests/wrapper.sh'));
     assert_script_run("chmod a+x $TEST_WRAPPER");
+
+    # Tools for the pNFS debug data of run_subtest.pm
+    if (get_var('XFSTESTS_PNFS_DEBUG')) {
+        install_available_packages('wireshark tcpdump strace');
+        install_fio_debug_wrapper('/opt/pnfs_debug/fio');
+    }
 
     # Get test list
     my @tests = tests_from_ranges($TEST_RANGES, $INST_DIR);

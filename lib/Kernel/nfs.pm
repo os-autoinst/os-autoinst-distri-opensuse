@@ -11,15 +11,20 @@ use testapi;
 use package_utils;
 use utils 'systemctl';
 use List::Util 'uniq';
+use File::Basename qw(basename dirname);
 use Kernel::krb5 qw(setup_krb5_conf setup_krb5_kdc add_host_principals);
 use Kernel::net_tests qw(start_packet_capture stop_packet_capture count_capture_packets capture_statistics);
 use Kernel::block_dev qw(start_block_trace stop_block_trace count_block_writes);
+use Kernel::utils qw(start_trace_events save_trace);
 
 our @EXPORT = qw(
   create_export
   get_export_paths
   setup_pnfs_client
   verify_pnfs_block_layout
+  start_pnfs_debug
+  stop_pnfs_debug
+  collect_pnfs_debug
   kernel_supports_nfs_krb5
   setup_nfs_krb5_server
   setup_nfs_krb5_client
@@ -133,6 +138,125 @@ sub verify_pnfs_block_layout {
     upload_logs($blkparse_log, failok => 1);
     script_run("rm -f $mountpoint/pnfs_probe");
     assert_script_run("umount $mountpoint");
+}
+
+# Layout operations of the pNFS client and server and the block I/O, see
+# start_pnfs_debug()
+my @PNFS_TRACE_EVENTS = qw(
+  nfs4/nfs4_layoutget nfs4/pnfs_update_layout nfs4/nfs4_layoutcommit
+  nfs4/nfs4_layoutreturn nfs4/nfs4_layouterror nfs4/nfs4_getdeviceinfo
+  nfs4/nfs4_pnfs_read nfs4/nfs4_pnfs_write nfs4/pnfs_mds_fallback_*
+  nfsd/nfsd_layout* block/block_bio_queue block/block_rq_complete
+);
+my $pnfs_block_filter;
+
+=head2 start_pnfs_debug
+
+  start_pnfs_debug($dir);
+
+Start to collect pNFS block layout debug data into C<$dir>, old data in
+C<$dir> is removed:
+- capture the NFS traffic on lo. Over RDMA the capture stays empty, rxe loops
+  back the packets inside the kernel
+- trace the layout operations of client and server, and the block I/O of the
+  devices below the exports in F</etc/exports>
+
+Use C<collect_pnfs_debug> to keep the data, C<stop_pnfs_debug> to drop it.
+The trace keeps running between the calls, each call starts with an empty
+trace. This keeps the call before each subtest short.
+
+=cut
+
+sub start_pnfs_debug {
+    my ($dir) = @_;
+
+    # Kernel dev_t of the export devices, (major << 20) | minor. They do not
+    # change during a test run.
+    unless (defined $pnfs_block_filter) {
+        my $cmd = 'for p in ' . join(' ', get_export_paths()) . '; do d=$(findmnt -nvo SOURCE --target $p); ';
+        $cmd .= '[ -b "$d" ] && echo $(((0x$(stat -c %t $d) << 20) | 0x$(stat -c %T $d))); done; true';
+        $pnfs_block_filter = join(' || ', map { "dev == $_" } split(/\s+/, script_output($cmd, proceed_on_failure => 1)));
+    }
+    my @events = $pnfs_block_filter ? @PNFS_TRACE_EVENTS : grep { !m{^block/} } @PNFS_TRACE_EVENTS;
+    my %filters = $pnfs_block_filter ? map { $_ => $pnfs_block_filter } qw(block/block_bio_queue block/block_rq_complete) : ();
+
+    script_run("rm -rf $dir; mkdir -p $dir");
+    # Keep the metadata operations, but do not fill the disk when I/O falls
+    # back to NFS
+    start_packet_capture('lo', "$dir/nfs.pcap", 'port 2049', snaplen => 4096);
+    start_trace_events(\@events, filters => \%filters);
+}
+
+=head2 stop_pnfs_debug
+
+  stop_pnfs_debug();
+
+Stop the packet capture started by C<start_pnfs_debug>. The trace keeps
+running, the next C<start_pnfs_debug> clears it.
+
+=cut
+
+sub stop_pnfs_debug {
+    stop_packet_capture;
+}
+
+=head2 collect_pnfs_debug
+
+  collect_pnfs_debug($dir, $tarball, @ios);
+
+Keep the pNFS debug data started by C<start_pnfs_debug> after a failure and
+pack C<$dir> into C<$tarball>. Each element of C<@ios> is a failed I/O to
+repeat while the capture still runs:
+
+  {path => '/opt/nfs/scratch/file2', op => 'read', offset => 413696, len => 1024,
+   export_path => '/opt/export/scratch/file2', mnt => '/opt/nfs/scratch',
+   nfs_dev => 'server:/opt/export/scratch', mount_opts => '-o vers=4.1'}
+
+The I/O is repeated on the exported file (as the server sees it), on the
+block device at the offset from C<xfs_bmap> (as the pNFS block layout client
+does it) and over NFS, see repeat_io.log. The layout operations of the
+capture are decoded to layout_ops.log.
+
+=cut
+
+sub collect_pnfs_debug {
+    my ($dir, $tarball, @ios) = @_;
+
+    repeat_pnfs_io($dir, $_) foreach @ios;
+    stop_packet_capture;
+    save_trace("$dir/trace.log");
+    script_run("{ uname -a; cat /proc/fs/nfsfs/servers /proc/self/mountstats; mount; losetup -a; nfsstat -c; systemctl --no-pager status nfs-blkmap.service; } > $dir/env.log 2>&1");
+    script_run("dmesg > $dir/dmesg.log");
+    # GETDEVICEINFO, LAYOUTCOMMIT, LAYOUTGET and LAYOUTRETURN with the extents
+    script_run("test -s $dir/nfs.pcap && tshark -nr $dir/nfs.pcap -V -Y 'nfs.opcode == 47 || nfs.opcode == 49 || nfs.opcode == 50 || nfs.opcode == 51' > $dir/layout_ops.log 2>&1");
+    script_run("tar -czf $tarball -C " . dirname($dir) . ' ' . basename($dir), timeout => 300);
+}
+
+sub repeat_pnfs_io {
+    my ($dir, $io) = @_;
+    my $log = "$dir/repeat_io.log";
+    my ($file, $offset, $len) = @$io{qw(export_path offset len)};
+    my $aligned = int($offset / 4096) * 4096;
+
+    script_run("echo '=== $io->{op} offset=$offset buflen=$len on $io->{path}' >> $log");
+    script_run("{ echo '--- exported file $file'; stat $file; xfs_bmap -vp $file; xfs_io -r -c 'pread $offset $len' $file; xfs_io -d -r -c 'pread $aligned 4096' $file; } >> $log 2>&1");
+
+    # xfs_bmap -v prints [start..end] of the file and of the device in 512
+    # byte units, take the device range of the extent that holds the offset
+    my $dev = script_output("findmnt -nvo SOURCE --target $file", proceed_on_failure => 1);
+    my $sector = int($offset / 512);
+    foreach (split(/\n/, script_output("xfs_bmap -v $file", proceed_on_failure => 1))) {
+        next unless /\[(\d+)\.\.(\d+)\]:\s+(\d+)\.\./ && $sector >= $1 && $sector <= $2;
+        my $dev_offset = $3 * 512 + $offset - $1 * 512;
+        my $dev_aligned = int($dev_offset / 4096) * 4096;
+        script_run("{ echo '--- block device $dev offset $dev_offset'; dd if=$dev of=/dev/null iflag=skip_bytes,count_bytes skip=$dev_offset count=$len; echo dd exit: \$?; dd if=$dev of=/dev/null iflag=direct,skip_bytes,count_bytes skip=$dev_aligned count=4096; echo dd direct exit: \$?; } >> $log 2>&1");
+    }
+
+    my $mounted = script_run("mountpoint -q $io->{mnt}") == 0;
+    script_run("mount -t nfs $io->{mount_opts} $io->{nfs_dev} $io->{mnt}") unless $mounted;
+    script_run('echo 3 > /proc/sys/vm/drop_caches');
+    script_run("{ echo '--- NFS $io->{path}'; strace -tt -e trace=%file,%desc -o $dir/repeat_io.$offset.strace xfs_io -r -c 'pread $offset $len' $io->{path}; echo buffered pread exit: \$?; xfs_io -d -r -c 'pread $aligned 4096' $io->{path}; echo direct pread exit: \$?; } >> $log 2>&1");
+    script_run("umount $io->{mnt}") unless $mounted;
 }
 
 =head2 kernel_supports_nfs_krb5
