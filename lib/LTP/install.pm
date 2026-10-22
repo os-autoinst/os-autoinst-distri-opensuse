@@ -17,6 +17,7 @@ use File::Basename 'basename';
 use Utils::Architectures;
 use utils;
 use LTP::utils;
+use kernel 'get_kernel_flavor';
 
 our @EXPORT = qw(
   get_required_build_dependencies
@@ -35,6 +36,9 @@ sub get_required_build_dependencies {
 
     if (is_rt) {
         push @deps, 'kernel-rt-devel';
+    }
+    elsif (get_kernel_flavor eq 'kernel-nvidia64kb') {
+        push @deps, 'kernel-nvidia64kb-devel';
     }
     elsif (!get_var('KGRAFT')) {
         push @deps, 'kernel-default-devel';
