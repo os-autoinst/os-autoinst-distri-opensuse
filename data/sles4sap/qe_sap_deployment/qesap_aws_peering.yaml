@@ -22,6 +22,7 @@ terraform:
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     vpc_address_range: '%MAIN_ADDRESS_RANGE%'
+    allowed_ssh_cidr_csv: '%WORKER_IP%'
     custom_tags: { 'openqa_var_job_id': '%CUSTOM_TAGS_JOB_ID%', 'openqa_var_name': '%CUSTOM_TAGS_NAME%', 'openqa_var_server': '%CUSTOM_TAGS_SERVER%', 'openqa_created_date': '%CUSTOM_TAGS_CREATEDATE%'}
     ibsm_project_tag: '%IBSM_PRJ_TAG%'
 ansible:
