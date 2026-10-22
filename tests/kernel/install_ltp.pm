@@ -372,6 +372,10 @@ sub run {
 
     setup_network;
 
+    # Time synchronization daemons step or slew the clock after the clock
+    # setting tests, which breaks other timing tests (poo#193939)
+    disable_and_stop_service($_, ignore_failure => 1) for qw(chronyd ntpd);
+
     # we don't run LVM tests in 32bit, thus not generating the runtest file
     # for 32 bit packages
     if (!is_sle('<12')) {
