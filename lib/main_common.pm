@@ -2625,7 +2625,7 @@ sub set_sles16_mu_virt_vars {
     # Parse BUILD variable and set UPDATE_PACKAGE (format example: BUILD=:345:qemu)
     # This logic is the same as set_mu_virt_vars() to maintain consistency
     if (!get_var('UPDATE_PACKAGE') && (my $BUILD = get_var('BUILD'))) {
-        $BUILD =~ /:(\d+):([^:]+)$/im;
+        $BUILD =~ /:(\d+):([^:]+?)(?::[^:]+)?$/im;
         die "BUILD value is $BUILD, but does not match required format." unless $2;
 
         set_var('UPDATE_PACKAGE', $2);
