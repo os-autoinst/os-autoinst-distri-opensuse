@@ -32,15 +32,16 @@ sub run {
         zypper_call("mr -e $source_repo", exitcode => [0, 3]);
     }
     # Add staging update debug repo on nodejs update
-    if (check_var('FLAVOR', 'Online-Updates-Staging') && get_var('BUILD') =~ /:nodejs/) {
-        my $incident_repo = get_var('INCIDENT_REPO');
-        chop $incident_repo if $incident_repo =~ /\/$/;
-        zypper_call("ar -f $incident_repo-Source/ TEST_0_Source");
+    my @repos;
+    if (check_var('FLAVOR', 'Online-Updates-Staging') && (get_var('BUILD') // '') =~ /:nodejs/) {
+        @repos = split(/,/, get_var('INCIDENT_REPO', ''));
     }
-    if (check_var('FLAVOR', 'Online-Increments')) {
-        my $increment_repo = get_var('INCREMENT_REPO');
-        chop $increment_repo if $increment_repo =~ /\/$/;
-        zypper_call("ar -f $increment_repo/repo/SLES-16.0-" . get_var('ARCH') . "-Source TEST_0_Source");
+    elsif (check_var('FLAVOR', 'Online-Increments')) {
+        @repos = split(/,/, get_var('INCREMENT_REPO', ''));
+    }
+    while (my ($i, $repo) = each(@repos)) {
+        chop $repo if $repo =~ /\/$/;
+        zypper_call("ar -f $repo-Source/ TEST_${i}_Source");
     }
     assert_script_run 'wget --quiet ' . data_url('qam/crypto_rsa_dsa.patch') unless get_var('FLAVOR') =~ /TERADATA/ || is_sle('=12-sp5') || is_sle('=15-sp4');
     assert_script_run 'wget --quiet ' . data_url('console/test_openssl_nodejs.sh');
