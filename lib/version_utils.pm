@@ -1073,8 +1073,8 @@ Returns true if the distribution is expected to pull YaST via patterns_base.
 =cut
 
 sub has_yast_by_default {
-    return 0 if is_jeos || is_micro;
-    return is_sle('<16') || is_leap('<16.0');
+    return 1 if is_sle('<16') || is_leap('<16.0');
+    return 0;
 }
 
 =head2 has_yast
