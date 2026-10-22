@@ -13,6 +13,7 @@ my $sqlite_select = "sqlite3 --list --header $dbfile";
 
 my $sqlite_version = qx{sqlite3 --version};
 note "sqlite3 version: $sqlite_version";
+($sqlite_version) = $sqlite_version =~ m/^(\d+\.\d+)/;
 
 subtest create_tables => sub {
 
@@ -126,6 +127,9 @@ subtest test_rollback => sub {
         "mid|name|year|mtime",
         "9|The Matrix Reloaded|2003|",
     );
+    if ($sqlite_version > 3.53) {
+        push @expected, "mid|name|year|mtime";
+    }
     is_deeply(\@output, \@expected, "output savepoint & rollback ok");
 };
 
