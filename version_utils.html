@@ -82,6 +82,8 @@
       <li><a href="#is_quarterly_iso">is_quarterly_iso</a></li>
       <li><a href="#get_version_id">get_version_id</a></li>
       <li><a href="#has_selinux_by_default">has_selinux_by_default</a></li>
+      <li><a href="#has_yast_by_default">has_yast_by_default</a></li>
+      <li><a href="#has_yast">has_yast</a></li>
       <li><a href="#is_agama">is_agama</a></li>
       <li><a href="#is_ltss">is_ltss</a></li>
     </ul>
@@ -399,6 +401,14 @@
 <h2 id="has_selinux_by_default">has_selinux_by_default</h2>
 
 <p>Returns true if the distro has SELinux as default MAC</p>
+
+<h2 id="has_yast_by_default">has_yast_by_default</h2>
+
+<p>Returns true if the distribution is expected to pull YaST via patterns_base.</p>
+
+<h2 id="has_yast">has_yast</h2>
+
+<p>Returns true if YaST is available in default installation, <code>HAS_YAST</code> will override the default.</p>
 
 <h2 id="is_agama">is_agama</h2>
 
