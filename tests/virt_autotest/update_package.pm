@@ -10,15 +10,48 @@ package update_package;
 use testapi;
 use Mojo::Base 'virt_autotest_base';
 use utils 'is_uefi_boot';
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_sle_micro get_os_release);
 use virt_utils;
 use ipmi_backend_utils;
 use Utils::Architectures;
 use virt_autotest::utils qw(is_xen_host is_kvm_host is_registered_sles);
 
+# Split a version string into the release and the service pack,
+# "15-SP7" and "15.7" both give (15, 7).
+sub parse_os_version {
+    my ($version) = @_;
+    my ($release) = $version =~ /^(\d+)/;
+    my ($service_pack) = $version =~ /(?:-sp|\.)(\d+)$/i;
+    return ($release // '', $service_pack // 0);
+}
+
+# Return the release and the service pack of the version installed on the host.
+# s390x LPARs are queried with lpar_cmd like the rest of this test module.
+sub get_host_os_version {
+    return get_os_release unless is_s390x;
+    my ($ret, $output) = lpar_cmd('cat /etc/os-release', {timeout => 60, ignore_return_code => 1});
+    return () if ($ret != 0 or !defined $output);
+    my ($version) = $output =~ /^VERSION="?([^"\r\n]+)"?/m;
+    return parse_os_version($version);
+}
+
+# update_virt_rpms installs the packages of the version under test, so it must
+# only run when the host is installed with exactly that version.
+sub check_host_version {
+    my $expected_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
+    my ($expected_release, $expected_service_pack) = parse_os_version($expected_version);
+    my ($host_release, $host_service_pack) = get_host_os_version();
+
+    record_info('Host version check', "Host $host_release.$host_service_pack is compared with the expected version '$expected_version'");
+    #SL Micro reports its version in VARIANT and versions without a release number cannot be compared
+    return if (is_sle_micro or !$expected_release);
+    die "Host version '$host_release.$host_service_pack' does not match the expected version '$expected_version', going to terminate following test!" unless ($host_release and $host_release == $expected_release and $host_service_pack == $expected_service_pack);
+}
+
 sub update_package {
     my $self = shift;
     my $test_type = get_var('TEST_TYPE', 'Milestone');
+    check_host_version();
     my $update_pkg_cmd = "source /usr/share/qa/virtautolib/lib/virtlib;update_virt_rpms";
     my $ret;
     if ($test_type eq 'Milestone') {
