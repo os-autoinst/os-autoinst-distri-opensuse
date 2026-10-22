@@ -67,6 +67,12 @@ if ((is_leap("16.0+") || is_agama) && !$has_autologin) {
     set_var("NOAUTOLOGIN", 1);
 }
 
+# Preserve YaST in upgrades originating from openSUSE Leap 42.x or 15.x
+my $origin = get_var('HDD_1', '') . get_var('HDDVERSION', '') . get_var('ORIGINAL_VERSION', '');
+if (is_upgrade && $origin =~ /(?:15|42)\.\d/) {
+    set_var('HAS_YAST', 1) unless defined get_var('HAS_YAST');
+}
+
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
     # lightdm is the default DM for Tumbleweed and Leap 15.0 per boo#1081760
@@ -151,7 +157,7 @@ sub load_consoletests_minimal {
     loadtest "console/consoletest_setup";
     loadtest "console/textinfo";
     loadtest "console/hostname";
-    if (!get_var("LIVETEST")) {
+    if (!get_var("LIVETEST") && has_yast) {
         loadtest "console/yast2_bootloader";
     }
     loadtest "console/consoletest_finish";

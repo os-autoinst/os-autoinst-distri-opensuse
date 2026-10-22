@@ -106,6 +106,7 @@ GRUB_BOOT_NONDEFAULT | boolean | false | Boot grub menu entry added by `add_cust
 GRUB_SELECT_FIRST_MENU | integer | | Select grub menu entry in main grub menu, used together with GRUB_SELECT_SECOND_MENU. GRUB_BOOT_NONDEFAULT has higher preference when both set. NOTE: ARCH=s390x on BACKEND=s390x is not supported. See `boot_grub_item()`, `handle_grub()`.
 GRUB_SELECT_SECOND_MENU | integer | | Select grub menu entry in secondary grub menu (the "Advanced options ..." submenu), used together with GRUB_SELECT_FIRST_MENU. GRUB_BOOT_NONDEFAULT has higher preference when both set. NOTE: ARCH=s390x on BACKEND=s390x is not supported. See `boot_grub_item()`, `handle_grub()`.
 HASLICENSE | boolean | true if SLE, false otherwise | Enables processing and validation of the license agreements.
+HAS_YAST | boolean | false | Controls scheduling of post-installation YaST test modules used by the dynamic test scheduler (main.pm), YaST is expected to be in patterns_base only on older versions (Code 15 and older).
 HDDVERSION | string | | Indicates version of the system installed on the HDD.
 HTTPPROXY  |||
 HPC_WAREWULF_CONTAINER | string | | Set the container meant for warewulf test suite.
