@@ -565,6 +565,59 @@ sub update_simple_dns_for_all_vm {
     check_guest_ip("$_", net => $_vnet) foreach (split(/\n+/, $_vms));
 }
 
+=head2 record_guest_network_diagnostics
+
+  record_guest_network_diagnostics(guest => $guest)
+
+Record layered network diagnostics for a running guest that does not answer ping:
+guest NIC config, host bridge/vnet, DHCP/agent IP, host route, a stale /etc/hosts
+check and a ping by the guest's actual IP. Only records info, never dies.
+=cut
+
+sub record_guest_network_diagnostics {
+    my (%args) = @_;
+    my $guest = $args{guest};
+
+    record_info("Debug[1] $guest NIC",
+        script_output("virsh domiflist $guest; virsh dumpxml $guest | grep -A5 '<interface'",
+            proceed_on_failure => 1, timeout => 30));
+
+    record_info("Debug[2] host bridge/vnet",
+        script_output("virsh net-list --all; ip link show; ip addr show | grep -E 'br|vnet'",
+            proceed_on_failure => 1, timeout => 30));
+
+    my $mac = script_output("virsh domiflist $guest | grep -iE 'br|vnet' | awk '{print \$5}'", proceed_on_failure => 1);
+    my $lease = $mac ? script_output("grep -i $mac /var/lib/libvirt/dnsmasq/*.leases 2>/dev/null", proceed_on_failure => 1) : '';
+    record_info("Debug[3] DHCP/agent (mac=$mac)",
+        ($lease || 'no dnsmasq lease found')
+          . "\n" . script_output("virsh net-dhcp-leases --all 2>/dev/null; virsh domifaddr $guest --source agent 2>/dev/null",
+            proceed_on_failure => 1, timeout => 30));
+
+    record_info("Debug[4] host route",
+        script_output("ip route", proceed_on_failure => 1));
+
+    # Stale /etc/hosts? Compare the stored IP with the guest's actual IP
+    my $hosts_ip = script_output("getent hosts $guest | awk '/[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+/{print \$1; exit}'",
+        proceed_on_failure => 1);
+    my $real_ip = eval { get_vm_ip_with_nmap($guest) } // '';
+    my $stale = $hosts_ip && $real_ip && $hosts_ip ne $real_ip;
+    my $ip_ping = $real_ip
+      ? script_output("ping -c2 -W2 $real_ip; echo ip_ping_rc=\$?", proceed_on_failure => 1)
+      : 'n/a (no IP found for guest)';
+
+    record_info("Debug[5] $guest reachability",
+        script_output("virsh domstate $guest; virsh domifaddr $guest; getent hosts $guest; ip neigh; ping -c2 -W2 $guest",
+            proceed_on_failure => 1, timeout => 30)
+          . "\n/etc/hosts IP: $hosts_ip\nactual guest IP: $real_ip"
+          . ($stale ? "  (STALE /etc/hosts entry)" : "")
+          . "\nping by actual IP:\n$ip_ping");
+
+    # Guest's own view of its interfaces (needs qemu-guest-agent inside the guest)
+    record_info("Debug[6] $guest agent network view",
+        script_output("virsh qemu-agent-command $guest '{\"execute\":\"guest-network-get-interfaces\"}' --pretty 2>/dev/null",
+            proceed_on_failure => 1, timeout => 30));
+}
+
 sub validate_guest_status {
     my ($guest, %args) = @_;
     my $timeout = $args{timeout} // "180";
@@ -574,10 +627,19 @@ sub validate_guest_status {
         save_screenshot;
         die "Error: $guest should keep running, please check manually!";
     } else {
+        # Snapshot before pinging: state, IP, name resolution, ARP
+        record_info("Guest $guest status",
+            script_output("virsh domstate $guest; virsh domifaddr $guest; getent hosts $guest; ip neigh",
+                proceed_on_failure => 1, timeout => 30));
         #Ensure the ICMP PING responses for the given guest
-        die "Error: Ping $guest failed, please check manually!" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => $timeout) ne 0);
+        # die => 0 so script_retry returns the rc instead of dying, letting us dump diagnostics first
+        my $ping_rc = script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => $timeout, die => 0);
+        if ($ping_rc != 0) {
+            record_guest_network_diagnostics(guest => $guest);
+            die "Error: Ping $guest failed, please check manually!";
+        }
         #Ensure the SSH connection for the given guest
-        die "Error: SSH $guest failed, please check manually!" if (script_retry("nc -4zv $guest 22", delay => 30, retry => 6, timeout => $timeout) ne 0);
+        die "Error: SSH $guest failed, please check manually!" if (script_retry("nc -4zv $guest 22", delay => 30, retry => 6, timeout => $timeout, die => 0) ne 0);
     }
 }
 
