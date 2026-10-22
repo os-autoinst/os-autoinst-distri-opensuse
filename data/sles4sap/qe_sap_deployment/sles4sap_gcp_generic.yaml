@@ -19,6 +19,7 @@ terraform:
     admin_user: 'cloudadmin'
     public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
+    allowed_ssh_cidr_csv: '%SLES4SAP_WORKER_IP%'
 
     # IBSm network peering
     ip_cidr_range: '%MAIN_ADDRESS_RANGE%'

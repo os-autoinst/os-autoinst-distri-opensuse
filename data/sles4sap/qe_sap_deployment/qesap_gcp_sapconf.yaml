@@ -21,6 +21,7 @@ terraform:
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     hana_data_disk_type: '%HANA_DATA_DISK_TYPE%'
     hana_log_disk_type: '%HANA_LOG_DISK_TYPE%'
+    allowed_ssh_cidr_csv: '%WORKER_IP%'
     custom_tags: { 'openqa_var_job_id': '%CUSTOM_TAGS_JOB_ID%'}
 ansible:
   roles_path: '%ANSIBLE_ROLES%'
