@@ -23,8 +23,18 @@ sub run {
     zypper_call("-v in MozillaFirefox $latest_python ${latest_python}-pip ${latest_python}-wheel ${latest_python}-psutil");
     my $version = get_var('VERSION');
     zypper_call("mr -e SLE-Product-SLES-$version-Source") if is_sle('16+');
+    # add source repo from INCIDENT_REPO
+    if (check_var('FLAVOR', 'Online-Updates-Staging') || check_var('FLAVOR', 'Online-Immutable-Updates-Staging')) {
+        my @repos = split(/,/, get_var('INCIDENT_REPO', ''));
+        while (my ($i, $repo) = each(@repos)) {
+            chop $repo if $repo =~ /\/$/;
+            zypper_call("ar -f $repo-Source/ TEST_${i}_Source");
+        }
+        zypper_call('--gpg-auto-import-keys ref') if check_var('FLAVOR', 'Online-Immutable-Updates-Staging');
+    }
     zypper_call('-v si -D MozillaFirefox');
     zypper_call("mr -d SLE-Product-SLES-$version-Source") if is_sle('16+');
+    script_run('rm -f /etc/zypp/repos.d/TEST_*_Source.repo') if check_var('FLAVOR', 'Online-Updates-Staging') || check_var('FLAVOR', 'Online-Immutable-Updates-Staging');
     my $ff_version = script_output('firefox --version');
     my ($ff_major) = $ff_version =~ /Firefox\s+(\d+)/;
     record_info('Firefox version', $ff_version);
