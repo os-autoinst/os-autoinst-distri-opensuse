@@ -37,8 +37,11 @@ sub run_tests {
     my $log_file = "buildah-" . ($rootless ? "user" : "root");
 
     my @xfails = ();
+    # This fails for unknown reason on SLES up to 16.1
     push @xfails, (
         "add.bats::add https retry ca",
+    ) if (version->parse(numeric_version($version)) < version->parse("1.44.0"));
+    push @xfails, (
         # These may fail when github complains about 429 Too Many Requests
         # and we can't backport PR's 6146 & 6602 to fix this:
         "bud.bats::bud with --layers and --no-cache flags",
