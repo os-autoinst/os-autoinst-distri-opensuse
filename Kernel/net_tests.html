@@ -204,11 +204,12 @@ capture_tcpdump($dev, $timeout);</code></pre>
 <h2 id="start_packet_capture">start_packet_capture</h2>
 
 <pre><code>start_packet_capture($dev, $pcap);
-start_packet_capture($dev, $pcap, $filter);</code></pre>
+start_packet_capture($dev, $pcap, $filter);
+start_packet_capture($dev, $pcap, $filter, snaplen =&gt; $bytes);</code></pre>
 
 <p>Start a background <code>tcpdump</code> writing a pcap file, to capture traffic across a whole test sequence instead of a fixed duration. Use <code>stop_packet_capture</code> to end it, <code>count_capture_packets</code> and <code>capture_statistics</code> to evaluate it.</p>
 
-<p>Arguments: $dev - Network interface to capture on (e.g. &#39;lo&#39;) $pcap - Path of the pcap file to write $filter - Optional BPF filter (e.g. &#39;port 2049&#39;)</p>
+<p>Arguments: $dev - Network interface to capture on (e.g. &#39;lo&#39;) $pcap - Path of the pcap file to write $filter - Optional BPF filter (e.g. &#39;port 2049&#39;) snaplen - Optional number of bytes to keep of each packet, to limit the pcap size of long captures</p>
 
 <p>The tcpdump diagnostics are kept in $pcap.log.</p>
 

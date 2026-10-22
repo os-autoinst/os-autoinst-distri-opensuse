@@ -19,6 +19,9 @@
       <li><a href="#enable_debugfs">enable_debugfs</a></li>
       <li><a href="#get_kernel_config">get_kernel_config</a></li>
       <li><a href="#get_verified_shallow_tar">get_verified_shallow_tar</a></li>
+      <li><a href="#start_trace_events">start_trace_events</a></li>
+      <li><a href="#save_trace">save_trace</a></li>
+      <li><a href="#install_fio_debug_wrapper">install_fio_debug_wrapper</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/utils.pm</h1>
@@ -54,6 +57,35 @@
 <p>Downloads the kernel.org shallow-clone tarball for the given <code>tree</code> and <code>branch</code>, verifies it via the signed checksums, and checks out <code>commit</code> into <i>./linux</i>. <code>commit</code> should always be supplied in CI; omitting it checks out the current tip (the bundle is published nightly).</p>
 
 <p>See <a href="https://people.kernel.org/monsieuricon/using-shallow-git-tarballs-for-ci">https://people.kernel.org/monsieuricon/using-shallow-git-tarballs-for-ci</a>.</p>
+
+<h2 id="start_trace_events">start_trace_events</h2>
+
+<pre><code>start_trace_events(\@events);
+start_trace_events(\@events, filters =&gt; {$event =&gt; $filter}, buffer_kb =&gt; $kb);</code></pre>
+
+<p>Enable kernel tracepoints in tracefs and start to trace. Each event is <code>system/event</code>, a shell glob selects several events, e.g. <code>nfs4/pnfs_*</code>. Events that the kernel does not provide are skipped.</p>
+
+<p>The events go to the trace ring buffer, which keeps the newest events when it is full. Thus the trace can run for a long time without filling the disk. <code>save_trace</code> saves it.</p>
+
+<p>If the first event is enabled already, e.g. by an earlier call before each subtest, only clear the trace. This keeps repeated calls short. After a reboot the events are enabled again.</p>
+
+<p>Arguments: \@events - Events to enable filters - Optional event filters, e.g. <code>&#39;dev == 7340033&#39;</code> buffer_kb - Optional ring buffer size per CPU in KiB (default: 8192)</p>
+
+<h2 id="save_trace">save_trace</h2>
+
+<pre><code>save_trace($file);</code></pre>
+
+<p>Save the trace started by <code>start_trace_events</code> to <code>$file</code>.</p>
+
+<h2 id="install_fio_debug_wrapper">install_fio_debug_wrapper</h2>
+
+<pre><code>install_fio_debug_wrapper($dir);</code></pre>
+
+<p>Install a wrapper as <i>/usr/local/bin/fio</i>, so that tests which call fio from <code>PATH</code> run it with <code>--debug=file,mem</code> and <code>strace</code> of the failed syscalls. For each fio run the wrapper keeps the job file, the command line, the debug output and the strace output in <code>$dir</code>, named by the pid of the wrapper.</p>
+
+<p>Only fio runs that write the results to a file with <code>--output=</code> are changed, else the debug output would change the output of the test. The debug output is kept out of the <code>--output</code> file too, tests often copy this file to their logs.</p>
+
+<p>Without <code>strace</code> 5.2 or newer (for <code>-Z</code>) fio runs without strace.</p>
 
 
 </body>

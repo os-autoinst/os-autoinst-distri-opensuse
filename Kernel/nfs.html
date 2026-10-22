@@ -18,6 +18,9 @@
       <li><a href="#get_export_paths">get_export_paths</a></li>
       <li><a href="#setup_pnfs_client">setup_pnfs_client</a></li>
       <li><a href="#verify_pnfs_block_layout">verify_pnfs_block_layout</a></li>
+      <li><a href="#start_pnfs_debug">start_pnfs_debug</a></li>
+      <li><a href="#stop_pnfs_debug">stop_pnfs_debug</a></li>
+      <li><a href="#collect_pnfs_debug">collect_pnfs_debug</a></li>
       <li><a href="#kernel_supports_nfs_krb5">kernel_supports_nfs_krb5</a></li>
       <li><a href="#setup_nfs_krb5_server">setup_nfs_krb5_server</a></li>
       <li><a href="#setup_nfs_krb5_client">setup_nfs_krb5_client</a></li>
@@ -57,6 +60,32 @@
 <p>With a working block layout the client writes to the block device on its own and only the layout operations reach the server, so no NFS WRITE operation must show up while the block device must see the write. The check has to run after the NFS grace period, during the grace LAYOUTGET is answered with NFS4ERR_GRACE and the client falls back to regular NFS writes.</p>
 
 <p>Products without the capture tools are reported and skipped.</p>
+
+<h2 id="start_pnfs_debug">start_pnfs_debug</h2>
+
+<pre><code>start_pnfs_debug($dir);</code></pre>
+
+<p>Start to collect pNFS block layout debug data into <code>$dir</code>, old data in <code>$dir</code> is removed: - capture the NFS traffic on lo. Over RDMA the capture stays empty, rxe loops back the packets inside the kernel - trace the layout operations of client and server, and the block I/O of the devices below the exports in <i>/etc/exports</i></p>
+
+<p>Use <code>collect_pnfs_debug</code> to keep the data, <code>stop_pnfs_debug</code> to drop it. The trace keeps running between the calls, each call starts with an empty trace. This keeps the call before each subtest short.</p>
+
+<h2 id="stop_pnfs_debug">stop_pnfs_debug</h2>
+
+<pre><code>stop_pnfs_debug();</code></pre>
+
+<p>Stop the packet capture started by <code>start_pnfs_debug</code>. The trace keeps running, the next <code>start_pnfs_debug</code> clears it.</p>
+
+<h2 id="collect_pnfs_debug">collect_pnfs_debug</h2>
+
+<pre><code>collect_pnfs_debug($dir, $tarball, @ios);</code></pre>
+
+<p>Keep the pNFS debug data started by <code>start_pnfs_debug</code> after a failure and pack <code>$dir</code> into <code>$tarball</code>. Each element of <code>@ios</code> is a failed I/O to repeat while the capture still runs:</p>
+
+<pre><code>{path =&gt; &#39;/opt/nfs/scratch/file2&#39;, op =&gt; &#39;read&#39;, offset =&gt; 413696, len =&gt; 1024,
+ export_path =&gt; &#39;/opt/export/scratch/file2&#39;, mnt =&gt; &#39;/opt/nfs/scratch&#39;,
+ nfs_dev =&gt; &#39;server:/opt/export/scratch&#39;, mount_opts =&gt; &#39;-o vers=4.1&#39;}</code></pre>
+
+<p>The I/O is repeated on the exported file (as the server sees it), on the block device at the offset from <code>xfs_bmap</code> (as the pNFS block layout client does it) and over NFS, see repeat_io.log. The layout operations of the capture are decoded to layout_ops.log.</p>
 
 <h2 id="kernel_supports_nfs_krb5">kernel_supports_nfs_krb5</h2>
 
