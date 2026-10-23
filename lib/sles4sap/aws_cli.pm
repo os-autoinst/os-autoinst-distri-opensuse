@@ -835,7 +835,7 @@ sub aws_vm_get_id(%args) {
         region => $args{region},
         filters => "'Name=tag:OpenQAJobVm,Values=$args{job_id}' 'Name=instance-state-name,Values=pending,running,stopping,stopped'",
         query => 'Reservations[].Instances[].InstanceId');
-    # Guard: _aws_ec2_describe_instances returns undef, a scalar, or a hash ref
+    # Guard: _aws_ec2_describe_instances returns undef, a scalar, or a array ref
     # on failure. Filter: JMESPath can emit null entries (e.g. ["i-123", null])
     # which decode_json turns into undef; drop them so callers get only real IDs.
     return () unless ref($data) eq 'ARRAY';
