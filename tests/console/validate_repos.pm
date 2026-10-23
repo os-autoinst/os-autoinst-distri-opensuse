@@ -44,7 +44,7 @@ sub run {
                 Filter => $filter,
                 Alias => $repo->{alias},
                 Name => $repo->{name},
-                URI => join('', /$repo->{uri}/),
+                URI => $repo->{uri},
                 Enabled => $repo->{enabled},
                 Autorefresh => $repo->{autorefresh}
         });
