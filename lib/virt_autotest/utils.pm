@@ -854,7 +854,8 @@ sub create_guest {
         if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi') {
             # Check if secure boot should be disabled (e.g., for SLES16 with kernel update)
             if ($guest->{boot_firmware_disable_secure}) {
-                $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-code.bin,loader.readonly=yes,loader.type=pflash,loader.secure=no";
+                # Use generic firmware feature syntax supported by virt-install on SLE 15.7, 16.0, and 16.1.
+                $virtinstall .= " --boot firmware=efi,firmware.feature0.name=secure-boot,firmware.feature0.enabled=no";
                 record_info("Boot Firmware", "Guest $name configured for EFI boot with secure boot disabled");
             } else {
                 $virtinstall .= " --boot firmware=efi";
