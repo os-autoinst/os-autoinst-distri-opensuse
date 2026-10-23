@@ -18,6 +18,8 @@ use transactional;
 use base 'opensusebasetest';
 use serial_terminal qw(select_serial_terminal);
 use power_action_utils qw(power_action);
+use registration qw(add_suseconnect_product get_addon_fullname);
+use version_utils qw(is_sle);
 
 our @EXPORT = qw(
   install
@@ -151,7 +153,9 @@ sub validate_cuda
     my $cuda_ver = get_var('NVIDIA_CUDA_VERSION');
     my $cuda_pkg = $cuda_ver ? "cuda-toolkit-$cuda_ver" : "cuda-toolkit";
 
-    zypper_call("install -l cmake git $gcc_pkgs $cuda_pkg vulkan-devel freeglut-devel Mesa-libEGL-devel", timeout => 1200);
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
+
+    zypper_call("install -l cmake git $gcc_pkgs $cuda_pkg vulkan-devel freeglut-devel Mesa-libEGL-devel dlpack-devel", timeout => 1200);
 
     # Query the GPU capabilities
     my $query = script_output('nvidia-smi --query-gpu=compute_cap --format=csv');
