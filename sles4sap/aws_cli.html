@@ -33,9 +33,12 @@
       <li><a href="#aws_route_table_delete">aws_route_table_delete</a></li>
       <li><a href="#aws_route_create">aws_route_create</a></li>
       <li><a href="#aws_vm_create">aws_vm_create</a></li>
+      <li><a href="#aws_ec2_describe_instances">_aws_ec2_describe_instances</a></li>
       <li><a href="#aws_vm_get_id">aws_vm_get_id</a></li>
+      <li><a href="#aws_vm_get_diagnostics">aws_vm_get_diagnostics</a></li>
+      <li><a href="#aws_vm_describe_status">aws_vm_describe_status</a></li>
       <li><a href="#aws_vm_wait_status_ok">aws_vm_wait_status_ok</a></li>
-      <li><a href="#aws_get_ip_address">aws_get_ip_address</a></li>
+      <li><a href="#aws_pubip_get">aws_pubip_get</a></li>
       <li><a href="#aws_vm_terminate">aws_vm_terminate</a></li>
       <li><a href="#aws_ssh_key_pair_import">aws_ssh_key_pair_import</a></li>
       <li><a href="#aws_tgw_vpc_attachment_get_id">aws_tgw_vpc_attachment_get_id</a></li>
@@ -549,14 +552,39 @@
 </dd>
 </dl>
 
+<h2 id="aws_ec2_describe_instances">_aws_ec2_describe_instances</h2>
+
+<pre><code>my $data = _aws_ec2_describe_instances(
+    region =&gt; &#39;us-west-1&#39;,
+    filters =&gt; &quot;&#39;Name=instance-id,Values=i-12345&#39;&quot;,
+    query =&gt; &#39;Reservations[0].Instances[0].State.Name&#39;);</code></pre>
+
+<p>Internal function. Run <code>aws ec2 describe-instances</code> with JSON output. The <code>timeout</code> command stops aws before the script_output timeout. The function uses proceed_on_failure. Return the decoded JSON data structure. Return undef if the output is empty. Die if the output is not valid JSON.</p>
+
+<dl>
+
+<dt id="region---AWS-region"><b>region</b> - AWS region</dt>
+<dd>
+
+</dd>
+<dt id="filters---value-for---filters-already-quoted-for-the-shell"><b>filters</b> - value for <code>--filters</code>, already quoted for the shell</dt>
+<dd>
+
+</dd>
+<dt id="query---JMESPath-query-without-quotes"><b>query</b> - JMESPath query, without quotes</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="aws_vm_get_id">aws_vm_get_id</h2>
 
-<pre><code>my $instance_id = aws_vm_get_id(
+<pre><code>my @instance_ids = aws_vm_get_id(
     region =&gt; &#39;us-west-1&#39;,
     job_id =&gt; &#39;67890&#39;
 );</code></pre>
 
-<p>Retrieve the EC2 instance ID associated with a specific OpenQA job Returns the instance ID</p>
+<p>Retrieve the IDs of the EC2 instances associated with a specific OpenQA job. Terminated and shutting-down instances are ignored. Return a list of instance IDs. The list is empty if no instance is found or if the aws command fails. The caller must check how many elements the list has.</p>
 
 <dl>
 
@@ -570,33 +598,97 @@
 </dd>
 </dl>
 
-<h2 id="aws_vm_wait_status_ok">aws_vm_wait_status_ok</h2>
+<h2 id="aws_vm_get_diagnostics">aws_vm_get_diagnostics</h2>
 
-<pre><code>aws_vm_wait_status_ok(
-    instance_id =&gt; &#39;i-12345&#39;
+<pre><code>my $diag = aws_vm_get_diagnostics(
+    region =&gt; &#39;us-west-2&#39;,
+    instance_id =&gt; &#39;i-09dadefca25944818&#39;
 );</code></pre>
 
-<p>Wait for an EC2 instance to reach &#39;running&#39; state with a timeout of 600 seconds</p>
+<p>Return a hash reference with diagnostic data about the instance: id, state, state_transition, state_reason, public_ip, private_ip, launch_time. Return undef if the instance is not found or if the aws command fails. Never dies at runtime.</p>
 
 <dl>
 
-<dt id="instance_id---ID-of-the-instance-to-monitor"><b>instance_id</b> - ID of the instance to monitor</dt>
+<dt id="region---AWS-region-where-the-instance-is-located1"><b>region</b> - AWS region where the instance is located</dt>
+<dd>
+
+</dd>
+<dt id="instance_id---ID-of-the-instance"><b>instance_id</b> - ID of the instance</dt>
 <dd>
 
 </dd>
 </dl>
 
-<h2 id="aws_get_ip_address">aws_get_ip_address</h2>
+<h2 id="aws_vm_describe_status">aws_vm_describe_status</h2>
 
-<pre><code>my $ip = aws_get_ip_address(
-    instance_id =&gt; &#39;i-12345&#39;
-);</code></pre>
+<pre><code>my $out = aws_vm_describe_status(
+    region =&gt; &#39;us-west-2&#39;,
+    instance_id =&gt; &#39;i-09dadefca25944818&#39;
+);
 
-<p>Retrieve the public IP address of an EC2 instance Returns the public IP address</p>
+Return the output of describe-instance-status: instance state and
+system/instance status checks, also for not running instances.
+Never dies: the aws command is killed by C&lt;timeout&gt; before the
+script_output timeout, and a failure or a kill returns the command
+output (proceed_on_failure).</code></pre>
 
 <dl>
 
-<dt id="instance_id---ID-of-the-instance"><b>instance_id</b> - ID of the instance</dt>
+<dt id="region---AWS-region-where-the-instance-is-located2"><b>region</b> - AWS region where the instance is located</dt>
+<dd>
+
+</dd>
+<dt id="instance_id---ID-of-the-instance1"><b>instance_id</b> - ID of the instance</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_vm_wait_status_ok">aws_vm_wait_status_ok</h2>
+
+<pre><code>die &#39;VM not running&#39; if aws_vm_wait_status_ok(
+    region =&gt; &#39;us-west-1&#39;,
+    instance_id =&gt; &#39;i-12345&#39;
+);</code></pre>
+
+<p>Wait for an EC2 instance to reach the &#39;running&#39; state. A failed aws command counts as &quot;not running yet&quot;. Return 0 if the instance reaches &#39;running&#39; in time. Die with the last known state if it does not.</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-the-instance-is-located3"><b>region</b> - AWS region where the instance is located</dt>
+<dd>
+
+</dd>
+<dt id="instance_id---ID-of-the-instance-to-monitor"><b>instance_id</b> - ID of the instance to monitor</dt>
+<dd>
+
+</dd>
+<dt id="timeout---maximum-time-to-wait-in-seconds-default-600"><b>timeout</b> - maximum time to wait in seconds (default 600)</dt>
+<dd>
+
+</dd>
+<dt id="delay---time-between-two-checks-in-seconds-default-15"><b>delay</b> - time between two checks in seconds (default 15)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_pubip_get">aws_pubip_get</h2>
+
+<pre><code>my $ip = aws_pubip_get(
+    region =&gt; &#39;us-west-1&#39;,
+    instance_id =&gt; &#39;i-12345&#39;
+);</code></pre>
+
+<p>Retrieve the public IP address of an EC2 instance. Return the public IP address, or undef if the instance has no public IP, is not found, or if the aws command fails.</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-the-instance-is-located4"><b>region</b> - AWS region where the instance is located</dt>
+<dd>
+
+</dd>
+<dt id="instance_id---ID-of-the-instance2"><b>instance_id</b> - ID of the instance</dt>
 <dd>
 
 </dd>
@@ -613,7 +705,7 @@
 
 <dl>
 
-<dt id="region---AWS-region-where-the-instance-is-located1"><b>region</b> - AWS region where the instance is located</dt>
+<dt id="region---AWS-region-where-the-instance-is-located5"><b>region</b> - AWS region where the instance is located</dt>
 <dd>
 
 </dd>
@@ -706,7 +798,7 @@
 <dd>
 
 </dd>
-<dt id="region---AWS-region"><b>region</b> - AWS region</dt>
+<dt id="region---AWS-region1"><b>region</b> - AWS region</dt>
 <dd>
 
 </dd>
@@ -724,7 +816,7 @@
 <dd>
 
 </dd>
-<dt id="region---AWS-region1"><b>region</b> - AWS region</dt>
+<dt id="region---AWS-region2"><b>region</b> - AWS region</dt>
 <dd>
 
 </dd>
