@@ -293,7 +293,7 @@ sub zp_zypper_patch {
     my $cmd = join(' ', 'ssh',
         "$user\@$pubip_addr",
         "'sudo zypper --non-interactive patch --auto-agree-with-licenses --no-recommends'");
-    assert_script_run($cmd);
+    assert_script_run($cmd, timeout => 300);
 }
 
 =head2 zp_scc_check
