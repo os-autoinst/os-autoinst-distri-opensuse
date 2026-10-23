@@ -1,0 +1,131 @@
+#!/bin/bash
+# combustion: network 
+exec > >(exec tee -a /dev/tty0) 
+set -euo pipefail
+
+prepare_k3s() {
+echo "Preparing k3s installation  ..."
+
+cat <<'EOF' > /usr/bin/k3s_installer.sh
+#!/bin/bash
+echo "Starting K3s Installation..."
+export INSTALL_K3S_SKIP_START="true"
+export INSTALL_K3S_EXEC="server --cluster-init --disable=metrics-server"
+curl -sfL --retry 3 --retry-delay 60 --retry-max-time 180 https://get.k3s.io | sh -
+
+systemctl disable install-k3s.service
+
+sleep 5
+systemctl start k3s.service
+mkdir -p /root/.kube/
+ln -s /etc/rancher/k3s/k3s.yaml /root/.kube/config
+EOF
+
+chmod +x /usr/bin/k3s_installer.sh
+
+cat <<EOF > /etc/systemd/system/install-k3s.service
+[Unit]
+Description=Run K3s installer on first boot
+Wants=network-online.target
+After=network.target network-online.target
+ConditionPathExists=/usr/bin/k3s_installer.sh
+ConditionPathExists=!/usr/local/bin/k3s
+
+[Service]
+Type=oneshot
+TimeoutStartSec=300
+ExecStart=/usr/bin/k3s_installer.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl enable install-k3s.service
+}
+
+echo "======================================================"
+echo " Starting SLE 16.1 Base Registration via Combustion"
+echo "======================================================"
+
+# Helper function to parse parameters from /proc/cmdline
+get_cmdline_param() {
+    local key="$1"
+
+    local val=""
+    if [ -f /proc/cmdline ]; then
+        val=$(tr ' ' '\n' < /proc/cmdline | grep "^${key}=" | cut -d= -f2- | tail -n1)
+    fi
+    # Strip any leading/trailing single or double quotes
+    val="${val#\"}"
+    val="${val%\"}"
+    val="${val#\'}"
+    val="${val%\'}"
+    echo "$val"
+}
+     
+# Extract registration parameters from Kernel command-line
+REG_CODE=$(get_cmdline_param "scc.regcode")
+EMAIL=$(get_cmdline_param "scc.email")
+
+# Validate credentials
+if [ -z "$REG_CODE" ] || [ -z "$EMAIL" ]; then
+    echo "ERROR: SCC Registration code or Email is missing!"
+    echo "Please provide them as kernel parameters in the GRUB menu:"
+    echo "  scc.regcode=<your_code> scc.email=<your_email>"
+    echo "Aborting combustion configuration to prevent half-configured state."
+    exit 1
+fi
+
+if [ ! -s /etc/machine-id ] || [ "$(cat /etc/machine-id)" = "uninitialized" ]; then
+    echo "Configuring system machine-id..."
+    systemd-machine-id-setup
+fi
+
+echo "Registering system against SCC ..."
+SUSEConnect -r "${REG_CODE}" -e "${EMAIL}"
+
+echo "Adding repos, installing BCI required packages and updating hostOS ..."
+zypper -n addrepo https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo
+zypper -n --gpg-auto-import-keys ref
+zypper -n install ca-certificates-suse skopeo tar git jq
+zypper -n --quiet update
+
+echo "User settings ..."
+echo 'root:$6$eEm2HpuzI7dfE4i7$dbYiTRLhrqVvwryR7zmMEcnrp13IqZ3mzLbsx9EeHAX7849PibGVgX5vdPuaeYYIO7hVfcboI9/JDpGiDZhHf/' | chpasswd -e
+useradd --create-home --uid 1000 --comment "Bernhard M. Wiedemann" --no-user-group --gid users bernhard
+echo 'bernhard:$6$eEm2HpuzI7dfE4i7$dbYiTRLhrqVvwryR7zmMEcnrp13IqZ3mzLbsx9EeHAX7849PibGVgX5vdPuaeYYIO7hVfcboI9/JDpGiDZhHf/' | chpasswd -e
+chown bernhard /dev/ttyS0 && usermod -a -G tty,dialout,$(stat -c %G /dev/ttyS0) bernhard
+
+echo "Enabling consoles, disabling firewalld ..."
+systemctl enable serial-getty@hvc1
+systemctl disable firewalld
+
+if command -v grub2-mkconfig &> /dev/null; then
+    echo "Disabling grub2 timeout ..."
+    sed -ie '/GRUB_TIMEOUT/s/=.*/=-1/' /etc/default/grub
+    grub2-mkconfig -o /boot/grub2/grub.cfg
+fi
+
+# Setup k3s cluster
+ARCH=$(uname -m)
+if [ $ARCH = "x86_64" ] || [ $ARCH = "aarch64" ]; then
+    prepare_k3s
+fi
+
+echo "Updating pip for BCI tests ... "
+python3 -m venv /root/bci
+source /root/bci/bin/activate
+python3 -m pip --quiet install --upgrade pip
+pip3 --quiet install tox
+pip3 freeze
+deactivate
+
+echo "======================================================"
+echo " Combustion Script completed successfully! "
+echo "======================================================"
+
+echo "Combustion was here" > /usr/share/combustion-welcome
+
+exec 1>&- 2>&-; wait;
+
