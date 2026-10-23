@@ -159,8 +159,6 @@ sub az(%args) {
     $result{error} = script_output("cat $err_file",
         quiet => $args{quiet});
 
-    die "Error messages present during az cli execution:\n$result{error}"
-      if ($result{error} && !$args{failok});
     die "AZ CLI returned non zero value:$result{rc}" if ($result{rc} && !$args{failok});
 
     # Delete unique temporary files
