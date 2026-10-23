@@ -21,7 +21,8 @@ use agnosticTestRunner;
 use version_utils 'is_sle';
 use package_utils 'install_package';
 use registration qw(add_suseconnect_product get_addon_fullname);
-use security::sle16cc 'unlock_and_login_cc_system';
+use Utils::Architectures 'is_s390x';
+use security::sle16cc qw(unlock_and_login_cc_system unlock_and_login_cc_system_zkvm);
 
 # The check and apply scripts are stored in data/security/sle16_cc/
 use constant CC_DATA_DIR => 'security/sle16_cc';
@@ -78,9 +79,11 @@ sub run {
 
     # Step 4: reboot, then run 'check' again
     # The CC system has its own disk encryption, grub and login screens,
-    # so wait_boot can not be used.
+    # so wait_boot can not be used. On s390x zKVM they are on the serial
+    # console instead of the screen.
     power_action('reboot', textmode => 1);
-    unlock_and_login_cc_system(get_var('USERNAME', $testapi::username), get_var('DEFAULT_PASSWORD', $testapi::password));
+    my @credentials = (get_var('USERNAME', $testapi::username), get_var('DEFAULT_PASSWORD', $testapi::password));
+    is_s390x ? unlock_and_login_cc_system_zkvm(@credentials) : unlock_and_login_cc_system(@credentials);
     select_serial_terminal;
 
     my $runner_post = _make_runner('post', 300);
