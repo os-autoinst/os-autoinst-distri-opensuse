@@ -370,6 +370,9 @@ sub run {
         reboot_on_changes;
     }
 
+    # Workaround: SLES for NVIDIA does not ship the hostname command
+    install_package('hostname') if check_var('AGAMA_PRODUCT_ID', 'SLES_NVIDIA');
+
     setup_network;
 
     # we don't run LVM tests in 32bit, thus not generating the runtest file
