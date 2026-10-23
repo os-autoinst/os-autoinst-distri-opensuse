@@ -411,7 +411,7 @@ sub run {
     $self->{ltp_tinfo} = $tinfo;
 
     my $fin_msg = "### TEST $test->{name} COMPLETE >>> ";
-    my $cmd_text = qq($test->{command}; echo "$fin_msg\$?.");
+    my $cmd_text = qq($test->{command}; rc=\$?; vmstat -w; echo "$fin_msg\$rc.");
 
     my $klog_stamp = "OpenQA::run_ltp.pm: Starting $test->{name}";
     my $start_time = thetime();
@@ -459,7 +459,6 @@ sub run {
     }
 
     upload_logs($strace_log) if (check_var_array('LTP_DEBUG', 'strace'));
-    script_run('vmstat -w');
 
     # reboot unless TCONF or last test
     $self->do_reboot if (get_var('LTP_REBOOT_AFTER_TEST') && !$test->{last} && $env{retval} != 32);
