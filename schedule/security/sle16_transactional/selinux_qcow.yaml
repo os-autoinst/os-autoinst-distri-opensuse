@@ -3,7 +3,7 @@ description: >
   Test selinux using preinstalled qcow2 images in immutable mode
 schedule:
   - '{{boot}}'
-  - jeos/firstrun
+  - '{{firstboot}}'
   - transactional/host_config
   - console/suseconnect_scc
   - microos/services_enabled
@@ -13,6 +13,17 @@ schedule:
   - security/selinux/container_selinux
   - shutdown/shutdown
 conditional_schedule:
+  firstboot:
+    HDDSECTORSIZE_1:
+      # The Transactional-Base-ppc-4096 images (4096 byte sector disk) are
+      # configured on first boot by a seed disk (HDD_2, cloud-init or
+      # ignition), so the jeos-firstboot wizard never runs. It would also only
+      # be rendered on the serial console there, so wait for the login prompt
+      # instead of the wizard. Every other image keeps running jeos/firstrun.
+      4096:
+        - installation/first_boot
+      +undefined:
+        - jeos/firstrun
   boot:
     ARCH:
       s390x:
