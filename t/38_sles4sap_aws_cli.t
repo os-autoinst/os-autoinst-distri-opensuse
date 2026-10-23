@@ -11,6 +11,7 @@ use sles4sap::aws_cli;
 
 subtest '[aws_vpc_create]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Rocky'; });
     $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
@@ -28,6 +29,7 @@ subtest '[aws_vpc_create]' => sub {
 
 subtest '[aws_vpc_get_id]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Rocky'; });
 
@@ -43,6 +45,7 @@ subtest '[aws_vpc_get_id]' => sub {
 
 subtest '[aws_vpc_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Rocky'; });
     $awscli->redefine(script_run => sub { push @calls, $_[0]; return 42; });
@@ -59,6 +62,7 @@ subtest '[aws_vpc_delete]' => sub {
 
 subtest '[aws_security_group_create]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Clarity'; });
     $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
@@ -78,6 +82,7 @@ subtest '[aws_security_group_create]' => sub {
 
 subtest '[aws_security_group_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Clarity'; });
     $awscli->redefine(script_run => sub { push @calls, $_[0]; return 42; });
@@ -93,6 +98,7 @@ subtest '[aws_security_group_delete]' => sub {
 
 subtest '[aws_security_group_get_id]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Quint'; });
 
@@ -105,6 +111,7 @@ subtest '[aws_security_group_get_id]' => sub {
 
 subtest '[aws_security_group_authorize_ingress]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
@@ -121,6 +128,7 @@ subtest '[aws_security_group_authorize_ingress]' => sub {
 
 subtest '[aws_ssh_key_pair_import]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
@@ -137,39 +145,42 @@ subtest '[aws_ssh_key_pair_import]' => sub {
 
 subtest '[aws_tgw_vpc_attachment_get_id]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'tgwa-123'; });
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'AustinSevenRuby'; });
 
     my $res = aws_tgw_vpc_attachment_get_id(region => 'Rocky', job_id => '42');
     ok((any { /aws ec2 describe-transit-gateway-vpc-attachments/ } @calls), 'Command describe-transit-gateway-vpc-attachments');
     ok((any { /--filters 'Name=tag:Name,Values=42-tga'/ } @calls), 'Correct name tag filter');
-    ok(($res eq 'tgwa-123'), "Result is '$res' expected to be 'tgwa-123'");
+    ok(($res eq 'AustinSevenRuby'), "Result is '$res' expected to be 'AustinSevenRuby'");
 };
 
 subtest '[aws_subnet_create]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'subnet-123'; });
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'PrinceR380'; });
     $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
     my $res = aws_subnet_create(
         region => 'Ascot',
         cidr => '10.0.1.0/24',
-        vpc_id => 'vpc-12345',
+        vpc_id => 'Cherry/100A',
         job_id => '67890'
     );
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 create-subnet/ } @calls), 'Command create-subnet');
     ok((any { /aws ec2 create-tags/ } @calls), 'Command create-tags');
-    ok(($res eq 'subnet-123'), "Result is '$res' expected to be 'subnet-123'");
+    ok(($res eq 'PrinceR380'), "Result is '$res' expected to be 'PrinceR380'");
 };
 
 subtest '[aws_subnet_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_run => sub { push @calls, $_[0]; return 42; });
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return '["subnet-123"]'; });
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return '["PrinceR380"]'; });
 
     my $ret = aws_subnet_delete(
         region => 'Beat',
@@ -183,8 +194,9 @@ subtest '[aws_subnet_delete]' => sub {
 
 subtest '[aws_subnet_get_ids]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return '["subnet-1", "subnet-2"]'; });
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return '["Datsun240Z", "Datsun720"]'; });
 
     my @res = aws_subnet_get_ids(
         region => 'Ascot',
@@ -194,13 +206,14 @@ subtest '[aws_subnet_get_ids]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 describe-subnets/ } @calls), 'Command describe-subnets');
     ok((any { /--output json/ } @calls), 'Output format is json');
-    is_deeply(\@res, ['subnet-1', 'subnet-2'], 'Correct subnet IDs returned');
+    is_deeply(\@res, ['Datsun240Z', 'Datsun720'], 'Correct subnet IDs returned');
 };
 
 subtest '[aws_internet_gateway_create]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'igw-123'; });
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'magnite'; });
     $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
     my $res = aws_internet_gateway_create(
@@ -211,13 +224,14 @@ subtest '[aws_internet_gateway_create]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 create-internet-gateway/ } @calls), 'Command create-internet-gateway');
     ok((any { /aws ec2 create-tags/ } @calls), 'Command create-tags');
-    ok(($res eq 'igw-123'), "Result is '$res' expected to be 'igw-123'");
+    ok(($res eq 'magnite'), "Result is '$res' expected to be 'magnite'");
 };
 
 subtest '[aws_internet_gateway_get_id]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'igw-123'; });
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'magnite'; });
 
     my $res = aws_internet_gateway_get_id(
         region => 'Taft',
@@ -225,17 +239,18 @@ subtest '[aws_internet_gateway_get_id]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 describe-internet-gateways/ } @calls), 'Command describe-internet-gateways');
-    ok(($res eq 'igw-123'), "Result is '$res' expected to be 'igw-123'");
+    ok(($res eq 'magnite'), "Result is '$res' expected to be 'magnite'");
 };
 
 subtest '[aws_internet_gateway_attach]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
     aws_internet_gateway_attach(
         vpc_id => 'vpc-12345',
-        igw_id => 'igw-abcde',
+        igw_id => 'magnite',
         region => 'Ascot'
     );
 
@@ -245,8 +260,9 @@ subtest '[aws_internet_gateway_attach]' => sub {
 
 subtest '[aws_internet_gateway_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'igw-123'; });
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'magnite'; });
     my $script_run_count = 0;
     $awscli->redefine(script_run => sub {
             push @calls, $_[0];
@@ -268,8 +284,9 @@ subtest '[aws_internet_gateway_delete]' => sub {
 
 subtest '[aws_route_table_create]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'rtb-123'; });
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'elgrand'; });
 
     my $res = aws_route_table_create(
         region => 'Beat',
@@ -278,11 +295,12 @@ subtest '[aws_route_table_create]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 create-route-table/ } @calls), 'Command create-route-table');
-    ok(($res eq 'rtb-123'), "Result is '$res' expected to be 'rtb-123'");
+    ok(($res eq 'elgrand'), "Result is '$res' expected to be 'elgrand'");
 };
 
 subtest '[aws_route_table_associate]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
@@ -298,6 +316,7 @@ subtest '[aws_route_table_associate]' => sub {
 
 subtest '[aws_route_table_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'MX-5Miata Altezza'; });
     my $script_run_count = 0;
@@ -317,6 +336,7 @@ subtest '[aws_route_table_delete]' => sub {
 
 subtest '[aws_route_create]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
@@ -333,6 +353,7 @@ subtest '[aws_route_create]' => sub {
 
 subtest '[aws_vm_create]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_output => sub {
             push @calls, $_[0];
@@ -359,49 +380,196 @@ subtest '[aws_vm_create]' => sub {
 
 subtest '[aws_vm_get_id]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'i-123'; });
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return '["i-123", "i-456"]'; });
 
-    my $res = aws_vm_get_id(
+    my @res = aws_vm_get_id(
         region => 'Almera',
         job_id => '67890'
     );
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 describe-instances/ } @calls), 'Command describe-instances');
-    ok(($res eq 'i-123'), "Result is '$res' expected to be 'i-123'");
+    ok((any { /tag:OpenQAJobVm,Values=67890/ } @calls), 'Filter on job tag');
+    ok((any { /instance-state-name,Values=pending,running,stopping,stopped/ } @calls), 'Filter on state');
+    is_deeply(\@res, ['i-123', 'i-456'], 'All IDs returned');
+};
+
+subtest '[aws_vm_get_id] failure' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $awscli->redefine(script_output => sub { return ''; });
+
+    my @res = aws_vm_get_id(region => 'Almera', job_id => '67890');
+    is(scalar(@res), 0, 'Empty list on failure');
+};
+
+subtest '[aws_vm_get_id] malformed JSON' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $awscli->redefine(script_output => sub { return 'Daihatsu Charade'; });
+
+    dies_ok { aws_vm_get_id(region => 'Almera', job_id => '67890') } 'Die on malformed JSON';
+};
+
+subtest '[aws_vm_get_id] null entries' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    $awscli->redefine(script_output => sub { return '["i-123", null]'; });
+    my @res = aws_vm_get_id(region => 'Almera', job_id => '67890');
+    is_deeply(\@res, ['i-123'], 'Undef entry filtered out');
+
+    $awscli->redefine(script_output => sub { return '[null]'; });
+    @res = aws_vm_get_id(region => 'Almera', job_id => '67890');
+    is(scalar(@res), 0, 'All-null array returns empty list');
+
+    $awscli->redefine(script_output => sub { return '[null, null]'; });
+    @res = aws_vm_get_id(region => 'Almera', job_id => '67890');
+    is(scalar(@res), 0, 'All-null array returns empty list');
+
+    $awscli->redefine(script_output => sub { return 'null'; });
+    @res = aws_vm_get_id(region => 'Almera', job_id => '67890');
+    is(scalar(@res), 0, 'Top-level null returns empty list');
+
+    $awscli->redefine(script_output => sub { return '{"id": "i-123"}'; });
+    @res = aws_vm_get_id(region => 'Almera', job_id => '67890');
+    is(scalar(@res), 0, 'Hash ref returns empty list');
+};
+
+subtest '[aws_vm_get_id] missing args' => sub {
+    dies_ok { aws_vm_get_id(region => 'Almera') } 'Missing job_id';
+    dies_ok { aws_vm_get_id(job_id => '67890') } 'Missing region';
+};
+
+subtest '[aws_vm_get_diagnostics]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return '{"id": "i-12345", "state": "running"}'; });
+
+    my $res = aws_vm_get_diagnostics(region => 'us-west-2', instance_id => 'i-12345');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /aws ec2 describe-instances/ } @calls), 'Command describe-instances');
+    ok((any { /--region us-west-2/ } @calls), 'Region in command');
+    ok((any { /Name=instance-id,Values=i-12345/ } @calls), 'Instance id in filter');
+    is($res->{state}, 'running', 'State in result');
+};
+
+subtest '[aws_vm_get_diagnostics] failure' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $awscli->redefine(script_output => sub { return 'null'; });
+
+    ok(!defined(aws_vm_get_diagnostics(region => 'us-west-2', instance_id => 'i-12345')), 'undef on null');
+};
+
+subtest '[aws_vm_get_diagnostics] missing args' => sub {
+    dies_ok { aws_vm_get_diagnostics(region => 'us-west-2') } 'Missing instance_id';
+    dies_ok { aws_vm_get_diagnostics(instance_id => 'i-12345') } 'Missing region';
+};
+
+subtest '[aws_vm_describe_status]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    my %opts;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; %opts = @_[1 .. $#_]; return 'ok'; });
+
+    my $res = aws_vm_describe_status(region => 'us-west-2', instance_id => 'i-12345');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /^timeout -k 5 60 aws / } @calls), 'aws is bounded by timeout');
+    ok((any { /aws ec2 describe-instance-status/ } @calls), 'Command describe-instance-status');
+    ok((any { /--region us-west-2/ } @calls), 'Region in command');
+    ok((any { /--instance-ids i-12345/ } @calls), 'Instance id in command');
+    ok((any { /--include-all-instances/ } @calls), 'Include not running instances');
+    ok($opts{proceed_on_failure}, 'proceed_on_failure is set');
+    ok(($res eq 'ok'), "Result is '$res' expected to be 'ok'");
+};
+
+subtest '[aws_vm_describe_status] missing args' => sub {
+    dies_ok { aws_vm_describe_status(region => 'us-west-2') } 'Missing instance_id';
+    dies_ok { aws_vm_describe_status(instance_id => 'i-12345') } 'Missing region';
 };
 
 subtest '[aws_vm_wait_status_ok]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
-    $awscli->redefine(script_retry => sub { push @calls, $_[0]; return; });
+    my @states = ('"pending"', '', '"running"');
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return shift @states; });
 
-    aws_vm_wait_status_ok(
+    my $ret = aws_vm_wait_status_ok(
+        region => 'Almera',
         instance_id => 'i-12345'
     );
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 describe-instances/ } @calls), 'Command describe-instances');
-    ok((any { /grep 'running'/ } @calls), 'grep running is in command');
+    ok((any { /--region Almera/ } @calls), 'Region in command');
+    is(scalar(@calls), 3, 'Retry until running');
+    is($ret, 0, 'Return 0 when running');
 };
 
-subtest '[aws_get_ip_address]' => sub {
+subtest '[aws_vm_wait_status_ok] timeout' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
-    my @calls;
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return '1.2.3.4'; });
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $awscli->redefine(script_output => sub { return '"pending"'; });
+    dies_ok { aws_vm_wait_status_ok(region => 'Almera', instance_id => 'i-12345', timeout => 60, delay => 10) }
+    qr/not running after 60 seconds, last state: 'pending'/;
+};
 
-    my $res = aws_get_ip_address(
+subtest '[aws_vm_wait_status_ok] terminated' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $awscli->redefine(script_output => sub { return '"terminated"'; });
+
+    dies_ok { aws_vm_wait_status_ok(region => 'Almera', instance_id => 'i-12345') }
+    qr/not running after 600 seconds, last state: 'terminated'/;
+};
+
+subtest '[aws_vm_wait_status_ok] missing args' => sub {
+    dies_ok { aws_vm_wait_status_ok(region => 'Almera') } 'Missing instance_id';
+    dies_ok { aws_vm_wait_status_ok(instance_id => 'i-12345') } 'Missing region';
+};
+
+subtest '[aws_pubip_get]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return '"1.2.3.4"'; });
+
+    my $res = aws_pubip_get(
+        region => 'Almera',
         instance_id => 'i-12345'
     );
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 describe-instances/ } @calls), 'Command describe-instances');
-    ok(($res eq '1.2.3.4'), "Result is '$res' expected to be '1.2.3.4'");
+    ok((any { /--region Almera/ } @calls), 'Region in command');
+    ok((any { /Name=instance-id,Values=i-12345/ } @calls), 'Instance id in filter');
+    is($res, '1.2.3.4', 'IP returned');
+};
+
+subtest '[aws_pubip_get] no IP' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $awscli->redefine(script_output => sub { return 'null'; });
+
+    ok(!defined(aws_pubip_get(region => 'Almera', instance_id => 'i-12345')), 'undef on null');
+};
+
+subtest '[aws_pubip_get] missing args' => sub {
+    dies_ok { aws_pubip_get(region => 'Almera') } 'Missing instance_id';
+    dies_ok { aws_pubip_get(instance_id => 'i-12345') } 'Missing region';
 };
 
 subtest '[aws_vm_terminate]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     my $script_run_count = 0;
     $awscli->redefine(script_run => sub {
@@ -424,6 +592,7 @@ subtest '[aws_vm_terminate]' => sub {
 
 subtest '[aws_tgw_get_id]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $awscli->redefine(aws_filter_query => sub { return 'tgw-1'; });
 
     is(aws_tgw_get_id(mirror_tag => 'T', region => 'R'), 'tgw-1', 'Get TGW ID');
@@ -431,6 +600,7 @@ subtest '[aws_tgw_get_id]' => sub {
 
 subtest '[aws_vpc_get_subnets]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $awscli->redefine(script_output => sub { return '[{"AZ":"a","SI":"s1"},{"AZ":"a","SI":"s2"},{"AZ":"b","SI":"s3"}]'; });
 
     my @res = aws_vpc_get_subnets(vpc_id => 'v');
@@ -441,6 +611,7 @@ subtest '[aws_vpc_get_subnets]' => sub {
 
 subtest '[aws_vpc_get_routing_tables]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $awscli->redefine(aws_filter_query => sub { return 'rtb-1'; });
 
     is(aws_vpc_get_routing_tables(vpc_id => 'v', region => 'r'), 'rtb-1', 'Get routing tables');
@@ -448,6 +619,7 @@ subtest '[aws_vpc_get_routing_tables]' => sub {
 
 subtest '[aws_tgw_attachment_create]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $awscli->redefine(script_output => sub { return '{"TransitGatewayVpcAttachment":{"TransitGatewayAttachmentId":"at-1"}}'; });
     $awscli->redefine(aws_tgw_attachment_get => sub { return [{"State" => "available"}]; });
 
@@ -457,6 +629,7 @@ subtest '[aws_tgw_attachment_create]' => sub {
 
 subtest '[aws_tgw_attachment_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_run => sub { push @calls, $_[0]; });
     $awscli->redefine(aws_tgw_attachment_get => sub { return [{"State" => "deleted"}]; });
@@ -468,6 +641,7 @@ subtest '[aws_tgw_attachment_delete]' => sub {
 
 subtest '[aws_route_create_tgw]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $awscli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 

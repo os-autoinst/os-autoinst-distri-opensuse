@@ -248,7 +248,7 @@ sub crash_deploy_aws(%args) {
         ssh_key => $ssh_key,
         region => $args{region},
         job_id => $job_id);
-    aws_vm_wait_status_ok(instance_id => $instance_id);
+    aws_vm_wait_status_ok(region => $args{region}, instance_id => $instance_id);
     return $instance_id;
 }
 
@@ -352,8 +352,10 @@ sub crash_pubip(%args) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     my $vm_ip = '';
     if ($args{provider} eq 'EC2') {
-        $vm_ip = aws_get_ip_address(
-            instance_id => aws_vm_get_id(region => $args{region}, job_id => crash_deploy_name()));
+        my @ids = aws_vm_get_id(region => $args{region}, job_id => crash_deploy_name());
+        die('Expected exactly one EC2 instance, found ' . scalar(@ids) . ": @ids") unless @ids == 1;
+        $vm_ip = aws_pubip_get(region => $args{region}, instance_id => $ids[0]);
+        die("No public IP for EC2 instance $ids[0]") unless $vm_ip;
     }
     elsif ($args{provider} eq 'AZURE') {
         $vm_ip = az_network_publicip_get(
@@ -430,7 +432,9 @@ sub crash_get_instance(%args) {
 
     my $instance_id;
     if ($args{provider} eq 'EC2') {
-        $instance_id = aws_vm_get_id(region => $args{region}, job_id => crash_deploy_name());
+        my @ids = aws_vm_get_id(region => $args{region}, job_id => crash_deploy_name());
+        die('Expected exactly one EC2 instance, found ' . scalar(@ids) . ": @ids") unless @ids == 1;
+        $instance_id = $ids[0];
     } else {
         $instance_id = crash_vm_name(provider => $args{provider});
     }
@@ -650,11 +654,16 @@ sub crash_destroy_aws(%args) {
     my %ret;
     my $job_id = crash_deploy_name();
 
-    my $instance_id = aws_vm_get_id(region => $args{region}, job_id => $job_id);
+    my @instance_ids = aws_vm_get_id(region => $args{region}, job_id => $job_id);
     my $vpc_id = aws_vpc_get_id(region => $args{region}, job_id => $job_id);
 
-    # Terminate instance and wait
-    $ret{vm} = aws_vm_terminate(region => $args{region}, instance_id => $instance_id);
+    # Terminate all instances of the job and wait
+    $ret{vm} = 0;
+    record_info('AWS no VM', "No EC2 instance found for job $job_id") unless @instance_ids;
+    foreach my $instance_id (@instance_ids) {
+        my $rc = aws_vm_terminate(region => $args{region}, instance_id => $instance_id);
+        $ret{vm} = $rc if ($rc && !$ret{vm});
+    }
 
     # Delete all resources
     $ret{sg} = aws_security_group_delete(region => $args{region}, job_id => $job_id);
