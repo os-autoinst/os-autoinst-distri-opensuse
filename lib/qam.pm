@@ -93,8 +93,11 @@ sub add_extra_customer_repositories {
 sub add_test_repositories {
     my $counter = 0;
 
-    my $oldrepo = get_var('PATCH_TEST_REPO');
-    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    # On SLE12 & SLE15 MAINT_TEST_REPO is created from *_TEST_REPOS in aggregates
+    # and from INCIDENT_REPO in Incidents in main.pm
+    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/products/sle/main.pm#L359
+    # On SLE16+ use INCREMENT_REPO if exists
+    my @repos = split(/,/, get_var('INCREMENT_REPO', get_var('MAINT_TEST_REPO')));
     set_zypper_lock_timeout();
 
     add_extra_customer_repositories if get_var('MAINT_TEST_REPO');
@@ -103,11 +106,6 @@ sub add_test_repositories {
     if (get_var('MACHINE') =~ /uefi/ && !is_transactional) {
         zypper_call('up grub2 grub2-x86_64-efi kernel-default');
     }
-
-    # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
-    # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
-    # please be sure that the PATCH_TEST_REPO is empty.
-    @repos = split(',', $oldrepo) if ($oldrepo);
 
     if (get_var("NO_ADD_MAINT_TEST_REPOS")) {
         # If we don't want to add again (and duplicate) repositories that were already added during install,
