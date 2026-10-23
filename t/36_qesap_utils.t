@@ -62,12 +62,10 @@ subtest '[qesap_get_public_cloud_tags] HTTP/HTTPS URLs with and without trailing
                 $test_data{name},
                 "openqa_var_name tag is '" . ($tags{openqa_var_name} // 'undef') . "' and expect '$test_data{name}'"
             );
-            my $expected_server = $test_data{host};
-            $expected_server =~ s/\./-/g;
             is(
                 $tags{openqa_var_server},
-                $expected_server,
-                "openqa_var_server tag is '" . ($tags{openqa_var_server} // 'undef') . "' and expect '$expected_server' for $url"
+                'openqaussenterprisencc-1701',
+                "openqa_var_server tag is '" . ($tags{openqa_var_server} // 'undef') . "' and expect 'openqaussenterprisencc-1701' for $url"
             );
             like(
                 $tags{openqa_created_date},
@@ -91,8 +89,8 @@ subtest '[qesap_get_public_cloud_tags] Fallback to OPENQA_HOSTNAME' => sub {
     set_var('NAME', undef);
     is(
         $tags_fallback{openqa_var_server},
-        'openqa-USS-Enterprise-NCC-1701',
-        "openqa_var_server tag is '" . ($tags_fallback{openqa_var_server} // 'undef') . "' and expect 'openqa-USS-Enterprise-NCC-1701'"
+        'openqaussenterprisencc-1701',
+        "openqa_var_server tag is '" . ($tags_fallback{openqa_var_server} // 'undef') . "' and expect 'openqaussenterprisencc-1701'"
     );
     like(
         $tags_fallback{openqa_created_date},
@@ -104,12 +102,12 @@ subtest '[qesap_get_public_cloud_tags] Fallback to OPENQA_HOSTNAME' => sub {
 subtest '[qesap_get_public_cloud_tags] openqa_var_name sanitization' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::utils', no_auto => 1);
     $qesap->redefine(get_current_job_id => sub { return '42'; });
-    set_var('OPENQA_HOSTNAME', 'openqa.suse.de');
+    set_var('OPENQA_HOSTNAME', 'openqa.USS.Enterprise.NCC-1701');
 
     my %test_cases = (
-        'removes @... suffix and truncates to 63 chars' => {
+        'removes @... suffix, lowercases, and truncates to 63 chars' => {
             input => '00389322-sle-15-SP7-Qesap-Gcp-Byos-x86_64-Buildmpagot_VR-qesap_gcp_angi_test@64bit',
-            expected => '00389322-sle-15-SP7-Qesap-Gcp-Byos-x86_64-Buildmpagot_VR-qesap_',
+            expected => '00389322-sle-15-sp7-qesap-gcp-byos-x86_64-buildmpagot_vr-qesap_',
         },
         'keeps short name without @ intact' => {
             input => 'enterprise',
@@ -122,6 +120,10 @@ subtest '[qesap_get_public_cloud_tags] openqa_var_name sanitization' => sub {
         'truncates long name without @ to 63 chars' => {
             input => 'a' x 80,
             expected => 'a' x 63,
+        },
+        'lowercases and removes colons from a smelt-style name' => {
+            input => '25013456-sle-16.0-GCE-SAP-BYOS-Staging-x86_64-Build:git:9334:openssl-3-livepatches-SAPHanaSR-ScaleUp-PerfOpt-stop-kill',
+            expected => '25013456-sle-160-gce-sap-byos-staging-x86_64-buildgit9334openss',
         },
         'handles empty name' => {
             input => '',
@@ -139,6 +141,7 @@ subtest '[qesap_get_public_cloud_tags] openqa_var_name sanitization' => sub {
         my %tags = qesap_get_public_cloud_tags();
         is($tags{openqa_var_name}, $tc->{expected}, "$desc: '$tags{openqa_var_name}'");
         ok(length($tags{openqa_var_name}) <= 63, "length <= 63 for '$desc'");
+        like($tags{openqa_var_name}, qr/^[a-z0-9_-]*$/, "GCP-safe for '$desc'");
     }
 
     set_var('OPENQA_HOSTNAME', undef);
@@ -150,17 +153,17 @@ subtest '[qesap_get_public_cloud_tags] openqa_var_server GCP sanitization' => su
     $qesap->redefine(get_current_job_id => sub { return '42'; });
 
     my %test_cases = (
-        'replaces dots with dashes' => {
-            input => 'openqaworker15.qe.prg2.suse.org',
-            expected => 'openqaworker15-qe-prg2-suse-org',
+        'removes dots and lowercases' => {
+            input => 'openqa.USS.Enterprise.NCC-1701',
+            expected => 'openqaussenterprisencc-1701',
         },
         'handles hostname without dots' => {
             input => 'enterprise',
             expected => 'enterprise',
         },
-        'handles multiple consecutive dots' => {
+        'removes multiple consecutive dots' => {
             input => 'shuttle..vulcan',
-            expected => 'shuttle--vulcan',
+            expected => 'shuttlevulcan',
         },
     );
 
@@ -170,7 +173,7 @@ subtest '[qesap_get_public_cloud_tags] openqa_var_server GCP sanitization' => su
         my %tags = qesap_get_public_cloud_tags();
         is($tags{openqa_var_server}, $tc->{expected}, "$desc: '$tags{openqa_var_server}'");
         ok(length($tags{openqa_var_server}) <= 63, "length <= 63 for '$desc'");
-        like($tags{openqa_var_server}, qr/^[a-z0-9_-]+$/, "GCP-safe for '$desc'");
+        like($tags{openqa_var_server}, qr/^[a-z0-9_-]*$/, "GCP-safe for '$desc'");
     }
 
     set_var('OPENQA_HOSTNAME', undef);

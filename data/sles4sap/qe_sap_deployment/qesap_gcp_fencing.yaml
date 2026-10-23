@@ -25,7 +25,7 @@ terraform:
     drbd_cluster_fencing_mechanism: '%FENCING%'
     netweaver_cluster_fencing_mechanism: '%FENCING%'
     allowed_ssh_cidr_csv: '%WORKER_IP%'
-    custom_tags: { 'openqa_var_job_id': '%CUSTOM_TAGS_JOB_ID%'}
+    custom_tags: { 'openqa_var_job_id': '%CUSTOM_TAGS_JOB_ID%', 'openqa_var_name': '%CUSTOM_TAGS_NAME%', 'openqa_var_server': '%CUSTOM_TAGS_SERVER%'}
 ansible:
   roles_path: '%ANSIBLE_ROLES%'
   az_storage_account_name: '%HANA_ACCOUNT%'
