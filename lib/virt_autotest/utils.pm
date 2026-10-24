@@ -110,6 +110,7 @@ our @EXPORT = qw(
   select_backend_console
   double_check_xen_role
   check_kvm_modules
+  check_host_version
   install_product_software
   collect_guests_supportconfig_and_logs
   reset_network_config
@@ -2051,6 +2052,43 @@ sub check_kvm_modules {
         }
     }
     record_info("KVM", "kvm modules are loaded!");
+}
+
+=head2 check_host_version
+
+  check_host_version(expected => '15-SP7', [build => '91.1'])
+
+Make sure that the running SLE host has the expected product version. Get the
+version and the service pack of the host with get_os_release and die if they do
+not match C<expected>. This finds a host that did not do a fresh installation,
+for example a host that booted the old system from its disk instead of from iPXE.
+
+C<expected> is mandatory. It can use the format of VERSION (15-SP7, 16.0) or of
+UPGRADE_PRODUCT (sles-15-sp7).
+
+C<build> is optional. If it is given, also make sure that the URL of a zypper
+repository on the host contains it, and die if no URL contains it. The product
+repositories from the openQA assets (SLES-16.1-x86_64-Build75.8) and from the
+proxy SCC (all-91.1.proxy.scc.suse.de) contain the build.
+=cut
+
+sub check_host_version {
+    my (%args) = @_;
+    die 'check_host_version: argument expected is not given' unless $args{expected};
+
+    # Split the expected version in the same way as get_os_release: 15-SP7 to (15, 7), 16.0 to (16, 0)
+    my ($expected_version, $expected_sp) = split(/\.|-sp/i, $args{expected} =~ s/^sles-//ir);
+    $expected_sp //= 0;
+    my ($host_version, $host_sp, $host_distri) = get_os_release;
+    die "Host version mismatch: expected $args{expected}, but host runs $host_distri $host_version SP$host_sp. Host installation or upgrade probably failed."
+      unless $host_version eq $expected_version and $host_sp eq $expected_sp;
+    record_info('Host version', "Host runs the expected version: $host_distri $host_version SP$host_sp");
+
+    return unless $args{build};
+    my $repo_urls = script_output("grep -h '^baseurl=' /etc/zypp/repos.d/*.repo", proceed_on_failure => 1);
+    die "Host build mismatch: no zypper repository URL contains build $args{build}. Host installation probably failed.\nRepository URLs:\n$repo_urls"
+      unless $repo_urls =~ /(?<!\d)\Q$args{build}\E(?!\d)/;
+    record_info('Host build', "Host uses repositories of the expected build: $args{build}");
 }
 
 sub extract_kernel_initrd_from_iso {
