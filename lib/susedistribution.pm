@@ -508,6 +508,7 @@ sub init_consoles {
                 password => $testapi::password,
                 username => 'root',
                 serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
+                serialdev => 'sshserial',
                 gui => 1
             });
         $self->add_console(
@@ -517,7 +518,8 @@ sub init_consoles {
                 hostname => get_required_var('SUT_IP'),
                 password => $testapi::password,
                 username => 'root',
-                serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
+                serial => 'rm -f /dev/virtsshserial; mkfifo /dev/virtsshserial; chmod 666 /dev/virtsshserial; while true; do cat /dev/virtsshserial; done',
+                serialdev => 'virtsshserial',
                 gui => 0
             }) if (get_var('VIRT_AUTOTEST', '') or get_var('REGRESSION', ''));
     }
@@ -945,7 +947,10 @@ sub activate_console {
         ensure_user($user);
         assert_screen(["text-logged-in-$user", "text-login"], 60);
         $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
-        set_sshserial_dev if has_serial_over_ssh;    # We can use ssh console with a real serial already grabbed
+        # We can use ssh console with a real serial already grabbed.
+        # Each ssh console can read its own FIFO, set by the "serialdev" console argument.
+        my $console_args = ($self->{consoles}->{$console} // {})->{args} // {};
+        set_sshserial_dev($console_args->{serialdev}) if has_serial_over_ssh;
     }
     elsif ($console eq 'svirt' || $console eq 'hyperv-intermediary') {
         my $os_type = (check_var('VIRSH_VMM_FAMILY', 'hyperv') && $console eq 'svirt') ? 'windows' : 'linux';
