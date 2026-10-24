@@ -12,6 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use Utils::Backends 'is_pvm';
+use Utils::Architectures 'is_aarch64';
 use version_utils 'is_sle';
 use package_utils 'install_package';
 
@@ -23,7 +24,12 @@ sub run {
     systemctl "start fwupd";
 
     # Get all devices that support firmware updates
-    assert_script_run "fwupdmgr get-devices" if (!is_pvm && is_sle('15-sp3+'));
+    if (is_aarch64 && script_run('fwupdmgr get-devices') == 2) {
+        record_soft_failure 'bsc#1287679';
+    }
+    elsif (!is_pvm && is_sle('15-sp3+')) {
+        assert_script_run 'fwupdmgr get-devices';
+    }
     # Gets the configured remotes
     assert_script_run "fwupdmgr get-remotes";
 }
