@@ -18,6 +18,8 @@ use transactional;
 use base 'opensusebasetest';
 use serial_terminal qw(select_serial_terminal);
 use power_action_utils qw(power_action);
+use registration qw(add_suseconnect_product get_addon_fullname);
+use version_utils qw(is_sle);
 
 our @EXPORT = qw(
   install
@@ -151,7 +153,9 @@ sub validate_cuda
     my $cuda_ver = get_var('NVIDIA_CUDA_VERSION');
     my $cuda_pkg = $cuda_ver ? "cuda-toolkit-$cuda_ver" : "cuda-toolkit";
 
-    zypper_call("install -l cmake git $gcc_pkgs $cuda_pkg vulkan-devel freeglut-devel Mesa-libEGL-devel", timeout => 1200);
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
+
+    zypper_call("install -l cmake git $gcc_pkgs $cuda_pkg vulkan-devel freeglut-devel Mesa-libEGL-devel dlpack-devel", timeout => 1200);
 
     # Query the GPU capabilities
     my $query = script_output('nvidia-smi --query-gpu=compute_cap --format=csv');
@@ -170,7 +174,7 @@ sub validate_cuda
     assert_script_run("git clone --depth 1 --single-branch --branch $cuda_samples_branch https://github.com/NVIDIA/cuda-samples.git");
     assert_script_run('mkdir cuda-samples/build; cd $_');
     my $cmake_compiler_args = $gcc_ver ? "-DCMAKE_C_COMPILER=gcc-$gcc_ver -DCMAKE_CXX_COMPILER=g++-$gcc_ver -DCMAKE_CUDA_HOST_COMPILER=g++-$gcc_ver" : "";
-    assert_script_run("cmake .. -DCMAKE_CUDA_COMPILER_TOOLKIT_ROOT=/usr/local/cuda -DCMAKE_CUDA_ARCHITECTURES=$compute_cap -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc $cmake_compiler_args -DCMAKE_CXX_STANDARD=20 -DCMAKE_CUDA_STANDARD=20");
+    assert_script_run("cmake .. -DCMAKE_PREFIX_PATH=/usr/local/cuda/targets/x86_64-linux -DCMAKE_CUDA_COMPILER_TOOLKIT_ROOT=/usr/local/cuda -DCMAKE_CUDA_ARCHITECTURES=$compute_cap -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc $cmake_compiler_args -DCMAKE_CXX_STANDARD=20 -DCMAKE_CUDA_STANDARD=20 -DCPM_USE_LOCAL_PACKAGES=ON");
     assert_script_run('make -j$(nproc)', 3000);
     record_info('CUDA Sample', script_output('./cpp/0_Introduction/clock/clock'));
 }
