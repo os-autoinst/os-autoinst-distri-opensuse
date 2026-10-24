@@ -144,6 +144,9 @@ sub add_custom_grub_entries {
     elsif (check_var('SLE_PRODUCT', 'slert')) {
         $distro = "SLE_RT" . ' \\?' . get_required_var('VERSION');
     }
+    elsif (check_var('AGAMA_PRODUCT_ID', 'SLES_NVIDIA')) {
+        $distro = "SLES for NVIDIA" . ' \\?' . get_required_var('VERSION');
+    }
     elsif (is_sle()) {
         $distro = "SLES" . ' \\?' . get_required_var('VERSION');
     }
