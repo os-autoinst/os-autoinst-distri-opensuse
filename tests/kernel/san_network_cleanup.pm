@@ -9,11 +9,14 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
-use Kernel::multimachine_topology qw(get_local_node get_peers get_node_interface get_topology_network);
+use Kernel::multimachine_topology qw(get_local_node get_peers get_job_nodes get_node_interface get_topology_network);
 use Kernel::mikrotik_switch 'remove_vlan_network';
 
 sub run {
     my $node = get_local_node();
+    return record_info('Skipped', 'The first job node of the topology removes the VLAN')
+      unless $node->{id} eq get_job_nodes()->[0]{id};
+
     my $network = get_topology_network(get_node_interface($node, 0)->{network});
     my @ports = map { get_node_interface($_, 0)->{switch_port} } ($node, @{get_peers($node)});
     remove_vlan_network(vlan_id => $network->{vlan_id}, ports => \@ports);
@@ -24,7 +27,9 @@ sub run {
 =head1 Description
 
 Removes the VLAN that C<kernel/san_network> created and sets the switch
-ports back to their default VLAN 3. Schedule it as the last module, so
-that it also runs after a failed test.
+ports of all nodes back to their default VLAN 3. Only the first job node
+of the topology, which created the VLAN, does this. Schedule it as the
+last module, so that it also runs after a failed test. In a test with
+more than one job, schedule it after the barrier that waits for all jobs.
 
 =cut

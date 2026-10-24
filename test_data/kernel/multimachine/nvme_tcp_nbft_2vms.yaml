@@ -1,0 +1,25 @@
+multimachine_topology:
+  name: nvme_tcp_nbft_2vms
+
+  networks:
+    - id: mm
+      ipv4_cidr: "10.0.2.0/24"
+
+  nodes:
+    - id: target
+      role: nvme_target
+      hostname: nvme-target
+      interfaces:
+        - id: eth0
+          network: mm
+          ipv4: "10.0.2.1"
+
+    # The NBFT data/kernel/nbft/NBFT-openqa-mm sets the address of the
+    # installer, not the test. It must match the table.
+    - id: installer
+      role: nvme_nbft_installer
+      hostname: nvmeof-sut
+      interfaces:
+        - id: eth0
+          network: mm
+          ipv4: "10.0.2.200"
