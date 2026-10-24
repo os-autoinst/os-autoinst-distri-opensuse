@@ -21,7 +21,7 @@ use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner az_login sdaf_deployment_reused check_credentials);
 use sles4sap::sap_deployment_automation_framework::deployment_connector;
 use sles4sap::sap_deployment_automation_framework::naming_conventions qw(generate_deployer_name);
-use sles4sap::azure_cli qw(az_disk_create);
+use sles4sap::azure_cli qw(az_disk_create az_vm_create);
 use serial_terminal qw(select_serial_terminal);
 use mmapi qw(get_current_job_id);
 use testapi;
@@ -68,15 +68,16 @@ sub run {
     );
 
     # Create new VM clone
-    my $vm_create_cmd = join(' ', 'az vm create',
-        "--resource-group $deployer_resource_group",
-        "--name $new_deployer_vm_name",
-        "--attach-os-disk $deployer_disk_name",
-        "--size $deployer_vm_size",
-        '--os-type Linux',
-        qq|--tags $deployment_tags|
+    az_vm_create(
+        resource_group => $deployer_resource_group,
+        name => $new_deployer_vm_name,
+        attach_os_disk => $deployer_disk_name,
+        size => $deployer_vm_size,
+        os_type => 'Linux',
+        public_ip => $new_deployer_vm_name . 'PublicIP',
+        tags => $deployment_tags,
+        timeout => 600
     );
-    assert_script_run($vm_create_cmd, timeout => 600);
 
     # Collect deployer IP to be shown in the result page
     # get_deployer_ip() also checks VM is listening to SSH port. This serves as an availability check.

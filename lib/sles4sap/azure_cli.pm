@@ -140,7 +140,7 @@ sub az(%args) {
     my $out_file = script_output('mktemp --suffix _az.json', quiet => '1');
 
     my @az_cmd = ('az', $args{az_args});
-    push @az_cmd, '--only-show-errors';
+    push @az_cmd, '--only-show-errors' unless $args{az_args} =~ /--debug/;
     push @az_cmd, "--query \"$args{query}\"" if $args{query};
     push @az_cmd, '--output json';
     # Remove lines which should not be considered as error.
@@ -1044,7 +1044,7 @@ sub az_vm_create(%args) {
     croak("At least one between argument < image > or < attach_os_disk > are needed") unless ($args{image} || $args{attach_os_disk});
     _az_validate_tags(tags => $args{tags}) if $args{tags};
 
-    my @vm_create = ('az vm create');
+    my @vm_create = ('vm create');
     push @vm_create, '--debug' if $args{debug};
     push @vm_create, '--resource-group', $args{resource_group};
     push @vm_create, '-n', $args{name};
@@ -1063,15 +1063,21 @@ sub az_vm_create(%args) {
     push @vm_create, '--vnet-name', $args{vnet} if $args{vnet};
     push @vm_create, '--subnet', $args{snet} if $args{snet};
     push @vm_create, '--security-type', $args{security_type} if $args{security_type};
-    if ($args{ssh_pubkey}) {
-        push @vm_create, '--ssh-key-values', $args{ssh_pubkey};
-    } else {
-        push @vm_create, '--authentication-type ssh --generate-ssh-keys';
+    # Handle '--attach-os-disk' mutually exclusive with '--authentication-type' and '--generate-ssh-keys':
+    # it reports 'ERROR: invalid usage for storage profile: attach existing managed OS disk:
+    #   not applicable: --authentication-type, --generate-ssh-keys'.
+    unless ($args{attach_os_disk}) {
+        if ($args{ssh_pubkey}) {
+            push @vm_create, '--ssh-key-values', $args{ssh_pubkey};
+        } else {
+            push @vm_create, '--authentication-type ssh --generate-ssh-keys';
+        }
     }
     push @vm_create, '--os-type', $args{os_type} if $args{os_type};
     push @vm_create, '--tags', $args{tags} if $args{tags};
 
-    assert_script_run(join(' ', @vm_create), timeout => $args{timeout});
+    my $az_out = az(az_args => join(' ', @vm_create), timeout => $args{timeout});
+    return $az_out->{rc};
 }
 
 =head2 az_vm_list
@@ -1921,14 +1927,15 @@ sub az_disk_create(%args) {
     croak "Argument 'size_gb' or 'source' has to be specified" unless $args{size_gb} or $args{source};
     _az_validate_tags(tags => $args{tags}) if $args{tags};
 
-    my @az_command = ('az disk create',
+    my @az_command = ('disk create',
         "--resource-group $args{resource_group}",
         "--name $args{name}",
     );
     push @az_command, "--source $args{source}" if $args{source};
     push @az_command, "--size-gb $args{size_gb}" if $args{size_gb};
     push @az_command, "--tags $args{tags}" if $args{tags};
-    assert_script_run(join(' ', @az_command));
+    my $az_out = az(az_args => join(' ', @az_command));
+    return $az_out->{rc};
 }
 
 =head2 az_resource_delete
