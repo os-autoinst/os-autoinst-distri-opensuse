@@ -23,7 +23,7 @@ sub run {
     systemctl "start fwupd";
 
     # Get all devices that support firmware updates
-    assert_script_run "fwupdmgr get-devices" if (!is_pvm && is_sle('15-sp3+'));
+    assert_script_run "fwupdmgr get-devices" if (!is_pvm && is_sle('15-sp3+') && script_run('test -d /sys/firmware/efi/esrt') == 0);
     # Gets the configured remotes
     assert_script_run "fwupdmgr get-remotes";
 }
