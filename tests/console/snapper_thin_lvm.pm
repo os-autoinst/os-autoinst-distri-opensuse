@@ -44,8 +44,9 @@ sub run {
         $self->set_playground_disk;
         my $disk = get_required_var('PLAYGROUNDDISK');
 
-        # Create partition on unpartitioned
-        assert_script_run 'echo -e "g\nn\n\n\n\nt\n8e\np\nw" | fdisk ' . $disk;
+        # Create partition as GPT (using 'lvm' alias), wait for udev
+        assert_script_run 'echo -e "g\nn\n\n\n\nt\nlvm\np\nw" | fdisk ' . $disk;
+        assert_script_run 'time udevadm settle';
         assert_script_run 'lsblk';
 
         # Create a volume group named 'test'
