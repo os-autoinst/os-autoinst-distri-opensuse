@@ -34,6 +34,7 @@ our @EXPORT = qw(
   is_fv_guest
   is_pv_guest
   is_sev_es_guest
+    is_sev_snp_guest
   is_transactional_guest
   guest_is_sle
   is_guest_ballooned
@@ -268,6 +269,22 @@ sub is_guest_of_host_version {
     # Negative lookahead: reject if followed by "sp\d" or bare digit,
     # which would indicate a different version (e.g. sles16sp1 != sles16).
     return $guest =~ /^${prefix}(?!sp\d|\d)/;
+}
+
+=head2 is_sev_snp_guest
+
+    is_sev_snp_guest($guest_name)
+
+Check whether a guest name identifies a SEV-SNP guest.
+
+=cut
+
+sub is_sev_snp_guest {
+    my ($guest_name) = @_;
+    $guest_name //= '';
+    croak('Argument guest_name should not be empty') if ($guest_name eq '');
+
+    return $guest_name =~ /efi|sev-snp/;
 }
 
 #return 1 if it is a fv guest judging by name
