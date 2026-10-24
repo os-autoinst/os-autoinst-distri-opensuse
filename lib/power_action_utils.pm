@@ -438,6 +438,8 @@ and the proper statistics of such cases should be gathered instead of just incre
 
 If C<$args->{soft_timeout}> is not specified, then the default assert_shutdown is executed.
 
+The z/VM backend cannot detect shutdown, so no wait is performed there.
+
 Example:
 
  assert_shutdown_with_soft_timeout({timeout => 300, soft_timeout => 60, bugref => 'bsc#123456'});
@@ -446,6 +448,11 @@ Example:
 
 sub assert_shutdown_with_soft_timeout {
     my ($args) = @_;
+    # check_shutdown can only sleep when the backend cannot detect shutdown
+    if (is_backend_s390x) {
+        diag('Skipping shutdown check on the z/VM backend which cannot detect shutdown');
+        return;
+    }
     $args->{timeout} //= (is_s390x || is_ipmi) ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
     $args->{soft_timeout} //= 0;
     $args->{bugref} //= "No bugref specified";
