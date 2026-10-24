@@ -57,8 +57,8 @@ sub run {
 
         # Modify run_tests.sh to use the system binary
         assert_script_run("sed -i 's|STALLD_BIN=.*|STALLD_BIN=\"$system_stalld\"|' tests/run_tests.sh");
-
-        validate_script_output("./tests/run_tests.sh --test test_log_only", sub { m/Test PASSED/ }, timeout => 120);
+        become_root;
+        validate_script_output("$srcdir/tests/run_tests.sh --test test_log_only", sub { m/Test PASSED/ }, timeout => 120);
     }
 }
 
