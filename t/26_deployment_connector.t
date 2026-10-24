@@ -323,8 +323,9 @@ subtest '[get_deployment_tags] Check returned value' => sub {
     is $result{deployed_by}, 'Unit test', 'Apply "deployed_by" tag';
     is $result{openqa_instance}, 'OSD', 'Apply "openqa_instance" tag.';
     is $result{deployment_id}, '42', 'Apply "deployment_id" tag.';
-    ok(Time::Piece->strptime($result{openqa_created_date}, "%Y-%m-%dT%H:%M:%S"),
-        "Check date format in tag 'openqa_created_date: $result{openqa_created_date}'.");
+    my $created = Time::Piece->strptime($result{openqa_created_date}, "%Y-%m-%dT%H:%M:%S");
+    ok($created, "Check date format in tag 'openqa_created_date: $result{openqa_created_date}'.");
+    ok(abs($created->epoch - time()) < 60, "Tag 'openqa_created_date' uses UTC.");
     undef_variables;
 };
 
