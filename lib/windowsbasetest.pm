@@ -143,7 +143,7 @@ sub run_in_powershell {
 
 
 sub reboot_or_shutdown {
-    my ($self, $is_reboot) = @_;
+    my ($self, $is_reboot, $shutdown_timeout) = @_;
     send_key_until_needlematch 'ms-quick-features', 'super-x';
     wait_screen_change(sub { send_key 'u' }, 10);
     sleep 1;
@@ -154,7 +154,7 @@ sub reboot_or_shutdown {
     }
 
     save_screenshot;
-    assert_shutdown unless ($is_reboot);
+    assert_shutdown($shutdown_timeout) unless ($is_reboot);
 }
 
 
