@@ -17,6 +17,9 @@ conditional_schedule:
         - elemental3/validate_kernel_params
         - elemental3/validate_toolbox
         - elemental3/validate_users
+      init:
+        - elemental3/validate_kernel_params
+        - elemental3/validate_toolbox
   elemental_tests:
     TEST_TYPE:
       test_image:
