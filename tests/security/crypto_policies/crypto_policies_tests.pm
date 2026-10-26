@@ -1,8 +1,9 @@
-# Copyright 2024 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Switch crypto-policies, reboot and verify sshd is running
 # Maintainer: QE Security <none@suse.de>
+# Tags: poo#208152
 
 use Mojo::Base 'opensusebasetest';
 use v5.20;
@@ -14,6 +15,7 @@ use utils;
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
 use Utils::Architectures;
+use package_utils 'install_package';
 
 sub run {
     my ($self) = @_;
@@ -38,7 +40,7 @@ sub run {
 }
 
 sub setup_bind {
-    zypper_call 'in bind';
+    install_package('bind', trup_reboot => 1);
     assert_script_run('curl ' . data_url('security/crypto_policies/example.com.zone') . ' -o /var/lib/named/master/example.com');
     assert_script_run('curl ' . data_url('security/crypto_policies/example.com.conf') . ' -o /etc/named.d/example.com.conf');
     assert_script_run qq(echo 'include "/etc/named.d/example.com.conf";' >> /etc/named.conf);
@@ -55,11 +57,11 @@ sub ensure_bind_is_working {
 }
 
 sub setup_gnutls {
-    zypper_call 'in gnutls';
+    install_package('gnutls', trup_reboot => 1);
 }
 
 sub setup_nss {
-    zypper_call 'in mozilla-nss mozilla-nss-tools openssl';
+    install_package('mozilla-nss mozilla-nss-tools openssl', trup_reboot => 1);
     assert_script_run 'curl -O ' . data_url('security/crypto_policies/test_nss_client.sh');
     assert_script_run 'chmod +x test_nss_client.sh';
 }
