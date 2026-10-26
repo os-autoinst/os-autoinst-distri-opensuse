@@ -81,19 +81,15 @@ sub run {
     foreach my $instance (@$instances) {
         record_info 'Instance', join(' ', 'IP: ', $instance->public_ip, 'Name: ', $instance->instance_id);
         $self->{my_instance} = $instance;
-        # LogLevel=ERROR hides the sshd pre-auth banner (e.g. newer Azure images).
-        # Options are stored in the instance object, so later modules use them too.
-        $self->set_cli_ssh_opts('-E /var/tmp/ssh_sut.log -o LogLevel=ERROR');
+        $self->set_cli_ssh_opts;
         my $expected_hostname = $instance->{instance_id};
         # We need to scan for the SSH host key as the Ansible later
         $instance->update_instance_ip();
         $instance->wait_for_ssh();
 
-        # LogLevel=ERROR ignores not relevant output from the SSH client
         my $out = $instance->ssh_script_output(
             cmd => 'echo "REAL_HOSTNAME=$(hostname)"',
             username => 'cloudadmin',
-            ssh_opts => $instance->ssh_opts() . ' -o LogLevel=ERROR',
         );
         # Guard against banners or other unrelated output
         my ($real_hostname) = $out =~ /^REAL_HOSTNAME=(\S+)\s*$/m;

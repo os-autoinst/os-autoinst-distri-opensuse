@@ -1590,7 +1590,7 @@ sub get_online_string {
     Returns the SAPHanaSR-showattr version
 
 Only the expected lines of the command outputs are used, so unrelated
-output (ssh banners, MOTD, ...) can not be re-injected into a command
+output (like ssh banners) can not be re-injected into a command
 or mistaken for the version.
 
 =cut
