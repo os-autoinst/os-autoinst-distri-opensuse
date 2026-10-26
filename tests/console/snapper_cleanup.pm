@@ -103,10 +103,13 @@ sub run {
 
     # get initial cfg and save initial NUMBER_LIMIT and NUMBER_MIN_AGE settings for later restore
     assert_script_run("snapper get-config");
-    foreach (split /\n/, script_output("snapper get-config")) {
-        $number_limit_pre = $1 if (m/^NUMBER_LIMIT\s+\|\s+([-\d]+)\s*$/);
-        $number_min_age_pre = $1 if (m/^NUMBER_MIN_AGE\s+\|\s+(\d+)\s*$/);
+    # Read the config file, the get-config table layout differs between snapper versions
+    foreach (split /\n/, script_output('grep -E "^NUMBER_(LIMIT|MIN_AGE)=" /etc/snapper/configs/root')) {
+        $number_limit_pre = $1 if (m/^NUMBER_LIMIT="?([-\d]+)"?\s*$/);
+        $number_min_age_pre = $1 if (m/^NUMBER_MIN_AGE="?(\d+)"?\s*$/);
     }
+    die 'Could not read NUMBER_LIMIT and NUMBER_MIN_AGE from /etc/snapper/configs/root'
+      unless defined $number_limit_pre && defined $number_min_age_pre;
     assert_script_run("snapper list");    # get initial list of snap's
 
     # check amount of free fs disk space and adapt to it
