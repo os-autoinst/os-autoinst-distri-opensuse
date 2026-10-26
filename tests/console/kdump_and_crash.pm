@@ -22,6 +22,7 @@ sub run {
         return;
     }
     kdump_utils::check_function(test_type => 'function');
+    kdump_utils::check_function(test_type => 'makedumpfile');
 }
 
 sub post_fail_hook {
