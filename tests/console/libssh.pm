@@ -39,6 +39,7 @@ use registration 'add_suseconnect_product';
 use containers::common 'install_docker_when_needed';
 use registration qw(add_suseconnect_product get_addon_fullname);
 use serial_terminal qw(select_serial_terminal set_serial_prompt);
+use package_utils 'install_package';
 
 # Build a custom container image with openssl, curl and virsh installed.
 # The container will be used as client of libssh
@@ -109,9 +110,7 @@ sub run {
 
     # Host is used as server of libssh test
     install_docker_when_needed();
-    # zypper_call("--gpg-auto-import-keys in docker libvirt-daemon-qemu qemu-kvm qemu-block-ssh");
-    zypper_call("in libvirt-daemon libvirt-daemon-qemu qemu-kvm qemu-block-ssh");
-    #  systemctl("start docker.service libvirtd.service sshd.service");
+    install_package("libvirt-daemon libvirt-daemon-qemu qemu-kvm qemu-block-ssh", trup_reboot => 1);
     systemctl("start libvirtd.service sshd.service");
     create_image if (script_output('docker images') !~ m/libssh_image/);    #Skip building If image is already available. This is for Fips test
     assert_script_run("iptables -I INPUT -p tcp --dport 22 -j ACCEPT");
