@@ -6,7 +6,7 @@ schedule:
     - '{{boot_install}}'
     - transactional/host_config
     - console/suseconnect_scc
-    - '{{staging_updates}}'
+    - '{{MU_updates}}'
     - microos/services_enabled
     - transactional/disable_timers
     - qemu/info
@@ -16,9 +16,11 @@ schedule:
     - console/coredump_collect
     - shutdown/shutdown
 conditional_schedule:
-    staging_updates:
+    MU_updates:
         FLAVOR:
             Online-Immutable-Updates-Staging:
+                - transactional/install_updates
+            Online-Increments:
                 - transactional/install_updates
     boot_install:
         AGAMA:
