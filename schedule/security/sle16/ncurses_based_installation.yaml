@@ -2,7 +2,8 @@ name: ncurses_based_installation
 description: >
   Installation using the ncurses installer with Common Criteria role and full
   disk encryption on SLE 16.0. On s390x, bootloader_zkvm starts the guest and
-  svirt_upload_assets uploads the disk image.
+  svirt_upload_assets uploads the disk image. Supported on x86_64, aarch64,
+  ppc64le (QEMU pseries) and s390x (zKVM).
 
   Set the settings in the job group, test suite or command line. See the header
   of the test module for the list.
