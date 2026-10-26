@@ -1,0 +1,14 @@
+---
+name: create_immutable_hdd_16
+description:    >
+  Maintainer: qa-c@suse.de.
+  SLES 16.* Immutable HDD creation for container tests (x86_64, aarch64)
+vars:
+  MINIMAL_VM: '1'
+  TRANSACTIONAL: '1'
+  FIRST_BOOT_CONFIG: 'combustion'
+schedule:
+  - installation/bootloader_uefi
+  - installation/first_boot
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
