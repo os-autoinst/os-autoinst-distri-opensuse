@@ -43,8 +43,8 @@ sub run {
     }
     $self->wait_boot_windows;
 
-    # Shutdown
-    $self->reboot_or_shutdown;
+    # Shutdown. Windows can apply more updates while it shuts down, so wait longer than the default
+    $self->reboot_or_shutdown(0, 1200);
 }
 
 1;
