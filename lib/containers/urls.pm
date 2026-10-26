@@ -83,6 +83,21 @@ my %sles_containers = (
             'registry.suse.de/suse/sle-15-sp7/ga/test/containers/suse/sle15:15.7';
         },
         available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
+    },
+    # SLES 16 has no sle15-like base image, bci-base is the SLES 16 base image
+    '16.0' => {
+        released => sub { 'registry.suse.com/bci/bci-base:16.0' },
+        totest => sub {
+            'registry.suse.de/suse/slfo/products/bci/16.0/test/containerfile/bci/bci-base:16.0';
+        },
+        available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
+    },
+    '16.1' => {
+        released => sub { 'registry.suse.com/bci/bci-base:16.1' },
+        totest => sub {
+            'registry.suse.de/suse/slfo/products/bci/16.1/test/containerfile/bci/bci-base:16.1';
+        },
+        available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
     }
 );
 
