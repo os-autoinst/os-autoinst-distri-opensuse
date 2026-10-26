@@ -15,6 +15,7 @@ use utils qw(ssh_fully_patch_system);
 use publiccloud::utils;
 use publiccloud::ssh_interactive qw(select_host_console);
 use version_utils qw(is_sle_micro is_sle);
+use qam qw(get_test_repos);
 
 sub run {
     my ($self, $args) = @_;
@@ -75,18 +76,62 @@ sub run {
     $instance->ssh_assert_script_run(cmd => "diff $rpm_list_before $rpm_list_after | tee $rpm_list_diff");
     $instance->upload_log($rpm_list_diff);
 
-    my $ignore_empty_updates = get_var("PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES");
-    my $rc = $instance->ssh_script_run(cmd => "test -s $rpm_list_diff");
-    unless ($rc == 0) {
-        if ($ignore_empty_updates) {
-            record_info(
-                'PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES',
-                'No packages were updated during patching'
-            );
-        } else {
-            die 'No packages were updated during patching';
-        }
+    if (get_var('PUBLIC_CLOUD_REQUIRE_TEST_REPO_UPDATES') && get_test_repos()) {
+        check_updates_from_test_repos($instance);
+    } else {
+        check_any_updates($instance, $rpm_list_diff);
     }
+}
+
+# Fail if the rpm list did not change at all
+sub check_any_updates {
+    my ($instance, $rpm_list_diff) = @_;
+    return if $instance->ssh_script_run(cmd => "test -s $rpm_list_diff") == 0;
+    _no_updates('No packages were updated during patching');
+}
+
+# Fail unless at least one installed package comes from a repo under test.
+# Find these repos by URL, not by alias: the alias changes with the setup
+# (TEST_N, ToTest_N, or the alias from a .repo file).
+sub check_updates_from_test_repos {
+    my ($instance) = @_;
+
+    # Path of each repo under test, without the host part (transfer_repos replaces the host with a local dir)
+    my @paths = grep { m{/} } map { s{^\s*(?:https?://.*?/ibs/)?|/*\s*$}{}gr } get_test_repos();
+
+    my @test_repos;
+    for my $line (split /\n/, $instance->ssh_script_output(cmd => 'sudo zypper -n lr -u')) {
+        my @cols = map { s/^\s+|\s+$//gr } split /\|/, $line;
+        next unless @cols > 2 && $cols[0] =~ /^\d+$/;    # skip header and separator lines
+        my $uri = $cols[-1] =~ s{/+$}{}r;
+        push @test_repos, $cols[1] if grep { $uri =~ m{(?:^|/)\Q$_\E$} } @paths;
+    }
+    return _no_updates('No repositories under test found on the instance') unless @test_repos;
+
+    my $repo_args = join(' ', map { "-r $_" } @test_repos);
+    my $out = '/var/tmp/installed-from-test-repos.txt';
+    # zypper rc: 0 = matches, 104 = no match, anything else = other failure
+    # No need for refresh, as it already happened during patching
+    my $rc = $instance->ssh_script_run(
+        cmd => "sudo zypper -n --no-refresh se -i -s -t package $repo_args > $out",
+        timeout => 300,
+        apply_graceful_timeout => 1);
+    $instance->upload_log($out);
+
+    if ($rc == 0) {
+        # Keep only package rows - drop zypper's initial text and headers
+        my @pkgs = grep { /^i/ } split /\n/, $instance->ssh_script_output(cmd => "cat $out");
+        record_info('Repos under test', scalar(@pkgs) . " installed package(s) come from repos under test (@test_repos):\n" . join("\n", @pkgs));
+        return;
+    }
+    return _no_updates('No installed packages come from the repos under test') if $rc == 104;
+    die "zypper search failed with exit code $rc";
+}
+
+sub _no_updates {
+    my ($msg) = @_;
+    die $msg unless get_var('PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES');
+    record_info('PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES', $msg);
 }
 
 sub test_flags {
