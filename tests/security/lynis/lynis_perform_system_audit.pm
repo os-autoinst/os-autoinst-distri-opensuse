@@ -9,6 +9,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
+use serial_terminal 'select_text_console';
 use lynis::lynistest;
 
 sub run {
@@ -17,7 +18,7 @@ sub run {
     my $lynis_audit_system_current_file = "$dir" . $lynis::lynistest::lynis_audit_system_current_file;
     my $lynis_audit_system_error_file = "$dir" . $lynis::lynistest::lynis_audit_system_error_file;
 
-    select_console "root-console";
+    select_text_console;
 
     # Run "# lynis audit system" to "Performs a system audit" and save the outputs
     assert_script_run("rm -rf $lynis_audit_system_current_file");

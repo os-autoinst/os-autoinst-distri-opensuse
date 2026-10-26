@@ -9,6 +9,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
+use serial_terminal 'select_text_console';
 use lynis::lynistest;
 
 sub run {
@@ -22,7 +23,7 @@ sub run {
     my @section_list_current = ();
     my @section_list_baseline = ();
 
-    select_console "root-console";
+    select_text_console;
 
     # Parse the "sections" in baseline file
     upload_asset("$dir" . "$baseline_file");
