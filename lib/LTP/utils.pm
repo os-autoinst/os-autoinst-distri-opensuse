@@ -143,7 +143,7 @@ sub log_versions {
     record_info('KERNEL VERSION', script_output('uname -a'));
     record_info('KERNEL DEFAULT PKG', script_output("cat $kernel_pkg_log", proceed_on_failure => 1));
     record_info('KERNEL EXTRA PKG', script_output("$run_cmd rpm -qi kernel-default-extra", proceed_on_failure => 1));
-    record_info('KERNEL pkg', script_output("$run_cmd rpm -qa | grep kernel", proceed_on_failure => 1));
+    record_info('KERNEL pkg', script_output("grep kernel $rpm_qa_log", proceed_on_failure => 1));
 
     if (get_var('LTP_COMMAND_FILE') || get_var('LIBC_LIVEPATCH')) {
         record_info('ver_linux', script_output("cat $ver_linux_log", proceed_on_failure => 1));
