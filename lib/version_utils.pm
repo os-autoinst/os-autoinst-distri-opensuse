@@ -7,7 +7,7 @@ use base Exporter;
 use Exporter;
 use strict;
 use warnings;
-use testapi qw(check_var get_var get_required_var set_var script_output);
+use testapi qw(check_var get_var get_required_var set_var script_output record_info);
 use version 'is_lax';
 use Carp 'croak';
 use Utils::Backends;
@@ -809,10 +809,18 @@ sub check_os_release {
 
 =head2 verify_os_version
 
-Returns 1 (true) if os release version matches the one passed as arguement.
-If no arguements are given, the function will compare the os release version
-in /etc/os-release file with "VERSION" or "VARIANT" var.
+  verify_os_version([$version, [$os_release_file]]);
+
+Make sure that the os release version matches C<$version>. Compare the
+"VERSION" or "VARIANT" line in C<$os_release_file> with C<$version> and die
+with the PRETTY_NAME of the os release if they do not match.
 VARIANT contains the version on SL Micro/Microos from 6.2.
+
+C<$version> is "VERSION" var by default. It can also use the format of
+UPGRADE_PRODUCT (sles-15-sp7), which is converted to the VERSION format (15-SP7).
+C<$os_release_file> is /etc/os-release by default.
+
+Returns the matching line of the os release.
 
 =cut
 
@@ -820,7 +828,15 @@ sub verify_os_version {
     my ($version, $os_release_file) = @_;
     $version //= get_var("VERSION");
     $os_release_file //= '/etc/os-release';
-    return script_output("grep 'VERSION=\\|VARIANT=' $os_release_file | grep $version");
+    # Convert the UPGRADE_PRODUCT format to the VERSION format: sles-15-sp7 to 15-SP7
+    $version = uc($version =~ s/^sles-//ir) if $version =~ /^sles-/i;
+    my $match = script_output("grep 'VERSION=\\|VARIANT=' $os_release_file | grep $version", proceed_on_failure => 1);
+    unless ($match) {
+        my $pretty_name = script_output("grep '^PRETTY_NAME=' $os_release_file | cut -d'\"' -f2", proceed_on_failure => 1);
+        die "OS version mismatch: expected $version, but $os_release_file has $pretty_name";
+    }
+    record_info('OS version', "OS runs the expected version $version:\n$match");
+    return $match;
 }
 
 =head2 is_public_cloud
