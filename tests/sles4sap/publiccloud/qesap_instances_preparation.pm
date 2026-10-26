@@ -81,7 +81,9 @@ sub run {
     foreach my $instance (@$instances) {
         record_info 'Instance', join(' ', 'IP: ', $instance->public_ip, 'Name: ', $instance->instance_id);
         $self->{my_instance} = $instance;
-        $self->set_cli_ssh_opts;
+        # LogLevel=ERROR hides the sshd pre-auth banner (e.g. newer Azure images).
+        # Options are stored in the instance object, so later modules use them too.
+        $self->set_cli_ssh_opts('-E /var/tmp/ssh_sut.log -o LogLevel=ERROR');
         my $expected_hostname = $instance->{instance_id};
         # We need to scan for the SSH host key as the Ansible later
         $instance->update_instance_ip();

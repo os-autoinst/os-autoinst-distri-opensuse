@@ -1684,12 +1684,47 @@ subtest '[wait_for_cluster] missing online_string croaks' => sub {
 
 subtest '[saphanasr_showAttr_version]' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
-    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $sles4sap_publiccloud->redefine(run_cmd => sub { return 'hello-world-1.2.3.4-12345.6.78.9.end'; });
+    my @infos;
+    $sles4sap_publiccloud->redefine(record_info => sub { push @infos, join(' ', @_); note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return '/usr/bin/SAPHanaSR-showAttr' if $args{cmd} =~ /^which/;
+            return 'SAPHanaSR-1.2.3.4-12345.6.78.9.noarch'; });
     my $self = sles4sap::publiccloud->new();
 
-    my $ret = $self->saphanasr_showAttr_version();
-    ok $ret eq '1.2.3.4';
+    is $self->saphanasr_showAttr_version(), '1.2.3.4', 'Version extracted as before';
+    is $calls[1], 'rpm -qf /usr/bin/SAPHanaSR-showAttr', 'rpm gets only the parsed path';
+    ok((grep { /path=\/usr\/bin\/SAPHanaSR-showAttr; version=SAPHanaSR-1\.2\.3\.4-12345\.6\.78\.9\.noarch/ } @infos), 'Log record unchanged');
+};
+
+subtest '[saphanasr_showAttr_version] banner in output' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    # Real Azure banner, plus a fake extra banner line containing a
+    # version-like number, to verify it is not mistaken for the version.
+    my $banner = "Authorized users only. All activity may be monitored and reported.\n"
+      . "HANA 2.0 was here\n";
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return $banner . '/usr/bin/SAPHanaSR-showAttr' if $args{cmd} =~ /^which/;
+            return $banner . 'SAPHanaSR-angi-1.2.10+git.1714046213.82e5a1b-150600.3.1.noarch'; });
+    my $self = sles4sap::publiccloud->new();
+
+    is $self->saphanasr_showAttr_version(), '1.2.10', 'Banner lines are ignored';
+    is $calls[1], 'rpm -qf /usr/bin/SAPHanaSR-showAttr', 'Banner is not injected into the rpm command';
+};
+
+subtest '[saphanasr_showAttr_version] no path in output' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return 'Authorized users only.'; });
+    my $self = sles4sap::publiccloud->new();
+
+    dies_ok { $self->saphanasr_showAttr_version() } 'Dies with clear message when no path is found';
 };
 
 subtest '[get_online_string] old pacemaker returns online' => sub {
