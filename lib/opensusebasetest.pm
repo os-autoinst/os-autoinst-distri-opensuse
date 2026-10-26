@@ -1021,6 +1021,33 @@ sub firewall {
     return (($old_product_versions || $upgrade_from_susefirewall) && !is_tumbleweed && !(check_var('SUSEFIREWALL2_SERVICE_CHECK', 1))) ? 'SuSEfirewall2' : 'firewalld';
 }
 
+=head2 _pick_console_for_logs
+
+_pick_console_for_logs()
+
+Tries to activate the serial terminal to collect logs. If it fails, it will disable C<VIRTIO_CONSOLE> and try again,
+so the fallback console gets triggered, if all else fails, switch to log console as a final attempt to collect logs.
+
+The test can be considered tainted if the first console activation, as it cannot be guaranteed that the SUT is in a
+known state.
+
+=cut
+
+sub _pick_console_for_logs {
+
+    return if eval { select_serial_terminal(); 1 };
+    record_info('JOB TAINTED', "Something prevented normal serial terminal activation, the test can be considered tainted: $@", result => 'fail');
+    record_info('serial terminal error', "Could not switch to serial terminal, disabling VIRTIO_CONSOLE: $@", result => 'fail');
+    set_var('VIRTIO_CONSOLE', 0);
+
+    return if eval { select_serial_terminal(); 1 };
+    record_info('serial terminal error', "Could not switch to fallback console, using log-console next $@", result => 'fail');
+    set_var('VIRTIO_CONSOLE', 1);
+
+    return if eval { select_console('log-console'); 1 };
+    die("Could not switch to any console for log collection, manual investigation might be needed: $@");
+}
+
 =head2 post_fail_hook
 
  post_fail_hook();
@@ -1039,7 +1066,7 @@ sub post_fail_hook {
     return if (get_var('NOLOGS'));
 
     # Upload basic health check log
-    select_serial_terminal();
+    _pick_console_for_logs();
     export_healthcheck_basic;
 
     # set by x11_start_program
