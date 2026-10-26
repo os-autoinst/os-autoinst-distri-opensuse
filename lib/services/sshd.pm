@@ -19,7 +19,9 @@ our @EXPORT = qw(check_sshd_port check_sshd_service prepare_test_data ssh_basic_
 
 # The test disables the firewall, if true reenable afterwards.
 my $reenable_firewall = 0;
-my $ssh_testman = "sshboy";
+our $ssh_testman = "sshboy";
+# Set once prepare_test_data starts changing the system.
+my $test_data_prepared = 0;
 my $ssh_testman_passwd = is_public_cloud() ? random_string(8) : 'let3me2in1';
 my $changepwd = $ssh_testman . ":" . $ssh_testman_passwd;
 
@@ -34,6 +36,7 @@ sub check_sshd_service {
 }
 
 sub prepare_test_data {
+    $test_data_prepared = 1;
     # Backup/rename ~/.ssh , generated in consotest_setup, to ~/.ssh_bck
     assert_script_run 'if [ -d ~/.ssh ]; then mv ~/.ssh ~/.ssh_bck; fi';
 
@@ -169,24 +172,42 @@ sub ssh_basic_check {
     assert_script_run "scp -4v $ssh_testman\@localhost:/etc/ssh/*.pub /tmp";
 }
 
+# With ignore_failure => 1 (for post_fail_hook) every step runs even if an
+# earlier one fails, and failures are only recorded.
 sub do_ssh_cleanup {
+    my (%args) = @_;
+    # The test may have failed before prepare_test_data changed anything.
+    return if $args{ignore_failure} && !$test_data_prepared;
+    my $run = $args{ignore_failure} ? \&run_ignoring_failure : \&assert_script_run;
+
     # Restore ~/.ssh generated in consotest_setup
     # poo#68200. Confirm the ~/.ssh_bck directory is exist in advance and then restore, in order to avoid the null restore
-    assert_script_run 'rm -rf ~/.ssh';
-    assert_script_run 'if [ -d ~/.ssh_bck ]; then mv ~/.ssh_bck ~/.ssh; fi';
+    $run->('rm -rf ~/.ssh');
+    $run->('if [ -d ~/.ssh_bck ]; then mv ~/.ssh_bck ~/.ssh; fi');
 
     # Restore the /etc/ssh/sshd_config
-    assert_script_run 'cp /etc/ssh/sshd_config{_before,}';
+    $run->('cp /etc/ssh/sshd_config{_before,}');
 
     # Kill $ssh_testman to stop all SSH sessions
-    assert_script_run "killall -u $ssh_testman || true";
+    $run->("killall -u $ssh_testman || true");
     wait_still_screen 3;
 
     record_info("Restart sshd", "Restart sshd.service");
-    systemctl("restart sshd");
+    if ($args{ignore_failure}) {
+        run_ignoring_failure('systemctl --no-pager restart sshd');
+    } else {
+        systemctl("restart sshd");
+    }
 
     # Clear the remains from background commands
     clear_console if !is_serial_terminal;
+}
+
+sub run_ignoring_failure {
+    my ($cmd) = @_;
+    # script_run dies only on timeout, so check both.
+    my $ret = eval { script_run($cmd) };
+    record_info('ssh cleanup', "'$cmd' " . ($@ ? "failed: $@" : "exited with $ret"), result => 'fail') if $@ || $ret;
 }
 
 sub check_function {

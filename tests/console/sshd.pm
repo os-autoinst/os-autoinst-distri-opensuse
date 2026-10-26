@@ -36,7 +36,6 @@ sub run {
     my $self = shift;
     select_serial_terminal;
 
-    my $ssh_testman = "sshboy";
     services::sshd::prepare_test_data();
     # Stop the firewall if it's available
     if (is_upgrade && check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
@@ -56,7 +55,7 @@ sub run {
 
     # poo#80716 Test all available ciphers, key exchange algorithms, host key algorithms and mac algorithms.
     assert_script_run "echo 'sshd.pm: Testing cryptographic policies' | logger";
-    test_cryptographic_policies(remote_user => $ssh_testman);
+    test_cryptographic_policies(remote_user => $services::sshd::ssh_testman);
 
     # do the sshd test cleanup
     services::sshd::do_ssh_cleanup();
@@ -130,6 +129,14 @@ sub post_fail_hook {
         script_finish_io(timeout => 300, exitcodes => [0]);
     }
 
+    # Undo the test changes, as later modules may run after a non-fatal failure.
+    # A wedged console must not stop the log upload below.
+    eval { select_serial_terminal };
+    if ($@) {
+        record_info('sshd cleanup', "no serial terminal: $@", result => 'fail');
+    } else {
+        services::sshd::do_ssh_cleanup(ignore_failure => 1);
+    }
     $self->cleanup();
     $self->SUPER::post_fail_hook;
 }
@@ -148,7 +155,10 @@ sub cleanup() {
 }
 
 sub test_flags {
-    return is_public_cloud() ? {milestone => 0, no_rollback => 1} : {milestone => 1, fatal => 1};
+    return {milestone => 0, no_rollback => 1} if is_public_cloud();
+    # Keep the instrumented system and its coverage data instead of aborting.
+    return {fatal => 0, no_rollback => 1} if get_var('BINARY_COVERAGE');
+    return {milestone => 1, fatal => 1};
 }
 
 1;
