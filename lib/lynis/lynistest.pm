@@ -206,13 +206,15 @@ sub parse_lynis_section_content {
     return @section_content;
 }
 
+# Return the ERROR|WEAK|UNSAFE findings that are neither in the baseline
+# section nor in the exception list. A section that differs from the baseline
+# in any line is checked on its own, so known findings are filtered one by
+# one, not for the whole section.
 sub check_exceptions {
-    my @section_current = @_;
-    my $result = "fail";
-    # On 15-SP4, the test was failing because it found ERROR|WEAK|UNSAFE even though the baseline file had these items in it.
-    # This happens when the $baseline and $current file have one or more differences, because in such case only the $current file
-    # is being checked and, since there are ERROR|WEAK|UNSAFE items, the test fails.
-    # The following list is taken from the file baseline-lynis-audit-system-nocolors-15-SP4.
+    my ($baseline, $findings) = @_;
+    my %in_baseline = map { (s/\s+$//r) => 1 } @$baseline;
+    # Findings of other baselines that also show up in this one, e.g. after a
+    # maintenance update, taken from the baselines of 15-SP4 to 15-SP7.
     my @exceptions = (
         ".*after-local.service.*UNSAFE*",
         ".*cron.service.*UNSAFE*",
@@ -246,14 +248,21 @@ sub check_exceptions {
         ".*wickedd-dhcp6.service.*UNSAFE*",
         ".*wickedd-nanny.service.*UNSAFE*",
         ".*wickedd.service.*UNSAFE*",
+        ".*flatpak-system-helper.service.*UNSAFE*",
+        ".*kdump-notify.service.*UNSAFE*",
+        ".*plymouth-(halt|kexec|poweroff|reboot).service.*UNSAFE*",
+        ".*purge-kernels.service.*UNSAFE*",
+        ".*serial-getty\@hvc1.service.*UNSAFE*",
+        ".*serial-getty\@sclp_line0.service.*UNSAFE*",
+        # xvnc@ is the per-connection openQA VNC unit on s390x
+        ".*xvnc\@.*.service.*UNSAFE*",
         ".*/etc/issue contents.*WEAK*",
         ".*MOR variable not found.*WEAK*"
     );
-    for my $exception (@exceptions) {
-        if (grep(/$exception/, @section_current)) {
-            $result = "ok";
-        }
-    }
+    return grep {
+        my $line = $_;
+        !$in_baseline{$line =~ s/\s+$//r} && !grep { $line =~ /$_/ } @exceptions
+    } @$findings;
 }
 
 # Compare the contents between "baseline" and "current"
@@ -383,19 +392,14 @@ sub compare_lynis_section_content {
         }
     }
 
-    for my $s_lynis (@lynis_fail) {
-        $s_new = "\\[.*$s_lynis.*\\]";
-        $ret = grep(/$s_new/, @section_current);
-        if ($ret) {
-            $result = "fail";
-            if (!is_sle("<15-SP4")) {
-                $result = check_exceptions(@section_current);
-            }
-            if ("$result" eq "fail") {
-                # Invoke record_soft_failure() for better/notable openQA show
-                record_soft_failure("poo#91383, found $ret [ $s_lynis ] in current output");
-            }
-        }
+    my @findings = grep {
+        my $line = $_;
+        grep { $line =~ /\[.*$_.*\]/ } @lynis_fail
+    } @section_current;
+    @findings = check_exceptions(\@section_baseline, \@findings) unless is_sle("<15-SP4");
+    if (@findings) {
+        $result = "fail";
+        record_info("Findings", "Not tolerated ERROR|WEAK|UNSAFE findings:\n" . join("\n", @findings), result => 'fail');
     }
 
     return $result;
