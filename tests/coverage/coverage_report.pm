@@ -9,6 +9,13 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 
 sub run {
+    my ($self) = @_;
+    # always_run also reaches this after a failure before coverage_setup
+    # finished, where there is no funkoverage and maybe no booted system.
+    unless (get_var('COVERAGE_SETUP_DONE')) {
+        record_info('No coverage', 'coverage_setup did not finish, nothing to report');
+        return $self->result('skip');
+    }
     select_serial_terminal;
     assert_script_run 'mkdir -p /var/coverage/report';
     # Redirect funkoverage output to a log file. With 50+ targets the
@@ -36,6 +43,11 @@ sub run {
     # Upload HTML reports, skipping shared library reports (lib*.html) which
     # can number 200+ with large target sets and cause upload timeouts.
     upload_logs($_) for grep { /\.html$/ && !/\/lib/i } @files;
+}
+
+sub test_flags {
+    # Still report the data collected so far after a fatal failure.
+    return {always_run => 1};
 }
 
 1;

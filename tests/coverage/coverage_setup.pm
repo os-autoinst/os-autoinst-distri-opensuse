@@ -168,6 +168,8 @@ sub run {
             record_info('postgres timeout', 'Failed to raise postgresql.service TimeoutStartSec', result => 'softfail');
         }
     }
+    # coverage_report runs even after a fatal failure; tell it there is data.
+    set_var('COVERAGE_SETUP_DONE', 1);
 }
 
 sub test_flags {
