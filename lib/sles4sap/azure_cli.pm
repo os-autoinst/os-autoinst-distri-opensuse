@@ -113,7 +113,14 @@ Example:
 
 =item B<quiet> - pass B<quiet> to azure cli commands
 
-=item B<timeout> - override default bmwqemu timeout for `az cli` command
+=item B<timeout> - override default bmwqemu timeout for `az cli` command. Ignored when using B<soft_timeout>
+
+=item B<soft_timeout> - optional, stop the `az cli` command on the SUT after this time (scaled)
+                        using the `timeout` command. It replaces B<timeout>. If the command is stopped,
+                        the rc is 124 (or 137 for SIGKILL): the caller decides what to do.
+                        Use this option carefully, especially for commands that change cloud resources
+                        (create, update, delete): the request can already be sent to Azure when
+                        the command is stopped, so the resource state is not known.
 
 =item B<failok> - Ignore error messages and return result. Default: False
 
@@ -140,6 +147,11 @@ sub az(%args) {
     my $out_file = script_output('mktemp --suffix _az.json', quiet => '1');
 
     my @az_cmd = ('az', $args{az_args});
+    if ($args{soft_timeout}) {
+        unshift @az_cmd, 'timeout -k 10', bmwqemu::scale_timeout($args{soft_timeout});
+        # Extra time for the shell to report the exit code after SIGKILL
+        $args{timeout} = $args{soft_timeout} + 20;
+    }
     push @az_cmd, '--only-show-errors' unless $args{az_args} =~ /--debug/;
     push @az_cmd, "--query \"$args{query}\"" if $args{query};
     push @az_cmd, '--output json';
@@ -622,6 +634,8 @@ sub az_network_publicip_create(%args) {
         name => 'openqa-pip')
 
 Return an IPv4 public IP address from its name or undef on failure.
+The command is tried up to 3 times, waiting 10s and then 20s between the attempts.
+A missing resource is not retried.
 
 =over
 
@@ -631,12 +645,15 @@ Return an IPv4 public IP address from its name or undef on failure.
 
 =item B<timeout> - optional command timeout in seconds
 
+=item B<soft_timeout> - optional, see B<soft_timeout> in C<az()>
+
 =back
 =cut
 
 sub az_network_publicip_get(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    my $retry = 3;
     my $az_args = join(' ', 'network public-ip show',
         '--resource-group', $args{resource_group},
         '--name', $args{name});
@@ -646,10 +663,24 @@ sub az_network_publicip_get(%args) {
         failok => 1,
     );
     $cmd_args{timeout} = $args{timeout} if defined $args{timeout};
-    my $res = az(%cmd_args);
-    return (defined $res->{rc} && $res->{rc} == 0 && defined $res->{output} && !ref($res->{output}) && $res->{output} =~ /\S/)
-      ? $res->{output}
-      : undef;
+    $cmd_args{soft_timeout} = $args{soft_timeout} if defined $args{soft_timeout};
+    for my $attempt (1 .. $retry) {
+        my $res = az(%cmd_args);
+        # script_run returns undef rc when the SUT script times out
+        my $completed = defined $res->{rc};
+        my $succeeded = $completed && $res->{rc} == 0;
+        # The query 'ipAddress' returns a scalar string; a ref means the query matched nothing
+        my $is_ip = $succeeded && !ref($res->{output}) && $res->{output} =~ /\S/;
+        return $res->{output} if $is_ip;
+        # Resource or resource group gone: not transient, stop retrying
+        last if ($res->{error} // '') =~ /ResourceNotFound|ResourceGroupNotFound/;
+        last if $attempt >= $retry;
+        my $delay = 10 * $attempt;
+        record_info('PubIP retry', "Attempt $attempt/$retry to get public IP $args{name} failed with rc:"
+              . ($res->{rc} // 'undef') . "\n" . ($res->{error} // '') . "\nRetrying in ${delay}s");
+        sleep $delay;
+    }
+    return undef;
 }
 
 =head2 az_network_nat_gateway_create
