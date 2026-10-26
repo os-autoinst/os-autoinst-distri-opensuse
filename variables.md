@@ -170,6 +170,7 @@ LTP_WARN_EXPECTED | boolean | false | If set, some kernel warnings and backtrace
 LVM | boolean | false | Use lvm for partitioning.
 LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partitioning,
 MACHINE | string | | Define machine name which defines worker specific configuration, including WORKER_CLASS.
+MAKEDUMPFILE_DUMP_LEVEL | integer | 31 | The value to be passed to the `makedumpfile` `dump_level` option to prevent specified page types from being copied to DUMPFILE.
 MEDIACHECK | boolean | false | Enables `installation/mediacheck` test module.
 MEMTEST | boolean | false | Enables `installation/memtest` test module.
 MICRO_INSTALL_IMAGE_TARGET_DEVICE | string | /dev/sda | Target disk device for bare metal SL Micro installation.
