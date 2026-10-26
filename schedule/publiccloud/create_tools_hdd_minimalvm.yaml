@@ -1,0 +1,30 @@
+---
+name: create_tools_hdd_minimalvm
+description: >
+  Build the Public Cloud tools image on top of a SLE 16.0 MinimalVM qcow2
+  instead of installing it. Replaces the autoyast/prepare_profile +
+  installation/bootloader + autoyast/installation sequence of
+  load_create_publiccloud_tools_image() with a plain boot of the published
+  Minimal-VM image.
+conditional_schedule:
+  bootloader:
+    MACHINE:
+      uefi-virtio-vga:
+        - installation/bootloader_uefi
+      64bit-virtio-vga:
+        - installation/bootloader_uefi
+  wizard:
+    FIRST_BOOT_CONFIG:
+      wizard:
+        - jeos/firstrun
+      cloud-init:
+        - installation/first_boot
+schedule:
+  - '{{bootloader}}'
+  - '{{wizard}}'
+  - jeos/host_config
+  - console/suseconnect_scc
+  - publiccloud/prepare_minimalvm
+  - publiccloud/prepare_tools
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
