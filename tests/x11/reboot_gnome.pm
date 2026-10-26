@@ -14,6 +14,7 @@ use testapi;
 use Utils::Architectures;
 use power_action_utils 'power_action';
 use utils 'is_boot_encrypted';
+use x11utils qw(update_x11_vt);
 
 sub run {
     my ($self) = @_;
@@ -28,6 +29,7 @@ sub run {
     my $bootloader_timeout = (is_boot_encrypted || is_aarch64) ? 600 : 300;
 
     $self->wait_boot(bootloader_time => $bootloader_timeout);
+    update_x11_vt;
 }
 
 sub post_fail_hook {
