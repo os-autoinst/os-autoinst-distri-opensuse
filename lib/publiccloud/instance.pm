@@ -315,6 +315,7 @@ Run command C<systemctl is-active guestregister> on the instance in a loop and
 wait till guestregister is ready. If guestregister finish with state failed,
 a soft-failure will be recorded.
 If guestregister will not finish within C<timeout> seconds, job dies.
+On GCE, when the cause can be bsc#1277388, a soft-failure is recorded instead.
 In case of BYOS images we checking that service is inactive and quit
 Returns the time needed to wait for the guestregister to complete.
 =cut
@@ -383,6 +384,11 @@ sub wait_for_guestregister {
     }
     diag("guestregister timeout");
     $self->_upload_guestregister_diagnostics($log, $name);
+    # Rely only on has_gcemetadata_ipv6_stall_bug() when the SUT does not have curl
+    if (has_gcemetadata_ipv6_stall_bug($self) && (is_gce_metadata_ipv6_unreachable($self) // 1)) {
+        record_soft_failure('bsc#1277388 - guestregister timeout, gcemetadata stops on the IPv6 metadata server');
+        return 1;
+    }
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 
@@ -709,14 +715,8 @@ sub upload_supportconfig_log {
     my ($self, %args) = @_;
     my $timeout = 600;
     $timeout += 1400 if is_sle('=12-SP5');
-    if (is_gce()) {
-        my $gcever = $self->ssh_script_output(cmd => q(rpm -q --qf '%{VERSION}' python-gcemetadata), proceed_on_failure => 1);
-        $gcever =~ s/^\s+|\s+$//g;
-        if ($gcever =~ /^\d+(?:\.\d+)*$/ && package_version_cmp($gcever, '1.1.2') < 0) {
-            # bsc#1277388 - dual-stack gcemetadata stall
-            $timeout = 2000;
-        }
-    }
+    # bsc#1277388 - dual-stack gcemetadata stall
+    $timeout = 2000 if has_gcemetadata_ipv6_stall_bug($self);
     my $start = time();
     my $logs = "/var/tmp/scc_supportconfig";
     # Eventual comma-separated tokens list to exclude

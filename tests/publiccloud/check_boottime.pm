@@ -9,10 +9,8 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Data::Dumper;
-use Mojo::Util 'trim';
-use publiccloud::utils qw(is_azure is_gce);
+use publiccloud::utils qw(is_azure is_gce has_gcemetadata_ipv6_stall_bug is_gce_metadata_ipv6_unreachable);
 use publiccloud::ssh_interactive qw(select_host_console);
-use version_utils qw(package_version_cmp);
 use Utils::SystemdAnalyze qw(extract_analyze_time extract_blame_time);
 
 sub do_systemd_analyze_time {
@@ -113,8 +111,8 @@ sub check_system_boottime {
             return;
         }
         if (is_gce() && $instance->ssh_script_output(cmd => 'sudo systemctl list-jobs', proceed_on_failure => 1) =~ /guestregister\.service\s+start\s+running/) {
-            my $gcever = trim($instance->ssh_script_output(cmd => q(rpm -q --qf '%{VERSION}' python-gcemetadata), proceed_on_failure => 1));
-            if ($gcever =~ /^\d+(?:\.\d+)*$/ && package_version_cmp($gcever, '1.1.2') < 0) {
+            # Rely only on has_gcemetadata_ipv6_stall_bug() when the SUT does not have curl
+            if (has_gcemetadata_ipv6_stall_bug($instance) && (is_gce_metadata_ipv6_unreachable($instance) // 1)) {
                 record_soft_failure("bsc#1277388 - dual-stack gcemetadata stall");
                 return;
             }
