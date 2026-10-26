@@ -125,7 +125,7 @@ sub az(%args) {
     # 2min should be enough for an average azure cli command to finish
     $args{timeout} //= 120;
     croak 'Command `az` is not needed in $args{az_args}'
-      if $args{az_args} =~ /az/;
+      if $args{az_args} =~ /az /;
     croak 'Missing mandatory argument: <az_args>' unless $args{az_args};
     croak 'Jmespath query "--query" must be specified using $args{query}'
       if $args{az_args} =~ /--query/;
