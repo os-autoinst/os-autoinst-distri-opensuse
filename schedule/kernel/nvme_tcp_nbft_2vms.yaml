@@ -1,0 +1,38 @@
+---
+name: nvme_tcp_nbft_2vms
+description: >
+    Install with Agama to an NVMe/TCP namespace that an NBFT ACPI table
+    describes, then boot the installed system with / on that namespace
+    (bsc#1283955). The job with ROLE=nvme_target boots a SLE HDD image
+    (BOOT_HDD_IMAGE=1) and exports its second disk (NUMDISKS=2, at least
+    20 GB). The job with ROLE=nvme_nbft_installer is its parallel child and
+    boots the installation medium. It gets the table
+    data/kernel/nbft/NBFT-openqa-mm with
+    QEMU_APPEND=acpitable file=<path of the table on the worker>, needs
+    NICMAC=52:54:00:4e:42:46, the MAC address in the table, and UEFI=1. The
+    ESP and /boot are on the local disk, because the firmware cannot read
+    NVMe/TCP. Both jobs need DESKTOP=textmode and NICTYPE=tap, the installer
+    also INST_AUTO=yam/agama/auto/sles_nvme_tcp_nbft_no_reg.jsonnet.
+test_data:
+    <<: !include test_data/kernel/multimachine/nvme_tcp_nbft_2vms.yaml
+    multimachine_barriers:
+        - NVME_TARGET_READY
+        - NVME_TEST_DONE
+conditional_schedule:
+    nvme:
+        ROLE:
+            nvme_target:
+                - boot/boot_to_desktop
+                - kernel/nvme_tcp_target
+            nvme_nbft_installer:
+                - kernel/nvme_tcp_target_ready
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+                - installation/grub_test
+                - installation/first_boot
+                - installation/validation/nbft
+                - kernel/nvme_tcp_test_done
+schedule:
+    - kernel/multimachine_barriers
+    - '{{nvme}}'
+    - kernel/multimachine_barriers

@@ -26,6 +26,8 @@ our @EXPORT_OK = qw(
   get_port_pvid
   set_port_pvid
   create_vlan_network
+  add_vlan_ports
+  wait_for_vlan
   remove_vlan_network
 );
 
@@ -106,7 +108,8 @@ sub get_vlan {
 Adds a new entry to the bridge VLAN table. 'bridge' and 'vlan_id' are
 required. 'tagged' and 'untagged' are optional comma-separated interface
 lists (as accepted by RouterOS) naming the bridge member ports to attach
-to the VLAN. Returns the created entry.
+to the VLAN. 'comment' is an optional comment of the entry, for example
+its owner. Returns the created entry.
 
 Dies if vlan_id is not a test VLAN (see L</VLAN AND NETWORK CONVENTIONS>).
 
@@ -130,6 +133,7 @@ sub add_vlan {
     my $body = {bridge => $bridge, 'vlan-ids' => $vlan_id};
     $body->{tagged} = $args{tagged} if defined $args{tagged};
     $body->{untagged} = $args{untagged} if defined $args{untagged};
+    $body->{comment} = $args{comment} if defined $args{comment};
 
     return _request('PUT', 'interface/bridge/vlan', $body);
 }
@@ -193,12 +197,12 @@ sub set_port_pvid {
 
 =head2 create_vlan_network
 
- create_vlan_network(vlan_id => 4, ports => ['sfp-sfpplus9', 'sfp-sfpplus23']);
+ create_vlan_network(vlan_id => 4, ports => ['sfp-sfpplus9', 'sfp-sfpplus23'], comment => 'openQA cluster 1234');
 
 Creates an isolated network for one test: a new VLAN on C<bridge>
 (default 'bridge') with the C<ports> as untagged members, and the PVID of
-each port set to the VLAN. Dies if the VLAN already exists, so that a
-test does not take over the network of another test.
+each port set to the VLAN. The optional C<comment> marks the owner of the
+VLAN, see C<wait_for_vlan>. Dies if the VLAN already exists.
 
 =cut
 
@@ -206,8 +210,60 @@ sub create_vlan_network {
     my (%args) = @_;
     my $vlan_id = $args{vlan_id} // die 'create_vlan_network requires a vlan_id';
     my @ports = @{$args{ports} // die 'create_vlan_network requires ports'};
-    add_vlan(bridge => $args{bridge} // 'bridge', vlan_id => $vlan_id, untagged => join(',', @ports));
+    add_vlan(bridge => $args{bridge} // 'bridge', vlan_id => $vlan_id, untagged => join(',', @ports), comment => $args{comment});
     set_port_pvid($_, $vlan_id) for @ports;
+}
+
+=head2 add_vlan_ports
+
+ add_vlan_ports(vlan_id => 5, ports => ['sfp-sfpplus9']);
+
+Adds C<ports> as untagged members to the existing test VLAN C<vlan_id> and
+sets their PVID to it. Use it when more than one job joins the network of
+C<create_vlan_network>: each job adds its own port after it released its
+test NIC. Dies if the VLAN does not exist.
+
+=cut
+
+sub add_vlan_ports {
+    my (%args) = @_;
+    my $vlan_id = $args{vlan_id} // die 'add_vlan_ports requires a vlan_id';
+    my @ports = @{$args{ports} // die 'add_vlan_ports requires ports'};
+    _check_test_vlan_id($vlan_id);
+    my ($vlan) = grep { $_->{'vlan-ids'} eq $vlan_id && ($_->{dynamic} // 'false') ne 'true' } get_all_vlans();
+    die "Mikrotik switch add_vlan_ports($vlan_id) failed: no such VLAN\n" unless $vlan;
+
+    my %seen;
+    my @untagged = grep { length && !$seen{$_}++ } (split(/,/, $vlan->{untagged} // ''), @ports);
+    _request('PATCH', "interface/bridge/vlan/$vlan->{'.id'}", {untagged => join(',', @untagged)});
+    set_port_pvid($_, $vlan_id) for @ports;
+}
+
+=head2 wait_for_vlan
+
+ wait_for_vlan(vlan_id => 5, comment => 'openQA cluster 1234', timeout => 1800);
+
+Waits until the VLAN C<vlan_id> exists on the switch, for example until the
+job that runs C<create_vlan_network> created it. With C<comment>, waits
+for the VLAN with this comment, so that a job does not join a leftover
+VLAN of an earlier run. Checks every 10 seconds. Dies after C<timeout>
+seconds (default 1800).
+
+=cut
+
+sub wait_for_vlan {
+    my (%args) = @_;
+    my $vlan_id = $args{vlan_id} // die 'wait_for_vlan requires a vlan_id';
+    my $timeout = $args{timeout} // 1800;
+    for (my $waited = 0; $waited < $timeout; $waited += 10) {
+        return if grep {
+            $_->{'vlan-ids'} eq $vlan_id
+              && ($_->{dynamic} // 'false') ne 'true'
+              && (!defined $args{comment} || ($_->{comment} // '') eq $args{comment})
+        } get_all_vlans();
+        sleep 10;
+    }
+    die "Mikrotik switch: VLAN $vlan_id does not exist after $timeout seconds\n";
 }
 
 =head2 remove_vlan_network
