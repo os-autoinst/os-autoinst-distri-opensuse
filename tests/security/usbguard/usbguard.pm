@@ -18,6 +18,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use version_utils qw(is_tumbleweed);
+use serial_terminal 'select_text_console';
 
 sub restart_usbguard_allow_keyboard {
     # When doing restart usbguared service it will block the "USB Keyboard" on aarch64,
@@ -37,7 +38,7 @@ sub run {
     my $f_usbguard_audit_log = '/var/log/usbguard/usbguard-audit.log';
     my $audit_service = is_tumbleweed ? 'audit-rules' : 'auditd';
 
-    select_console 'root-console';
+    select_text_console;
 
     # 0. Set up environment
     # Install usbguard packages
