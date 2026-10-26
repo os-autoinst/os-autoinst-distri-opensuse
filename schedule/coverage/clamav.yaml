@@ -6,6 +6,7 @@ name:  measure test coverage for clamav
 description: >
     Maintainer: amanzini
 vars:
+    BINARY_COVERAGE: 1
     QEMUCPU: host
     QEMURAM: 8192
     QEMUCPUS: 4

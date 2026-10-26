@@ -9,6 +9,7 @@ description: >
     create_hdd_agama_textmode) to verify
     https://github.com/ilmanzo/BinaryCoverage/issues/152
 vars:
+    BINARY_COVERAGE: 1
     BOOT_HDD_IMAGE: 1
     HDD_1: opensuse-Tumbleweed-x86_64-%BUILD%-textmode-agama@%MACHINE%.qcow2
     UEFI_PFLASH_VARS: opensuse-Tumbleweed-x86_64-%BUILD%-textmode-agama@%MACHINE%-uefi-vars.qcow2

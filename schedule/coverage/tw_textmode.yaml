@@ -8,6 +8,8 @@
 name:  measure test coverage for selected text mode utils
 description: >
     Maintainer: amanzini
+vars:
+  BINARY_COVERAGE: 1
 schedule:
   - autoyast/prepare_profile
   - installation/isosize

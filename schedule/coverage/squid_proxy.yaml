@@ -5,6 +5,8 @@
 name:  measure test coverage for squid proxy
 description: >
     Maintainer: amanzini
+vars:
+  BINARY_COVERAGE: 1
 schedule:
   - autoyast/prepare_profile
   - installation/isosize
