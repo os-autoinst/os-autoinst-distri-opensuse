@@ -12,7 +12,7 @@ use File::Basename;
 use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout is_pvm);
-use version_utils qw(is_sle is_tumbleweed is_sle_micro is_agama is_transactional);
+use version_utils qw(is_sle is_tumbleweed is_sle_micro is_agama is_transactional verify_os_version);
 use utils qw(is_ipxe_boot is_disk_image reconnect_mgmt_console);
 use ipmi_backend_utils;
 use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd double_check_xen_role check_kvm_modules);
@@ -57,6 +57,40 @@ sub config_ssh_client {
     script_run("echo " . get_var('_SECRET_RSA_PUB_KEY') . " >> $ssh_dir/authorized_keys");
 }
 
+# Get the product version that the host must run. After host upgrade it is
+# UPGRADE_PRODUCT, otherwise it is VERSION_TO_INSTALL or VERSION.
+sub get_expected_host_version {
+    return get_required_var('UPGRADE_PRODUCT') if get_var('AFTER_UPGRADE');
+    return get_var('VERSION_TO_INSTALL', get_required_var('VERSION'));
+}
+
+# Get the product build that the host must use. Return it only if the host does
+# a fresh installation of VERSION and BUILD is a product build (91.1), not an
+# MU incident (:smelt:46973:kernel-azure).
+sub get_expected_host_build {
+    return if get_var('AFTER_UPGRADE');
+    return if get_var('VERSION_TO_INSTALL', get_var('VERSION')) ne get_var('VERSION');
+    my $build = get_var('BUILD', '');
+    return unless $build =~ /^\d+\.\d+$/;
+    return $build;
+}
+
+# Make sure that the host runs the expected product version and uses the
+# repositories of the expected product build. The product repositories from the
+# openQA assets (SLES-16.1-x86_64-Build75.8) and from the proxy SCC
+# (all-91.1.proxy.scc.suse.de) contain the build. This finds a host that did not
+# do a fresh installation, for example a host that booted the old system from
+# its disk instead of from iPXE.
+sub check_host_version {
+    verify_os_version(get_expected_host_version);
+    my $build = get_expected_host_build;
+    return unless $build;
+    my $repo_urls = script_output("grep -h '^baseurl=' /etc/zypp/repos.d/*.repo", proceed_on_failure => 1);
+    die "Host build mismatch: no zypper repository URL contains build $build. Host installation probably failed.\nRepository URLs:\n$repo_urls"
+      unless $repo_urls =~ /(?<!\d)\Q$build\E(?!\d)/;
+    record_info('Host build', "Host uses repositories of the expected build: $build");
+}
+
 #Explanation for parameters introduced to facilitate offline host upgrade:
 #OFFLINE_UPGRADE indicates whether host upgrade is offline which needs reboot
 #the host and upgrade from installation media. Please refer to this document:
@@ -94,6 +128,7 @@ sub login_to_console {
             #use console based on ssh to avoid unstable ipmi
             save_screenshot;
             use_ssh_serial_console;
+            check_host_version if is_sle;
             return;
         }
     }
@@ -204,6 +239,9 @@ sub login_to_console {
 
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
+
+    # Make sure that the host runs the expected version and not an old system from disk
+    check_host_version if is_sle;
 
     # Check 64kb page size enabled.
     if (get_var('KERNEL_64KB_PAGE_SIZE') || check_var('KERNEL_64KB', '1')) {
