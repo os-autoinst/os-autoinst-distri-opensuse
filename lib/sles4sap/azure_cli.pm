@@ -159,7 +159,7 @@ sub az(%args) {
     $result{error} = script_output("cat $err_file",
         quiet => $args{quiet});
 
-    die "AZ CLI returned non zero value:$result{rc}" if ($result{rc} && !$args{failok});
+    die "AZ CLI returned non zero value:$result{rc} error:$result{error}" if ($result{rc} && !$args{failok});
 
     # Delete unique temporary files
     assert_script_run("rm $err_file $out_file", quiet => '1');
