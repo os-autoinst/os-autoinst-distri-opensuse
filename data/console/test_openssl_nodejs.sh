@@ -68,7 +68,7 @@ test_node_version(){
     quilt setup "../SPECS/nodejs$VERSION.spec"
       local ACTUAL_DIR
       ACTUAL_DIR=$(cd /usr/src/packages/SOURCES/ && find . -maxdepth 1 -type d -name "nodejs*" -print -quit)
-      if [ "$OS_VERSION" = "SLE_16.0" ]; then
+      if [[ "$OS_VERSION" == SLE_16.* ]]; then
         pushd "$ACTUAL_DIR/$SOURCE_DIR"
       else
         pushd "$SOURCE_DIR"
@@ -100,7 +100,7 @@ main(){
   # Install dependencies to apply source patches and run tests
   zypper -n in quilt rpm-build
 
-  if [ "$OS_VERSION" != "SLE_16.0" ]; then
+  if [[ "$OS_VERSION" != SLE_16.* ]]; then
     zypper -n in libopenssl1_1-hmac
   fi
 
