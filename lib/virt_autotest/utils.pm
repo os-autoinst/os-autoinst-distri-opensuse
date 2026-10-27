@@ -43,6 +43,9 @@ our @EXPORT = qw(
   is_sles16_mu_virt_test
   host_os_version_prefix
   is_guest_of_host_version
+  get_expected_host_version
+  get_expected_host_build
+  check_host_version
   is_monolithic_libvirtd
   turn_on_libvirt_debugging_log
   restart_libvirtd
@@ -268,6 +271,40 @@ sub is_guest_of_host_version {
     # Negative lookahead: reject if followed by "sp\d" or bare digit,
     # which would indicate a different version (e.g. sles16sp1 != sles16).
     return $guest =~ /^${prefix}(?!sp\d|\d)/;
+}
+
+# Get the product version that the host must run. After host upgrade it is
+# UPGRADE_PRODUCT, otherwise it is VERSION_TO_INSTALL or VERSION.
+sub get_expected_host_version {
+    return get_required_var('UPGRADE_PRODUCT') if get_var('AFTER_UPGRADE');
+    return get_var('VERSION_TO_INSTALL', get_required_var('VERSION'));
+}
+
+# Get the product build that the host must use. Return it only if the host does
+# a fresh installation of VERSION and BUILD is a product build (91.1), not an
+# MU incident (:smelt:46973:kernel-azure).
+sub get_expected_host_build {
+    return if get_var('AFTER_UPGRADE');
+    return if get_var('VERSION_TO_INSTALL', get_var('VERSION')) ne get_var('VERSION');
+    my $build = get_var('BUILD', '');
+    return unless $build =~ /^\d+\.\d+$/;
+    return $build;
+}
+
+# Make sure that the host runs the expected product version and uses the
+# repositories of the expected product build. The product repositories from the
+# openQA assets (SLES-16.1-x86_64-Build75.8) and from the proxy SCC
+# (all-91.1.proxy.scc.suse.de) contain the build. This finds a host that did not
+# do a fresh installation, for example a host that booted the old system from
+# its disk instead of from iPXE.
+sub check_host_version {
+    verify_os_version(get_expected_host_version);
+    my $build = get_expected_host_build;
+    return unless $build;
+    my $repo_urls = script_output("grep -h '^baseurl=' /etc/zypp/repos.d/*.repo", proceed_on_failure => 1);
+    die "Host build mismatch: no zypper repository URL contains build $build. Host installation probably failed.\nRepository URLs:\n$repo_urls"
+      unless $repo_urls =~ /(?<!\d)\Q$build\E(?!\d)/;
+    record_info('Host build', "Host uses repositories of the expected build: $build");
 }
 
 #return 1 if it is a fv guest judging by name
