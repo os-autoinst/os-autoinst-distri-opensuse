@@ -1,0 +1,56 @@
+name: coverage - cups/rpcbind/postgresql with discovered targets
+description: >
+    Coverage measurement for cups, rpcbind, and postgresql_server
+    with the binary targets found by cups_rpcbind_trace.yaml.
+    Boots the create_hdd_agama_textmode image; the job group sets
+    the image settings.
+    Maintainer: balogh
+vars:
+    BINARY_COVERAGE: 1
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - console/consoletest_setup
+    - coverage/coverage_setup
+    - console/cups
+    - console/rpcbind
+    - console/postgresql_server
+    - coverage/coverage_report
+test_data:
+    helper_packages:
+        - gzip
+        - iputils
+        - systemd
+        - wget
+    coverage_targets:
+        cups:
+            - /usr/sbin/cupsd
+        cups-client:
+            - /sbin/lpadmin
+            - /usr/bin/cancel
+            - /usr/bin/lp
+            - /usr/bin/lpoptions
+            - /usr/bin/lpq
+            - /usr/bin/lpstat
+        rpcbind: /usr/sbin/rpcbind
+        nfs-client:
+            - /sbin/mount.nfs
+            - /usr/sbin/rpc.statd
+            - /usr/sbin/rpc.idmapd
+            - /usr/sbin/nfsdcld
+            - /usr/sbin/sm-notify
+            - /usr/libexec/nfsrahead
+        nfs-kernel-server:
+            - /usr/sbin/exportfs
+            - /usr/sbin/rpc.mountd
+            - /usr/sbin/rpc.nfsd
+            - /usr/sbin/nfsdctl
+        postgresql18-server:
+            - /usr/lib/postgresql18/bin/postgres
+            - /usr/lib/postgresql18/bin/initdb
+            - /usr/lib/postgresql18/bin/pg_ctl
+        postgresql18:
+            - /usr/lib/postgresql18/bin/psql
+            - /usr/lib/postgresql18/bin/dropdb
+        gpg2: /usr/libexec/scdaemon
