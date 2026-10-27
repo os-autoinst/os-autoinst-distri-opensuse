@@ -36,15 +36,13 @@ sub browse_with_keyboard {
 
 # Install tomcat and set initial configuration
 sub tomcat_setup() {
-    my ($self, $version) = @_;
-    $version //= '';    # default version is tomcat9
+    my ($self, $tomcat) = @_;
     select_serial_terminal;
 
     record_info('Initial Setup');
     # we need to disable packagekit because it can block zypper sometimes later
     quit_packagekit if is_sle;
 
-    my $tomcat = 'tomcat' . $version;
     install_package("$tomcat ${tomcat}-webapps ${tomcat}-admin-webapps", trup_reboot => 1);
     # tomcat10/11 are compiled to use libtcnative-2-0
     install_package('libtcnative-2-0', trup_reboot => 1) if (check_var('TOMCAT_VER', '10') || check_var('TOMCAT_VER', '11'));
