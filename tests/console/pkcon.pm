@@ -19,7 +19,7 @@ use package_utils 'install_package';
 
 sub run {
     my @command = qw(refresh repo-list backend-details get-roles get-groups get-filters);
-    my $pkgname = "coreutils";
+    my $pkgname = "which";
 
     select_text_console;
     # need to add required product at first
