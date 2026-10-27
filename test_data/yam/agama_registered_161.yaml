@@ -17,7 +17,7 @@ repos:
     filter: name
   - name: NVIDIA-GPU-Compute-Toolkit-CUDA-16
     alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:NVIDIA-GPU-Compute-Toolkit-CUDA-16
-    uri: http://developer.download.nvidia.com/compute/cuda/repos/suse16/%ARCH%
+    uri: http://developer.download.nvidia.com/compute/cuda/repos/suse16/
     enabled: 'No'
     filter: name
   - name: NVIDIA-Graphics-Drivers-%VERSION%

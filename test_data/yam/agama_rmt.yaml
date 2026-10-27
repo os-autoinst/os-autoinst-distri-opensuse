@@ -20,7 +20,7 @@ repos:
     URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_source/
   - name: NVIDIA-GPU-Compute-Toolkit-CUDA-16
     alias: SUSE_Linux_Enterprise_Server_%ARCH%:NVIDIA-GPU-Compute-Toolkit-CUDA-16
-    uri: https://migration-rmt2.qe.nue2.suse.org/repo/compute/cuda/repos/suse16/%ARCH%/
+    uri: https://migration-rmt2.qe.nue2.suse.org/repo/compute/cuda/repos/suse16/
     enabled: 'No'
     filter: name
   - name: NVIDIA-Graphics-Drivers-%VERSION%
