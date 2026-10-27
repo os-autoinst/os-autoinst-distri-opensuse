@@ -1116,7 +1116,7 @@ Checks for the presence of a device in the SUT for up to a defined timeout
 sub check_device_available {
     my ($dev, $tout) = @_;
     my $ret;
-    my $tries = bmwqemu::scale_timeout($tout ? int($tout / 2) : 10);
+    my $tries = bmwqemu::scale_timeout($tout ? int($tout / 2) : int($default_timeout / 2));
     my $tries_drbd0 = $tries;
 
     die "Must provide a device for check_device_available" unless (defined $dev);

@@ -183,7 +183,12 @@ sub run {
 
     # Check iSCSI devices are there or fail if missing. Check more than once, as serial terminal
     # could run commands faster than SUT is able to access the devices
-    script_retry('ls /dev/disk/by-path/ip-*', timeout => $default_timeout, retry => 5, delay => 10, fail_message => 'No iSCSI devices!');
+    # script_retry() will try for retry*delay times, so in order to try up to $default_timeout, calculate
+    # retry value by dividing $default_timeout by the number of retries, but keep old 50s value as the minimum
+    my $delay = 10;
+    my $retry = int($default_timeout / 10);
+    $retry = 5 if ($retry < 5);
+    script_retry('ls /dev/disk/by-path/ip-*', timeout => $default_timeout, retry => $retry, delay => $delay, fail_message => 'No iSCSI devices!');
 
     # Blacklist iSCSI devices in multipath. Otherwise HA tests cannot use them directly
     if (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i)) {
