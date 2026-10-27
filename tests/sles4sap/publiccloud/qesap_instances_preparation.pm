@@ -62,6 +62,7 @@ use publiccloud::utils qw(is_azure is_gce);
 use sles4sap::publiccloud;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
+use version_utils 'is_sle';
 
 sub test_flags {
     return {fatal => 1};
@@ -85,6 +86,32 @@ sub run {
         my $expected_hostname = $instance->{instance_id};
         # We need to scan for the SSH host key as the Ansible later
         $instance->update_instance_ip();
+        if (is_sle('>=16.1')) {
+            # Hardened images enable an sshd pre-login banner via a drop-in included from sshd_config.
+            # sshd keeps the first value it reads, so "Banner none" must be the first line of sshd_config.
+            my $sshd_config = '/etc/ssh/sshd_config';
+            my %ssh_args = (username => 'cloudadmin');
+
+            $instance->ssh_assert_script_run(
+                cmd => "sudo test -f $sshd_config",
+                fail_message => "$sshd_config not found on $instance->{instance_id}",
+                %ssh_args);
+
+            my $first_line = $instance->ssh_script_output(cmd => "sudo head -n1 $sshd_config", %ssh_args);
+            if ($first_line =~ /^\s*Banner\s+none\s*$/i) {
+                record_info('sshd banner', "'Banner none' already first line of $sshd_config");
+            }
+            else {
+                record_info('sshd banner', "Prepending 'Banner none' to $sshd_config (first line was: '$first_line')");
+                $instance->ssh_assert_script_run(cmd => "sudo sed -i '1i Banner none' $sshd_config", %ssh_args);
+                $instance->ssh_assert_script_run(
+                    cmd => 'sudo sshd -t',
+                    fail_message => "sshd config test failed after editing $sshd_config",
+                    %ssh_args);
+                $instance->ssh_assert_script_run(cmd => 'sudo systemctl reload sshd', %ssh_args);
+            }
+        }
+
         $instance->wait_for_ssh();
 
         my $real_hostname = $instance->ssh_script_output(cmd => 'hostname', username => 'cloudadmin');
