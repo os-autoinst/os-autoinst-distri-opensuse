@@ -58,9 +58,9 @@ sub install_package {
         trup_apply if $args{trup_apply};
     }
     else {
-        record_info('install_package', $args{skip_zypper}) if $args{skip_zypper} =~ /\w+/;
+        record_info('install_package', $args{skip_zypper}) if ($args{skip_zypper} // '') =~ /\w+/;
         return if $args{skip_zypper};
-        $packages .= ' ' . $args{zypper_extra} // '';
+        $packages .= ' ' . $args{zypper_extra} // '' if defined $args{zypper_extra};
         $ret = zypper_call('in -l ' . $packages, timeout => $args{timeout});
     }
     return $ret;
