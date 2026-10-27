@@ -56,7 +56,6 @@ sub run {
 
     # Add product increment repo
     if (my $repo_increment = get_var('INCREMENT_REPO')) {
-        $repo_increment .= '/repo/' . (get_var('PRODUCT')) . '-' . (get_var('VERSION')) . '-' . (get_var('ARCH'));
         zypper_call("ar --refresh $repo_increment Increment_repo");
     }
 
