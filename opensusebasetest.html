@@ -29,6 +29,7 @@
       <li><a href="#wait_boot">wait_boot</a></li>
       <li><a href="#enter_test_text">enter_test_text</a></li>
       <li><a href="#firewall">firewall</a></li>
+      <li><a href="#pick_console_for_logs">_pick_console_for_logs</a></li>
       <li><a href="#post_fail_hook">post_fail_hook</a></li>
     </ul>
   </li>
@@ -127,6 +128,14 @@
 <pre><code>firewall();</code></pre>
 
 <p>Return the default expected firewall implementation depending on the product under test, the version and if the SUT is an upgrade.</p>
+
+<h2 id="pick_console_for_logs">_pick_console_for_logs</h2>
+
+<p>_pick_console_for_logs()</p>
+
+<p>Tries to activate the serial terminal to collect logs. If it fails, it will disable <code>VIRTIO_CONSOLE</code> and try again, so the fallback console gets triggered, if all else fails, switch to log console as a final attempt to collect logs.</p>
+
+<p>The test can be considered tainted if the first console activation, as it cannot be guaranteed that the SUT is in a known state.</p>
 
 <h2 id="post_fail_hook">post_fail_hook</h2>
 
