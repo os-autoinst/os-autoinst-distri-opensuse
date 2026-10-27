@@ -480,7 +480,8 @@ the IP address using az cli, so it could die if the az cli fails to return a val
 
 sub ipaddr2_bastion_pubip {
     my $rg = ipaddr2_azure_resource_group();
-    my $pub_ip = az_network_publicip_get(resource_group => $rg, name => $bastion_pub_ip);
+    # 3 attempts, each one stopped after about 60s with TIMEOUT_SCALE=3
+    my $pub_ip = az_network_publicip_get(resource_group => $rg, name => $bastion_pub_ip, soft_timeout => 20);
     return unless defined $pub_ip;
     my $ip_obj = NetAddr::IP::Lite->new($pub_ip) or die "Invalid IP '$pub_ip'";
     return $ip_obj->addr;
