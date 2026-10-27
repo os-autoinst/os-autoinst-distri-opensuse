@@ -21,10 +21,11 @@ use Tomcat::ModjkTest;
 use Tomcat::ApacheProxyTest;
 use utils;
 use version_utils 'is_sle';
+use serial_terminal 'select_serial_terminal';
 
 sub run() {
-
     my ($self) = shift;
+    select_serial_terminal;
     # install and configure tomcat in console
     Tomcat::Utils->tomcat_setup(get_var('TOMCAT_VER', ''));
 

@@ -38,7 +38,7 @@ sub browse_with_keyboard {
 sub tomcat_setup() {
     my ($self, $version) = @_;
     $version //= '';    # default version is tomcat9
-    select_console('root-console');    # log in to root console
+    select_serial_terminal;
 
     record_info('Initial Setup');
     # we need to disable packagekit because it can block zypper sometimes later
@@ -62,7 +62,7 @@ sub tomcat_setup() {
         validate_script_output 'journalctl -u tomcat --no-pager', sub { $_ !~ /An incompatible version.*Tomcat Native/ };
         validate_script_output 'journalctl -u tomcat --no-pager', sub { $_ !~ /SEVERE.*AprLifecycleListener/ };
         # Verify APR loaded successfully
-        assert_script_run 'journalctl -u tomcat --no-pager | grep -E "Loaded Apache Tomcat Native library"';
+        validate_script_output_retry 'journalctl -u tomcat --no-pager', qr/Loaded Apache Tomcat Native library/, delay => 5, retry => 5;
     }
 
     # check that tomcat is listening on port 8080
@@ -84,7 +84,7 @@ sub tomcat_setup() {
         assert_script_run('chmod 644 /etc/tomcat/localhost.crt');
         systemctl('restart tomcat');
         # check that tomcat is listening on port 8443
-        assert_script_run('lsof -i :8443 | grep tomcat');
+        script_retry('lsof -i :8443 | grep tomcat', delay => 5, retry => 5);
     }
     else {
         # restart tomcat in order to take into account new role
