@@ -116,7 +116,11 @@
 <dd>
 
 </dd>
-<dt id="timeout---override-default-bmwqemu-timeout-for-az-cli-command"><b>timeout</b> - override default bmwqemu timeout for `az cli` command</dt>
+<dt id="timeout---override-default-bmwqemu-timeout-for-az-cli-command.-Ignored-when-using-soft_timeout"><b>timeout</b> - override default bmwqemu timeout for `az cli` command. Ignored when using <b>soft_timeout</b></dt>
+<dd>
+
+</dd>
+<dt id="soft_timeout---optional-stop-the-az-cli-command-on-the-SUT-after-this-time-scaled-using-the-timeout-command.-It-replaces-timeout.-If-the-command-is-stopped-the-rc-is-124-or-137-for-SIGKILL-:-the-caller-decides-what-to-do.-Use-this-option-carefully-especially-for-commands-that-change-cloud-resources-create-update-delete-:-the-request-can-already-be-sent-to-Azure-when-the-command-is-stopped-so-the-resource-state-is-not-known"><b>soft_timeout</b> - optional, stop the `az cli` command on the SUT after this time (scaled) using the `timeout` command. It replaces <b>timeout</b>. If the command is stopped, the rc is 124 (or 137 for SIGKILL): the caller decides what to do. Use this option carefully, especially for commands that change cloud resources (create, update, delete): the request can already be sent to Azure when the command is stopped, so the resource state is not known.</dt>
 <dd>
 
 </dd>
@@ -457,7 +461,7 @@
     resource_group =&gt; &#39;openqa-rg&#39;,
     name =&gt; &#39;openqa-pip&#39;)</code></pre>
 
-<p>Return an IPv4 public IP address from its name or undef on failure.</p>
+<p>Return an IPv4 public IP address from its name or undef on failure. The command is tried up to 3 times, waiting 10s and then 20s between the attempts. A missing resource is not retried.</p>
 
 <dl>
 
@@ -470,6 +474,10 @@
 
 </dd>
 <dt id="timeout---optional-command-timeout-in-seconds"><b>timeout</b> - optional command timeout in seconds</dt>
+<dd>
+
+</dd>
+<dt id="soft_timeout---optional-see-soft_timeout-in-az"><b>soft_timeout</b> - optional, see <b>soft_timeout</b> in <code>az()</code></dt>
 <dd>
 
 </dd>
