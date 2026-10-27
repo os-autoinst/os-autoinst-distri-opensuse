@@ -1,4 +1,5 @@
 ---
+kernel_version: 6.12.0-160100.1-nvidia64kb
 os_release:
   NAME: 'SLES'
   PRETTY_NAME: 'SUSE Linux Enterprise Server %VERSION%'
@@ -12,17 +13,17 @@ os_release:
 repos:
   - name: SLES-NVIDIA-%VERSION%
     alias: SUSE_Linux_Enterprise_Server_for_NVIDIA_%VERSION%_%ARCH%:SLES-NVIDIA-%VERSION%
-    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Build%BUILD%/
+    uri: http://openqa.suse.de/assets/repo/SLES-NVIDIA-%VERSION%-%ARCH%-Build%BUILD%
     enabled: 'Yes'
     filter: name
   - name: SLES-NVIDIA-%VERSION%-Debug
     alias: SUSE_Linux_Enterprise_Server_for_NVIDIA_%VERSION%_%ARCH%:SLES-NVIDIA-%VERSION%-Debug
-    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Debug-Build%BUILD%/
+    uri: http://openqa.suse.de/assets/repo/SLES-NVIDIA-%VERSION%-%ARCH%-Build%BUILD%
     enabled: 'No'
     filter: name
   - name: SLES-NVIDIA-%VERSION%-Source
     alias: SUSE_Linux_Enterprise_Server_for_NVIDIA_%VERSION%_%ARCH%:SLES-NVIDIA-%VERSION%-Source
-    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Source-Build%BUILD%/
+    uri: http://openqa.suse.de/assets/repo/SLES-NVIDIA-%VERSION%-%ARCH%-Build%BUILD%
     enabled: 'No'
     filter: name
 selinux:
