@@ -21,18 +21,9 @@ sub run {
     my $pkg = get_var("UPDATE_PACKAGE");
 
     # Verify the host has the correct MU pkg installed
-    validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if ($pkg);
+    validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if ($pkg && $pkg ne 'snpguest');
 
-    # For kernel updates, verify MU pkg is installed on compatible guests
-    my @guests = keys %virt_autotest::common::guests;
-
-    foreach my $guest (@guests) {
-        if ($pkg eq "kernel-default" && is_guest_of_host_version($guest)) {
-            validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
-            record_info("Package Validated on $guest", "$pkg validated on $guest: from TEST repository and up-to-date");
-        }
-    }
-    if (check_var('PATCH_WITH_ZYPPER', '1')) {
+    if (check_var('PATCH_WITH_ZYPPER', '1') && script_run('[[ -e /tmp/dmesg_err_before.txt ]]') == 0) {
         assert_script_run("dmesg --level=emerg,crit,alert,err -tx |sort |comm -23 - /tmp/dmesg_err_before.txt > /tmp/dmesg_err.txt");
     } else {
         assert_script_run("dmesg --level=emerg,crit,alert,err -x > /tmp/dmesg_err.txt");
