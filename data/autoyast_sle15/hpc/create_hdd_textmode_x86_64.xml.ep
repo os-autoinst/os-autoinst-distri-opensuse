@@ -77,7 +77,11 @@
       % if ($is_ltss) {
       <addon config:type="map">
         <arch>{{ARCH}}</arch>
+        % if ($check_var->('VERSION', '15-SP6')) {
+        <name>SLES-LTSS</name>
+        % } else {
         <name>SLE_HPC-LTSS</name>
+        % }
         <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
         <release_type>nil</release_type>
         <version>{{VERSION}}</version>
