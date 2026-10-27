@@ -26,6 +26,15 @@
       <version>12</version>
       <arch>aarch64</arch>
     </addon>
+    % if ($get_var->('SCC_REGCODE_LTSS')) {
+    <addon>
+      <!-- SUSE Linux Enterprise Server LTSS -->
+      <name>SLES-LTSS</name>
+      <version>12.5</version>
+      <arch>aarch64</arch>
+      <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
+    </addon>
+    % }
   </addons>
   </suse_register>
   <bootloader>
