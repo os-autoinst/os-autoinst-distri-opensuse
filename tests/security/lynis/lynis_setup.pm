@@ -10,13 +10,14 @@ use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
 use testapi;
 use utils;
+use serial_terminal 'select_text_console';
 use lynis::lynistest;
 
 sub run {
     my $lynis_baseline_file = $lynis::lynistest::lynis_baseline_file;
     my $dir = $lynis::lynistest::testdir;
 
-    select_console "root-console";
+    select_text_console;
 
     add_suseconnect_product("PackageHub", undef, undef, undef, 300, 1) if is_sle;
     add_suseconnect_product("sle-module-legacy", undef, undef, undef, 300, 1) if is_sle;
