@@ -23,7 +23,7 @@ schedule:
   - console/system_prepare
   - coverage/coverage_setup
   - network/snmp
-#  - console/dig
+  # - console/dig
   - console/cpio
   - console/curl_https
   - console/curl_ipv6
@@ -31,11 +31,11 @@ schedule:
   - console/lshw
   - console/nano
   - console/nftables
-#  - console/tracepath
+  # - console/tracepath
   - console/traceroute
-#  - console/nginx
-#  - console/pciutils
-#  - console/sysctl
+  # - console/nginx
+  # - console/pciutils
+  # - console/sysctl
   - console/tar
   - console/oqa_agnostic/unzip_agnostic
   - console/vim
@@ -73,5 +73,5 @@ test_data:
     wavpack:
       - /usr/bin/wavpack
       - /usr/bin/wvunpack
-#    nginx: /sbin/nginx
+    # nginx: /sbin/nginx
     traceroute: /usr/sbin/traceroute
