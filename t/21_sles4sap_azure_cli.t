@@ -315,6 +315,7 @@ subtest '[az_network_publicip_get] timeout' => sub {
 subtest '[az_network_publicip_get] return undef' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $azcli->redefine(assert_script_run => sub {
             push @calls, shift;
             return 0;
@@ -353,6 +354,60 @@ subtest '[az_network_publicip_get] return undef' => sub {
     });
     is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), undef, 'Return undef on empty output';
     note("\n  -->  " . join("\n  -->  ", @calls));
+};
+
+subtest '[az_network_publicip_get] soft_timeout' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    my %run_args;
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, shift; %run_args = @_; return 0; });
+    $azcli->redefine(script_output => sub {
+            return 'out.json' if grep /az\.json/, $_[0];
+            return 'err.log' if grep /az\.err/, $_[0];
+            return '"10.0.0.1"' if grep /out\.json/, $_[0];
+            return '';
+    });
+
+    az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino');
+    ok((none { /timeout -k/ } @calls), 'No timeout command without soft_timeout');
+
+    @calls = ();
+    az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino', soft_timeout => 42);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /^timeout -k 10 42 az network public-ip show/ } @calls), 'timeout command before az');
+    is $run_args{timeout}, 62, 'script_run waits longer than the timeout command';
+};
+
+subtest '[az_network_publicip_get] retry' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @results;
+    my $attempts = 0;
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $azcli->redefine(az => sub { $attempts++; return shift @results; });
+
+    @results = ({rc => 124, output => {}, error => ''}, {rc => 0, output => '10.0.0.1', error => ''});
+    my $start_time = time();
+    is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), '10.0.0.1', 'Return IP after a timeout';
+    is $attempts, 2, 'Stop at the first success';
+    is(time() - $start_time, 10, 'Wait retry_delay after the first failure');
+
+    $attempts = 0;
+    @results = map { {rc => 124, output => {}, error => ''} } 1 .. 3;
+    $start_time = time();
+    is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), undef, 'Return undef when all attempts fail';
+    is $attempts, 3, 'All attempts are done';
+    is(time() - $start_time, 30, 'Delay grows at each attempt: 10s + 20s');
+
+    $attempts = 0;
+    @results = ({rc => 3, output => {}, error => 'ERROR: (ResourceNotFound) not found'});
+    is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), undef, 'Return undef for missing resource';
+    is $attempts, 1, 'Missing resource is not retried';
+
+    $attempts = 0;
+    @results = map { {rc => 0, output => {}, error => ''} } 1 .. 3;
+    is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), undef, 'Return undef when output is not a scalar';
+    is $attempts, 3, 'Non-scalar output is retried';
 };
 
 subtest '[az_network_lb_create]' => sub {
