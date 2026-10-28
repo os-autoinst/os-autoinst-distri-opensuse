@@ -14,6 +14,7 @@ use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';
 use version_utils 'is_sle';
 use virt_autotest::utils qw(check_modular_libvirt_daemons restart_modular_libvirt_daemons);
+use registration 'register_product';
 use agnosticTestRunner;
 
 sub run {
@@ -35,6 +36,10 @@ sub run {
     # Download the pre-installed guest image, the agnostic test expects it in place
     my $vm_L2 = get_required_var('HDD_2');
     assert_script_run('wget -c -O /var/lib/libvirt/images/nested-L2-vm.qcow2 ' . autoinst_url("/assets/hdd/$vm_L2"), 900);
+
+    # The Full and Full-QR images are not registered, but agnosticTestRunner
+    # activates PackageHub to install python3-pytest. always_rollback undoes the registration.
+    register_product() if get_var('FLAVOR', '') =~ /^Full/;
 
     my $test = agnosticTestRunner->new({
             language => 'python',
