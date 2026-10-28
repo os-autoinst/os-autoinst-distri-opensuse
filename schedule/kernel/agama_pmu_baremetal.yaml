@@ -14,6 +14,10 @@ schedule:
     - installation/grub_test
     - installation/first_boot
     - kernel/update_kernel
-    - kernel/pmu_nmi_load
-    - kernel/kselftests_prepare
-    - kernel/kselftests_run
+    - &pmu kernel/pmu_nmi_load
+    - &kselftests_prep kernel/kselftests_prepare
+    - &kselftests_run kernel/kselftests_run
+    - kernel/cpu_params
+    - *pmu
+    - *kselftests_prep
+    - *kselftests_run
