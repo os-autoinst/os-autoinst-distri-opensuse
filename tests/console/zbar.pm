@@ -11,11 +11,12 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use utils;
+use package_utils 'install_package';
+use serial_terminal 'select_text_console';
 
 sub run {
-    select_console 'user-console';
-    assert_script_sudo("zypper -n in wget zbar");
+    select_text_console;
+    install_package('wget zbar');
     assert_script_run("wget " . autoinst_url . "/data/qr.png -O /tmp/qr.png");
     validate_script_output "zbarimg /tmp/qr.png", sub { m/OPENPGP4FPR:6F58C4635A519E8C4A6ACD6EE69F22089B497C99\?mac=891507df5bf02c60452e0de63ec30c24/ };
 }
