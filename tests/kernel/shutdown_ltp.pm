@@ -62,7 +62,8 @@ sub run {
     # Also cleanup machine-id to avoid duplicate ipv6 link local address in mutli-machine setup.
     script_run('echo -n >/etc/machine-id');
 
-    power_action('poweroff');
+    # Avoid a VGA login only to type poweroff; shutdown is detected via QMP.
+    power_action('poweroff', textmode => 1, keepconsole => (current_console() eq 'root-virtio-terminal'));
 }
 
 sub post_fail_hook {
