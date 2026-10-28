@@ -596,7 +596,7 @@ sub config_domain_resolver {
     die("Resolver ip and domain name must be given") if (!$args{resolvip} or !$args{domainname});
 
     my $ret = 1;
-    if (is_networkmanager) {
+    if (is_networkmanager(probe => 1)) {
         type_string("cat > /etc/NetworkManager/conf.d/resolv_config.conf <<EOF
 [main]
 dns=none
