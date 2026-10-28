@@ -42,7 +42,7 @@ sub run() {
 
 #tcsh specializated test for bsc#1154877 && poo#59354:
 sub tcsh_extra_tests {
-    select_console 'root-console';
+    select_serial_terminal();
     script_run 'useradd -s /usr/bin/tcsh -d /home/tcsh_user -m tcsh_user';
     script_run 'su - tcsh_user', 0;
     wait_still_screen(3);
