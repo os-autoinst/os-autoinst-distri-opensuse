@@ -17,3 +17,4 @@ schedule:
     - kernel/pmu_nmi_load
     - kernel/kselftests_prepare
     - kernel/kselftests_run
+    - kernel/cpu_params
