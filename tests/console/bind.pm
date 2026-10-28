@@ -53,7 +53,10 @@ sub run {
             my $bind_repo = get_var('BIND_REPO');
             zypper_call("ar -f $bind_repo bind_repo");
             zypper_call("--gpg-auto-import-keys ref");
-            assert_script_run 'echo "%product_libs_gcc_ver 15" >> ~/.rpmmacros';
+            my $gcc_ver = script_output(q{zypper -n info -t srcpackage --requires bind | awk '$1 ~ /^gcc[0-9]+$/ {sub("gcc", "", $1); print $1}'});
+            die "Cannot find the gcc version in the bind source package requires: '$gcc_ver'" unless $gcc_ver =~ /^\d+$/;
+            record_info('gcc version', "product_libs_gcc_ver $gcc_ver");
+            assert_script_run qq{echo "%product_libs_gcc_ver $gcc_ver" >> ~/.rpmmacros};
         }
         # bind-utils for dig, net-tools-deprecated for ifconfig, perl-IO-Socket-INET6 for reclimit,
         # perl-Net-DNS for xfer, dnspython for chain test
