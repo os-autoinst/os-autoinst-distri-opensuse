@@ -1,0 +1,350 @@
+name: coverage - Tumbleweed production schedule
+description: >
+    Tumbleweed binary coverage schedule, run on o3 for every snapshot as
+    TEST=binary_coverage_ultimate. coverage_setup instruments the
+    coverage_targets with funkoverage, stock test modules exercise them and
+    coverage_report writes the reports. Runs as a child of
+    create_hdd_agama_textmode; the job group sets the image settings.
+    Maintainer: amanzini / balogh
+vars:
+  BINARY_COVERAGE: 1
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/consoletest_setup
+  - coverage/coverage_setup
+  - console/clamav
+  - console/redis
+  - network/snmp
+  - console/cpio
+  - console/curl_https
+  - console/gd
+  - console/kmod
+  - console/lshw
+  - console/nano
+  - console/nftables
+  - console/rpm
+  - console/sqlite3
+  - console/tar
+  - console/unzip
+  - console/vim
+  - console/wavpack
+  - console/wget_https
+  - console/zbar
+  - console/chrony
+  - console/dnsmasq
+  - console/gpg
+  - console/mta
+  - console/quota
+  - console/arping
+  - console/ping
+  - console/tracepath
+  - console/openssl_alpn
+  - console/cron
+  - console/syslog
+  - console/timezone
+  - console/nginx
+  - console/libvorbis
+  - console/libxslt
+  - console/valkey
+  - console/ruby
+  - console/gdb
+  - console/pkcon
+  - console/shells
+  - console/valgrind
+  - console/zziplib
+  - console/dig
+  - console/lsof
+  - console/perf
+  - console/procps
+  - console/osinfo_db
+  - console/gcc
+  - console/cryptsetup
+  - console/vsftpd
+  - console/fwupd
+  - security/audit/auditctl
+  - security/audit/auditd
+  - security/audit/autrace
+  - console/pciutils
+  - security/lynis/lynis_setup
+  - security/usbguard/usbguard
+  - hpc/cpuid
+  - security/pam/pam_config
+  - console/mariadb_srv
+  - console/udisks2
+  - console/mariadb_odbc
+  - console/systemd_resolved
+  - console/check_default_network_manager
+  - console/libgpiod
+  - console/libaom
+  - console/btrfs_check
+  - console/snapper_create
+  - console/suse_module_tools
+  - console/apache
+  - console/btrfsmaintenance
+  - console/snapper_cleanup
+  - console/snapper_used_space
+  - console/irqbalance
+  - console/man_pages
+  - console/dns_srv
+  - console/textinfo
+  - security/pam/pam_u2f
+  - console/ca_certificates_mozilla
+  - security/pam/pam_basic_function
+  - security/crypto_policies/crypto_policies_setup
+  - security/selinux/sestatus
+  - security/selinux/selinuxexeccon
+  - yast2_cmd/yast_lang
+  - yast2_cmd/yast_timezone
+  - security/openscap/oscap_setup
+  - security/openscap/oscap_info
+  - security/openscap/oscap_oval_scanning
+  - security/selinux/semodule
+  - console/run0
+  - console/sysstat
+  - console/sshd
+  - console/tcpdump
+  - console/cups
+  - console/rpcbind
+  - console/postgresql_server
+  - console/git
+  - console/rsync
+  - coverage/coverage_report
+test_data:
+  helper_packages:
+    - gzip
+    - iputils
+    - systemd
+    - wget
+  coverage_targets:
+    # Not instrumented on purpose: sudo (setuid binaries cannot be shimmed),
+    # sshd-session and sshd-auth (shimming them breaks SSH on the serial terminal).
+    bzip2: /usr/bin/bzip2
+    cpio: /usr/bin/cpio
+    curl: /usr/bin/curl
+    gd:
+      - /usr/bin/giftogd2
+      - /usr/bin/gd2togif
+      - /usr/bin/gd2topng
+      - /usr/bin/gdcmpgif
+      - /usr/bin/pngtogd
+      - /usr/bin/gdtopng
+      - /usr/bin/webpng
+    lshw: /usr/sbin/lshw
+    nano: /usr/bin/nano
+    net-snmp:
+      - /usr/bin/snmpget
+      - /usr/bin/snmpset
+      - /usr/bin/snmpusm
+    nftables: /usr/sbin/nft
+    tar: /usr/bin/tar
+    traceroute: /usr/sbin/traceroute
+    unzip: /usr/bin/unzip
+    vim: /usr/bin/vim-nox11
+    wavpack:
+      - /usr/bin/wavpack
+      - /usr/bin/wvunpack
+      - /usr/bin/wvgain
+    kmod: /usr/bin/kmod
+    rpm: /usr/bin/rpm
+    sqlite3: /usr/bin/sqlite3
+    wget: /usr/bin/wget
+    zbar: /usr/bin/zbarimg
+    chrony: /usr/bin/chronyc
+    dnsmasq: /usr/sbin/dnsmasq
+    gpg2:
+      - /usr/bin/gpg
+      - /usr/bin/gpgconf
+      - /usr/bin/gpg-agent
+      - /usr/bin/gpgsm
+      - /usr/libexec/scdaemon
+    postfix:
+      - /usr/sbin/postfix
+      - /usr/sbin/postconf
+    quota:
+      - /usr/bin/quota
+      - /usr/sbin/quotacheck
+      - /usr/sbin/quotaon
+    iputils:
+      - /usr/bin/arping
+      - /usr/bin/ping
+      - /usr/bin/tracepath
+    openssl-3: /usr/bin/openssl
+    cronie:
+      - /usr/sbin/cron
+      - /usr/bin/crontab
+    util-linux-systemd:
+      - /usr/bin/logger
+      - /usr/bin/lsblk
+      - /usr/bin/findmnt
+    timezone:
+      - /usr/sbin/zdump
+      - /usr/sbin/zic
+    nginx: /usr/sbin/nginx
+    vorbis-tools:
+      - /usr/bin/ogg123
+      - /usr/bin/ogginfo
+    libxslt-tools: /usr/bin/xsltproc
+    valkey:
+      - /usr/bin/valkey-server
+      - /usr/bin/valkey-cli
+    gdb: /usr/bin/gdb
+    clamav:
+      - /usr/bin/clamscan
+      - /usr/bin/clamdscan
+      - /usr/sbin/clamd
+      - /usr/bin/freshclam
+    tcsh: /usr/bin/tcsh
+    zsh: /usr/bin/zsh
+    redis:
+      - /usr/sbin/redis-server
+      - /usr/bin/redis-cli
+    valgrind: /usr/bin/valgrind
+    PackageKit:
+      - /usr/bin/pkcon
+      - /usr/libexec/packagekitd
+    bind-utils:
+      - /usr/bin/dig
+      - /usr/bin/host
+    lsof: /usr/bin/lsof
+    perf: /usr/bin/perf
+    netcat-openbsd: /usr/bin/netcat
+    psmisc: /usr/bin/killall
+    zziplib-devel:
+      - /usr/bin/unzzip
+      - /usr/bin/unzip-mem
+    procps:
+      - /usr/bin/free
+      - /usr/bin/pgrep
+      - /usr/bin/pmap
+      - /usr/bin/pwdx
+      - /usr/bin/top
+      - /usr/bin/ps
+      - /usr/bin/w
+      - /usr/bin/pidof
+      - /usr/bin/vmstat
+      - /sbin/sysctl
+    gcc16: /usr/bin/gcc-16
+    cryptsetup: /usr/sbin/cryptsetup
+    vsftpd: /usr/sbin/vsftpd
+    lftp: /usr/bin/lftp
+    fwupd: /usr/bin/fwupdmgr
+    audit:
+      - /usr/sbin/auditd
+      - /usr/sbin/aureport
+      - /usr/sbin/ausearch
+    pciutils: /usr/sbin/lspci
+    cpupower: /usr/bin/cpupower
+    powertop: /usr/sbin/powertop
+    util-linux:
+      - /usr/bin/lscpu
+      - /usr/bin/uuidgen
+      - /usr/bin/dmesg
+      - /usr/sbin/sfdisk
+      - /usr/sbin/blkid
+      - /usr/bin/lsmem
+      - /usr/bin/chrt
+      - /usr/bin/mountpoint
+    glibc:
+      - /usr/bin/getent
+      - /usr/bin/iconv
+    gawk: /usr/bin/gawk
+    xmlstarlet: /usr/bin/xmlstarlet
+    dmidecode: /usr/sbin/dmidecode
+    cpuid: /usr/bin/cpuid
+    pam-config: /usr/sbin/pam-config
+    mariadb-client:
+      - /usr/bin/mariadb
+      - /usr/bin/mariadb-admin
+    udisks2: /usr/bin/udisksctl
+    unixODBC:
+      - /usr/bin/isql
+      - /usr/bin/odbcinst
+    socat: /usr/bin/socat  # reported as socat1
+    libgpiod-utils:
+      - /usr/bin/gpiodetect
+      - /usr/bin/gpioinfo
+      - /usr/bin/gpioset
+      - /usr/bin/gpioget
+    ImageMagick: /usr/bin/identify
+    mokutil: /usr/bin/mokutil
+    irqbalance: /usr/sbin/irqbalance
+    man:
+      - /usr/bin/man
+      - /usr/bin/manpath
+    openscap-utils: /usr/bin/oscap
+    snapper:
+      - /usr/bin/snapper
+      - /usr/sbin/snapperd
+    policycoreutils:
+      - /usr/sbin/setfiles  # restorecon is a symlink to setfiles
+      - /usr/sbin/semodule
+      - /usr/sbin/setsebool
+      - /usr/bin/sestatus
+    systemd:
+      - /usr/bin/run0  # symlink to systemd-run, pulls in systemd-debuginfo
+      - /usr/bin/bootctl
+      - /usr/bin/systemctl
+      - /usr/bin/systemd-detect-virt
+      - /usr/bin/systemd-analyze
+      - /usr/bin/journalctl
+      - /usr/bin/coredumpctl
+      - /usr/bin/timedatectl
+      - /usr/bin/localectl
+      - /usr/bin/networkctl
+    sysstat:
+      - /usr/bin/pidstat
+      - /usr/bin/iostat
+      - /usr/bin/mpstat
+      - /usr/bin/sar
+    openssh-server: /usr/sbin/sshd
+    tcpdump: /usr/sbin/tcpdump
+    apache2-prefork: /usr/sbin/httpd-prefork
+    git-core: /usr/bin/git
+    rsync: /usr/bin/rsync
+    cups: /usr/sbin/cupsd
+    cups-client:
+      - /sbin/lpadmin
+      - /usr/bin/cancel
+      - /usr/bin/lp
+      - /usr/bin/lpoptions
+      - /usr/bin/lpq
+      - /usr/bin/lpstat
+    rpcbind: /usr/sbin/rpcbind
+    nfs-client:
+      - /sbin/mount.nfs
+      - /usr/sbin/rpc.statd
+      - /usr/sbin/rpc.idmapd
+      - /usr/sbin/nfsdcld
+      - /usr/sbin/sm-notify
+      - /usr/libexec/nfsrahead
+    nfs-kernel-server:
+      - /usr/sbin/exportfs
+      - /usr/sbin/rpc.mountd
+      - /usr/sbin/rpc.nfsd
+      - /usr/sbin/nfsdctl
+    postgresql18-server:
+      - /usr/lib/postgresql18/bin/postgres
+      - /usr/lib/postgresql18/bin/initdb
+      - /usr/lib/postgresql18/bin/pg_ctl
+    postgresql18:
+      - /usr/lib/postgresql18/bin/psql
+      - /usr/lib/postgresql18/bin/dropdb
+    jq: /usr/bin/jq
+    btrfsprogs: /usr/sbin/btrfs
+    zypper: /usr/bin/zypper
+    openssh-clients:
+      - /usr/bin/ssh
+      - /usr/bin/ssh-keygen
+      - /usr/bin/ssh-keyscan
+      - /usr/bin/scp
+    iproute2: /sbin/ip
+    diffutils: /usr/bin/diff
+    coreutils:
+      - /usr/bin/dd
+      - /usr/bin/df
+    libxml2-tools: /usr/bin/xmllint
+    zip: /usr/bin/zip
+    gzip: /usr/bin/gzip
+    NetworkManager: /usr/bin/nmcli

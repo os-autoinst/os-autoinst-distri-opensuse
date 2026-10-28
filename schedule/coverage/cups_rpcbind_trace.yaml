@@ -1,0 +1,19 @@
+name: execve trace - cups/rpcbind/postgresql binary discovery
+description: >
+    ftrace sched_process_exec tracing to discover all binaries
+    executed during cups, rpcbind, and postgresql_server tests.
+    Compare the output with the coverage_targets of tw_o3.yaml
+    to find binaries that are not instrumented yet.
+    Boots the create_hdd_agama_textmode image; the job group sets
+    the image settings.
+    Maintainer: balogh
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - console/consoletest_setup
+    - coverage/execve_trace_start
+    - console/cups
+    - console/rpcbind
+    - console/postgresql_server
+    - coverage/execve_trace_report
