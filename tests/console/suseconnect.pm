@@ -22,7 +22,8 @@ use version_utils 'is_sle';
 sub run {
     my $reg_code = get_required_var("SCC_REGCODE");
     my $arch = get_required_var("ARCH");
-    my $live_reg_code = get_required_var("SCC_REGCODE_LIVE");
+    # SLE 16 has no live patching product, so it does not need SCC_REGCODE_LIVE
+    my $live_reg_code = is_sle('16+') ? '' : get_required_var("SCC_REGCODE_LIVE");
 
     select_serial_terminal;
 
