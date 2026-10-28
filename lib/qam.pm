@@ -93,11 +93,11 @@ sub add_extra_customer_repositories {
 sub add_test_repositories {
     my $counter = 0;
 
-    # On SLE12 & SLE15 MAINT_TEST_REPO is created from *_TEST_REPOS in aggregates
+    # MAINT_TEST_REPO is created from *_TEST_REPOS in aggregates and increments
     # and from INCIDENT_REPO in Incidents in main.pm
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/products/sle/main.pm#L359
     # On SLE16+ use INCREMENT_REPO if exists
-    my @repos = split(/,/, get_var('INCREMENT_REPO', get_var('MAINT_TEST_REPO')));
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
     set_zypper_lock_timeout();
 
     add_extra_customer_repositories if get_var('MAINT_TEST_REPO');
