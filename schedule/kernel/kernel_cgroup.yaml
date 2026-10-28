@@ -1,0 +1,17 @@
+name:          kernel_cgroup
+description:    >
+    Check the cgroup layout and controllers before the cgroup test suites.
+schedule:
+    - '{{boot}}'
+    - boot/boot_to_desktop
+    - kernel/cgroup_smoke
+    - shutdown/shutdown
+
+conditional_schedule:
+    boot:
+        BACKEND:
+            spvm:
+                - installation/bootloader
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
