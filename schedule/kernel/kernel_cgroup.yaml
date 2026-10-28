@@ -1,14 +1,14 @@
 name:          kernel_cgroup
 description:    >
     Check the cgroup layout and controllers, then run the cgroup test suites.
+    boot_ltp adds the LTP tests and shutdown_ltp at the end of the job.
 schedule:
     - '{{boot}}'
-    - boot/boot_to_desktop
+    - kernel/boot_ltp
     - kernel/cgroup_smoke
     - kernel/kselftests_prepare
     - kernel/kselftests_run
     - kernel/blktests
-    - shutdown/shutdown
 
 conditional_schedule:
     boot:
