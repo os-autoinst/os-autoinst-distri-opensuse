@@ -1,10 +1,11 @@
 name:          kernel_cgroup
 description:    >
-    Check the cgroup layout and controllers before the cgroup test suites.
+    Check the cgroup layout and controllers, then run the cgroup test suites.
 schedule:
     - '{{boot}}'
     - boot/boot_to_desktop
     - kernel/cgroup_smoke
+    - kernel/blktests
     - shutdown/shutdown
 
 conditional_schedule:
