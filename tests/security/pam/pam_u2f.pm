@@ -15,10 +15,11 @@
 
 use Mojo::Base qw(opensusebasetest consoletest);
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call package_upgrade_check);
 
 sub run {
-    select_console('root-console');
+    select_serial_terminal;
     zypper_call('in pam_u2f');
 
     # Package change log check
