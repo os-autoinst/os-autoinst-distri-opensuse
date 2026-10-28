@@ -87,6 +87,13 @@ subtest '[crash_deploy_aws]' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
     $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    $crash->redefine(qesap_get_public_cloud_tags => sub {
+            return (
+                openqa_var_job_id => '12345',
+                openqa_var_name => 'EntolomaSinuatum',
+                openqa_var_server => 'openqa.suse.de',
+                openqa_created_date => '2026-01-01T00:00:00');
+    });
     my @calls;
     my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     $aws->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -106,6 +113,15 @@ subtest '[crash_deploy_aws]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /run-instance/ } @calls), 'Run VM');
     ok((any { /aws_vm_wait_status_ok/ } @calls), 'Wait for VM running');
+    ok((any { /Key=OpenQAJobVpc,Value=crashRussulaEmetica/ } @calls), 'VPC tagged with OpenQAJobVpc');
+    ok((any { /Key=OpenQAJobSg,Value=crashRussulaEmetica/ } @calls), 'SG tagged with OpenQAJobSg');
+    ok((any { /Key=OpenQAJobSubnet,Value=crashRussulaEmetica/ } @calls), 'Subnet tagged with OpenQAJobSubnet');
+    ok((any { /Key=OpenQAJobIgw,Value=crashRussulaEmetica/ } @calls), 'IGW tagged with OpenQAJobIgw');
+    ok((any { /Key=OpenQAJobVm,Value=crashRussulaEmetica/ } @calls), 'VM tagged with OpenQAJobVm');
+    ok((any { /Key=openqa_var_job_id,Value=12345/ } @calls), 'qesap tag openqa_var_job_id present');
+    ok((any { /Key=openqa_var_name,Value=EntolomaSinuatum/ } @calls), 'qesap tag openqa_var_name present');
+    ok((any { /Key=openqa_var_server,Value=openqa.suse.de/ } @calls), 'qesap tag openqa_var_server present');
+    ok((any { /Key=openqa_created_date,Value=2026-01-01T00:00:00/ } @calls), 'qesap tag openqa_created_date present');
 };
 
 subtest '[crash_deploy_gcp]' => sub {

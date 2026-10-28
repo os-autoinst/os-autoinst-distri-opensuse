@@ -19,10 +19,29 @@ subtest '[aws_vpc_create]' => sub {
     my $res = aws_vpc_create(
         region => 'GranMax',
         cidr => 'Sirion',
-        job_id => 'Hijet');
+        tags => {openqa_var_job_id => 'Hijet'});
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 create-vpc/ } @calls), 'Command create-vpc');
+    ok((any { /tag-specifications/ } @calls), 'Tag specifications present');
+    ok((any { /\{Key=openqa_var_job_id,Value=Hijet\}/ } @calls), 'Tag passed to tag-specifications');
+    ok(($res eq 'Rocky'), "Result is '$res' expected to be 'Rocky'");
+};
+
+subtest '[aws_vpc_create] no tags' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Rocky'; });
+    $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    my $res = aws_vpc_create(
+        region => 'GranMax',
+        cidr => 'Sirion');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /aws ec2 create-vpc/ } @calls), 'Command create-vpc');
+    ok((none { /aws ec2 create-tags/ } @calls), 'No create-tags without tags');
     ok(($res eq 'Rocky'), "Result is '$res' expected to be 'Rocky'");
 };
 
@@ -72,10 +91,12 @@ subtest '[aws_security_group_create]' => sub {
         group_name => 'Acty',
         description => 'Ballade',
         vpc_id => 'Capa',
-        job_id => 'CityJazz');
+        tags => {openqa_var_job_id => 'CityJazz'});
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 create-security-group/ } @calls), 'Command create-security-group');
+    ok((any { /tag-specifications/ } @calls), 'Tag specifications present');
+    ok((any { /\{Key=openqa_var_job_id,Value=CityJazz\}/ } @calls), 'Tag passed to tag-specifications');
     ok(($res eq 'Clarity'), "Result is '$res' expected to be 'Clarity'");
 };
 
@@ -166,12 +187,13 @@ subtest '[aws_subnet_create]' => sub {
         region => 'Ascot',
         cidr => '10.0.1.0/24',
         vpc_id => 'Cherry/100A',
-        job_id => '67890'
+        tags => {openqa_var_job_id => '67890'}
     );
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 create-subnet/ } @calls), 'Command create-subnet');
-    ok((any { /aws ec2 create-tags/ } @calls), 'Command create-tags');
+    ok((any { /tag-specifications/ } @calls), 'Tag specifications present');
+    ok((any { /\{Key=openqa_var_job_id,Value=67890\}/ } @calls), 'Tag passed to tag-specifications');
     ok(($res eq 'PrinceR380'), "Result is '$res' expected to be 'PrinceR380'");
 };
 
@@ -218,12 +240,13 @@ subtest '[aws_internet_gateway_create]' => sub {
 
     my $res = aws_internet_gateway_create(
         region => 'Ascot',
-        job_id => '67890'
+        tags => {openqa_var_job_id => '67890'}
     );
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 create-internet-gateway/ } @calls), 'Command create-internet-gateway');
-    ok((any { /aws ec2 create-tags/ } @calls), 'Command create-tags');
+    ok((any { /tag-specifications/ } @calls), 'Tag specifications present');
+    ok((any { /\{Key=openqa_var_job_id,Value=67890\}/ } @calls), 'Tag passed to tag-specifications');
     ok(($res eq 'magnite'), "Result is '$res' expected to be 'magnite'");
 };
 
@@ -369,12 +392,14 @@ subtest '[aws_vm_create]' => sub {
         sg_id => 'Serena',
         ssh_key => 'Altima',
         region => 'Almera',
-        job_id => 'Sylphy'
+        tags => {openqa_var_job_id => 'Sylphy'}
     );
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 describe-images/ } @calls), 'Command describe-images');
     ok((any { /aws ec2 run-instances/ } @calls), 'Command run-instances');
+    ok((any { /tag-specifications/ } @calls), 'Tag specifications present');
+    ok((any { /\{Key=openqa_var_job_id,Value=Sylphy\}/ } @calls), 'Tag passed to tag-specifications');
     ok(($res eq 'i-123'), "Result is '$res' expected to be 'i-123'");
 };
 
