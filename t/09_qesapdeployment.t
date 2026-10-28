@@ -761,6 +761,13 @@ subtest '[qesap_cluster_logs]' => sub {
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
     $qesap->redefine(qesap_upload_crm_report => sub { my (%args) = @_; push @crm_report_calls, $args{host}; return 0; });
     $qesap->redefine(qesap_save_y2logs => sub { return 0; });
+    # needed within qesap_host_is_reachable (private function)
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @ansible_calls, $args{cmd};
+            return 0; });
+
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -795,6 +802,13 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt', Logs => ['ignore_me.txt', 'ignore_me_too.txt']}); });
     $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
     $qesap->redefine(qesap_save_y2logs => sub { return 0; });
+    # needed within qesap_host_is_reachable (private function)
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @ansible_calls, $args{cmd};
+            return 0; });
+
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -805,6 +819,30 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     note("\n  LOG_FILES-->  " . join("\n  LOG_FILES-->  ", @logfile_calls));
     ok((none { /.*ignore_me\.txt/ } @logfile_calls), 'ignore_me.txt is expected to be ignored');
     ok((none { /.*ignore_me_too\.txt/ } @logfile_calls), 'ignore_me_too.txt is expected to be ignored');
+};
+
+subtest '[qesap_cluster_logs] skips collection when host unreachable' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $cluster_collected = 0;
+    my $crm_report_called = 0;
+
+
+    $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
+    $qesap->redefine(script_run => sub { return 0; });
+
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_venv_cmd_exec => sub { return 1; });
+
+    $qesap->redefine(qesap_cluster_log_cmds => sub { $cluster_collected = 1; return (); });
+    $qesap->redefine(qesap_upload_crm_report => sub { $crm_report_called = 1; return 0; });
+    $qesap->redefine(qesap_save_y2logs => sub { return 0; });
+
+    set_var('PUBLIC_CLOUD_PROVIDER', 'NEMO');
+    qesap_cluster_logs();
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    ok(!$cluster_collected, 'Log collection commands were not called for unreachable host');
+    ok(!$crm_report_called, 'CRM report was not called for unreachable host');
 };
 
 subtest '[qesap_upload_crm_report] die for missing mandatory arguments' => sub {
@@ -869,6 +907,12 @@ subtest '[qesap_supportconfig_logs]' => sub {
             return 0; });
     $qesap->redefine(qesap_ansible_fetch_file => sub { return 0; });
     $qesap->redefine(upload_logs => sub { $upload_log_called = 1; return 0; });
+    # needed within qesap_host_is_reachable (private function)
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0; });
 
     qesap_supportconfig_logs(provider => 'SAND');
 
