@@ -36,3 +36,4 @@ schedule:
     - kernel/before_nfs_test
     - '{{nfstest}}'
     - kernel/nfs_stress_ng
+    - kernel/multimachine_barriers
