@@ -32,6 +32,7 @@ Kernel::multimachine_topology                reads and validates it, answers que
 kernel/multimachine_barriers                 creates the barriers
 Kernel::net_tests and other libraries        set up the machine
 test modules                                 the actual test
+kernel/multimachine_barriers                 again last: keeps the parent alive until the children are done
 ```
 
 The same test modules run on any setup. A different pair of machines or
@@ -117,6 +118,7 @@ schedule:
     - installation/grub_test
     - installation/first_boot
     - kernel/hello                   # the test
+    - kernel/multimachine_barriers   # again, last
 ```
 
 Both jobs use the same schedule. Barrier names belong to the test code, so
@@ -127,9 +129,15 @@ Every job schedules it. openQA finds the barriers of a job only in the job
 itself and its parallel parents, so the job without parallel parents
 creates them for all jobs of the openQA cluster and then signals the
 other jobs with a mutex. With a topology, it also checks that the nodes
-that run a job match the jobs of the cluster. It is the only generic
-module: each test sets up what it needs on the machine itself, see the
-next section.
+that run a job match the jobs of the cluster.
+
+Every job schedules it a second time, as its last module. The parent owns
+the barriers: when it finishes, a child that has not seen the release of
+the last barrier yet dies with "lock owner already finished". So in the
+parent, the second run waits until all children are done.
+
+It is the only generic module: each test sets up what it needs on the
+machine itself, see the next section.
 
 ## The test module
 
