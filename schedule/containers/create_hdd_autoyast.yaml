@@ -30,8 +30,9 @@ schedule:
     - autoyast/logs
     - autoyast/save_y2logs
     - '{{grub_set_bootargs}}'
-    - containers/install_updates
     - console/system_prepare
+    - containers/update_host
+    - containers/host_configuration
     - '{{fips}}'
     - containers/bci_prepare
     - '{{k3s_helm_install}}'
