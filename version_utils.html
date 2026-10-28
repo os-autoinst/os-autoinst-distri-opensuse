@@ -336,7 +336,13 @@
 
 <h2 id="verify_os_version">verify_os_version</h2>
 
-<p>Returns 1 (true) if os release version matches the one passed as arguement. If no arguements are given, the function will compare the os release version in /etc/os-release file with &quot;VERSION&quot; or &quot;VARIANT&quot; var. VARIANT contains the version on SL Micro/Microos from 6.2.</p>
+<pre><code>verify_os_version([$version, [$os_release_file]]);</code></pre>
+
+<p>Make sure that the os release version matches <code>$version</code>. Compare the &quot;VERSION&quot; or &quot;VARIANT&quot; line in <code>$os_release_file</code> with <code>$version</code> and die with the PRETTY_NAME of the os release if they do not match. VARIANT contains the version on SL Micro/Microos from 6.2.</p>
+
+<p><code>$version</code> is &quot;VERSION&quot; var by default. It can also use the format of UPGRADE_PRODUCT (sles-15-sp7), which is converted to the VERSION format (15-SP7). <code>$os_release_file</code> is /etc/os-release by default.</p>
+
+<p>Returns the matching line of the os release.</p>
 
 <h2 id="is_public_cloud">is_public_cloud</h2>
 
