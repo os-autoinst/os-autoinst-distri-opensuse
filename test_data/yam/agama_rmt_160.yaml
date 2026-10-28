@@ -5,26 +5,26 @@ repos:
     Autorefresh: 'On'
     enabled: 'Yes'
     filter: name
-    URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product/
+    uri: '%SCC_URL%/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product/'
   - name: SLE-Product-SLES-%VERSION%-Debug
     alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-%VERSION%-Debug
     Autorefresh: 'On'
     enabled: 'No'
     filter: name
-    URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_debug/
+    uri: '%SCC_URL%/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_debug/'
   - name: SLE-Product-SLES-%VERSION%-Source
     alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-%VERSION%-Source
     Autorefresh: 'On'
     enabled: 'No'
     filter: name
-    URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_source/
+    uri: '%SCC_URL%/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_source/'
   - name: NVIDIA-GPU-Compute-Toolkit-CUDA
     alias: SUSE_Linux_Enterprise_Server_%ARCH%:NVIDIA-GPU-Compute-Toolkit-CUDA
-    uri: https://migration-rmt2.qe.nue2.suse.org/repo/compute/cuda/repos/sles16/%ARCH%/
+    uri: '%SCC_URL%/repo/compute/cuda/repos/sles16/%ARCH%/'
     enabled: 'No'
     filter: name
   - name: NVIDIA-Graphics-Drivers
     alias: SUSE_Linux_Enterprise_Server_%ARCH%:NVIDIA-Graphics-Drivers
-    uri: https://migration-rmt2.qe.nue2.suse.org/repo/suse/sle16/
+    uri: '%SCC_URL%/repo/suse/sle16/'
     enabled: 'No'
     filter: name
