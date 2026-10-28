@@ -1,0 +1,45 @@
+---
+os_release:
+  NAME: "SLES"
+  PRETTY_NAME: "SUSE Linux Enterprise Server %VERSION%"
+  VARIANT: "Enterprise Server"
+  VARIANT_ID: "server"
+  VERSION_ID: "%VERSION%"
+  ID: "sles"
+  ID_LIKE: "suse opensuse"
+  CPE_NAME: "cpe:/o:suse:sles:16:%VERSION%"
+  SUSE_SUPPORT_PRODUCT: "SUSE Linux Enterprise Server"
+repos:
+  - name: SLE-Product-HA-%VERSION%
+    alias: SUSE_Linux_Enterprise_High_Availability_Extension_%VERSION%_%ARCH%:SLE-Product-HA-%VERSION%
+    uri: https://updates.suse.com/SUSE/Products/SLE-Product-HA/%VERSION%/%ARCH%/product
+    enabled: 'Yes'
+    filter: name
+  - name: SLE-Product-HA-%VERSION%-Debug
+    alias: SUSE_Linux_Enterprise_High_Availability_Extension_%VERSION%_%ARCH%:SLE-Product-HA-%VERSION%-Debug
+    uri: https://updates.suse.com/SUSE/Products/SLE-Product-HA/%VERSION%/%ARCH%/product_debug
+    enabled: 'No'
+    filter: name
+  - name: SLE-Product-HA-%VERSION%-Source
+    alias: SUSE_Linux_Enterprise_High_Availability_Extension_%VERSION%_%ARCH%:SLE-Product-HA-%VERSION%-Source
+    uri: https://updates.suse.com/SUSE/Products/SLE-Product-HA/%VERSION%/%ARCH%/product_source
+    enabled: 'No'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%
+    uri: https://updates.suse.com/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product
+    enabled: 'Yes'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%-Debug
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%-Debug
+    uri: https://updates.suse.com/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_debug
+    enabled: 'No'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%-Source
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%-Source
+    uri: https://updates.suse.com/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_source
+    enabled: 'No'
+    filter: name
+products:
+  - SLES
+  - sle-ha
