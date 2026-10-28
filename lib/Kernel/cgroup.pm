@@ -21,6 +21,11 @@ our @EXPORT_OK = qw(
   get_cgroup_v2_controllers
   get_cgroup_v1_controllers
   has_cgroup_controller
+  create_cgroup
+  remove_cgroup
+  enable_cgroup_controller
+  get_io_max
+  set_io_max
 );
 
 =head1 SYNOPSIS
@@ -206,6 +211,116 @@ sub has_cgroup_controller {
     $mounts //= get_cgroup_mounts();
 
     return scalar grep { $_ eq $name } get_cgroup_v1_controllers($mounts), get_cgroup_v2_controllers($mounts);
+}
+
+=head2 create_cgroup
+
+ my $path = create_cgroup($name, [$mounts]);
+
+Creates the cgroup C<$name> in the root of the cgroup v2 hierarchy and
+returns its path, for example C</sys/fs/cgroup/$name>. Dies if cgroup v2 is
+not mounted or if the cgroup exists.
+
+=cut
+
+sub create_cgroup {
+    my ($name, $mounts) = @_;
+
+    my $root = get_cgroup_v2_path($mounts);
+    die 'cgroup v2 is not mounted' unless defined $root;
+    assert_script_run("mkdir $root/$name");
+    return "$root/$name";
+}
+
+=head2 remove_cgroup
+
+ remove_cgroup($path, [timeout => $timeout]);
+
+Removes the cgroup C<$path>. The cgroup must have no child cgroups. The
+kernel removes a cgroup only after all its processes have exited, thus
+C<rmdir> can fail with C<EBUSY> for a short time. The helper tries again
+each second until C<timeout> (default 30 seconds), then it dies.
+
+=cut
+
+sub remove_cgroup {
+    my ($path, %opts) = @_;
+    my $timeout = $opts{timeout} // 30;
+
+    assert_script_run("timeout $timeout sh -c 'until rmdir $path; do sleep 1; done'", timeout => $timeout + 10);
+}
+
+=head2 enable_cgroup_controller
+
+ enable_cgroup_controller($path, $controller);
+
+Enables the controller C<$controller> for the child cgroups of the cgroup
+C<$path>: it writes C<+$controller> to C<$path/cgroup.subtree_control>.
+The controller must be in C<$path/cgroup.controllers>. Dies if the
+controller is not enabled after the write.
+
+To use a controller in the cgroup that C<create_cgroup> creates, enable the
+controller in the root of the cgroup v2 hierarchy.
+
+=cut
+
+sub enable_cgroup_controller {
+    my ($path, $controller) = @_;
+
+    assert_script_run("echo +$controller > $path/cgroup.subtree_control");
+    assert_script_run("grep -qw $controller $path/cgroup.subtree_control");
+}
+
+sub _parse_io_max {
+    my ($text, $majmin) = @_;
+
+    for my $line (split /\n/, $text // '') {
+        my ($dev, @limits) = split ' ', $line;
+        next unless defined $dev && $dev eq $majmin;
+        return {map { split /=/, $_, 2 } @limits};
+    }
+    return undef;
+}
+
+=head2 get_io_max
+
+ my $limits = get_io_max($path, $majmin);
+
+Reads C<$path/io.max> and returns a hash reference with the limits of the
+block device C<$majmin> (for example C<7:0>). The keys are C<rbps>,
+C<wbps>, C<riops> and C<wiops>, and a value is a number or C<max>. Returns
+undef if the device has no limits.
+
+=cut
+
+sub get_io_max {
+    my ($path, $majmin) = @_;
+
+    return _parse_io_max(script_output("cat $path/io.max"), $majmin);
+}
+
+=head2 set_io_max
+
+ set_io_max($path, $majmin, %limits);
+
+Writes the limits C<%limits> of the block device C<$majmin> to
+C<$path/io.max>, for example C<< set_io_max($cg, '7:0', wbps => 1048576) >>.
+The keys are C<rbps>, C<wbps>, C<riops> and C<wiops>. Give the values in
+bytes or I/O operations per second, or C<max> to remove a limit.
+
+Reads C<io.max> again and returns true if all the limits have the given
+values. Returns false if a limit has a different value.
+
+=cut
+
+sub set_io_max {
+    my ($path, $majmin, %limits) = @_;
+
+    my $values = join(' ', map { "$_=$limits{$_}" } sort keys %limits);
+    assert_script_run("echo '$majmin $values' > $path/io.max");
+
+    my $actual = get_io_max($path, $majmin) // {};
+    return !grep { ($actual->{$_} // 'max') ne $limits{$_} } keys %limits;
 }
 
 1;
