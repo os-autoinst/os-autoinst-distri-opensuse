@@ -44,7 +44,10 @@ use repo_tools 'add_qa_head_repo';
 sub raise_postgres_start_timeout {
     return 0 if script_run('mkdir -p /etc/systemd/system/postgresql.service.d') != 0;
     write_sut_file('/etc/systemd/system/postgresql.service.d/coverage_timeout.conf', "[Service]\nTimeoutStartSec=150\n");
-    return script_run('systemctl daemon-reload') == 0;
+    # systemctl is instrumented at this point and can take well over the
+    # default 30s to start (BinaryCoverage#163); a timeout must not abort setup.
+    my $ret = eval { script_run('systemctl daemon-reload', timeout => 180) };
+    return defined($ret) && $ret == 0;
 }
 
 sub run {
