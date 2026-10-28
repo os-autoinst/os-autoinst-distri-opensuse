@@ -45,7 +45,8 @@ sub scan_and_parse {
 sub run {
     select_serial_terminal;
 
-    install_package('clamav', trup_reboot => 1);
+    # trup_apply lets us start the service without a reboot on immutable images
+    install_package('clamav', trup_apply => 1);
     zypper_call('info clamav');
     # Create a random file
     assert_script_run "dd if=/dev/urandom of=/usr/local/bin/maybeavirus bs=1M count=1";
