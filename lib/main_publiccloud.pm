@@ -25,7 +25,7 @@ sub load_maintenance_publiccloud_tests {
     loadtest "publiccloud/download_repos" unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/prepare_instance", run_args => $args;
     loadtest "publiccloud/network_test", run_args => $args;
-    loadtest "publiccloud/check_boottime", run_args => $args;
+    loadtest "publiccloud/check_boottime", run_args => $args unless is_azure();    # Skip on Azure for bsc#1270217
     loadtest "publiccloud/check_services", run_args => $args;
     loadtest "publiccloud/kdump", run_args => $args;
     loadtest "publiccloud/check_cloudinit", run_args => $args;
@@ -36,7 +36,7 @@ sub load_maintenance_publiccloud_tests {
     }
     loadtest "publiccloud/transfer_repos", run_args => $args unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/patch_and_reboot", run_args => $args;
-    loadtest "publiccloud/check_boottime", run_args => $args;
+    loadtest "publiccloud/check_boottime", run_args => $args unless is_azure();    # Skip on Azure for bsc#1270217
     loadtest "publiccloud/check_cloudinit", run_args => $args;
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest "publiccloud/check_services", run_args => $args;
@@ -136,7 +136,7 @@ sub load_latest_publiccloud_tests {
     } else {    # All test cases below require prepare_instance
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest "publiccloud/network_test", run_args => $args;
-        loadtest "publiccloud/check_boottime", run_args => $args;
+        loadtest "publiccloud/check_boottime", run_args => $args unless is_azure();    # Skip on Azure for bsc#1270217
         loadtest "publiccloud/kdump", run_args => $args;
         loadtest "publiccloud/check_cloudinit", run_args => $args;
         if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
@@ -238,7 +238,7 @@ sub load_publiccloud_appimg_tests {
     loadtest "publiccloud/prepare_instance", run_args => $args;
     loadtest "publiccloud/registration", run_args => $args;
     loadtest "publiccloud/network_test", run_args => $args;
-    loadtest "publiccloud/check_boottime", run_args => $args;
+    loadtest "publiccloud/check_boottime", run_args => $args unless is_azure();    # Skip on Azure for bsc#1270217
     loadtest "publiccloud/kdump", run_args => $args;
     loadtest "publiccloud/check_cloudinit", run_args => $args;
     loadtest "publiccloud/instance_overview", run_args => $args;
