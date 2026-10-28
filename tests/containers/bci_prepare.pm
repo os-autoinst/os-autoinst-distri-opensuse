@@ -136,6 +136,14 @@ sub run {
 
     prepare_virtual_env($version, $sp, $host_distri) if get_var('BCI_PREPARE');
 
+    # workaround for Failed to create control group inotify object: Too many open files
+    # Failed to allocate manager object: Too many open files
+    if (get_var('BUILD') =~ /.*init-image/ && ($sp =~ /^6$/)) {
+        assert_script_run('cat /proc/sys/fs/inotify/max_user_instances');
+        assert_script_run('sysctl -w fs.inotify.max_user_instances=8192');
+        assert_script_run('cat /proc/sys/fs/inotify/max_user_instances');
+    }
+
     # Ensure LTSS subscription is active when testing LTSS containers.
     validate_script_output("SUSEConnect -l", qr/.*LTSS.*Activated/, fail_message => "Host requires LTSS subscription for LTSS container")
       if (get_var('CONTAINER_IMAGE_TO_TEST') =~ /ltss/i && ($host_distri =~ /sles/) && ($version !~ /16/));
