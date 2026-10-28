@@ -1,7 +1,8 @@
 name: ncurses_based_installation
 description: >
   Installation using the ncurses installer with Common Criteria role and full
-  disk encryption on SLE 16.0. Currently only for x86_64 and aarch64.
+  disk encryption on SLE 16.0. Supported on x86_64, aarch64 and ppc64le
+  (QEMU pseries).
 
   Set the settings in the job group, test suite or command line. See the header
   of the test module for the list.

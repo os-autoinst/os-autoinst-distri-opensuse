@@ -6,6 +6,11 @@
 # Summary: SLE 16 Common Criteria automated installation
 # Maintainer: QE Security <none@suse.de>
 #
+# Supported architectures:
+#   - x86_64 (BIOS and UEFI)
+#   - aarch64
+#   - ppc64le (QEMU pseries, for example MACHINE=ppc64le-p10-virtio)
+#
 # Settings:
 #
 # DESKTOP - textmode
@@ -24,7 +29,7 @@
 #   line of the grub entry
 #   editor to reach the linux line, default: 4
 # PUBLISH_HDD_1 - name of the qcow2 image to save after the installation
-# PUBLISH_PFLASH_VARS - for UEFI.
+# PUBLISH_PFLASH_VARS - UEFI only.
 #
 # Set all settings in the job group, test suite or command line. The YAML
 # schedule does not set them, because the openQA server and the backend need
@@ -34,7 +39,7 @@ use Mojo::Base 'installbasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'is_uefi_boot';
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use security::sle16cc qw(fill_screen unlock_and_login_cc_system);
 
 use constant DEFAULT_TIMEOUT => 300;
@@ -65,12 +70,15 @@ sub add_tty_console_to_grub_entry {
     send_key 'ctrl-x';
 }
 
-# The BIOS menu has the extra first entry "Boot from Hard Disk", the UEFI menu
-# has not. Therefore the CC entry is the 3rd entry on BIOS and the 2nd on UEFI.
+# The BIOS menu has the extra first entry "Boot from Hard Disk", the UEFI and
+# the ppc64le menus have not. Therefore the CC entry is the 3rd entry on BIOS
+# and the 2nd on UEFI and ppc64le. On ppc64le the grub menu is on the serial
+# console (hvc0), and the installer uses the same console, so no kernel
+# parameter is changed.
 # The next screen check fails, if a wrong entry is selected.
 sub select_cc_grub_entry {
     assert_screen 'sle16-cc-grub-menu', 60;
-    send_key 'down' for 1 .. (is_uefi_boot() ? 1 : 2);
+    send_key 'down' for 1 .. ((is_uefi_boot() || is_ppc64le()) ? 1 : 2);
     if (is_aarch64()) {
         record_info('aarch64 boot', 'Adding the tty0 console to the kernel command line');
         add_tty_console_to_grub_entry();
