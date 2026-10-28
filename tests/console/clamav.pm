@@ -26,7 +26,6 @@ use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
 use package_utils 'install_package';
-use transactional 'reboot_on_changes';
 use version_utils qw(is_jeos is_opensuse is_sle);
 
 my $test_dir = "/var/lib/clamav/eicar_test_files";
