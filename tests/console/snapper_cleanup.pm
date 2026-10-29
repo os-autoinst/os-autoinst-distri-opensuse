@@ -103,10 +103,15 @@ sub run {
 
     # get initial cfg and save initial NUMBER_LIMIT and NUMBER_MIN_AGE settings for later restore
     assert_script_run("snapper get-config");
-    foreach (split /\n/, script_output("snapper get-config")) {
-        $number_limit_pre = $1 if (m/^NUMBER_LIMIT\s+\|\s+([-\d]+)\s*$/);
-        $number_min_age_pre = $1 if (m/^NUMBER_MIN_AGE\s+\|\s+(\d+)\s*$/);
+    # Read the config file, the get-config table layout differs between snapper versions
+    foreach (split /\n/, script_output('grep -E "^NUMBER_(LIMIT|MIN_AGE)=" /etc/snapper/configs/root')) {
+        $number_limit_pre = $1 if (m/^NUMBER_LIMIT="?([-\d]+)"?\s*$/);
+        $number_min_age_pre = $1 if (m/^NUMBER_MIN_AGE="?(\d+)"?\s*$/);
     }
+    die 'Could not read NUMBER_LIMIT and NUMBER_MIN_AGE from /etc/snapper/configs/root'
+      unless defined $number_limit_pre && defined $number_min_age_pre;
+    $self->{scratch_dir} = script_output('pwd');
+    $self->{config_restore} = "NUMBER_LIMIT=$number_limit_pre NUMBER_MIN_AGE=$number_min_age_pre";
     assert_script_run("snapper list");    # get initial list of snap's
 
     # check amount of free fs disk space and adapt to it
@@ -142,12 +147,45 @@ sub run {
 
     # tidy up and restore default settings
     assert_script_run("snapper set-config NUMBER_LIMIT=0; snapper cleanup number; rm -fv data", 300);
-    assert_script_run("snapper set-config NUMBER_LIMIT=$number_limit_pre NUMBER_MIN_AGE=$number_min_age_pre");
+    assert_script_run("snapper set-config $self->{config_restore}");
     assert_script_run("snapper get-config");    # final report
         # command 'snapper ls' runs timeout or it stucks because of display used space, so we have to disable it on tumbleweed, see poo#122557
     my $command_args = (is_tumbleweed && check_var('MACHINE', '64bit')) ? '--disable-used-space' : undef;
     assert_script_run("snapper ls $command_args", 30);
     assert_script_run("$btrfs_fs_usage", 120);    # final report
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    my $logs_ok = eval { $self->SUPER::post_fail_hook; 1 };
+    my $logs_error = $@;
+    # Only coverage runs continue without a rollback, so only they need to
+    # undo the changes of run(). Coverage runs use Tumbleweed without UPGRADE,
+    # so NUMBER_LIMIT and NUMBER_MIN_AGE are the only settings changed.
+    $self->restore_snapper_state if get_var('BINARY_COVERAGE') && $self->{config_restore};
+    die $logs_error unless $logs_ok;
+}
+
+sub restore_snapper_state {
+    my ($self) = @_;
+    select_console('log-console');
+    my @commands = (
+        # A timed out 'snapper create' or 'dd' may still run on the serial terminal
+        q{pkill -x snapper; pkill -x dd; timeout 60 sh -c 'while pgrep -x "snapper|dd" >/dev/null; do sleep 1; done'},
+        "snapper set-config NUMBER_LIMIT=0; snapper cleanup number; rm -fv $self->{scratch_dir}/data",
+        "snapper set-config $self->{config_restore}",
+    );
+    for my $cmd (@commands) {
+        eval { script_run($cmd, timeout => 300) };
+        record_info('cleanup failed', "$cmd\n$@", result => 'fail') if $@;
+    }
+}
+
+sub test_flags {
+    my ($self) = @_;
+    # Keep the instrumented system and its coverage data instead of aborting.
+    return {fatal => 0, no_rollback => 1} if get_var('BINARY_COVERAGE');
+    return $self->SUPER::test_flags();
 }
 
 1;
