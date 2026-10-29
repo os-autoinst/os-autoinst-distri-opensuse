@@ -303,6 +303,7 @@ ZYPP_MEDIANETWORK | boolean | false | Replaces the default backend used for down
 PREPARE_TEST_DATA_TIMEOUT | integer | 300 | Download assets in the prepare_test_data module timeout
 ZFS_REPOSITORY | string | | Optional repository used to test zfs from
 TRANSACTIONAL_UPDATE_PATCH | boolean | false | Use `zypper patch` when true and `zypper up` when false.
+QESAP_PREVALIDATE | legacy, ansible | legacy | ansible runs the qesap_prevalidate HANA checks through qe-sap-deployment's sap-hana-prevalidate.yaml (needs conf.yaml apiver >= 4).
 QESAP_CONFIG_FILE | string | | filename (of relative path) of the config YAML file for the qesap.py script, within `sles4sap/qe_sap_deployment/` subfolder in `data`.
 QESAP_DEPLOYMENT_DIR | string | /root/qe-sap-deployment | JumpHost folder where to install the qe-sap-deployment code
 QESAP_ROLES_DIR | string | /root/community.sles-for-sap | JumpHost folder where to install the community.sles-for-sap code
