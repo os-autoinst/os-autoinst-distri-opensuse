@@ -78,6 +78,37 @@ level reached.
 sub find_whitelist_entry {
     my ($self, $env, @test_keys) = @_;
 
+    foreach my $cond ($self->_find_entries(@test_keys)) {
+        next if exists $cond->{retry};
+        return $cond if (_whitelist_entry_match($cond, $env));
+    }
+
+    return undef;
+}
+
+=head2 find_retry_entry
+
+ find_retry_entry($env, @test_keys);
+
+Same lookup as C<find_whitelist_entry>, but return the first matching entry
+which has a C<retry> key. C<retry> is the number of extra runs for a failed
+test.
+
+=cut
+
+sub find_retry_entry {
+    my ($self, $env, @test_keys) = @_;
+
+    foreach my $cond ($self->_find_entries(@test_keys)) {
+        return $cond if (exists $cond->{retry} && _whitelist_entry_match($cond, $env));
+    }
+
+    return undef;
+}
+
+sub _find_entries {
+    my ($self, @test_keys) = @_;
+
     my $leaf = pop(@test_keys);
     die('find_whitelist_entry() requires at least one test key') unless defined($leaf);
 
@@ -86,7 +117,7 @@ sub find_whitelist_entry {
     my $node = $self->{whitelist};
     for my $key (@test_keys) {
         last if ref($node) eq 'ARRAY';
-        return undef unless defined($node->{$key});
+        return unless defined($node->{$key});
         $node = $node->{$key};
     }
 
@@ -98,15 +129,11 @@ sub find_whitelist_entry {
         @issues = @{$node->{$leaf}};
     }
     else {
-        return undef unless defined($node->{'*'});
+        return unless defined($node->{'*'});
         @issues = grep { $_->{test} && $leaf =~ m/$_->{test}/ } @{$node->{'*'}};
     }
 
-    foreach my $cond (@issues) {
-        return $cond if (_whitelist_entry_match($cond, $env));
-    }
-
-    return undef;
+    return @issues;
 }
 
 sub override_known_failures {
