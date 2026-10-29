@@ -11,7 +11,7 @@ use Mojo::Base 'y2_installbase';
 use File::Basename;
 use testapi;
 use Utils::Architectures;
-use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout is_pvm);
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout is_pvm is_ipmi);
 use version_utils qw(is_sle is_tumbleweed is_sle_micro is_agama is_transactional);
 use utils qw(is_ipxe_boot is_disk_image reconnect_mgmt_console);
 use ipmi_backend_utils;
@@ -282,8 +282,54 @@ sub run {
     check_host_health();
 }
 
+# Collect logs when host is in emergency/maintenance mode and ssh is unavailable.
+# Login on SOL console, show basic diagnostics on screen, then try to start sshd
+# to upload complete logs. Returns 1 if ssh is available afterwards, otherwise 0.
+sub collect_emergency_mode_logs {
+    my $sut_ip = get_required_var('SUT_IP');
+
+    reset_consoles;
+    select_console 'sol', await_console => 0;
+    send_key 'ret';
+    unless (check_screen('emergency-mode', 30)) {
+        record_info('No ssh access', "Port 22 is not open on $sut_ip and emergency mode is not detected on SOL console", result => 'fail');
+        return 0;
+    }
+    record_info('Emergency mode', "Host $sut_ip is in emergency/maintenance mode", result => 'fail');
+    type_password;
+    send_key 'ret';
+    wait_still_screen(3);
+    # Keep diagnostics in screenshots in case sshd can not be started
+    enter_cmd('clear; systemctl --failed --no-pager');
+    wait_still_screen(3);
+    save_screenshot;
+    enter_cmd('clear; journalctl -b -p err --no-pager | tail -n 40');
+    wait_still_screen(3);
+    save_screenshot;
+    enter_cmd('systemctl start sshd.service');
+    return 0 unless (check_port_state($sut_ip, 22, 6, 10));
+
+    # /run is tmpfs and writable even if root filesystem is mounted read-only
+    my $log_dir = '/run/emergency_mode_logs';
+    select_console 'log-console';
+    script_run("mkdir -p $log_dir");
+    script_run("journalctl -b --no-pager -o short-precise > $log_dir/journal.log");
+    script_run("systemctl --failed --no-pager > $log_dir/failed_units.log");
+    script_run("cat /proc/cmdline > $log_dir/cmdline.log");
+    script_run("cp /etc/fstab $log_dir/fstab");
+    script_run("(lsblk -f; echo; blkid; echo; findmnt) > $log_dir/storage.log 2>&1");
+    script_run("cp /run/initramfs/rdsosreport.txt $log_dir/");
+    script_run("tar czf /run/emergency_mode_logs.tar.gz -C /run emergency_mode_logs");
+    upload_logs('/run/emergency_mode_logs.tar.gz', failok => 1);
+    return 1;
+}
+
 sub post_fail_hook {
     my ($self) = @_;
+    # All further log collection relies on ssh consoles, skip it if ssh can not be recovered
+    if (is_ipmi && !check_port_state(get_required_var('SUT_IP'), 22, 3, 10)) {
+        return unless (collect_emergency_mode_logs);
+    }
     if (check_var('PERF_KERNEL', '1') || check_var('VIRT_AUTOTEST', '1')) {
         select_console 'log-console';
         # show efi boot entry
