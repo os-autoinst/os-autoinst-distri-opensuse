@@ -29,7 +29,9 @@ sub run {
     assert_script_run('dd if=/dev/urandom of=/dev/null count=30 bs=16M iflag=fullblock', 90);
 
     # Test that local timer interrupts are distributed over CPUs
-    my @locs = split(' ', script_output("grep 'LOC' /proc/interrupts | sed -E -e 's/[[:blank:]]+/ /g' | cut -d' ' -f 2-\$((${nproc}+1))"));
+    # /proc/interrupts indents the LOC line, so split the raw line instead of
+    # cutting fields after normalising blanks.
+    my @locs = (split ' ', script_output("grep 'LOC:' /proc/interrupts"))[1 .. $nproc];
     for (my $i = 0; $i < $nproc; $i++) {
         die("The value of local timer interrupts for CPU" . ($i + 1) . " is 0") unless ($locs[$i] > 0);
     }
