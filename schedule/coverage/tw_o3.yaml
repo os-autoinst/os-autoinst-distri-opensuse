@@ -34,7 +34,7 @@ schedule:
   - console/zbar
   - console/chrony
   - console/dnsmasq
-  - console/gpg
+  - console/oqa_agnostic/gpg_agnostic
   - console/mta
   - console/quota
   - console/arping

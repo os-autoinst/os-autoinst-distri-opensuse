@@ -7,7 +7,7 @@ schedule:
     - console/consoletest_setup
     - fips/fips_setup
     - fips/curl_fips_rc4_seed
-    - console/gpg
+    - console/oqa_agnostic/gpg_agnostic
     - console/journald_fss
     - console/git
     - console/openvswitch_ssl
