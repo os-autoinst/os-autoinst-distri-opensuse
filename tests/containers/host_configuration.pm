@@ -7,6 +7,8 @@
 # - setup networking via dhclient when is needed
 # - make sure that ca certifications were installed
 # - import SUSE CA certificates
+# - install and configure the container engines
+# The host is not updated here, see containers/update_host
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'consoletest';
@@ -51,19 +53,16 @@ sub run {
     my ($version, $sp, $host_distri, $host_distri_like) = get_os_release;
     my $engine = get_required_var('CONTAINER_RUNTIMES');
 
-    # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
     if ($host_distri =~ /sle|opensuse/) {
         my $is_transactional_host = ($host_distri_like =~ /micro/i);
 
-        # Transactional hosts (e.g. sle-micro) have read-only roots and are
-        # already updated by their own build pipeline, see poo#206769
-        zypper_call("--quiet up", timeout => $update_timeout) unless $is_transactional_host;
-
         # Cannot use `ensure_ca_certificates_suse_installed` as it will depend
         # on the BCI container version instead of the host
         if (script_run('rpm -qi ca-certificates-suse') == 1) {
-            zypper_call("addrepo --refresh https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
+            # The Tumbleweed package uses a compression method that the rpm in SLE 12 SP5 cannot unpack
+            my $ca_repo = is_sle('=12-SP5', get_var('HOST_VERSION', get_required_var('VERSION'))) ? 'SLE_12_SP5' : 'openSUSE_Tumbleweed';
+            zypper_call("addrepo --refresh https://download.opensuse.org/repositories/SUSE:/CA/$ca_repo/SUSE:CA.repo");
             # Refreshing repo metadata only touches /var/cache/zypp, which is writable even on transactional hosts
             zypper_call("--gpg-auto-import-keys refresh");
             if ($is_transactional_host) {
@@ -95,13 +94,11 @@ sub run {
         if ($host_distri eq 'ubuntu') {
             # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
             assert_script_run("dhclient -v");
+            # Only refresh the package index. The host is updated by containers/update_host
             script_retry("apt-get update -qq -y", timeout => $update_timeout);
         } elsif ($host_distri eq 'centos') {
             # dhclient is no longer available in CentOS 10
             script_run("dhclient -v");
-            script_retry("dnf update -q -y --nobest", timeout => $update_timeout);
-        } elsif ($host_distri eq 'rhel') {
-            script_retry("dnf update -q -y", timeout => $update_timeout);
         }
     }
 
