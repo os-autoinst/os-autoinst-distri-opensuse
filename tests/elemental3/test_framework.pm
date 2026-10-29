@@ -78,9 +78,11 @@ sub run {
     my $rancher_args = 'bootstrapPassword=rancherpassword,replicas=1';
     my $rancher_version = get_required_var('RANCHER_VERSION');
     assert_script_run("cd $distro_dir");
+    my $flake_attempts = get_var('TESTS_FLAKE_ATTEMPTS', 2);
     foreach my $test (split(/,/, get_required_var('TESTS_TO_RUN'))) {
         # Specific options are needed for some tests
         my $go_cmd = "go test -timeout=45m -v -count=1 ./entrypoint/$test/...";
+        $go_cmd .= " -ginkgo.flake-attempts=$flake_attempts" if ($flake_attempts > 1);
         my $opts;
 
         # Rancher Manager options
