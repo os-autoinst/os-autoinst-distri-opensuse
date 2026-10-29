@@ -14,6 +14,7 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
+      <li><a href="#aws_tag_specifications">_aws_tag_specifications</a></li>
       <li><a href="#aws_vpc_create">aws_vpc_create</a></li>
       <li><a href="#aws_vpc_get_id">aws_vpc_get_id</a></li>
       <li><a href="#aws_vpc_delete">aws_vpc_delete</a></li>
@@ -58,14 +59,24 @@
 
 <p>Library to compose and run AWS cli commands.</p>
 
+<h2 id="aws_tag_specifications">_aws_tag_specifications</h2>
+
+<pre><code>my @args = _aws_tag_specifications(&#39;vpc&#39;, { openqa_var_job_id =&gt; &#39;123&#39;, openqa_created_date =&gt; &#39;2026-01-01T00:00:00&#39; });</code></pre>
+
+<p>Private function. Convert a hashref of tags into a <code>--tag-specifications</code> argument pair for EC2 create commands. The <code>resource_type</code> is mandatory: &quot;When you specify a tag, you must specify the resource type to tag, otherwise the request will fail.&quot; (AWS CLI reference). It must match the primary resource created by the command (e.g. &#39;vpc&#39; for create-vpc). Keys are sorted for deterministic output. Return an empty list if the hashref is empty or undef.</p>
+
+<p>Croak if any tag violates AWS tag restrictions: - Empty key - Undefined value - Key longer than 128 characters - Value longer than 256 characters - Key starting with the reserved prefix <code>aws:</code> - More than 50 tags</p>
+
+<p>Croak also if a key or value contains characters outside the set <code>[A-Za-z0-9+\-=_:.\/@]</code>. This set is stricter than the AWS limits, because AWS also accepts spaces and Unicode letters. The tag list is inside double quotes in a shell command and uses the AWS CLI shorthand syntax. Characters such as <code>$</code>, backtick, space, <code>,</code>, <code>{</code> or <code>}</code> can break the command or cause shell expansion. Do not add them to the set.</p>
+
 <h2 id="aws_vpc_create">aws_vpc_create</h2>
 
 <pre><code>my $vpc_id = aws_vpc_create(
     region =&gt; &#39;us-west&#39;,
     cidr =&gt; &#39;1.2.3/18&#39;,
-    job_id =&gt; &#39;abc123456&#39;);</code></pre>
+    tags =&gt; { openqa_var_job_id =&gt; &#39;123&#39; });</code></pre>
 
-<p>Create a new AWS VPC with a specified CIDR block and tag it with the OpenQA job ID Returns the VPC ID</p>
+<p>Create a new AWS VPC with a specified CIDR block. If <code>tags</code> is given, those tags are applied to the VPC. Returns the VPC ID.</p>
 
 <dl>
 
@@ -77,7 +88,7 @@
 <dd>
 
 </dd>
-<dt id="job_id---OpenQA-job-identifier-for-tagging"><b>job_id</b> - OpenQA job identifier for tagging</dt>
+<dt id="tags---hashref-of-tags-to-apply-optional"><b>tags</b> - hashref of tags to apply (optional)</dt>
 <dd>
 
 </dd>
@@ -130,11 +141,9 @@
     group_name =&gt; &#39;something&#39;,
     description =&gt; &#39;be or not to be&#39;,
     vpc_id =&gt; &#39;vpc123456&#39;,
-    job_is =&gt; &#39;7890&#39;);</code></pre>
+    tags =&gt; { openqa_var_job_id =&gt; &#39;123&#39; });</code></pre>
 
-<p>Create an AWS security group within a VPC and tag it with the OpenQA job ID</p>
-
-<p>Returns the security group ID</p>
+<p>Create an AWS security group within a VPC. If <code>tags</code> is given, those tags are applied to the security group. Returns the security group ID.</p>
 
 <dl>
 
@@ -154,7 +163,7 @@
 <dd>
 
 </dd>
-<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-VPC1"><b>job_id</b> - OpenQA job identifier used to tag the VPC</dt>
+<dt id="tags---hashref-of-tags-to-apply-optional1"><b>tags</b> - hashref of tags to apply (optional)</dt>
 <dd>
 
 </dd>
@@ -177,7 +186,7 @@
 <dd>
 
 </dd>
-<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-VPC2"><b>job_id</b> - OpenQA job identifier used to tag the VPC</dt>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-VPC1"><b>job_id</b> - OpenQA job identifier used to tag the VPC</dt>
 <dd>
 
 </dd>
@@ -242,10 +251,10 @@
     region =&gt; &#39;us-west-1&#39;,
     cidr =&gt; &#39;10.0.1.0/24&#39;,
     vpc_id =&gt; &#39;vpc-12345&#39;,
-    job_id =&gt; &#39;67890&#39;
+    tags =&gt; { openqa_var_job_id =&gt; &#39;123&#39; }
 );</code></pre>
 
-<p>Create a subnet within a VPC with a specified CIDR block and tag it with the OpenQA job ID Returns the subnet ID</p>
+<p>Create a subnet within a VPC with a specified CIDR block. If <code>tags</code> is given, those tags are applied to the subnet. Returns the subnet ID.</p>
 
 <dl>
 
@@ -261,7 +270,7 @@
 <dd>
 
 </dd>
-<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-security-group1"><b>job_id</b> - OpenQA job identifier used to tag the security group</dt>
+<dt id="tags---hashref-of-tags-to-apply-optional2"><b>tags</b> - hashref of tags to apply (optional)</dt>
 <dd>
 
 </dd>
@@ -313,10 +322,10 @@
 
 <pre><code>my $igw_id = aws_internet_gateway_create
     region =&gt; &#39;us-west-1&#39;,
-    job_id =&gt; &#39;67890&#39;
+    tags =&gt; { openqa_var_job_id =&gt; &#39;123&#39; }
 );</code></pre>
 
-<p>Create an internet gateway and tag it with the OpenQA job ID Returns the internet gateway ID</p>
+<p>Create an internet gateway. If <code>tags</code> is given, those tags are applied to the internet gateway. Returns the internet gateway ID.</p>
 
 <dl>
 
@@ -324,7 +333,7 @@
 <dd>
 
 </dd>
-<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-security-group2"><b>job_id</b> - OpenQA job identifier used to tag the security group</dt>
+<dt id="tags---hashref-of-tags-to-apply-optional3"><b>tags</b> - hashref of tags to apply (optional)</dt>
 <dd>
 
 </dd>
@@ -397,7 +406,7 @@
 <dd>
 
 </dd>
-<dt id="job_id---OpenQA-job-identifier-for-tagging1"><b>job_id</b> - OpenQA job identifier for tagging</dt>
+<dt id="job_id---OpenQA-job-identifier-for-tagging"><b>job_id</b> - OpenQA job identifier for tagging</dt>
 <dd>
 
 </dd>
@@ -511,10 +520,10 @@
     sg_id         =&gt; &#39;sg-abcde&#39;,
     ssh_key       =&gt; &#39;my-key&#39;,
     region        =&gt; &#39;us-west-1&#39;,
-    job_id        =&gt; &#39;67890&#39;
+    tags          =&gt; { openqa_var_job_id =&gt; &#39;123&#39; }
 );</code></pre>
 
-<p>Launch an EC2 instance with specified configuration and tag it with the OpenQA job ID Returns the instance ID</p>
+<p>Launch an EC2 instance with specified configuration. If <code>tags</code> is given, those tags are applied to the instance. Returns the instance ID.</p>
 
 <dl>
 
@@ -546,7 +555,7 @@
 <dd>
 
 </dd>
-<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-internet-gateway1"><b>job_id</b> - OpenQA job identifier used to tag the internet gateway</dt>
+<dt id="tags---hashref-of-tags-to-apply-optional4"><b>tags</b> - hashref of tags to apply (optional)</dt>
 <dd>
 
 </dd>
