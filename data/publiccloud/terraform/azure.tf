@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     azurerm = {
-      version = "= 4.29.0"
+      version = "= 5.11.0"
       source  = "hashicorp/azurerm"
     }
     random = {
@@ -13,6 +13,8 @@ terraform {
 
 provider "azurerm" {
   features {}
+  # azurerm 5.x no longer registers resource providers by default
+  resource_provider_registrations = "legacy"
 }
 
 variable "instance_count" {
