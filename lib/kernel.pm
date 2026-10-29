@@ -82,6 +82,9 @@ sub get_kernel_devel_libs {
     if (check_var('SLE_PRODUCT', 'slert')) {
         $devel_pack = 'kernel-rt-devel';
     }
+    elsif (get_kernel_flavor eq 'kernel-nvidia64kb') {
+        $devel_pack = 'kernel-nvidia64kb-devel';
+    }
 
     return $devel_pack;
 }
@@ -119,7 +122,7 @@ sub check_kernel_package {
 
 # Check if flavor is validation
 sub is_kernel_validation_flavor {
-    return get_var('FLAVOR', '') =~ /(Online-Immutable|Full-QR|Online-QR|Online|Online-Kernel-(Nvidia|RT|Base|Azure|Baremetal|(RT|64kb)-Baremetal))$/;
+    return get_var('FLAVOR', '') =~ /(Online-Immutable|Full-QR|Online-QR|Online|Online-Kernel-(Nvidia64kb|RT|Base|Azure|Baremetal|(RT|64kb)-Baremetal))$/;
 }
 
 1;
