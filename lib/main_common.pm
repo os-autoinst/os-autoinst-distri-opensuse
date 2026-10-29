@@ -2770,7 +2770,9 @@ sub load_sles16_mu_virt_tests {
             loadtest "installation/ipxe_install";
         }
         loadtest "installation/agama_reboot";
-        loadtest "virt_autotest/login_console";
+        my $run_args = OpenQA::Test::RunArgs->new();
+        $run_args->{wait_for_grub} = is_ipmi;
+        loadtest "virt_autotest/login_console", run_args => $run_args;
         loadtest "installation/bridge_br0";
         # For SLES16 MU tests, repositories are already configured during agama installation
         # Run zypper_lr to verify installed repositories

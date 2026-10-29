@@ -30,7 +30,7 @@ sub run_test {
 
         detect_login_screen();
         powercycle();
-        detect_login_screen(300);
+        detect_login_screen(30);
         close_guest();
     }
 
