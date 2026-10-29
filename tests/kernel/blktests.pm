@@ -88,6 +88,8 @@ sub run {
         record_info('blktests version', script_output('rpm -q blktests'));
     }
 
+    record_info('e2fsprogs version', script_output('rpm -q e2fsprogs || true'));
+
     #Prepare configuration, log/results directories
     assert_script_run("mkdir -p /etc/blktests");
 
