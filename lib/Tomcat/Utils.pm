@@ -64,7 +64,7 @@ sub tomcat_setup() {
     }
 
     # check that tomcat is listening on port 8080
-    assert_script_run('lsof -i :8080 | grep tomcat');
+    script_retry('lsof -i :8080 | grep tomcat', delay => 5, retry => 5);
 
     # create manager-gui role
     assert_script_run('curl -v -o /etc/tomcat/tomcat-users.xml ' .
