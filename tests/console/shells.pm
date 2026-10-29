@@ -79,8 +79,8 @@ sub tcsh_extra_tests {
     validate_script_output 'grep 12 /tmp/tcsh', sub { /12/ }, timeout => 60;
 
     #cleanup:
-    script_run 'rm /tmp/tcsh ~/.tcsh';
-    script_run 'userdel tcsh_user';
+    script_run 'rm -f /tmp/tcsh /home/tcsh_user/.tcsh';
+    script_run 'userdel -r tcsh_user';
 }
 
 sub post_fail_hook {
