@@ -2308,7 +2308,10 @@ sub az_storage_blob_list(%args) {
 
 =head2 az_storage_blob_update
 
-    az_storage_blob_update(container_name=>'container', account_name=>'stuff', name='blobby' [, lease_id=42]);
+    az_storage_blob_update(container_name=>'container',
+        account_name=>'stuff',
+        name='blobby'
+        [, lease_id=42, if_unmodified_since=>'1999-12-31T00:00Z']);
 
 Update properties of storage blob. Returns az cli command exit code.
 
@@ -2322,6 +2325,11 @@ Update properties of storage blob. Returns az cli command exit code.
 
 =item B<lease_id> Lease id in case there is a lease put on a file
 
+=item B<if_unmodified_since> update only if unmodified since UTC datetime (Y-m-d'T'H:M'Z')
+
+=item B<failok> - Ignore error messages and return result.
+    Default: Inherited by `az()`
+
 =back
 =cut
 
@@ -2333,11 +2341,17 @@ sub az_storage_blob_update(%args) {
     my @az_args = ('storage blob update',
         '--container-name', $args{container_name},
         '--account-name', $args{account_name},
-        '--name', $args{name},
+        '--name', $args{name}
     );
     push(@az_args, "--lease-id $args{lease_id}") if $args{lease_id};
+    if ($args{if_unmodified_since}) {
+        croak 'Condition "if_unmodified_since" must be in format: Y-m-dTH:MZ'
+          unless $args{if_unmodified_since} =~ /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z$/;
+        push(@az_args, "--if-unmodified-since $args{if_unmodified_since}");
+    }
 
-    my $az_out = az(az_args => join(' ', @az_args), timeout => 180);
+    my $az_out = az(az_args => join(' ', @az_args), timeout => 180,
+        failok => $args{failok});
     return $az_out->{rc};
 }
 

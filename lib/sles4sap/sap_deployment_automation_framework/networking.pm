@@ -29,6 +29,28 @@ our @EXPORT = qw(
   calculate_ip_count
 );
 
+=head2 get_retention_time
+
+    get_retention_time(age_in_s=>'3600');
+
+Serves as retention date/time calculator. Accepts B<age_in_s> and convets it
+to retention date/time in UTC format C<Y-m-dTH:MZ>. Mostly intended to pass to
+some azure cli commands.
+
+=over
+
+=item B<age_in_s>: Age in seconds
+
+=back
+=cut
+
+sub get_retention_time {
+    my (%args) = @_;
+    croak 'Missing mandatory argument: age_in_s' unless $args{age_in_s};
+    croak "Argument 'age_in_s' must be a non-negative integer" unless $args{age_in_s} =~ /^\d+$/;
+    return gmtime(time() - $args{age_in_s})->strftime('%Y-%m-%dT%H:%MZ');
+}
+
 =head2 calculate_net_addr_space
 
     calculate_net_addr_space();
@@ -146,13 +168,12 @@ sub calculate_ip_count {
 
 Returns names of lease blob files within 'network-spaces' container which are older than retention time.
 Test will search network spaces which were reserved more than B<$check_older_than_sec> seconds ago.
-Default 7h should be plenty for not triggering race condition between network assignment and actual infrastructure creation.
 
 =cut
 
 sub list_expired_files {
     my ($check_older_than_sec) = @_;
-    $check_older_than_sec //= 7 * 3600;    # 7 hours default
+    croak 'Missing mandatory argument: <$check_older_than_sec>' unless $check_older_than_sec;
     my @free_lease_files;
     # this creates list of network file names and last modification time
     my $all_files = az_storage_blob_list(
@@ -191,51 +212,44 @@ sub list_network_lease_files {
     );
 }
 
-=head2 acquire_network_file_lease
+=head2 assign_network_file
 
-    acquire_network_file_lease(network_lease_file=>'192.168.1.0' [, storage_account=>'some account']);
+    assign_network_file(network_lease_file=>'192.168.1.0',
+        networks_older_than=>9001 [, storage_account=>'some account']);
 
 =over
 
-=item B<storage_account>: Storage account containing lease file. Default: 'SDAF_TFSTATE_STORAGE_ACCOUNT'
+=item B<storage_account>: Storage account containing lease file.
+    Default: 'SDAF_TFSTATE_STORAGE_ACCOUNT'
 
 =item B<network_lease_file>: Name of the lease file
 
+=item B<networks_older_than>: Update will be successful only if the last
+    modification time is older than time specified
+
 =back
 
-Acquire network lease for a blob. Returns blob lease UUID which is later required for getting permission to modify
-blob file.
+Attempt a write operation on a network lease blob file. Return '1' (true) if
+attempt was successfull, otherwise undef (false).
 
 =cut
 
-sub acquire_network_file_lease {
+sub assign_network_file {
     my (%args) = @_;
     $args{storage_account} //= get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT');
-    foreach ('network_lease_file', 'storage_account') {
+    foreach ('network_lease_file', 'storage_account', 'networks_older_than') {
         croak "Missing mandatory argument: '$_'" unless $args{$_};
     }
-    my %arguments = (
+    my $retention_time = get_retention_time(age_in_s => $args{networks_older_than});
+
+    # Updates modification time for a file - this tells other tests not to try to assign this address
+    return az_storage_blob_update(
         container_name => 'network-spaces',
-        storage_account_name => $args{storage_account},
-        blob_name => $args{network_lease_file},
-        lease_duration => 60,
-        failok => '1'    # If lease is already taken, az reports that as an error
-    );
-
-    # First acquire a file lease to gain exclusive file access - prevents other tests modifying it.
-    my $lease_id = az_storage_blob_lease_acquire(%arguments);
-
-    # Return unless the file lease was successful
-    return unless $lease_id;
-    # Updates modification time for a file - this tells other tests not to try to assign this address in next 7H
-    return if az_storage_blob_update(
-        container_name => $arguments{container_name},
-        account_name => $arguments{storage_account_name},
-        name => $arguments{blob_name},
-        lease_id => $lease_id
-    );
-
-    return ($lease_id);
+        account_name => $args{storage_account},
+        name => $args{network_lease_file},
+        failok => '1',
+        if_unmodified_since => $retention_time
+    ) ? undef : 1;
 }
 
 
@@ -271,7 +285,7 @@ sub check_peering_exists {
 
 =head2 assign_defined_network
 
-    assign_defined_network(deployer_vnet_name=>'SHODAN-vnet' [, networks_older_than=>3600]);
+    assign_defined_network(deployer_vnet_name=>'SHODAN-vnet', networks_older_than=>3600);
 
 =over
 
@@ -283,13 +297,13 @@ sub check_peering_exists {
 
 Assign network that has already lease file present in storage account.
 Lists existing network files which were modified more than B<$args{networks_older_than}> seconds in the past and picks
-one of the files at random. A check is performed if the network space is already peered to deployer virtual network
-B<deployer_vnet_name> and IBSm. Last step is to attempt to assign a blob lease for the network file associated. Blob file lease
-serves as a locking mechanism to prevent multiple tests assign same network space, causing collisions.
+one of the files at random. Successfull file write represents a soft lock for
+a network address space associated with a file.
+After that a series of checks are performed to ensure address space is not being used.
 
 For a successful network assignment these criteria must be met:
 - there is blob file that represents a network space in storage account (check list_expired_files())
-- function is able to assign a 60s blob file lease to reserve exclusive network rights
+- function is able to perform a write operation on a file older than B<$args{networks_older_than}>
 - network peering between network space and deployer virtual network does not exist
 - network peering between network space and IBSm virtual network does not exist (if in maintenance mode)
 
@@ -312,6 +326,7 @@ either to finish or fail.
 sub assign_defined_network {
     my (%args) = @_;
     croak 'Missing mandatory argument: deployer_vnet_name' unless $args{deployer_vnet_name};
+    croak 'Missing mandatory argument: networks_older_than' unless $args{networks_older_than};
 
     my $network_assigned;
     # blacklist (hash) of networks which should not be probed anymore to save time
@@ -333,10 +348,11 @@ sub assign_defined_network {
         # Taking random file from the list decreases the chance of two tests spending time checking same file.
         my $lease_file = $lease_files[int(rand(@lease_files - 1))];
 
-        # Attempt to acquire network file lease (update modification time)
-        # This will give current test execlusive rights to the lease file
-        # Prevents multiple tests probing same IP range simultaneously
-        if (!acquire_network_file_lease(network_lease_file => $lease_file)) {
+        # Attempt to update file modification time, assigning IP range to the
+        # current deployment.
+        if (!assign_network_file(network_lease_file => $lease_file,
+                networks_older_than => $args{networks_older_than}))
+        {
             record_info("$current_loop/$max_retries IP Lease",
                 "Acquiring lease for IP file '$lease_file' FAILED, retrying.");
             $network_blacklist{$lease_file} = 1 if
@@ -359,7 +375,7 @@ sub assign_defined_network {
         }
         record_info('Peer check #1: OK', "No existing workload zone peerings detected for '$lease_file'.");
 
-        # Check for existing netwoek peering between Workload zone and IBSm
+        # Check for existing network peering between Workload zone and IBSm
         if ((check_var('IS_MAINTENANCE', '1') && check_peering_exists(
                     addr_space => $lease_file . '/26',
                     vnet_name => get_required_var('IBSM_VNET'),

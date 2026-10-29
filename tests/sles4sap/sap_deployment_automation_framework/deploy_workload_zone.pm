@@ -25,13 +25,8 @@ sub run {
     my ($self) = @_;
     # Skip module if existing deployment is being re-used
     return if sdaf_deployment_reused();
-
     serial_console_diag_banner('Module sdaf_deploy_workload_zone.pm : start');
     select_serial_terminal();
-
-    # From now on everything is executed on Deployer VM (residing on cloud).
-    connect_target_to_serial();
-    load_os_env_variables();
 
     my $os;
     # This section is only needed by Azure tests using images uploaded
@@ -41,11 +36,6 @@ sub run {
     } else {
         $os = get_required_var('PUBLIC_CLOUD_IMAGE_ID');
     }
-
-    my $workload_vnet_code = get_workload_vnet_code();
-    set_var('SDAF_VNET_CODE', $workload_vnet_code);
-    # 'vnet_code' variable changes with deployment type.
-    set_os_variable('vnet_code', $workload_vnet_code);
 
     # Test code searches for unused address space by listing existing network peerings. There is however time period
     # between test assigning free network internally and actually creating network peering. During that time, network
@@ -69,6 +59,16 @@ sub run {
     for my $variable_name (keys(%network_data)) {
         set_var(uc($variable_name), $network_data{$variable_name});
     }
+
+    # From now on everything is executed on Deployer VM (residing on cloud).
+    connect_target_to_serial();
+    load_os_env_variables();
+
+    my $workload_vnet_code = get_workload_vnet_code();
+    set_var('SDAF_VNET_CODE', $workload_vnet_code);
+    # 'vnet_code' variable changes with deployment type.
+    set_os_variable('vnet_code', $workload_vnet_code);
+
     create_workload_tfvars(network_data => \%network_data, workload_vnet_code => $workload_vnet_code, os_image => $os);
 
     az_login();
@@ -83,7 +83,6 @@ sub run {
         );
         apply_no_cleanup_tag(resource_group => $workload_rg, no_cleanup_tag => no_cleanup_tag());
     }
-
     # disconnect the console
     disconnect_target_from_serial();
     # reset temporary variables
