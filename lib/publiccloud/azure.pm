@@ -429,7 +429,8 @@ sub create_image_definition {
         record_info("gen img-def", "Create image definitions:\n$definition");
         assert_script_run("az sig image-definition create --resource-group '$resource_group' --gallery-name '$gallery' " .
               "--gallery-image-definition '$definition' --os-type Linux --publisher '$publisher' --offer '$offer' --sku '$sku' " .
-              "--architecture '$arch' --hyper-v-generation '$gen' --os-state 'Generalized' --location " . $self->storage_region, timeout => 300);
+              "--architecture '$arch' --hyper-v-generation '$gen' --os-state 'Generalized' " .
+              "--features 'DiskControllerTypes=SCSI,NVMe IsAcceleratedNetworkSupported=True' --location " . $self->storage_region, timeout => 300);
     }
 }
 
