@@ -123,7 +123,6 @@ INSTALLONLY | boolean | false | Indicates that test suite conducts only installa
 INSTLANG | string | en_US | Installation locale settings.
 INST_FINISH | see Agama documentation for boot options parameter inst.finish.
 INST_FINISH_DISABLED | If set to 1 then the default behaviour is used, which is 'stop' for interactive installation, 'reboot' for unattende installation.
-IPERF_REPO | string | | Link to repository with iperf tool for network performance testing. Currently used in Public Cloud Azure test
 IPXE | boolean | false | Indicates ipxe boot.
 IPXE_BOOT_FIXED | boolean | false | Indicates to ipxe boot fixed distribution independent on DISTRI and VERSION variables.
 IPXE_BOOT_FIXED_DISTRI | string | sle | Sets distribution name for fixed ipxe boot.
@@ -256,7 +255,6 @@ SYSTEMD_UNIFIED_CGROUP | string | "yes", "no", "hybrid", "default" | systemd cur
 SCC_REGCODE_LTSS_SEC | string | | Defines SLES-LTSS-Extended-Security registration code.
 TEST | string | | Name of the test suite.
 TEST_CONTEXT | string | | Defines the class name to be used as the context instance of the test. This is used in the scheduler to pass the `run_args` into the loadtest function. If it is not given it will be undef.
-TEST_TIME | integer | | Set time parameter for `iperf -t N` option. Used in Azure Public Cloud testing of Accelerated NICs
 TOGGLEHOME | boolean | false | Changes the state of partitioning to have or not to have separate home partition in the proposal.
 TUNNELED | boolean | false | Enables the use of normal consoles like "root-consoles" on a remote SUT while configuring the tunnel in a local "tunnel-console"
 TRANSACTIONAL_VALIDATION | boolean | false | Runs checks of the transactional filesystem and related tools.
@@ -324,7 +322,7 @@ Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
 OPENTOFU_VERSION | string | "1.11.6" | Version of opentofu to include into PC Tools image
 PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
-PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
+PUBLIC_CLOUD_ACCNET | string | | Azure only. Enables accelerated networking on the instance NIC and adds the `azure_accnet` test module to the job. Set to `mana` (MANA hardware is required), `mlx5` (skipped on other hardware) or `any` (MANA or Mellanox hardware is accepted).
 PUBLIC_CLOUD_AHB_LT | string | "SLES_BYOS" | For Azure, it specifies the license type to change to (and test).
 PUBLIC_CLOUD_AITL_TIMEOUT | integer | 5400 | Timeout in seconds for the AITL job poll loop in `azure_aitl.pm` to wait for job completion before failing the test.
 PUBLIC_CLOUD_ARCH | string | "x86_64" | The architecture of created VM.
