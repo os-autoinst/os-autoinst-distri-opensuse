@@ -5,9 +5,12 @@ description: >
     coverage_targets with funkoverage, stock test modules exercise them and
     coverage_report writes the reports. Runs as a child of
     create_hdd_agama_textmode; the job group sets the image settings.
+    Instrumented binaries make package operations much slower, so all test
+    timeouts are doubled.
     Maintainer: amanzini / balogh
 vars:
   BINARY_COVERAGE: 1
+  TIMEOUT_SCALE: 2
 schedule:
   - installation/bootloader_start
   - boot/boot_to_desktop
