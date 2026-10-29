@@ -510,6 +510,12 @@ sub terraform_apply {
     $args{vars}->{offer} = $offer if ($offer);
     $args{vars}->{sku} = $sku if ($sku);
     $args{vars}->{'storage-account'} = $storage_account if ($storage_account);
+    my $disk_controller = get_var('PUBLIC_CLOUD_AZURE_DISK_CONTROLLER');
+    $args{vars}->{disk_controller_type} = $disk_controller if ($disk_controller);
+    if (get_var('PUBLIC_CLOUD_ACCNET')) {
+        die 'PUBLIC_CLOUD_ACCNET is not supported with managed images, use a Compute Gallery image' if ($self->get_image_id());
+        $args{vars}->{accelerated_networking} = 'true';
+    }
 
     return $self->SUPER::terraform_apply(%args);
 }
