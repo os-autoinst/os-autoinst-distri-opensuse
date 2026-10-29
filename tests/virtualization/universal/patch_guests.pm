@@ -21,8 +21,16 @@ sub reboot_guest {
     record_info("Rebooting $guest");
     if (get_var("KVM") || get_var("XEN")) {
         script_run("virsh shutdown $guest");
-        script_retry("virsh domstate $guest|grep 'shut off'", retry => 5);
-        script_run("virsh start $guest");
+        if (($virt_autotest::common::guests{$guest}->{launch_security} // '') eq 'tdx') {
+            if (script_retry("virsh domstate $guest|grep 'shut off'", retry => 5, delay => 10, die => 0) != 0) {
+                record_soft_failure("bsc#1287610 - ACPI shutdown did not power off $guest; force power off with virsh destroy");
+                assert_script_run("virsh destroy $guest");
+                script_retry("virsh domstate $guest|grep 'shut off'", retry => 5);
+            }
+        } else {
+            script_retry("virsh domstate $guest|grep 'shut off'", retry => 5);
+        }
+        assert_script_run("virsh start $guest");
         script_retry("nmap $guest -PN -p ssh | grep open", retry => 5, delay => 60);
     } else {
         script_run("ssh root\@$guest reboot || true", timeout => 10);
