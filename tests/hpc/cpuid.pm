@@ -8,9 +8,11 @@
 
 use Mojo::Base 'hpcbase', -signatures;
 use testapi;
+use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run ($self) {
+    select_serial_terminal;
     zypper_call('in cpuid');
     assert_script_run("cpuid > /tmp/output.txt 2>&1");
 }
