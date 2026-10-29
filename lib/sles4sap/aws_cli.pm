@@ -63,16 +63,71 @@ use constant AWS_CMD_TIMEOUT => 60;
 # so that 'timeout' always stops aws first
 use constant AWS_SO_TIMEOUT => 90;
 
+=head2 _aws_tag_specifications
+
+    my @args = _aws_tag_specifications('vpc', { openqa_var_job_id => '123', openqa_created_date => '2026-01-01T00:00:00' });
+
+Private function. Convert a hashref of tags into a C<--tag-specifications>
+argument pair for EC2 create commands. The C<resource_type> is mandatory:
+"When you specify a tag, you must specify the resource type to tag,
+otherwise the request will fail." (AWS CLI reference). It must match the
+primary resource created by the command (e.g. 'vpc' for create-vpc).
+Keys are sorted for deterministic output.
+Return an empty list if the hashref is empty or undef.
+
+Croak if any tag violates AWS tag restrictions:
+- Empty key
+- Undefined value
+- Key longer than 128 characters
+- Value longer than 256 characters
+- Key starting with the reserved prefix C<aws:>
+- More than 50 tags
+
+Croak also if a key or value contains characters outside the set
+C<[A-Za-z0-9+\-=_:.\/@]>. This set is stricter than the AWS limits, because
+AWS also accepts spaces and Unicode letters. The tag list is inside double
+quotes in a shell command and uses the AWS CLI shorthand syntax. Characters
+such as C<$>, backtick, space, C<,>, C<{> or C<}> can break the command or
+cause shell expansion. Do not add them to the set.
+
+=cut
+
+sub _aws_tag_specifications {
+    my ($resource_type, $tags) = @_;
+    return () unless $tags && ref($tags) eq 'HASH' && %$tags;
+
+    croak "Too many tags: " . scalar(keys %$tags) . " (max 50)" if keys %$tags > 50;
+
+    my $safe_re = qr/[A-Za-z0-9+\-=_:.\/@]/;
+    foreach my $key (sort keys %$tags) {
+        croak "Tag key too long (" . length($key) . " chars, max 128): $key"
+          if length($key) > 128;
+        croak "Tag key uses reserved aws: prefix: $key"
+          if $key =~ /^aws:/;
+        croak "Tag key contains invalid characters: $key"
+          unless $key =~ /^$safe_re+$/;
+        my $val = $tags->{$key};
+        croak "Tag value undefined for key: $key" unless defined $val;
+        croak "Tag value too long (" . length($val) . " chars, max 256) for key: $key"
+          if length($val) > 256;
+        croak "Tag value contains invalid characters for key $key: $val"
+          unless $val =~ /^$safe_re*$/;
+    }
+
+    my $tag_list = join(',', map { "{Key=$_,Value=$tags->{$_}}" } sort keys %$tags);
+    return ('--tag-specifications', "\"ResourceType=$resource_type,Tags=[$tag_list]\"");
+}
+
 
 =head2 aws_vpc_create
 
     my $vpc_id = aws_vpc_create(
         region => 'us-west',
         cidr => '1.2.3/18',
-        job_id => 'abc123456');
+        tags => { openqa_var_job_id => '123' });
 
-Create a new AWS VPC with a specified CIDR block and tag it with the OpenQA job ID
-Returns the VPC ID
+Create a new AWS VPC with a specified CIDR block. If C<tags> is given,
+those tags are applied to the VPC. Returns the VPC ID.
 
 =over
 
@@ -80,26 +135,23 @@ Returns the VPC ID
 
 =item B<cidr> - CIDR block for the VPC (e.g., '10.0.0.0/16')
 
-=item B<job_id> - OpenQA job identifier for tagging
+=item B<tags> - hashref of tags to apply (optional)
 
 =back
 =cut
 
 sub aws_vpc_create(%args) {
-    foreach (qw(region cidr job_id)) {
+    foreach (qw(region cidr)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
+    my @tag_spec = _aws_tag_specifications('vpc', $args{tags});
     my $vpc_id = script_output(join(' ',
             'aws ec2 create-vpc',
             '--region', $args{region},
             '--cidr-block', $args{cidr},
+            @tag_spec,
             '--query Vpc.VpcId --output text'));
     die('VPC creation failed: VPC ID is empty') unless $vpc_id;
-    assert_script_run(join(' ',
-            'aws ec2 create-tags',
-            '--resources', $vpc_id,
-            "--tags Key=OpenQAJobVpc,Value=$args{job_id}",
-            '--region', $args{region}));
     return $vpc_id;
 }
 
@@ -166,11 +218,10 @@ sub aws_vpc_delete(%args) {
         group_name => 'something',
         description => 'be or not to be',
         vpc_id => 'vpc123456',
-        job_is => '7890');
+        tags => { openqa_var_job_id => '123' });
 
-Create an AWS security group within a VPC and tag it with the OpenQA job ID
-
-Returns the security group ID
+Create an AWS security group within a VPC. If C<tags> is given, those tags
+are applied to the security group. Returns the security group ID.
 
 =over
 
@@ -182,24 +233,25 @@ Returns the security group ID
 
 =item B<vpc_id> - ID of the VPC where the security group will be created
 
-=item B<job_id> - OpenQA job identifier used to tag the VPC
+=item B<tags> - hashref of tags to apply (optional)
 
 =back
 =cut
 
 sub aws_security_group_create(%args) {
-    foreach (qw(region group_name description vpc_id job_id)) {
+    foreach (qw(region group_name description vpc_id)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
+    my @tag_spec = _aws_tag_specifications('security-group', $args{tags});
     my $sg_id = script_output(join(' ',
             'aws ec2 create-security-group',
             '--region', $args{region},
             '--group-name', $args{group_name},
             '--description', "'$args{description}'",
             '--vpc-id', $args{vpc_id},
+            @tag_spec,
             "--query 'GroupId' --output text"));
     die('Security group creation failed: SG ID is empty') unless $sg_id;
-    assert_script_run("aws ec2 create-tags --resources $sg_id --tags Key=OpenQAJobSg,Value=$args{job_id} --region $args{region}");
     return $sg_id;
 }
 
@@ -306,11 +358,11 @@ sub aws_security_group_authorize_ingress(%args) {
         region => 'us-west-1',
         cidr => '10.0.1.0/24',
         vpc_id => 'vpc-12345',
-        job_id => '67890'
+        tags => { openqa_var_job_id => '123' }
     );
 
-Create a subnet within a VPC with a specified CIDR block and tag it with the OpenQA job ID
-Returns the subnet ID
+Create a subnet within a VPC with a specified CIDR block. If C<tags> is
+given, those tags are applied to the subnet. Returns the subnet ID.
 
 =over
 
@@ -320,32 +372,28 @@ Returns the subnet ID
 
 =item B<vpc_id> - ID of the VPC where the subnet will be created
 
-=item B<job_id> - OpenQA job identifier used to tag the security group
+=item B<tags> - hashref of tags to apply (optional)
 
 =back
 =cut
 
 sub aws_subnet_create(%args) {
-    foreach (qw(region cidr vpc_id job_id)) {
+    foreach (qw(region cidr vpc_id)) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
+    my @tag_spec = _aws_tag_specifications('subnet', $args{tags});
     my @cmd = (
         'aws ec2 create-subnet',
         '--region', $args{region},
         '--cidr-block', $args{cidr},
         '--vpc-id', $args{vpc_id},
+        @tag_spec,
         '--query', "'Subnet.SubnetId'",
         '--output', 'text'
     );
     push(@cmd, '--availability-zone', $args{availability_zone}) if $args{availability_zone};
     my $subnet_id = script_output(join(' ', @cmd));
     die('Subnet creation failed: Subnet ID is empty') unless $subnet_id;
-    assert_script_run(join(' ',
-            'aws ec2 create-tags',
-            '--resources', $subnet_id,
-            '--tags', "Key=OpenQAJobSubnet,Value=$args{job_id}",
-            '--region', $args{region}
-    ));
     return $subnet_id;
 }
 
@@ -420,37 +468,33 @@ sub aws_subnet_delete(%args) {
 
     my $igw_id = aws_internet_gateway_create
         region => 'us-west-1',
-        job_id => '67890'
+        tags => { openqa_var_job_id => '123' }
     );
 
-Create an internet gateway and tag it with the OpenQA job ID
-Returns the internet gateway ID
+Create an internet gateway. If C<tags> is given, those tags are applied to
+the internet gateway. Returns the internet gateway ID.
 
 =over
 
 =item B<region> - AWS region where to create the internet gateway
 
-=item B<job_id> - OpenQA job identifier used to tag the security group
+=item B<tags> - hashref of tags to apply (optional)
 
 =back
 =cut
 
 sub aws_internet_gateway_create(%args) {
-    foreach (qw(region job_id)) {
+    foreach (qw(region)) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
+    my @tag_spec = _aws_tag_specifications('internet-gateway', $args{tags});
     my $igw_id = script_output(join(' ',
             'aws ec2 create-internet-gateway',
             '--region', $args{region},
+            @tag_spec,
             '--query', "'InternetGateway.InternetGatewayId'",
             '--output', 'text'
     ), 60);
-    assert_script_run(join(' ',
-            'aws ec2 create-tags',
-            '--resources', $igw_id,
-            '--tags', "Key=OpenQAJobIgw,Value=$args{job_id}",
-            '--region', $args{region}
-    ));
     return $igw_id;
 }
 
@@ -708,11 +752,11 @@ sub aws_route_create(%args) {
         sg_id         => 'sg-abcde',
         ssh_key       => 'my-key',
         region        => 'us-west-1',
-        job_id        => '67890'
+        tags          => { openqa_var_job_id => '123' }
     );
 
-Launch an EC2 instance with specified configuration and tag it with the OpenQA job ID
-Returns the instance ID
+Launch an EC2 instance with specified configuration. If C<tags> is given,
+those tags are applied to the instance. Returns the instance ID.
 
 =over
 
@@ -730,13 +774,13 @@ Returns the instance ID
 
 =item B<region> - AWS region where to launch the instance
 
-=item B<job_id> - OpenQA job identifier used to tag the internet gateway
+=item B<tags> - hashref of tags to apply (optional)
 
 =back
 =cut
 
 sub aws_vm_create(%args) {
-    foreach (qw(instance_type image_name owner subnet_id sg_id ssh_key region job_id)) {
+    foreach (qw(instance_type image_name owner subnet_id sg_id ssh_key region)) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
 
@@ -748,6 +792,7 @@ sub aws_vm_create(%args) {
             '--output=text'), 240);
 
     die("Image name:$args{image_name} Owner:$args{owner} --> Image ID:$image_id") if ($image_id eq 'None');
+    my @tag_spec_arg = _aws_tag_specifications('instance', $args{tags});
     return script_output(join(' ',
             'aws ec2 run-instances',
             '--image-id', $image_id,
@@ -756,7 +801,7 @@ sub aws_vm_create(%args) {
             '--associate-public-ip-address',
             '--security-group-ids', $args{sg_id},
             '--instance-type', $args{instance_type},
-            '--tag-specifications', "\"ResourceType=instance,Tags=[{Key=OpenQAJobVm,Value=\'$args{job_id}\'}]\"",
+            @tag_spec_arg,
             '--query', "'Instances[0].InstanceId'",
             '--key-name', $args{ssh_key},
             '--output', 'text'), 240);

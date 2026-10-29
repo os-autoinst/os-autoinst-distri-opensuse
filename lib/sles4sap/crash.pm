@@ -199,20 +199,26 @@ sub crash_deploy_aws(%args) {
     foreach (qw(region image_name image_owner ssh_pub_key instance_type address_range subnet_range)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    my $job_id = crash_deploy_name();
+    my $deploy_name = crash_deploy_name();
+    my %qesap_tags = qesap_get_public_cloud_tags();
 
-    my $ssh_key = 'openqa-cli-test-key-' . crash_deploy_name();
+    my $ssh_key = 'openqa-cli-test-key-' . $deploy_name;
     aws_ssh_key_pair_import(ssh_key => $ssh_key, pub_key_path => $args{ssh_pub_key});
 
-    my $vpc_id = aws_vpc_create(region => $args{region}, cidr => $args{address_range}, job_id => $job_id);
+    my $vpc_id = aws_vpc_create(
+        region => $args{region},
+        cidr => $args{address_range},
+        tags => {OpenQAJobVpc => $deploy_name, %qesap_tags});
     my $sg_id = aws_security_group_create(
         region => $args{region},
         group_name => 'crash-aws',
         description => 'crash aws security group',
         vpc_id => $vpc_id,
-        job_id => $job_id);
+        tags => {OpenQAJobSg => $deploy_name, %qesap_tags});
 
-    my $igw_id = aws_internet_gateway_create(region => $args{region}, job_id => $job_id);
+    my $igw_id = aws_internet_gateway_create(
+        region => $args{region},
+        tags => {OpenQAJobIgw => $deploy_name, %qesap_tags});
     aws_internet_gateway_attach(vpc_id => $vpc_id, igw_id => $igw_id, region => $args{region});
 
     my $route_table_id = aws_route_table_create(region => $args{region}, vpc_id => $vpc_id);
@@ -221,7 +227,7 @@ sub crash_deploy_aws(%args) {
         region => $args{region},
         cidr => $args{subnet_range},
         vpc_id => $vpc_id,
-        job_id => $job_id);
+        tags => {OpenQAJobSubnet => $deploy_name, %qesap_tags});
 
     aws_route_table_associate(subnet_id => $sid, route_table_id => $route_table_id, region => $args{region});
 
@@ -247,7 +253,7 @@ sub crash_deploy_aws(%args) {
         sg_id => $sg_id,
         ssh_key => $ssh_key,
         region => $args{region},
-        job_id => $job_id);
+        tags => {OpenQAJobVm => $deploy_name, %qesap_tags});
     aws_vm_wait_status_ok(region => $args{region}, instance_id => $instance_id);
     return $instance_id;
 }
@@ -281,15 +287,15 @@ sub crash_deploy_gcp(%args) {
     foreach (qw(region availability_zone project image_name image_project machine_type ssh_pub_key)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    my $job_id = crash_deploy_name();
+    my $deploy_name = crash_deploy_name();
     my $region = $args{region};
 
-    my $network_name = $job_id . '-network';
+    my $network_name = $deploy_name . '-network';
     gcp_network_create(
         project => $args{project},
         name => $network_name);
 
-    my $subnet_name = $job_id . '-subnet';
+    my $subnet_name = $deploy_name . '-subnet';
     gcp_subnet_create(
         project => $args{project},
         region => $region,
@@ -297,14 +303,14 @@ sub crash_deploy_gcp(%args) {
         network => $network_name,
         cidr => $args{subnet_range});
 
-    my $firewall_name = $job_id . '-allow-ssh';
+    my $firewall_name = $deploy_name . '-allow-ssh';
     gcp_firewall_rule_create(
         project => $args{project},
         name => $firewall_name,
         network => $network_name,
         port => 22);
 
-    my $ip_name = $job_id . '-ip';
+    my $ip_name = $deploy_name . '-ip';
     gcp_external_ip_create(
         project => $args{project},
         region => $region,
@@ -652,26 +658,26 @@ sub crash_destroy_aws(%args) {
     crash_network_peering_delete(provider => 'EC2', region => $args{region}) if ($args{ibsm_ip});
 
     my %ret;
-    my $job_id = crash_deploy_name();
+    my $deploy_name = crash_deploy_name();
 
-    my @instance_ids = aws_vm_get_id(region => $args{region}, job_id => $job_id);
-    my $vpc_id = aws_vpc_get_id(region => $args{region}, job_id => $job_id);
+    my @instance_ids = aws_vm_get_id(region => $args{region}, job_id => $deploy_name);
+    my $vpc_id = aws_vpc_get_id(region => $args{region}, job_id => $deploy_name);
 
     # Terminate all instances of the job and wait
     $ret{vm} = 0;
-    record_info('AWS no VM', "No EC2 instance found for job $job_id") unless @instance_ids;
+    record_info('AWS no VM', "No EC2 instance found for job $deploy_name") unless @instance_ids;
     foreach my $instance_id (@instance_ids) {
         my $rc = aws_vm_terminate(region => $args{region}, instance_id => $instance_id);
         $ret{vm} = $rc if ($rc && !$ret{vm});
     }
 
     # Delete all resources
-    $ret{sg} = aws_security_group_delete(region => $args{region}, job_id => $job_id);
-    $ret{subnet} = aws_subnet_delete(region => $args{region}, job_id => $job_id);
+    $ret{sg} = aws_security_group_delete(region => $args{region}, job_id => $deploy_name);
+    $ret{subnet} = aws_subnet_delete(region => $args{region}, job_id => $deploy_name);
 
     $ret{ig} = aws_internet_gateway_delete(
         vpc_id => $vpc_id,
-        job_id => $job_id,
+        job_id => $deploy_name,
         region => $args{region});
     $ret{rt} = aws_route_table_delete(region => $args{region}, vpc_id => $vpc_id);
 
@@ -705,7 +711,7 @@ sub crash_destroy_gcp(%args) {
 
     crash_network_peering_delete(provider => 'GCE') if ($args{ibsm_ip});
 
-    my $job_id = crash_deploy_name();
+    my $deploy_name = crash_deploy_name();
     my %ret;
     $ret{vm} = gcp_vm_terminate(
         zone => $args{region} . '-' . $args{availability_zone},
@@ -713,17 +719,17 @@ sub crash_destroy_gcp(%args) {
 
     $ret{ip} = gcp_external_ip_delete(
         region => $args{region},
-        name => $job_id . '-ip');
+        name => $deploy_name . '-ip');
 
     $ret{firewall} = gcp_firewall_rule_delete(
-        name => $job_id . '-allow-ssh');
+        name => $deploy_name . '-allow-ssh');
 
     $ret{subnet} = gcp_subnet_delete(
         region => $args{region},
-        name => $job_id . '-subnet');
+        name => $deploy_name . '-subnet');
 
     $ret{network} = gcp_network_delete(
-        name => $job_id . '-network');
+        name => $deploy_name . '-network');
 
     my $exit = 0;
     my @erro_msg;
