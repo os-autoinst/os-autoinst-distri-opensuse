@@ -13,6 +13,7 @@ use utils;
 use kdump_utils;
 use lockapi;
 use power_action_utils 'power_action';
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = @_;
@@ -21,7 +22,7 @@ sub run {
 
     get_required_var('KDUMP_SAVEDIR');
 
-    select_console('root-console');
+    select_serial_terminal;
 
     #Specific wicked workaround for SLE15 - allow connection from all hosts
     if ($role eq 'nfs_server') {
