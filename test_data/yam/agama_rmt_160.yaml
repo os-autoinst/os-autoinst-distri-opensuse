@@ -5,19 +5,19 @@ repos:
     Autorefresh: 'On'
     enabled: 'Yes'
     filter: name
-    URI: '%SCC_URL%/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product/'
+    uri: '%SCC_URL%/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product/'
   - name: SLE-Product-SLES-%VERSION%-Debug
     alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-%VERSION%-Debug
     Autorefresh: 'On'
     enabled: 'No'
     filter: name
-    URI: '%SCC_URL%/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_debug/'
+    uri: '%SCC_URL%/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_debug/'
   - name: SLE-Product-SLES-%VERSION%-Source
     alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-%VERSION%-Source
     Autorefresh: 'On'
     enabled: 'No'
     filter: name
-    URI: '%SCC_URL%/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_source/'
+    uri: '%SCC_URL%/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_source/'
   - name: NVIDIA-GPU-Compute-Toolkit-CUDA
     alias: SUSE_Linux_Enterprise_Server_%ARCH%:NVIDIA-GPU-Compute-Toolkit-CUDA
     uri: '%SCC_URL%/repo/repos/cuda/sles16/'
