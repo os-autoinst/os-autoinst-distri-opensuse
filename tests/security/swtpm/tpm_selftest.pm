@@ -1,4 +1,4 @@
-# Copyright 2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Update TrouSerS and tpm-tools to the latest version
@@ -15,7 +15,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call systemctl package_upgrade_check);
 use Utils::Architectures;
-use version_utils 'is_sle';
 
 sub run {
     select_serial_terminal;
@@ -28,9 +27,6 @@ sub run {
     # Based on bsc#1193350, swtpm 1.2 device is not supported
     # on arch64 platform any more, so skip the test on aarch64
     if (!is_aarch64) {
-        # https://bugzilla.suse.com/show_bug.cgi?id=1236457
-        assert_script_run('udevadm control --reload-rules && udevadm trigger') if (is_sle '<=15-SP7');
-
         # Make sure tpm device can be created
         assert_script_run('ls -l /dev/tpm*');
 
