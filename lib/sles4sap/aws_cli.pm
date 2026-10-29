@@ -75,11 +75,45 @@ primary resource created by the command (e.g. 'vpc' for create-vpc).
 Keys are sorted for deterministic output.
 Return an empty list if the hashref is empty or undef.
 
+Croak if any tag violates AWS tag restrictions:
+- Empty key
+- Undefined value
+- Key longer than 128 characters
+- Value longer than 256 characters
+- Key starting with the reserved prefix C<aws:>
+- More than 50 tags
+
+Croak also if a key or value contains characters outside the set
+C<[A-Za-z0-9+\-=_:.\/@]>. This set is stricter than the AWS limits, because
+AWS also accepts spaces and Unicode letters. The tag list is inside double
+quotes in a shell command and uses the AWS CLI shorthand syntax. Characters
+such as C<$>, backtick, space, C<,>, C<{> or C<}> can break the command or
+cause shell expansion. Do not add them to the set.
+
 =cut
 
 sub _aws_tag_specifications {
     my ($resource_type, $tags) = @_;
     return () unless $tags && ref($tags) eq 'HASH' && %$tags;
+
+    croak "Too many tags: " . scalar(keys %$tags) . " (max 50)" if keys %$tags > 50;
+
+    my $safe_re = qr/[A-Za-z0-9+\-=_:.\/@]/;
+    foreach my $key (sort keys %$tags) {
+        croak "Tag key too long (" . length($key) . " chars, max 128): $key"
+          if length($key) > 128;
+        croak "Tag key uses reserved aws: prefix: $key"
+          if $key =~ /^aws:/;
+        croak "Tag key contains invalid characters: $key"
+          unless $key =~ /^$safe_re+$/;
+        my $val = $tags->{$key};
+        croak "Tag value undefined for key: $key" unless defined $val;
+        croak "Tag value too long (" . length($val) . " chars, max 256) for key: $key"
+          if length($val) > 256;
+        croak "Tag value contains invalid characters for key $key: $val"
+          unless $val =~ /^$safe_re*$/;
+    }
+
     my $tag_list = join(',', map { "{Key=$_,Value=$tags->{$_}}" } sort keys %$tags);
     return ('--tag-specifications', "\"ResourceType=$resource_type,Tags=[$tag_list]\"");
 }
@@ -758,10 +792,7 @@ sub aws_vm_create(%args) {
             '--output=text'), 240);
 
     die("Image name:$args{image_name} Owner:$args{owner} --> Image ID:$image_id") if ($image_id eq 'None');
-    my @tag_spec_arg;
-    if ($args{tags} && %{$args{tags}}) {
-        @tag_spec_arg = ('--tag-specifications', "\"ResourceType=instance,Tags=[" . join(',', map { "{Key=$_,Value=$args{tags}{$_}}" } sort keys %{$args{tags}}) . "]\"");
-    }
+    my @tag_spec_arg = _aws_tag_specifications('instance', $args{tags});
     return script_output(join(' ',
             'aws ec2 run-instances',
             '--image-id', $image_id,

