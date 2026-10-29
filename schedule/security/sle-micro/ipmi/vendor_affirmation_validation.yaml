@@ -1,0 +1,16 @@
+name: vendor_affirmation_validation_baremetal
+description: >
+    Vendor affirmation on SLE Micro on bare metal (IPMI). The image is written to
+    the disk with install_image, then the same FIPS modules as in
+    schedule/security/vendor_affirmation_validation.yaml run.
+schedule:
+    - installation/ipxe_install
+    - microos/install_image
+    - transactional/host_config
+    - console/suseconnect_scc
+    - fips/fips_setup
+    - fips/openssl/openssl_fips_hash
+    - fips/gnutls/gnutls_base_check
+    - console/import_gpg_keys
+    - console/gpg
+    - fips/mozilla_nss/nss_smoke
