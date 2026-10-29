@@ -175,10 +175,13 @@ sub login_to_console {
     save_screenshot;
 
     for (my $i = 0; $i <= 4; $i++) {
-        last if (check_screen([qw(linux-login virttest-displaymanager)], 60));
+        last if (check_screen([qw(linux-login virttest-displaymanager emergency-mode)], 60));
         save_screenshot;
         send_key 'ret';
     }
+    # Do not keep pressing 'ret' on maintenance prompt or wait for ssh port that never opens,
+    # post_fail_hook takes care of collecting logs from emergency mode
+    die "Host booted into emergency mode" if (match_has_tag('emergency-mode'));
 
     # Set ssh console timeout for virt tests on ipmi backend machines
     # it will make ssh serial console alive even with long time command
