@@ -285,7 +285,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             extra_params => '--os-variant sles16.1',    # Use SLES16.1 variant
             distro => 'SLE_16',
             location => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.1-Full-x86_64-GM.install/',    # Network location for live OS
-            install_url => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.1-Full-x86_64-GM.install/install/',    # Install repository URL
+            install_url => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.1-x86_64-CURRENT/',    # Product repo; Full media install/ has no license-SLES
             boot_firmware => 'efi',    # SLES16 only supports EFI guests, no BIOS support
         },
         sles16sp1efi_full_snapshot => {
@@ -293,7 +293,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             extra_params => '--os-variant sles16.1',    # Use SLES16.1 variant
             distro => 'SLE_16',
             location => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.1-Full-x86_64-GM.install/',    # Network location for live OS
-            install_url => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.1-Full-x86_64-GM.install/install/',    # Install repository URL
+            install_url => 'http://openqa.suse.de/assets/repo/fixed/SLES-16.1-x86_64-CURRENT/',    # Product repo; Full media install/ has no license-SLES
             boot_firmware => 'efi-with-qcow2-based-nvram',    # For efi vm snapshot test
         },
         'sles16sp1efi_full-sev-es' => {
