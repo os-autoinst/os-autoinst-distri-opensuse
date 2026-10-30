@@ -1531,6 +1531,15 @@ subtest '[az_storage_blob_update]' => sub {
     );
     note("\n --> " . join("\n --> ", @calls));
     ok(grep(/--lease-id 12345/, @calls), 'Check for argument "--lease-id"');
+
+    az_storage_blob_update(
+        container_name => 'Arlecchino',
+        account_name => 'Pantalone',
+        name => 'Colombina',
+        if_unmodified_since => '1999-12-31T00:00Z'
+    );
+    note("\n --> " . join("\n --> ", @calls));
+    ok(grep(/--if-unmodified-since 1999-12-31T00:00Z/, @calls), 'Check for argument "--lease-id"');
 };
 
 subtest '[az_keyvault_list]' => sub {

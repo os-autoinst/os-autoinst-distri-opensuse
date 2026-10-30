@@ -25,7 +25,6 @@ sub run {
     my ($self) = @_;
     # Skip module if existing deployment is being re-used
     return if sdaf_deployment_reused();
-
     serial_console_diag_banner('Module sdaf_deploy_workload_zone.pm : start');
     select_serial_terminal();
 
@@ -83,7 +82,6 @@ sub run {
         );
         apply_no_cleanup_tag(resource_group => $workload_rg, no_cleanup_tag => no_cleanup_tag());
     }
-
     # disconnect the console
     disconnect_target_from_serial();
     # reset temporary variables
