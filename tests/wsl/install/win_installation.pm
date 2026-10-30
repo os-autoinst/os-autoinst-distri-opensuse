@@ -38,22 +38,22 @@ sub run {
         assert_screen(['windows-edge-welcome', 'windows-desktop', 'windows-edge-decline', 'networks-popup-be-discoverable', 'windows-start-menu', 'windows-qemu-drivers', 'windows-setup-browser', 'windows-user-acount-ctl-yes'], timeout => 30);
     }
 
-    # Verify that WSL has been properly installed during OS deployment
+    # Install WSL from the GitHub release page. "wsl --install" and "wsl --update" use the GitHub API,
+    # which fails with 403 when the rate limit of the IP address of the workers is used up.
     $self->open_powershell_as_admin;
+    my $tag_option = get_var('WSL_RELEASE_TAG') ? ' -Tag ' . get_var('WSL_RELEASE_TAG') : '';
+    $self->run_in_powershell(cmd => 'Invoke-WebRequest -Uri "' . data_url('wsl/install_wsl.ps1') . '" -OutFile "$env:TEMP\\install_wsl.ps1" -UseBasicParsing');
+    $self->run_in_powershell(cmd => 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\\install_wsl.ps1"' . $tag_option, timeout => 900);
+
+    # Verify that WSL has been properly installed during OS deployment
     $self->run_in_powershell(
-        cmd => '$port.WriteLine($(wsl --version))',
+        cmd => '$port.WriteLine($(wsl --version)); $port.WriteLine("WSL-CHECK-END")',
         code => sub {
-            my $serial_output = wait_serial(
-                qr/WSL version: \d+\.\d+\.\d+\.\d+/,
-                expect_not_found => 1
-            );
-            if ($serial_output == undef) {
-                record_info("WSL installed", "WSL has been deployed properly!");
-            } elsif ($serial_output =~ qr/The Windows Subsystem for Linux is not installed./) {
-                die("WSL has not been installed during OS deployment...");
-            } else {
-                die("WSL unexpected error", "Unexpected error installing WSL:\n\n$serial_output");
-            }
+            # wsl.exe prints UTF-16, so PowerShell can add NUL bytes between the characters
+            my $serial_output = wait_serial(qr/WSL-CHECK-END/, timeout => 120) // die("No answer from 'wsl --version' on the serial port");
+            $serial_output =~ s/\0//g;
+            die("WSL has not been installed during OS deployment...\n\n$serial_output") unless $serial_output =~ qr/WSL version: \d+\.\d+\.\d+\.\d+/;
+            record_info("WSL installed", "WSL has been deployed properly!");
         }
     );
     $self->run_in_powershell(

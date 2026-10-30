@@ -37,7 +37,7 @@
             <CreatePartition wcm:action="add">
               <Order>2</Order>
               <Type>EFI</Type>
-              <Size>100</Size>
+              <Size>512</Size>
             </CreatePartition>
             <CreatePartition wcm:action="add">
               <Order>3</Order>
@@ -399,11 +399,11 @@
 			<FirstLogonCommands>
         <SynchronousCommand wcm:action="add">
           <Order>1</Order>
-          <CommandLine>powershell.exe wsl --update</CommandLine>
+          <CommandLine>powershell.exe wsl --install --no-distribution</CommandLine>
         </SynchronousCommand>
         <SynchronousCommand wcm:action="add">
           <Order>2</Order>
-          <CommandLine>powershell.exe wsl --install --no-distribution</CommandLine>
+          <CommandLine>powershell.exe wsl --update</CommandLine>
         </SynchronousCommand>
       </FirstLogonCommands>
     </component>
