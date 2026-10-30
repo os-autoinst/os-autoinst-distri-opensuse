@@ -121,7 +121,12 @@ sub run {
         my $msg = "capability '$capability' is not needed when ICMP socket allowed for non-root user: '$ping_group_range'";
         if (is_sle('=15-SP3')) {
             record_info('Unneeded capability', "bsc#1196840#c29: $msg", result => 'softfail');
-        } else {
+        }
+        elsif (get_var('BINARY_COVERAGE') && $capability !~ /cap_net_raw/) {
+            # funkoverage adds eBPF file capabilities, never cap_net_raw
+            record_info('Unneeded capability', "$msg (funkoverage capabilities)");
+        }
+        else {
             record_info('Unneeded capability', $msg, result => 'fail');
             $self->result("fail");
         }
