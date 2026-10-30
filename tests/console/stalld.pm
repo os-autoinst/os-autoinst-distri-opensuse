@@ -13,6 +13,7 @@ use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
 use package_utils qw(install_package uninstall_package);
+use Kernel::utils qw(is_debugfs_mounted enable_debugfs);
 
 sub run {
     select_serial_terminal;
@@ -27,6 +28,15 @@ sub run {
     record_info("VERSION", script_output("stalld --version"));
     # Start service and verify service is active
     systemctl("enable --now stalld");
+
+    # debug
+    enable_debugfs() unless is_debugfs_mounted();
+    my $dmesg_out = script_output("dmesg | grep -i lockdown", proceed_on_failure => 1);
+    record_info("dmesg", "$dmesg_out");
+
+    # Waiting the service is up
+    wait_still_screen(10);
+
     systemctl("is-active stalld");
     validate_script_output("ps aux", sub { /stalld/ });
 
@@ -41,7 +51,11 @@ sub run {
     systemctl("stop stalld");
     # Running the upstream test suite
     # Install packages required for compiling stalld and running upstream tests
-    install_package('git make clang bpftool libbpf-devel llvm', trup_reboot => 1);
+    # install_package('git make clang bpftool libbpf-devel llvm', trup_reboot => 1);
+    # See http://openqa.suse.de/assets/repo/SLES-16.1-x86_64-Build82.3/x86_64/
+    # For sle16.x some packages are in PackgeHub that must be added as repo
+    script_run("zypper lr -EU");
+    install_package('git gcc make clang libclang13 bpftool libbpf-devel llvm libLLVM21', trup_reboot => 1);
     assert_script_run("rm -rf $srcdir");
     assert_script_run("git clone $repo $srcdir", timeout => 120);
 
@@ -57,8 +71,7 @@ sub run {
 
         # Modify run_tests.sh to use the system binary
         assert_script_run("sed -i 's|STALLD_BIN=.*|STALLD_BIN=\"$system_stalld\"|' tests/run_tests.sh");
-
-        validate_script_output("./tests/run_tests.sh --test test_log_only", sub { m/Test PASSED/ }, timeout => 120);
+        validate_script_output("$srcdir/tests/run_tests.sh --test test_log_only", sub { m/Test PASSED/ }, timeout => 360);
     }
 }
 

@@ -17,3 +17,4 @@ schedule:
     - console/sqlite3
     - console/apache2_php_fpm
     - console/nginx
+    - console/stalld
