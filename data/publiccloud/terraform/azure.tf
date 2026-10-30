@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     azurerm = {
-      version = "= 4.29.0"
+      version = "= 5.11.0"
       source  = "hashicorp/azurerm"
     }
     random = {
@@ -13,6 +13,8 @@ terraform {
 
 provider "azurerm" {
   features {}
+  # azurerm 5.x no longer registers resource providers by default
+  resource_provider_registrations = "legacy"
 }
 
 variable "instance_count" {
@@ -73,6 +75,14 @@ variable "cloud_init" {
 
 variable "use_user_data" {
   default = true
+}
+
+variable "accelerated_networking" {
+  default = false
+}
+
+variable "disk_controller_type" {
+  default = null
 }
 
 variable "storage-account" {
@@ -152,6 +162,8 @@ resource "azurerm_network_interface" "openqa-nic" {
   resource_group_name = azurerm_resource_group.openqa-group.name
   count               = var.instance_count
 
+  accelerated_networking_enabled = var.accelerated_networking
+
   ip_configuration {
     name                          = "${element(random_id.service[*].hex, count.index)}-nic-config"
     subnet_id                     = var.subnet_id
@@ -196,6 +208,7 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
   computer_name                   = "${var.name}-${element(random_id.service[*].hex, count.index)}"
   admin_username                  = "azureuser"
   disable_password_authentication = true
+  disk_controller_type            = var.disk_controller_type
 
   count = var.instance_count
 
