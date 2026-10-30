@@ -474,8 +474,9 @@ sub ipaddr2_infra_deploy(%args) {
 
     my $bastion_ip = ipaddr2_bastion_pubip();
 
-Get the only public IP in the deployment associated to the VM used as bastion. Function is getting
-the IP address using az cli, so it could die if the az cli fails to return a valid IP.
+Get the only public IP in the deployment associated to the VM used as bastion.
+Function is getting the IP address using az cli.
+Return undef if the az cli fails to return a valid IP.
 =cut
 
 sub ipaddr2_bastion_pubip {
@@ -483,7 +484,11 @@ sub ipaddr2_bastion_pubip {
     # 3 attempts, each one stopped after about 60s with TIMEOUT_SCALE=3
     my $pub_ip = az_network_publicip_get(resource_group => $rg, name => $bastion_pub_ip, soft_timeout => 20);
     return unless defined $pub_ip;
-    my $ip_obj = NetAddr::IP::Lite->new($pub_ip) or die "Invalid IP '$pub_ip'";
+    my $ip_obj = NetAddr::IP::Lite->new($pub_ip);
+    unless ($ip_obj) {
+        record_info('Bastion IP', "Invalid bastion public IP '$pub_ip'", result => 'fail');
+        return;
+    }
     return $ip_obj->addr;
 }
 
