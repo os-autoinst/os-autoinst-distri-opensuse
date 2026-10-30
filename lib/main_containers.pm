@@ -344,7 +344,7 @@ sub load_container_tests {
         $run_args->{phase} = "pre";
         loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
     }
-    loadtest 'qa_automation/patch_and_reboot' if (is_sle('16.0+') && is_updates_tests && !is_public_cloud);
+    loadtest 'qa_automation/patch_and_reboot' if (is_sle('16.0+') && !is_transactional && is_updates_tests && !is_public_cloud);
     if ($validate_upgrade) {
         my $run_args = OpenQA::Test::RunArgs->new();
         $run_args->{phase} = "post";

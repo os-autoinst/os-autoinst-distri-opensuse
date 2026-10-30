@@ -41,15 +41,24 @@ sub run {
             }
             record_soft_failure('bsc#1239691 - 15-SP7 KOTD kernel crashes qemu during reboot on ppc64le when virtual machine has a PCI device');
         }
-        change_grub_config('=\"[^\"]*', "& $extrabootparams", 'GRUB_CMDLINE_LINUX_DEFAULT') if $extrabootparams;
-        $keep_grub_timeout or change_grub_config('=.*', '=-1', 'GRUB_TIMEOUT');
+
+        if (get_var('HOST_VERSION')) {
+            wait_quit_zypper;
+            ensure_ca_certificates_suse_installed;
+        }
+
+        if ($extrabootparams) {
+            change_grub_config('=\"[^\"]*', "& $extrabootparams", 'GRUB_CMDLINE_LINUX_DEFAULT');
+        }
+
+        if ($keep_grub_timeout) {
+            change_grub_config('=.*', '=-1', 'GRUB_TIMEOUT');
+        }
 
         if (!$keep_grub_timeout or $extrabootparams) {
             record_info('GRUB', script_output('cat /etc/default/grub'));
             # poo#87850 wait the zypper processes in background to finish and release the lock.
-            wait_quit_zypper;
-            assert_script_run('transactional-update grub.cfg');
-            ensure_ca_certificates_suse_installed if get_var('HOST_VERSION');
+            assert_script_run('transactional-update -c grub.cfg');
             process_reboot(trigger => 1);
         }
     } elsif (is_bootloader_sdboot || is_bootloader_grub2_bls) {
