@@ -111,6 +111,7 @@ sub install_required_packages {
     my @pkgs = qw(kdump);
     push @pkgs, qw(yast2-kdump) if (is_opensuse || is_sle('<16'));
     push @pkgs, qw(crash);
+    push @pkgs, qw(makedumpfile);
 
     if (is_jeos && get_var('UEFI')) {
         push @pkgs, is_aarch64 ? qw(mokutil shim) : qw(mokutil);
@@ -413,6 +414,66 @@ sub configure_service {
     }
 }
 
+# Helper function to find, validate, and optionally unflatten the vmcore
+sub get_valid_vmcore {
+    # check that core dump exists and that it is not empty
+    assert_script_run('files=(/var/crash/*/vmcore) && test -s "${files[-1]}"', 240);
+
+    my $vmcore_glob = '/var/crash/*/vmcore';
+    my $vmcore = script_output("ls -1t $vmcore_glob | head -n1");
+
+    my $file_type = script_output("file $vmcore");
+    if ($file_type =~ /Flattened kdump compressed dump/i || $file_type =~ /:\s*data\s*$/i) {
+        record_info('makedumpfile', "Dump format reported as '$file_type'. Attempting to unflatten via -R");
+        my $unflatten_cmd;
+        if (!is_transactional) {
+            $unflatten_cmd = "makedumpfile -f -R ${vmcore}.unflattened < $vmcore";
+        }
+
+        my $ret = script_run($unflatten_cmd, 300);
+
+        if ($ret == 0) {
+            record_info('makedumpfile', 'Successfully unflattened vmcore.');
+            return "${vmcore}.unflattened";
+        } else {
+            record_info('makedumpfile', 'Unflattening failed (maybe not a flattened dump). Proceeding with original vmcore.');
+        }
+    }
+
+    return $vmcore;
+}
+
+# Dedicated function to validate makedumpfile's extraction and filtering capabilities
+sub test_makedumpfile {
+    my ($vmcore) = @_;
+    my $filtered_vmcore = "/tmp/filtered_vmcore";
+
+    # If called without arguments, find the valid vmcore automatically
+    $vmcore //= get_valid_vmcore();
+
+    # Allow overriding the dump level via openQA variables, defaulting to 31 (exclude all possible pages)
+    my $dump_level = get_var('MAKEDUMPFILE_DUMP_LEVEL', 31);
+
+    my $makedumpfile_dmesg_cmd;
+    my $makedumpfile_filter_cmd;
+
+    if (!is_transactional) {
+        # Added -f to dmesg extraction and defined the -d filtering command
+        $makedumpfile_dmesg_cmd = "makedumpfile -f --dump-dmesg $vmcore /tmp/extracted_dmesg.txt";
+        $makedumpfile_filter_cmd = "makedumpfile -f -d $dump_level $vmcore $filtered_vmcore";
+    }
+
+    record_info('makedumpfile', 'Testing makedumpfile --dump-dmesg');
+    assert_script_run($makedumpfile_dmesg_cmd, 300);
+    assert_script_run("grep -i 'Trigger a crash' /tmp/extracted_dmesg.txt");
+
+    record_info('makedumpfile', "Testing makedumpfile dump filtering with -d $dump_level");
+    assert_script_run($makedumpfile_filter_cmd, 600);    # Gave slightly higher timeout for parsing memory
+    assert_script_run("test -s $filtered_vmcore");    # Verify the new filtered file was created and isn't empty
+
+    return $filtered_vmcore;
+}
+
 #
 # Trigger kernel dump and check the core files.
 #
@@ -455,21 +516,23 @@ sub check_function {
 
     assert_script_run 'find /var/crash/';
 
-    if ($args{test_type} eq 'function') {
-        # check that core dump exists and that it is not empty
-        assert_script_run('files=(/var/crash/*/vmcore) && test -s "${files[-1]}"', 240);
+    my $vmlinux_glob = (is_sle("<16") || is_sle_micro("<6.0") || is_leap("<16.0"))
+      ? '/boot/vmlinux-$(uname -r)*'
+      : '/usr/lib/modules/$(uname -r)/vmlinux*';
+
+    if ($args{test_type} eq 'function' || $args{test_type} eq 'makedumpfile') {
+        my $vmcore = get_valid_vmcore();
+
+        if ($args{test_type} eq 'makedumpfile') {
+            $vmcore = test_makedumpfile();
+        }
 
         # check the core dump via the crash utility if possible
         my $crash_cmd;
-        my $vmcore_glob = '/var/crash/*/vmcore';
-        my $vmlinux_glob = (is_sle("<16") || is_sle_micro("<6.0") || is_leap("<16.0"))
-          ? '/boot/vmlinux-$(uname -r)*'
-          : '/usr/lib/modules/$(uname -r)/vmlinux*';
         if (!is_transactional) {
-            $crash_cmd = "echo exit | crash `ls -1t $vmcore_glob | head -n1` $vmlinux_glob";
+            $crash_cmd = "echo exit | crash `ls -1t $vmcore | head -n1` $vmlinux_glob";
         }
         elsif (!get_var('SKIP_KERNEL_DEBUGINFO')) {
-            my $vmcore = script_output("ls -1t $vmcore_glob");
             my $vmlinux = script_output("ls -1t $vmlinux_glob");
             my $debuginfo = determine_kernel_debuginfo_package;
             my $vmlinuxd = script_output("rpm -ql ${debuginfo} | grep vmlinux");
