@@ -49,10 +49,17 @@ sub get_host_resolv_conf {
     return \%conf;
 }
 
-# The network backend does not change during a run, so probe it once.
+# For a test run with only one version of operating system, the network backend
+# does not change during a run, so probing it once is reasonable. But for those
+# with multiple versions, probing it only once leads to error, for example, old
+# 15-SP7 uses wick which will be upgraded to 16.1 which uses NetworkManager in
+# upgrade scenario. Introducing argument 'probe' to indicate whether detection
+# should be done anyway and NetworkManager availability can be refreshed also.
 my $networkmanager;
 sub is_networkmanager {
-    return $networkmanager if defined $networkmanager;
+    my (%args) = @_;
+    $args{probe} //= 0;
+    return $networkmanager if (defined $networkmanager and !$args{probe});
     my $is_nm = (script_run('readlink /etc/systemd/system/network.service | grep NetworkManager') == 0);
     record_info('NetworkManager', (($is_nm) ? 'NetworkManager has been detected.' : 'NetworkManager has not been detected.'));
     return $networkmanager = $is_nm;
