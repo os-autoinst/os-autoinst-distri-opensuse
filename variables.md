@@ -373,6 +373,7 @@ PUBLIC_CLOUD_HDD2_TYPE | string | "" | If PUBLIC_CLOUD_ADDITIONAL_DISK_SIZE is s
 PUBLIC_CLOUD_IGNORE_EMPTY_REPO | boolean | false | Ignore empty maintenance update repos
 PUBLIC_CLOUD_IGNORE_UNREGISTERED | boolean | false | Ignore any failure related to the fact that system is unregistered.
 PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES | boolean | false | Ignore no rpm list changes in patch_and_reboot
+PUBLIC_CLOUD_REQUIRE_TEST_REPO_UPDATES | boolean | false | In patch_and_reboot, fail unless at least one installed package comes from the repos under test (MAINT_TEST_REPO, INCIDENT_REPO and *_TEST_REPOS). Without it, the test only fails if no package changed at all. PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES turns both failures into an info message.
 PUBLIC_CLOUD_IMAGE_ID | string | "" | The image ID we start the instance from
 PUBLIC_CLOUD_IMAGE_LOCATION | string | "" | The URL where the image gets downloaded from. The name of the image gets extracted from this URL.
 PUBLIC_CLOUD_IMAGE_PROJECT | string | "" | Google Compute Engine image project
