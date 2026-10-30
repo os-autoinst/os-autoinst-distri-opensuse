@@ -905,9 +905,10 @@ subtest '[ipaddr2_bastion_pubip] get invalid IP' => sub {
 
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     $ipaddr2->redefine(az_network_publicip_get => sub { return 'Invalid_IP_Galileo'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $res;
 
-    dies_ok { $res = ipaddr2_bastion_pubip() } 'ipaddr2_bastion_pubip get an invalid IP from az_network_publicip_get and died';
+    lives_ok { $res = ipaddr2_bastion_pubip() } 'ipaddr2_bastion_pubip does not die for an invalid IP from az_network_publicip_get';
 
     is($res, undef, 'Expect undef');
 };
