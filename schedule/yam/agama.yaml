@@ -18,3 +18,4 @@ schedule:
   - yam/validate/validate_snapshots
   - yam/validate/validate_registered_products
   - console/validate_repos
+  - yam/validate/validate_kernel_version

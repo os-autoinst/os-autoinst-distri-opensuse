@@ -22,3 +22,4 @@ schedule:
   - yam/validate/validate_packages
   - yam/validate/validate_immutable_mountpoints
   - yam/validate/validate_package_manager_immutable
+  - yam/validate/validate_kernel_version
