@@ -50,6 +50,19 @@ sub raise_postgres_start_timeout {
     return defined($ret) && $ret == 0;
 }
 
+# The shim carries cap_bpf,cap_perfmon,cap_dac_read_search,cap_sys_resource+ep.
+# The kernel refuses execve with EPERM when an effective file capability is
+# outside the bounding set, so snapperd.service (which restricts it) fails
+# with 203/EXEC. CapabilityBoundingSet= entries add up, so this extends the
+# upstream list.
+sub allow_shim_caps_for_snapperd {
+    return 0 if script_run('mkdir -p /etc/systemd/system/snapperd.service.d') != 0;
+    write_sut_file('/etc/systemd/system/snapperd.service.d/coverage_caps.conf',
+        "[Service]\nCapabilityBoundingSet=CAP_BPF CAP_PERFMON CAP_DAC_READ_SEARCH CAP_SYS_RESOURCE\n");
+    my $ret = eval { script_run('systemctl daemon-reload', timeout => 180) };
+    return defined($ret) && $ret == 0;
+}
+
 sub run {
     select_serial_terminal;
     # enable debug repos
@@ -120,10 +133,22 @@ sub run {
         }
     }
 
+    # devel:tools is only needed for coverage-tools and perf. Remove it so
+    # YaST-based tests do not stop on its key import dialog.
+    script_run('zypper rr devtools') if $repositories{devtools};
+
     # sets up the environment for coverage
     my $log_dir = '/var/coverage/data';
 
     assert_script_run "mkdir -m 0777 -p $log_dir";
+
+    if (grep { m{/snapper$} } @all_binaries) {
+        # Config and quota persist on disk, so prepare them without the
+        # daemon. The default config ships QGROUP="", so check the value.
+        my $config = script_run('test -f /etc/snapper/configs/root || snapper --no-dbus create-config /');
+        my $quota = script_run(q{grep -q '^QGROUP="[^"]\+"' /etc/snapper/configs/root || snapper --no-dbus setup-quota}, timeout => 300);
+        record_info('snapper setup', "config=$config quota=$quota", result => ($config || $quota) ? 'softfail' : 'ok');
+    }
 
     if ($gitref) {
         # build funkoverage from source instead of using the packaged coverage-tools.
@@ -170,6 +195,12 @@ sub run {
         else {
             record_info('postgres timeout', 'Failed to raise postgresql.service TimeoutStartSec', result => 'softfail');
         }
+    }
+
+    if (grep { m{/snapperd$} } @all_binaries) {
+        my $ok = allow_shim_caps_for_snapperd();
+        record_info('snapperd caps', $ok ? 'Added the shim capabilities to the snapperd.service bounding set' : 'Failed to add the snapperd.service drop-in',
+            result => $ok ? 'ok' : 'softfail');
     }
     # coverage_report runs even after a fatal failure; tell it there is data.
     set_var('COVERAGE_SETUP_DONE', 1);
