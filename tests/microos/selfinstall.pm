@@ -34,22 +34,13 @@ sub run {
         check_screen('slem-selfinstall-verify-drive', 350 / get_var('TIMEOUT_SCALE', 1));
     }
 
-    my $no_cd;
-    # workaround failed *kexec* execution on UEFI with SecureBoot
-    if (get_var('UEFI') && is_sle_micro('<5.4') && assert_screen('failed-to-kexec', 240)) {
-        record_soft_failure('bsc#1203896 - kexec fail in selfinstall with secureboot');
-        send_key 'ret';
-        eject_cd();
-        $no_cd = 1;
-    }
-
     # Before combustion 1.2, a reboot is necessary for firstboot configuration
     if (is_leap_micro('<6.0') || is_sle_micro('<6.0')) {
         wait_serial('reboot: Restarting system', 240) or die "SelfInstall image has not rebooted as expected";
         # Avoid booting into selfinstall again
-        eject_cd() unless $no_cd;
+        eject_cd();
         # Reboot again to avoid potential race conditions
-        send_key 'ctrl-alt-delete' unless $no_cd;
+        send_key 'ctrl-alt-delete';
         microos_login;
     } elsif (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
         # Check for the JeOS firstboot wizard on the serial terminal before
@@ -60,12 +51,12 @@ sub run {
         # equivalent check in jeos/firstrun.pm always fail (poo#204390).
         check_jeos_on_serial_terminal() unless (is_sle("<15") || is_s390x || check_var('JEOS_CHECK_SERIAL', '0'));
         wait_serial('The initial configuration', 180) or die "jeos-firstboot has not been reached";
-        eject_cd() unless ($no_cd || is_usb_boot);
+        eject_cd() unless (is_usb_boot);
         return 1;
     } else {
         microos_login;
         # The installed system is definitely up now, so the CD can be ejected
-        eject_cd() unless ($no_cd || is_usb_boot || is_ipxe_with_disk_image);
+        eject_cd() unless (is_usb_boot || is_ipxe_with_disk_image);
     }
 
     # Remove usb boot entry and empty usb disks to ensure installed system boots from hard disk

@@ -33,7 +33,7 @@ sub run {
             push @pkgs, 'cockpit-networkmanager';
         }
     } else {
-        if (is_microos || is_leap_micro('5.3+') || is_sle_micro('5.3+')) {
+        if (is_microos || is_leap_micro || is_sle_micro) {
             die sprintf('NetworkManager should be used by %s %s', get_var('DISTRI'), get_var('VERSION'));
         }
         if (script_run('rpm -q cockpit-wicked') != 0) {
