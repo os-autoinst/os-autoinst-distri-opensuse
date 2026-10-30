@@ -25,8 +25,9 @@ use Utils::Backends;
 use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_public_cloud is_transactional is_sle_micro is_jeos);
-use utils qw(zypper_call package_upgrade_check);
+use utils qw(zypper_call);
 use transactional qw(trup_call process_reboot);
+use security::gpg_utils 'check_libgcrypt';
 
 sub gpg_test {
     my ($key_size, $gpg_ver) = @_;
@@ -205,37 +206,7 @@ sub run {
     my ($gpg_version) = $gpg_version_output =~ /gpg \(GnuPG\) (\S+)/;
     record_info('gpg version', "Version of Current gpg package: $gpg_version");
 
-    # Libgcrypt and libgcrypt20-hmac version check
-    # Refer to poo#107509
-    my $pkg_list = {
-        libgcrypt20 => '1.9.0',
-        'libgcrypt20-hmac' => '1.9.0'
-    };
-    delete $pkg_list->{'libgcrypt20-hmac'} if is_sle('15-SP6+') || is_sle_micro('6.2+');
-
-    if (is_public_cloud() && check_var('BETA', '1')) {
-        if (zypper_call("in " . join(' ', keys %$pkg_list), exitcode => [0, 4]) == '4') {
-            record_info("Aborting", "The repositories are behind Public Cloud image. See bsc#1199312");
-            return 1;
-        }
-    } else {
-        if (is_transactional) {
-            trup_call('pkg install ' . join(' ', keys %$pkg_list));
-            process_reboot(trigger => 1);
-        } else {
-            zypper_call("in " . join(' ', keys %$pkg_list));
-        }
-    }
-
-    if (is_sle('>=15-sp4') || is_sle_micro) {
-        package_upgrade_check($pkg_list) unless (is_public_cloud() && check_var('BETA', '1'));
-    }
-    else {
-        foreach my $pkg_name (keys %$pkg_list) {
-            my $pkg_ver = script_output("rpm -q --qf '%{version}\n' --whatprovides $pkg_name");
-            record_info("$pkg_name version", "Version of Current package: $pkg_ver");
-        }
-    }
+    return 1 if check_libgcrypt();
 
     # GPG key generation and basic function testing with different key lengths
     # RSA keys may be between 1024 and 4096 only currently

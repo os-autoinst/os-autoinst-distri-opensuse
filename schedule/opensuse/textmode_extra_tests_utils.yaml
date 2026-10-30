@@ -57,7 +57,7 @@ schedule:
     - console/fwupd
     - console/ca_certificates_mozilla
     - console/oqa_agnostic/unzip_agnostic
-    - console/gpg
+    - console/oqa_agnostic/gpg_agnostic
     - console/rsync
     - console/shells
     - console/oqa_agnostic/sudo_agnostic

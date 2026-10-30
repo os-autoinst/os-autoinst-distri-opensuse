@@ -1,0 +1,45 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: gpg functional tests
+# desc: >
+#   Functional tests for GnuPG. Generates RSA keys in the 1024-4096 bit
+#   range (including the FIPS 1024-bit rejection), lists keys, encrypts and
+#   decrypts a file, creates and verifies a clear-signed file, and checks
+#   that reloading or restarting gpg-agent drops the passphrase cache. The
+#   passphrase is passed with loopback pinentry, so the test needs no
+#   needles and runs on the serial console.
+# steps:
+#   - check the FIPS state against GPG_EXPECT_FIPS when it is set
+#   - generate RSA keys with 1024, 2048, 3072 and 4096 bits
+#   - verify the FIPS 1024-bit key generation failure
+#   - encrypt and decrypt a file
+#   - create and verify a clear-signed file
+#   - reload and restart gpg-agent and verify the passphrase cache is dropped
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 15+, SLE 16+
+# tags: console gpg gnupg encryption signing fips
+# ---
+# METADATA_END
+
+# Standalone: build the layout described in the "Standalone use" section
+# of test_gpg.py, then run this script as root.
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_gpg.py gpg_common.py conftest.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+ensure_command_available gpg
+
+rc=0
+pytest -v --tb=short test_gpg.py --junitxml=results.xml || rc=$?
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc
