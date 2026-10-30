@@ -87,9 +87,9 @@ use constant PING_CMD => 'ping -c 3';
 # 30 s is the minimum allowed value: the slowest observed call (ping -c 3) took 3.3 s,
 # so the margin is far larger than needed.
 use constant BASTION_SSH_TIMEOUT => 30;
-# Time limit, in seconds and scaled by TIMEOUT_SCALE, for each scp used to download the logs from the internal VMs.
+# Time limit, in seconds, for each scp used to download the logs from the internal VMs.
 use constant SCP_TIMEOUT => 30;
-# Time limit, in seconds and scaled by TIMEOUT_SCALE, for each upload_logs in ipaddr2_logs_collect.
+# Time limit, in seconds, for each upload_logs in ipaddr2_logs_collect.
 use constant UPLOAD_TIMEOUT => 90;
 
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
@@ -2727,21 +2727,31 @@ Collect logs from the ipaddr2 cluster.
 
 The function does not die for the failure of a single log:
 each failure is recorded with record_info and the collection goes on with the next log.
+If the bastion is not reachable, the logs on the internal VMs are skipped
+and only the logs on the worker are collected.
 Return 1 if all the logs are collected, 0 otherwise.
 
 =cut
 
 sub ipaddr2_logs_collect(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    # No die, let the test run
-    return 0 unless $args{bastion_ip};
-    my $ret = ipaddr2_ssh_bastion_script_run(
-        bastion_ip => $args{bastion_ip},
-        cmd => 'true');
-    return 0 if $ret;
     $args{no_supportconfig} //= 0;
-    my $all_ok = 1;
-    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+    my $remote_ok = 0;
+    if (!$args{bastion_ip}) {
+        record_info('Logs skip', 'No bastion public IP: skip the logs on the internal VMs', result => 'fail');
+    } else {
+        my $ret = ipaddr2_ssh_bastion_script_run(
+            bastion_ip => $args{bastion_ip},
+            cmd => 'true');
+        if ($ret) {
+            record_info('Logs skip', "Bastion $args{bastion_ip} not reachable, rc:$ret: skip the logs on the internal VMs", result => 'fail');
+        } else {
+            $remote_ok = 1;
+        }
+    }
+    my $all_ok = $remote_ok;
+    # Only compose it when the bastion IP is known
+    my $bastion_ssh_addr = $remote_ok ? ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}) : undef;
     my $vm_addr;
     my $worker_tmp_dir;
     my $scp_ret;
@@ -2758,6 +2768,7 @@ sub ipaddr2_logs_collect(%args) {
         next if ($args{no_supportconfig} && defined $log->{name} && $log->{name} eq 'supportconfig');
 
         if (defined $log->{remote_log} && $log->{remote_log} == 1) {
+            next unless $remote_ok;
             $timeout = $log->{timeout} // 300;
             # Iterate through each remote VM to generate and collect logs.
             foreach my $id (1 .. 2) {

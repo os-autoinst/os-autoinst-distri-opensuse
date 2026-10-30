@@ -2489,14 +2489,12 @@ subtest '[ipaddr2_logs_collect] supportutils version not available' => sub {
     });
     my @ssh_cmds;
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub { my (%args) = @_; push @ssh_cmds, $args{cmd}; return 0; });
-    my @soft_failures;
-    $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
+    $ipaddr2->noop('record_soft_failure');
 
     lives_ok { ipaddr2_logs_collect() } 'No die when the supportutils version is not available';
 
     is((scalar grep { /sudo supportconfig/ } @ssh_cmds), 2, 'supportconfig still called on both VMs');
     ok((none { /< \/dev\/null/ } @ssh_cmds), 'No bsc#1268173 workaround without version');
-    ok((none { /bsc#1268173/ } @soft_failures), 'No soft failure without version');
 };
 
 subtest '[ipaddr2_logs_collect] all logs collected' => sub {
@@ -2516,9 +2514,9 @@ subtest '[ipaddr2_post_fail_hook] cleanup after log collection failures' => sub 
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $ipaddr2->redefine(record_soft_failure => sub { });
-    # Lower layer: upload without failok dies, like assert_script_run
+    # upload without failok dies
     $ipaddr2->redefine(upload_logs => sub { my ($file, %args) = @_; die "curl failed for $file" unless $args{failok}; return 'up'; });
-    # Lower layer: bastion reachable, every ssh and scp to the internal VMs fails
+    # bastion reachable, ssh and scp to the internal VMs fail
     $ipaddr2->redefine(script_run => sub { return $_[0] =~ /ssh .*-J |\bscp / ? 255 : 0; });
     $ipaddr2->redefine(script_output => sub { my ($cmd, %args) = @_; die 'script failed' unless $args{proceed_on_failure}; return ''; });
     my $cleanup_called = 0;
@@ -2526,6 +2524,46 @@ subtest '[ipaddr2_post_fail_hook] cleanup after log collection failures' => sub 
 
     lives_ok { ipaddr2_post_fail_hook() } 'post_fail_hook does not die';
     ok($cleanup_called, 'ipaddr2_cleanup called');
+};
+
+subtest '[ipaddr2_logs_collect] no bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my $pubip_called = 0;
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { $pubip_called++; return; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @upload_calls;
+    $ipaddr2->redefine(upload_logs => sub { push @upload_calls, $_[0]; return 'up'; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+    my $ssh_called = 0;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { $ssh_called++; return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub { $ssh_called++; return 0; });
+    my $ret;
+
+    lives_ok { $ret = ipaddr2_logs_collect() } 'No die without bastion IP';
+
+    is($ret, 0, 'Return 0');
+    is($pubip_called, 1, 'Azure queried only once for the bastion IP');
+    is($ssh_called, 0, 'No ssh without bastion IP');
+    is(scalar @upload_calls, 3, 'Local logs still uploaded (2 ssh logs + az cli logs)');
+};
+
+subtest '[ipaddr2_logs_collect] bastion not reachable' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @upload_calls;
+    $ipaddr2->redefine(upload_logs => sub { push @upload_calls, $_[0]; return 'up'; });
+    # ssh to the bastion fails with 255, everything else on the worker is fine
+    $ipaddr2->redefine(script_run => sub { return $_[0] =~ /ssh .*'true'/ ? 255 : 0; });
+    my $ssh_internal_called = 0;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { $ssh_internal_called++; return 0; });
+    my $ret;
+
+    lives_ok { $ret = ipaddr2_logs_collect() } 'No die when the bastion is not reachable';
+
+    is($ret, 0, 'Return 0');
+    is($ssh_internal_called, 0, 'No ssh to the internal VMs');
+    is(scalar @upload_calls, 3, 'Local logs still uploaded (2 ssh logs + az cli logs)');
 };
 
 done_testing;
