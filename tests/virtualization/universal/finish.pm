@@ -16,6 +16,8 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 
 sub run {
+    # Reconnect consoles before using SSH sessions left idle during GUI tests.
+    reset_consoles;
     # Switch to root console to prevent test issues from the desktop environment
     # See https://progress.opensuse.org/issues/93204
     select_console('root-console');

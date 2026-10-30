@@ -70,9 +70,9 @@ sub config_ssh_client {
 #into default kvm environment after upgrading xen host.
 #AFTER_UPGRADE indicates whether the whole upgrade process finishes.
 sub login_to_console {
-    my ($self, $timeout, $counter) = @_;
-    $timeout //= 5;
-    $counter //= 240;
+    my ($self, %args) = @_;
+    my $timeout = $args{timeout} // 5;
+    my $counter = $args{counter} // 240;
 
     if (is_s390x) {
         #Switch to s390x lpar console
@@ -82,6 +82,9 @@ sub login_to_console {
     }
 
     reset_and_select_console();
+    # The installer can still show a login prompt while it shuts down.
+    # This host profile stops at GRUB, so wait before sending Enter.
+    assert_screen('grub2', 180) if $args{wait_for_grub};
     if (check_var('PERF_KERNEL', '1') or check_var('CPU_BUGS', '1') or check_var('VT_PERF', '1')) {
         if (get_var("XEN") && check_var('CPU_BUGS', '1')) {
             assert_screen([qw(pxe-qa-net-mitigation qa-net-selection)], 90);
@@ -251,8 +254,8 @@ sub reset_and_select_console {
 }
 
 sub run {
-    my $self = shift;
-    $self->login_to_console;
+    my ($self, $run_args) = @_;
+    $self->login_to_console(wait_for_grub => $run_args && $run_args->{wait_for_grub});
 
     config_ssh_client if get_var('VIRT_AUTOTEST') and !is_agama and !get_var('AUTOYAST') and !is_s390x;
     # Make the primary interface always be the default route
