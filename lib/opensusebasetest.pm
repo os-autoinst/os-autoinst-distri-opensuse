@@ -1110,7 +1110,10 @@ sub post_fail_hook {
 
 sub test_flags {
     # no_rollback is needed for ssh-tunnel and fatal must be explicitly defined
-    return is_public_cloud() ? {no_rollback => 1, fatal => 0} : {};
+    # A coverage run must not roll back: that would delete the coverage data
+    # collected since the last milestone.
+    return {no_rollback => 1, fatal => 0} if is_public_cloud() || get_var('BINARY_COVERAGE');
+    return {};
 }
 
 1;
