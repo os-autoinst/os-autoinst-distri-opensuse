@@ -38,8 +38,14 @@ sub run {
         assert_screen(['windows-edge-welcome', 'windows-desktop', 'windows-edge-decline', 'networks-popup-be-discoverable', 'windows-start-menu', 'windows-qemu-drivers', 'windows-setup-browser', 'windows-user-acount-ctl-yes'], timeout => 30);
     }
 
-    # Verify that WSL has been properly installed during OS deployment
+    # Install WSL from the GitHub release page. "wsl --install" and "wsl --update" use the GitHub API,
+    # which fails with 403 when the rate limit of the IP address of the workers is used up.
     $self->open_powershell_as_admin;
+    my $tag_option = get_var('WSL_RELEASE_TAG') ? ' -Tag ' . get_var('WSL_RELEASE_TAG') : '';
+    $self->run_in_powershell(cmd => 'Invoke-WebRequest -Uri "' . data_url('wsl/install_wsl.ps1') . '" -OutFile "$env:TEMP\\install_wsl.ps1" -UseBasicParsing');
+    $self->run_in_powershell(cmd => 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:TEMP\\install_wsl.ps1"' . $tag_option, timeout => 900);
+
+    # Verify that WSL has been properly installed during OS deployment
     $self->run_in_powershell(
         cmd => '$port.WriteLine($(wsl --version)); $port.WriteLine("WSL-CHECK-END")',
         code => sub {
