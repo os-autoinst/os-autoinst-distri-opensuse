@@ -1048,6 +1048,44 @@ sub _pick_console_for_logs {
     die("Could not switch to any console for log collection, manual investigation might be needed: $@");
 }
 
+sub _cleanup_coverage_leftovers {
+    my ($self) = @_;
+    return unless get_var('BINARY_COVERAGE');
+
+    # A failed module may have left a package manager running in the
+    # foreground. Interrupt the current console, then clean up from
+    # log-console instead of typing into the stuck process.
+    eval { is_serial_terminal() ? type_string("\cc") : send_key('ctrl-c') };
+    eval { select_log_console };
+    if ($@) {
+        record_info('coverage cleanup', "no log-console: $@", result => 'fail');
+        return;
+    }
+    # The shim execs the real zypper as the main process (the tracer is a
+    # funkoverage-shim child), so -x zypper still matches it.
+    for my $cmd ('pkill -TERM -x zypper', 'pkill -TERM -x packagekitd') {
+        eval { script_run($cmd, timeout => 60) };
+        record_info('coverage cleanup', "$cmd: $@", result => 'fail') if $@;
+    }
+    eval { script_run('timeout 30 sh -c "while pgrep -x zypper >/dev/null; do sleep 1; done"', timeout => 60) };
+    # SIGKILL can leave a half-done rpm transaction; try TERM and wait first
+    for my $cmd ('pkill -KILL -x zypper', 'pkill -KILL -x packagekitd') {
+        eval { script_run($cmd, timeout => 60) };
+        record_info('coverage cleanup', "$cmd: $@", result => 'fail') if $@;
+    }
+    # quit_packagekit masks packagekit; pkcon unmasks it again when needed
+    eval { quit_packagekit };
+    record_info('coverage cleanup', "quit_packagekit: $@", result => 'fail') if $@;
+}
+
+sub run_post_fail {
+    my ($self, $msg) = @_;
+    # Run before any module's post_fail_hook, which may type into a stuck
+    # console and die before reaching SUPER::post_fail_hook.
+    $self->_cleanup_coverage_leftovers;
+    return $self->SUPER::run_post_fail($msg);
+}
+
 =head2 post_fail_hook
 
  post_fail_hook();
