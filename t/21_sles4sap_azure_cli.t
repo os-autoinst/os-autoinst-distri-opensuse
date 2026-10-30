@@ -14,19 +14,19 @@ subtest '[az_img_from_vhd_create]' => sub {
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
-    az_img_from_vhd_create(resource_group => 'Mycenaeans', name => 'Agamemnon', source => 'TrojanHorse.vhd');
+    az_img_from_vhd_create(resource_group => 'Arlecchino', name => 'Zanni', source => 'BeppeNappa.vhd');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az image create/ } @calls), 'command creates image');
-    ok((any { /--resource-group Mycenaeans/ } @calls), 'RG is correctly used');
-    ok((any { /-n Agamemnon/ } @calls), 'name is correctly used');
-    ok((any { /--source TrojanHorse.vhd/ } @calls), 'source is correctly used');
+    ok((any { /--resource-group Arlecchino/ } @calls), 'RG is correctly used');
+    ok((any { /-n Zanni/ } @calls), 'name is correctly used');
+    ok((any { /--source BeppeNappa.vhd/ } @calls), 'source is correctly used');
 };
 
 subtest '[az_group_create] missing args' => sub {
-    dies_ok { az_img_from_vhd_create(name => 'Agamemnon', source => 'TrojanHorse.vhd'); } 'Die for missing argument resource_group';
-    dies_ok { az_img_from_vhd_create(recource_group => 'Mycenaeans', source => 'TrojanHorse.vhd') } 'Die for missing argument name';
-    dies_ok { az_img_from_vhd_create(recource_group => 'Mycenaeans', name => 'Agamemnon') } 'Die for missing argument source';
+    dies_ok { az_img_from_vhd_create(name => 'Arlecchino', source => 'BeppeNappa.vhd'); } 'Die for missing argument resource_group';
+    dies_ok { az_img_from_vhd_create(recource_group => 'Arlecchino', source => 'BeppeNappa.vhd') } 'Die for missing argument name';
+    dies_ok { az_img_from_vhd_create(recource_group => 'Arlecchino', name => 'Zanni') } 'Die for missing argument source';
 };
 
 subtest '[az_group_create]' => sub {
@@ -87,6 +87,40 @@ subtest '[az_group_name_get] query' => sub {
     ok((any { /--query.*MASCHERA/ } @calls), 'Correct composition of the query argument');
 };
 
+subtest '[az_group_exists] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(script_output => sub {
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'true' if grep /out.json/, $_[0]; });
+
+    az_group_exists(name => 'Pantalone');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /group exists/ } @calls), 'Correct composition of the main command');
+    ok((grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"'), 'Correct argument about resource group name');
+};
+
+subtest '[az_group_exists] Test return values' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { return 0; });
+    my @passing_values = ('true', 'false');
+
+    for my $value (@passing_values) {
+        $azcli->redefine(script_output => sub {
+                return 'out.json' if grep /az.json/, $_[0];
+                return $value if grep /out.json/, $_[0]; });
+        ok(JSON::PP::is_bool(az_group_exists(name => 'Pantalone')), "Pass with boolean value '$value' returned.");
+    }
+    $azcli->redefine(script_output => sub {
+            return 'out.json' if grep /az.json/, $_[0];
+            return 'Valore non valido' if grep /out.json/, $_[0]; });
+    dies_ok { az_group_exists(name => 'Pantalone') } 'Fail with non boolean value returned';
+};
+
 subtest '[az_group_delete]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
@@ -132,13 +166,12 @@ subtest '[az_network_vnet_create] vnet snet' => sub {
     ok((any { /--subnet-prefixes/ } @calls), 'Present --subnet-prefixes argument');
 };
 
-subtest '[az_network_vnet_create] die on invalid IP' => sub {
+subtest '[az_network_vnet_create] Invalid patterns that NetAddr::IP->new cannot fix' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
     foreach my $arg (qw(address_prefixes subnet_prefixes)) {
-        note('---------------------------- Invalid patterns that NetAddr::IP->new cannot fix');
         foreach my $test_pattern (qw(192.168..0/16 192.068.0.0/16 1192.168.0.0/16)) {
             dies_ok { az_network_vnet_create(
                     resource_group => 'Arlecchino',
@@ -147,9 +180,18 @@ subtest '[az_network_vnet_create] die on invalid IP' => sub {
                     snet => 'Colombina',
                     $arg => $test_pattern) } "Die for invalid IP $test_pattern as argument $arg";
             ok scalar @calls == 0, "No call to assert_script_run, croak before to run the command for invalid IP $test_pattern as argument $arg";
+            note("\n  -->  " . join("\n  -->  ", @calls));
             @calls = ();
         }
-        note('---------------------------- Invalid patterns that NetAddr::IP->new can fix');
+    }
+};
+
+subtest '[az_network_vnet_create] Invalid patterns that NetAddr::IP->new can fix' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    foreach my $arg (qw(address_prefixes subnet_prefixes)) {
         foreach my $test_pattern (qw(192.168.0/16 192.168.000.000/16 192.168.0.0)) {
             az_network_vnet_create(
                 resource_group => 'Arlecchino',
@@ -157,11 +199,20 @@ subtest '[az_network_vnet_create] die on invalid IP' => sub {
                 vnet => 'Pantalone',
                 snet => 'Colombina',
                 $arg => $test_pattern);
-            #ok scalar @calls == 0, "No call to assert_script_run, croak before to run the command for invalid IP $test_pattern as argument $arg";
+            ok scalar @calls == 1, "assert_script_run called for pattern $test_pattern as argument $arg";
             note("\n NetAddr transforms $test_pattern in -->  " . join("\n  -->  ", @calls));
+            note("\n  -->  " . join("\n  -->  ", @calls));
             @calls = ();
         }
-        note('---------------------------- Valid patterns');
+    }
+};
+
+subtest '[az_network_vnet_create] valid patterns' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    foreach my $arg (qw(address_prefixes subnet_prefixes)) {
         foreach my $test_pattern (qw(192.168.0.0/16 192.0.0.0/16 2.168.0.0/16 10.4.104.0/21)) {
             az_network_vnet_create(
                 resource_group => 'Arlecchino',
@@ -170,6 +221,7 @@ subtest '[az_network_vnet_create] die on invalid IP' => sub {
                 snet => 'Colombina',
                 $arg => $test_pattern);
             ok scalar @calls > 0, "Some calls to assert_script_run for valid IP $test_pattern as argument $arg";
+            note("\n  -->  " . join("\n  -->  ", @calls));
             @calls = ();
         }
     }
@@ -194,9 +246,11 @@ subtest '[az_network_nsg_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_network_nsg_create(
         resource_group => 'Arlecchino',
         name => 'Brighella');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az network nsg create/ } @calls), 'Correct composition of the main command');
 };
@@ -205,11 +259,13 @@ subtest '[az_network_nsg_rule_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_network_nsg_rule_create(
         resource_group => 'Arlecchino',
         nsg => 'Brighella',
         name => 'Pantalone',
         port => 22);
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az network nsg rule create/ } @calls), 'Correct composition of the main command');
 };
@@ -218,9 +274,11 @@ subtest '[az_network_publicip_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_network_publicip_create(
         resource_group => 'Arlecchino',
         name => 'Truffaldino');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az network public-ip create/ } @calls), 'Correct composition of the main command');
     ok((none { /allocation-method/ } @calls), 'No argument --allocation-method');
@@ -231,11 +289,13 @@ subtest '[az_network_publicip_create] with optional arguments' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_network_publicip_create(
         resource_group => 'Arlecchino',
         name => 'Truffaldino',
         allocation_method => 'Static',
         zone => 'Venezia Mestre');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /--allocation-method Static/ } @calls), 'Argument --allocation-method');
     ok((any { /--zone Venezia Mestre/ } @calls), 'Argument --zone');
@@ -312,7 +372,7 @@ subtest '[az_network_publicip_get] timeout' => sub {
     is $run_args{timeout}, 42, 'Pass timeout to az / script_run';
 };
 
-subtest '[az_network_publicip_get] return undef' => sub {
+subtest '[az_network_publicip_get] return undef when script_run fails (non-zero exit code e.g. ResourceNotFound)' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -332,15 +392,53 @@ subtest '[az_network_publicip_get] return undef' => sub {
     $azcli->redefine(script_run => sub {
             push @calls, shift;
             return 3; });
+
     is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), undef, 'Return undef on command failure';
+
     note("\n  -->  " . join("\n  -->  ", @calls));
+};
+
+subtest '[az_network_publicip_get] return undef when script_run times out' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $azcli->redefine(assert_script_run => sub {
+            push @calls, shift;
+            return 0;
+    });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az\.json/, $_[0];
+            return 'err.log' if grep /az\.err/, $_[0];
+            return '"10.0.0.1"' if grep /out\.json/, $_[0];
+            return '';
+    });
 
     # Return undef when script_run times out (returns undef)
     $azcli->redefine(script_run => sub {
             push @calls, shift;
             return undef; });
+
     is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), undef, 'Return undef on timeout';
+
     note("\n  -->  " . join("\n  -->  ", @calls));
+};
+
+subtest '[az_network_publicip_get] return undef when command output is empty or whitespace' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $azcli->redefine(assert_script_run => sub {
+            push @calls, shift;
+            return 0;
+    });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'out.json' if grep /az\.json/, $_[0];
+            return 'err.log' if grep /az\.err/, $_[0];
+            return '"10.0.0.1"' if grep /out\.json/, $_[0];
+            return '';
+    });
 
     # Return undef when command output is empty or whitespace
     $azcli->redefine(script_run => sub {
@@ -352,7 +450,9 @@ subtest '[az_network_publicip_get] return undef' => sub {
             return '   ' if grep /out\.json/, $_[0];
             return '';
     });
+
     is az_network_publicip_get(resource_group => 'Arlecchino', name => 'Truffaldino'), undef, 'Return undef on empty output';
+
     note("\n  -->  " . join("\n  -->  ", @calls));
 };
 
@@ -414,6 +514,7 @@ subtest '[az_network_lb_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_network_lb_create(
         resource_group => 'Arlecchino',
         name => 'Truffaldino',
@@ -421,6 +522,7 @@ subtest '[az_network_lb_create]' => sub {
         snet => 'Colombina',
         backend => 'Smeraldina',
         frontend_ip_name => 'Momolo');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az network lb create/ } @calls), 'Correct composition of the main command');
 };
@@ -898,9 +1000,11 @@ subtest '[az_nic_get_id]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Eugenia'; });
+
     my $res = az_nic_get_id(
         resource_group => 'Arlecchino',
         name => 'Truffaldino');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az vm show/ } @calls), 'Correct composition of the main command');
     ok(($res eq 'Eugenia'), 'Correct return');
@@ -910,8 +1014,10 @@ subtest '[az_nic_name_get]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Eugenia'; });
+
     my $res = az_nic_name_get(
         nic_id => 'Fabrizio');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az network nic show/ } @calls), 'Correct composition of the main command');
     ok((any { /--query.*name/ } @calls), 'Correct filter');
@@ -934,6 +1040,7 @@ subtest '[az_nic_create]' => sub {
         subnet => 'Colombina',
         nsg => 'Pantalone',
         pubip_name => 'Ottone');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az network nic create/ } @calls), 'Correct composition of the main command');
 };
@@ -942,8 +1049,10 @@ subtest '[az_ipconfig_name_get]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Eugenia'; });
+
     my $res = az_ipconfig_name_get(
         nic_id => 'Fabrizio');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az network nic show/ } @calls), 'Correct composition of the main command');
     ok((any { /--query.*ipConfigurations.*name/ } @calls), 'Correct filter');
@@ -1042,7 +1151,8 @@ subtest '[az_vm_diagnostic_log_enable]' => sub {
             return 'http://storage/Truffaldino'; });
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; });
 
-    az_vm_diagnostic_log_enable(resource_group => 'Arlecchino',
+    az_vm_diagnostic_log_enable(
+        resource_group => 'Arlecchino',
         storage_account => 'Pantalone',
         vm_name => 'Pulcinella');
 
@@ -1355,6 +1465,7 @@ subtest '[az_resource_list] Check return values' => sub {
             return '["Carlo","Goldoni"]' if grep /out.json/, $_[0];
     });
     $azcli->redefine(script_run => sub { return 0 });
+
     my $output = az_resource_list();
 
     note("\n --> " . join("\n --> ", join(' ', @$output)));
@@ -1469,14 +1580,14 @@ subtest '[az_storage_blob_delete]' => sub {
     my $return_value = az_storage_blob_delete(
         container_name => 'Arlecchino',
         storage_account_name => 'Pantalone',
-        name => 'blobfilename',
+        name => 'Frittellino',
     );
 
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /storage blob delete/ } @calls), 'Correct composition of the main command');
     ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
     ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
-    ok(grep(/--name blobfilename/, @calls), 'Check for argument "--name"');
+    ok(grep(/--name Frittellino/, @calls), 'Check for argument "--name"');
 };
 
 subtest '[az_storage_blob_list]' => sub {
@@ -1641,38 +1752,6 @@ subtest '[az_keyvault_secret_show] Calling with "name" and "vault_name" argument
     is $result, 'SUper$ecretStuffAnD_even_m0re_secret$tuFF', 'Decode JSON output';
 };
 
-subtest '[az_group_exists] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->noop('assert_script_run');
-    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
-    $azcli->redefine(script_output => sub {
-            return 'out.json' if grep /az.json/, $_[0];
-            return 'true' if grep /out.json/, $_[0]; });
-    az_group_exists(name => 'Pantalone');
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /group exists/ } @calls), 'Correct composition of the main command');
-    ok((grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"'), 'Correct argument about resource group name');
-};
-
-subtest '[az_group_exists] Test return values' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    $azcli->noop('assert_script_run');
-    $azcli->redefine(script_run => sub { return 0; });
-    my @passing_values = ('true', 'false');
-
-    for my $value (@passing_values) {
-        $azcli->redefine(script_output => sub {
-                return 'out.json' if grep /az.json/, $_[0];
-                return $value if grep /out.json/, $_[0]; });
-        ok(JSON::PP::is_bool(az_group_exists(name => 'Pantalone')), "Pass with boolean value '$value' returned.");
-    }
-    $azcli->redefine(script_output => sub {
-            return 'out.json' if grep /az.json/, $_[0];
-            return 'Valore non valido' if grep /out.json/, $_[0]; });
-    dies_ok { az_group_exists(name => 'Pantalone') } 'Fail with non boolean value returned';
-};
-
 subtest '[az_nic_list] Compose command' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
@@ -1691,10 +1770,10 @@ subtest '[az_nic_list] Optional args' => sub {
     my @calls;
     $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
 
-    az_nic_list(resource_group => 'Pantalone', query => '[].calzini');
+    az_nic_list(resource_group => 'Pantalone', query => '[].Scapino');
 
     note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/--query "\[].calzini"/, @calls), 'Check for optional argument "--query"');
+    ok(grep(/--query "\[].Scapino"/, @calls), 'Check for optional argument "--query"');
 };
 
 subtest '[az_network_vnet_show] Compose command' => sub {
@@ -1704,12 +1783,12 @@ subtest '[az_network_vnet_show] Compose command' => sub {
     $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azcli->redefine(script_output => sub { return '[]' if grep /out.json/, $_[0]; });
 
-    az_network_vnet_show(resource_group => 'Pantalone', name => 'calzini');
+    az_network_vnet_show(resource_group => 'Pantalone', name => 'Sandrone');
 
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az network vnet show/ } @calls), 'Correct composition of the main command');
     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
+    ok(grep(/--name Sandrone/, @calls), 'Check for argument "--name"');
 };
 
 subtest '[az_network_vnet_show] Optional arg' => sub {
@@ -1719,10 +1798,10 @@ subtest '[az_network_vnet_show] Optional arg' => sub {
     $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azcli->redefine(script_output => sub { return '[]' if grep /out.json/, $_[0]; });
 
-    az_network_vnet_show(resource_group => 'Pantalone', name => 'calzini', query => 'id');
+    az_network_vnet_show(resource_group => 'Pantalone', name => 'Sandrone', query => 'MeoPatacca');
 
     note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/--query "id"/, @calls), 'Check for argument "--query"');
+    ok(grep(/--query "MeoPatacca"/, @calls), 'Check for argument "--query"');
 };
 
 subtest '[az_network_dns_zone_create] Compose command' => sub {
@@ -1734,12 +1813,12 @@ subtest '[az_network_dns_zone_create] Compose command' => sub {
             push @calls, $_[0];
             return '[]' if grep /out.json/, $_[0]; });
 
-    az_network_dns_zone_create(resource_group => 'Pantalone', name => 'calzini');
+    az_network_dns_zone_create(resource_group => 'Pantalone', name => 'Rosaura');
 
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az network private-dns zone create/ } @calls), 'Correct composition of the main command');
     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
+    ok(grep(/--name Rosaura/, @calls), 'Check for argument "--name"');
 };
 
 subtest '[az_network_dns_zone_delete] Compose command' => sub {
@@ -1751,12 +1830,12 @@ subtest '[az_network_dns_zone_delete] Compose command' => sub {
             push @calls, $_[0];
             return '[]' if grep /out.json/, $_[0]; });
 
-    az_network_dns_zone_delete(resource_group => 'Pantalone', zone_name => 'calzini');
+    az_network_dns_zone_delete(resource_group => 'Pantalone', zone_name => 'Rosaura');
 
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az network private-dns zone delete/ } @calls), 'Correct composition of the main command');
     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
+    ok(grep(/--name Rosaura/, @calls), 'Check for argument "--name"');
     ok(grep(/--yes/, @calls), 'Autoapprove option "--yes"');
 };
 
@@ -1771,16 +1850,16 @@ subtest '[az_network_dns_add_record] Compose command' => sub {
 
     az_network_dns_add_record(
         resource_group => 'Pantalone',
-        zone_name => 'opensuse.org',
-        record_name => 'openqa',
+        zone_name => 'Tartaglia',
+        record_name => 'Meneghino',
         ip_addr => '192.168.1.5'
     );
 
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az.*network private-dns record-set a add-record/ } @calls), 'Correct composition of the main command');
     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
-    ok(grep(/--record-set-name openqa/, @calls), 'Check for argument "--record-set-name"');
+    ok(grep(/--zone-name Tartaglia/, @calls), 'Check for argument "--zone-name"');
+    ok(grep(/--record-set-name Meneghino/, @calls), 'Check for argument "--record-set-name"');
     ok(grep(/--ipv4-address 192.168.1.5/, @calls), 'Check for argument "--ipv4-address"');
 };
 
@@ -1795,7 +1874,7 @@ subtest '[az_network_dns_link_create] Compose command' => sub {
 
     az_network_dns_link_create(
         resource_group => 'Pantalone',
-        zone_name => 'opensuse.org',
+        zone_name => 'Tartaglia',
         vnet => 'vnet_rg',
         name => 'link_to_rg_vnet'
     );
@@ -1803,7 +1882,7 @@ subtest '[az_network_dns_link_create] Compose command' => sub {
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az.*network private-dns link vnet create/ } @calls), 'Correct composition of the main command');
     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
+    ok(grep(/--zone-name Tartaglia/, @calls), 'Check for argument "--zone-name"');
     ok(grep(/--virtual-network vnet_rg/, @calls), 'Check for argument "--virtual-network"');
     ok(grep(/--name link_to_rg_vnet/, @calls), 'Check for argument "--name"');
     ok(grep(/--registration-enabled false/, @calls), 'Check for argument "--auto-registration"');
@@ -1921,8 +2000,8 @@ subtest '[az_network_dns_zone_delete] Always failok and return the az() result' 
 subtest '[az_network_dns_zones_cleanup] retry zone deletion refused because of nested resources' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->noop('record_info');
     $azcli->redefine(az_network_dns_zone_list => sub { return ['calzini', 'camicia']; });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $azcli->redefine(az_network_dns_zone_delete => sub {
             my %args = @_;
             push @calls, $args{zone_name};
@@ -1943,8 +2022,8 @@ subtest '[az_network_dns_zones_cleanup] give up and keep the original error' => 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my $attempts = 0;
     my $res = {rc => 1, output => {}, error => $az_dns_nested_stderr};
-    $azcli->noop('record_info');
-    $azcli->redefine(az_network_dns_zone_list => sub { return ['calzini']; });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $azcli->redefine(az_network_dns_zone_list => sub { return ['Pulcinella']; });
     $azcli->redefine(az_network_dns_zone_delete => sub { $attempts++; return $res; });
 
     my $start_time = time();
@@ -1976,7 +2055,7 @@ subtest '[az_network_dns_zones_cleanup] retry is driven by the real az() stderr'
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my ($last_az, $stderr, $zone_deletions) = ('', '', 0);
     my @rm;
-    $azcli->noop('record_info');
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $azcli->redefine(assert_script_run => sub { push @rm, $_[0] if $_[0] =~ /^rm /; return; });
     $azcli->redefine(script_run => sub {
             $last_az = $_[0];
@@ -1988,7 +2067,7 @@ subtest '[az_network_dns_zones_cleanup] retry is driven by the real az() stderr'
             return '/tmp/az.err' if $_[0] =~ /mktemp --suffix _az.err/;
             return '/tmp/az.json' if $_[0] =~ /mktemp --suffix _az.json/;
             return $stderr if $_[0] =~ /cat \/tmp\/az.err/;
-            return $last_az =~ /zone list/ ? '["calzini"]' : ''; });
+            return $last_az =~ /zone list/ ? '["Pulcinella"]' : ''; });
 
     lives_ok { az_network_dns_zones_cleanup(resource_group => 'Pantalone') } 'Zone deletion is retried after the Azure refusal';
     is($zone_deletions, 2, 'Zone deleted at second attempt');
@@ -2058,7 +2137,7 @@ subtest '[az_*] pathological tags' => sub {
             pathological => ['a' x 129 . '=Colombina']},
         az_disk_create => {args => {resource_group => 'Arlecchino', name => 'Pantalone', size_gb => 42}},
         az_network_dns_zone_create => {
-            args => {resource_group => 'Arlecchino', name => 'calzini'},
+            args => {resource_group => 'Arlecchino', name => 'Pulcinella'},
             pathological => ['1Pantalone=Colombina', 'Panta.lone=Colombina', 'Panta-lone=Colombina',
                 join(' ', map { "Arlecchino$_=Colombina" } 1 .. 16)]},
         az_resource_tag => {args => {resource_ids => ['/sub/A']}, array_tags => 1},
