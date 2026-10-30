@@ -6,8 +6,6 @@
 # Summary: Library wrapper around some az cli commands.
 
 package sles4sap::azure_cli;
-use strict;
-use warnings FATAL => 'all';
 use Mojo::Base -signatures;
 use Carp qw(croak);
 use Exporter qw(import);
@@ -89,6 +87,7 @@ our @EXPORT = qw(
   az_network_dns_link_list
   az_network_dns_links_cleanup
   az_role_definition_list
+  az_graph_query
 );
 
 =head2 az
@@ -2821,6 +2820,38 @@ sub az_role_definition_list {
     my $roleid = decode_json(script_output($az_cmd));
     croak "Role definition '$args{name}' not found" unless @$roleid;
     return $roleid->[0];
+}
+
+=head2 az_graph_query
+
+    az_graph_query(statements=>[
+        'where name startswith "MyResource"',
+        ''
+    ])
+
+Fucntion for executing KQL with azure resource graph.
+For this to work you need to have `resource-graph` extension installed using
+command C<'az extension add --name resource-graph --upgrade'>
+
+=over
+
+=item B<statements> Array reference of statements. One statement per element.
+
+=item B<query> Additional query using Jmespath (Optional)
+
+=back
+=cut
+
+sub az_graph_query {
+    my (%args) = @_;
+    croak 'Missing mandatory argument: <statements>' unless $args{statements};
+    croak 'Argument <statements> must be an ARRAY' unless
+      ref($args{statements}) eq 'ARRAY';
+    my $kql = join('| ', @{$args{statements}});
+    my @az_args = ('graph', 'query', '--graph-query', qq|"$kql"|);
+    return az(az_args => join(' ', @az_args),
+        query => $args{query},
+        timeout => $args{timeout});
 }
 
 1;

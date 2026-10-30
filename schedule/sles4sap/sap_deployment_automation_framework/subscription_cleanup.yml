@@ -1,0 +1,7 @@
+---
+name: sap_deployment_automation_framework
+description: |
+  Cleanup of orphaned SDAF resources in Azure subscription.
+schedule:
+  - boot/boot_to_desktop
+  - sles4sap/sap_deployment_automation_framework/subscription_cleanup
