@@ -89,6 +89,8 @@ our @EXPORT = qw(
   az_network_dns_link_list
   az_network_dns_links_cleanup
   az_role_definition_list
+  az_account_get_subscription_id
+  az_role_assignment_create
 );
 
 =head2 az
@@ -2821,6 +2823,57 @@ sub az_role_definition_list {
     my $roleid = decode_json(script_output($az_cmd));
     croak "Role definition '$args{name}' not found" unless @$roleid;
     return $roleid->[0];
+}
+
+=head2 az_account_get_subscription_id
+
+    my $subscription_id = az_account_get_subscription_id();
+
+Return current Azure subscription ID.
+
+=cut
+
+sub az_account_get_subscription_id {
+    my $res = az(az_args => 'account show', query => 'id');
+    return $res->{output};
+}
+
+=head2 az_role_assignment_create
+
+    az_role_assignment_create(
+        assignee_object_id => $vm_id,
+        role => $role_id,
+        scope => "/subscriptions/$subscription_id/resourceGroups/$resource_group",
+        assignee_principal_type => 'ServicePrincipal'
+    );
+
+Create a role assignment using Azure CLI.
+
+=over
+
+=item B<assignee_object_id> - Assignee object/principal ID
+
+=item B<role> - Role name or ID
+
+=item B<scope> - Resource scope for the assignment
+
+=item B<assignee_principal_type> - Optional principal type (e.g. ServicePrincipal)
+
+=back
+=cut
+
+sub az_role_assignment_create (%args) {
+    foreach (qw(assignee_object_id role scope)) {
+        croak "Argument < $_ > missing" unless defined $args{$_};
+    }
+
+    my $cmd = join(' ', 'role assignment create',
+        '--assignee-object-id', $args{assignee_object_id},
+        '--role', "'$args{role}'",
+        '--scope', "'$args{scope}'");
+    $cmd .= " --assignee-principal-type $args{assignee_principal_type}" if defined $args{assignee_principal_type};
+
+    return az(az_args => $cmd);
 }
 
 1;

@@ -2113,4 +2113,42 @@ subtest '[az_*] pathological tags' => sub {
     }
 };
 
+subtest '[az_account_get_subscription_id]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(az => sub { my %args = @_; push @calls, $args{az_args}; return {output => '0f2a99ba-10c7-4dd8-83fe-90c313f48030', rc => 0}; });
+
+    my $sub_id = az_account_get_subscription_id();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($sub_id, '0f2a99ba-10c7-4dd8-83fe-90c313f48030', 'Subscription ID matches expected output');
+    ok((any { /account show/ } @calls), 'Command calls account show');
+};
+
+subtest '[az_role_assignment_create] missing args' => sub {
+    dies_ok { az_role_assignment_create(role => 'RoleA', scope => 'ScopeA'); } 'Die for missing assignee_object_id';
+    dies_ok { az_role_assignment_create(assignee_object_id => 'ObjA', scope => 'ScopeA'); } 'Die for missing role';
+    dies_ok { az_role_assignment_create(assignee_object_id => 'ObjA', role => 'RoleA'); } 'Die for missing scope';
+};
+
+subtest '[az_role_assignment_create]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(az => sub { my %args = @_; push @calls, $args{az_args}; return {rc => 0}; });
+
+    az_role_assignment_create(
+        assignee_object_id => 'c0ffeeee-c0ff-eeee-1234-123456abcdef',
+        role => 'Linux Fence Agent Role',
+        scope => '/subscriptions/sub123/resourceGroups/rg123',
+        assignee_principal_type => 'ServicePrincipal'
+    );
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /role assignment create/ } @calls), 'Main command creates role assignment');
+    ok((any { /--assignee-object-id c0ffeeee-c0ff-eeee-1234-123456abcdef/ } @calls), 'Assignee object ID included');
+    ok((any { /--role 'Linux Fence Agent Role'/ } @calls), 'Role included');
+    ok((any { /--scope '\/subscriptions\/sub123\/resourceGroups\/rg123'/ } @calls), 'Scope included');
+    ok((any { /--assignee-principal-type ServicePrincipal/ } @calls), 'Principal type included');
+};
+
 done_testing;
