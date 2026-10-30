@@ -33,7 +33,7 @@ sub run {
     # Register openSUSE Leap against SCC; Leap can not be registered against ProxySCC, it is not available on ProxySCC.
     assert_script_run("SUSEConnect -r " . get_var("SCC_REGCODE"), timeout => 60) if (get_var("ISO") =~ /Leap/);
 
-    assert_script_run("echo 'url: " . get_required_var('SCC_URL') . "' > /etc/SUSEConnect");
+    assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect") if get_var('SCC_URL');
 
     my $allow_vendor_change = (get_var("ISO") =~ /Leap/) ? '--allow-vendor-change' : '';
     script_run("(zypper migration $allow_vendor_change; echo $zypper_done) |& tee /dev/$serialdev", 0);
