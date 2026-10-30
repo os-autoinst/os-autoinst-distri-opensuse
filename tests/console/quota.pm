@@ -24,6 +24,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils;
 use version_utils 'has_selinux';
 use package_utils 'install_package';
@@ -31,7 +32,7 @@ use package_utils 'install_package';
 sub run {
     my $username = $testapi::username;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     # install requirements
     install_package('quota quota-nfs', trup_reboot => 1);
@@ -83,7 +84,7 @@ sub run {
     assert_script_run("quotaon $quota_path/quota") unless $use_templated_service;
     # run user to use all quota
     ensure_serialdev_permissions;
-    select_console 'user-console';
+    select_user_serial_terminal;
     assert_script_run "cd $quota_path/quota/test-directory";
     assert_script_run 'touch first_file';
     assert_script_run 'quota';
@@ -92,7 +93,7 @@ sub run {
     die 'Quota should report failure' if script_run('quota') == 0;
     assert_script_run "cd";    # return back to ~ to be in a defined state for the next test modules
 
-    select_console 'root-console';
+    select_serial_terminal;
     #quota report
     assert_script_run "repquota $quota_path/quota";
 
