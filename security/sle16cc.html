@@ -17,6 +17,10 @@
       <li><a href="#fill_screen">fill_screen</a></li>
       <li><a href="#login_as_user">login_as_user</a></li>
       <li><a href="#unlock_and_login_cc_system">unlock_and_login_cc_system</a></li>
+      <li><a href="#type_line_zkvm">type_line_zkvm</a></li>
+      <li><a href="#answer_zkvm">answer_zkvm</a></li>
+      <li><a href="#unlock_and_login_cc_system_zkvm">unlock_and_login_cc_system_zkvm</a></li>
+      <li><a href="#permit_root_ssh_zkvm">permit_root_ssh_zkvm</a></li>
     </ul>
   </li>
 </ul><h1>lib/security/sle16cc.pm</h1>
@@ -38,6 +42,32 @@
 <pre><code>unlock_and_login_cc_system($user, $password);</code></pre>
 
 <p>Boot the installed system after a reboot. Enter the disk encryption passphrase, select the default grub entry if the menu is shown and log in on the text console. The prompt looks different on UEFI, where tianocore shows it.</p>
+
+<h2 id="type_line_zkvm">type_line_zkvm</h2>
+
+<pre><code>type_line_zkvm($text [, secret =&gt; 1]);</code></pre>
+
+<p>Send a line to the serial console of the s390x zKVM guest. The svirt console must be selected and save_svirt_pty must be called before.</p>
+
+<p>The text goes through the shell of the svirt host, so the text is quoted. type_line_svirt does not quote the text, and passwords with special characters break. Set secret to hide the text in the logs.</p>
+
+<h2 id="answer_zkvm">answer_zkvm</h2>
+
+<pre><code>answer_zkvm($expect, $text [, timeout =&gt; $timeout] [, secret =&gt; 1]);</code></pre>
+
+<p>Wait for <code>$expect</code> on the serial console and send <code>$text</code> as a line. Die at once if the CC installer shows an error.</p>
+
+<h2 id="unlock_and_login_cc_system_zkvm">unlock_and_login_cc_system_zkvm</h2>
+
+<pre><code>unlock_and_login_cc_system_zkvm($user, $password);</code></pre>
+
+<p>Boot the installed system on s390x zKVM after a reboot. Enter the disk encryption passphrase on the serial console and log in. The number of passphrase prompts depends on the disk layout, so the function answers each prompt until the login prompt is shown.</p>
+
+<h2 id="permit_root_ssh_zkvm">permit_root_ssh_zkvm</h2>
+
+<pre><code>permit_root_ssh_zkvm($password);</code></pre>
+
+<p>On s390x zKVM all the root consoles of openQA, like root-console and root-serial-ssh, use SSH. SLE 16 does not permit the root login with a password over SSH, and the CC installer cannot change it like an Agama profile. Log out the first user from the serial console, log in as root and permit the root login over SSH.</p>
 
 
 </body>
