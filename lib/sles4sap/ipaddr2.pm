@@ -474,8 +474,9 @@ sub ipaddr2_infra_deploy(%args) {
 
     my $bastion_ip = ipaddr2_bastion_pubip();
 
-Get the only public IP in the deployment associated to the VM used as bastion. Function is getting
-the IP address using az cli, so it could die if the az cli fails to return a valid IP.
+Get the only public IP in the deployment associated to the VM used as bastion.
+Function is getting the IP address using az cli.
+Return undef if the az cli fails to return a valid IP.
 =cut
 
 sub ipaddr2_bastion_pubip {
@@ -483,7 +484,11 @@ sub ipaddr2_bastion_pubip {
     # 3 attempts, each one stopped after about 60s with TIMEOUT_SCALE=3
     my $pub_ip = az_network_publicip_get(resource_group => $rg, name => $bastion_pub_ip, soft_timeout => 20);
     return unless defined $pub_ip;
-    my $ip_obj = NetAddr::IP::Lite->new($pub_ip) or die "Invalid IP '$pub_ip'";
+    my $ip_obj = NetAddr::IP::Lite->new($pub_ip);
+    unless ($ip_obj) {
+        record_info('Bastion IP', "Invalid bastion public IP '$pub_ip'", result => 'fail');
+        return;
+    }
     return $ip_obj->addr;
 }
 
@@ -505,7 +510,8 @@ in the deployment that has public IP.
 
 sub ipaddr2_bastion_ssh_addr(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    return $args{bastion_ip} ? USER . '@' . $args{bastion_ip} : undef;
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
+    return USER . '@' . $args{bastion_ip};
 }
 
 =head2 ipaddr2_bastion_key_accept
@@ -519,12 +525,15 @@ for the meaning of the exit codes.
 
 =over
 
-=item B<bastion_ip> - Public IP address of the bastion. Mandatory.
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                           Providing it as an argument is recommended
+                           to avoid having to query Azure to get it.
 
 =back
 =cut
 
 sub ipaddr2_bastion_key_accept(%args) {
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
     croak("Argument < bastion_ip > missing") unless $args{bastion_ip};
 
     # Clean up known_hosts on the machine running the test script
@@ -1446,6 +1455,7 @@ sub ipaddr2_ssh_internal_output(%args) {
     foreach (qw(id cmd)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
     $args{timeout} //= 90;
 
     return script_output(

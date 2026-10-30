@@ -317,7 +317,9 @@ subtest '[ipaddr2_bastion_key_accept] missing bastion IP' => sub {
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $ipaddr2->redefine(script_run => sub { return 0; });
 
-    dies_ok { ipaddr2_bastion_key_accept() } 'Croak if bastion IP is missing';
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return; });
+
+    throws_ok { ipaddr2_bastion_key_accept() } qr/bastion_ip/, 'Croak if bastion IP is missing';
 };
 
 subtest '[ipaddr2_bastion_key_accept] ssh failure' => sub {
@@ -905,9 +907,10 @@ subtest '[ipaddr2_bastion_pubip] get invalid IP' => sub {
 
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     $ipaddr2->redefine(az_network_publicip_get => sub { return 'Invalid_IP_Galileo'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $res;
 
-    dies_ok { $res = ipaddr2_bastion_pubip() } 'ipaddr2_bastion_pubip get an invalid IP from az_network_publicip_get and died';
+    lives_ok { $res = ipaddr2_bastion_pubip() } 'ipaddr2_bastion_pubip does not die for an invalid IP from az_network_publicip_get';
 
     is($res, undef, 'Expect undef');
 };
@@ -2369,6 +2372,37 @@ subtest '[ipaddr2_logs_collect] supportconfig timeout triggers diagnostic' => su
     # After supportconfig times out, a diagnostic ps command should be issued
     ok((any { /ps aux.*supportconfig.*zypper.*rpm/ } @ssh_cmds), "diagnostic ps command issued after supportconfig timeout");
     ok((any { /SC timeout/ } @record_info_calls), "record_info called with SC timeout");
+};
+
+subtest '[ipaddr2_bastion_ssh_addr] no bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return; });
+
+    throws_ok { ipaddr2_bastion_ssh_addr() } qr/Problem getting bastion public IP/, 'Die if the bastion IP is not available';
+};
+
+subtest '[ipaddr2_bastion_key_accept] bastion IP from Azure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+
+    my $ret = ipaddr2_bastion_key_accept();
+
+    is($ret, 0, 'Return 0 on success');
+    ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP from Azure in the ssh command');
+};
+
+subtest '[ipaddr2_ssh_internal_output] no bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my $pubip_called = 0;
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { $pubip_called++; return; });
+    my $script_output_called = 0;
+    $ipaddr2->redefine(script_output => sub { $script_output_called++; return ''; });
+
+    throws_ok { sles4sap::ipaddr2::ipaddr2_ssh_internal_output(id => 1, cmd => 'Marconi') } qr/Problem getting bastion public IP/, 'Die if the bastion IP is not available';
+    is($pubip_called, 1, 'Azure queried only once for the bastion IP');
+    is($script_output_called, 0, 'No command executed');
 };
 
 done_testing;
