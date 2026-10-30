@@ -26,6 +26,18 @@
 # PUBLISH_HDD_1 - name of the qcow2 image to save after the installation
 # PUBLISH_PFLASH_VARS - for UEFI.
 #
+# s390x zKVM only. There is no grub menu, the kernel command line selects the
+# CC installer, and the installer uses the serial console:
+# AGAMA - 1, boot the Agama live system
+# MIRROR_HTTP - URL of the installation repository with LiveOS/squashfs.img
+# REPO_0 - the same repository as MIRROR_HTTP, for the kernel and the initrd
+# EXTRABOOTPARAMS - fips=1 inst.cc=1 inst.remote=0 systemd.tty.term.console=dumb
+#   The last option makes the installer use the plain text mode, the dialog
+#   mode can not be used on the serial console.
+# PASSWORD - set it instead of DEFAULT_PASSWORD. openQA creates the SSH
+#   consoles (root-console, root-serial-ssh) with PASSWORD before the test
+#   module runs, and on s390x zKVM all the root consoles use SSH.
+#
 # Set all settings in the job group, test suite or command line. The YAML
 # schedule does not set them, because the openQA server and the backend need
 # them before the test module runs.
@@ -33,9 +45,17 @@
 use Mojo::Base 'installbasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'is_uefi_boot';
-use Utils::Architectures 'is_aarch64';
-use security::sle16cc qw(fill_screen unlock_and_login_cc_system);
+use utils qw(is_uefi_boot save_svirt_pty);
+use Utils::Architectures qw(is_aarch64 is_s390x);
+use power_action_utils 'assert_shutdown_and_restore_system';
+use security::sle16cc qw(
+  fill_screen
+  unlock_and_login_cc_system
+  type_line_zkvm
+  answer_zkvm
+  unlock_and_login_cc_system_zkvm
+  permit_root_ssh_zkvm
+);
 
 use constant DEFAULT_TIMEOUT => 300;
 use constant INSTALLATION_TIMEOUT => 3600;
@@ -90,6 +110,55 @@ sub replace_screen {
     send_key 'ret';
 }
 
+# Do the installation on the serial console of s390x zKVM. The installer uses
+# the plain text mode, it shows a prompt and reads a line for each value.
+sub install_on_zkvm {
+    my ($user, $password) = @_;
+    select_console 'svirt';
+    save_svirt_pty;
+
+    # The live system and the Agama services start before the installer
+    answer_zkvm qr/=== FIPS\/CC Installation ===[\s\S]*Press Enter to continue/, '', timeout => 600;
+    answer_zkvm qr/\[y = accept license/, 'y';
+
+    # The installer asks for the disk only if the system has more than one disk
+    my $root_prompt = qr/\(root\) account:/;
+    my $output = wait_serial([qr/=== Target Disk ===[\s\S]*Selection[^>]*>/, $root_prompt], timeout => DEFAULT_TIMEOUT)
+      or die 'The target disk menu or the root password prompt is not shown';
+    if ($output =~ /=== Target Disk ===/) {
+        record_info('Target disk', 'Selecting the first disk');
+        answer_zkvm qr/Selection[^>]*>/, '1';
+        wait_serial($root_prompt, timeout => DEFAULT_TIMEOUT) or die 'The root password prompt is not shown';
+    }
+    my $confirmation = qr/Enter the same password again for confirmation:/;
+    type_line_zkvm($password, secret => 1);
+    answer_zkvm $confirmation, $password, secret => 1;
+
+    # Replace the default user name (sysadmin) and keep the full name (System Administrator)
+    answer_zkvm qr/Enter the login name of the first user:/, $user;
+    answer_zkvm qr/Enter the full name of the first user:/, '';
+    answer_zkvm qr/Enter the password for the user/, $password, secret => 1;
+    answer_zkvm $confirmation, $password, secret => 1;
+
+    answer_zkvm qr/Enter the LUKS2 passphrase/, $password, secret => 1;
+    answer_zkvm $confirmation, $password, secret => 1;
+
+    # Leave the NTP server and the registration e-mail blank
+    answer_zkvm qr/Enter the NTP time server address/, '';
+    answer_zkvm qr/Enter the registration code/, get_var('SCC_REGCODE'), secret => 1;
+    answer_zkvm qr/Enter the registration e-mail address/, '';
+
+    # Select "Continue" in the summary and "Start the installation now" in the
+    # storage proposal. Loading the configuration also registers the system.
+    answer_zkvm qr/Continue - load and evaluate the configuration[\s\S]*Selection[^>]*>/, '1';
+    answer_zkvm qr/Start the installation now[\s\S]*Selection[^>]*>/, '1', timeout => 600;
+    answer_zkvm qr/Reboot the system now\?/, 'y', timeout => INSTALLATION_TIMEOUT;
+
+    # svirt destroys the domain when the system reboots. Define it again
+    # without the installer kernel to boot from the disk.
+    assert_shutdown_and_restore_system('reboot', DEFAULT_TIMEOUT);
+}
+
 # Verify that the installed system is SLES 16.0
 sub check_os_release {
     my $os_release = script_output 'cat /etc/os-release';
@@ -113,6 +182,27 @@ sub run {
     $testapi::password = $password;
     my $user = get_var('USERNAME', $testapi::username);
 
+    if (is_s390x) {
+        install_on_zkvm($user, $password);
+        unlock_and_login_cc_system_zkvm($user, $password);
+        permit_root_ssh_zkvm($password);
+    }
+    else {
+        install_on_screen($user, $password);
+        # The system reboots
+        unlock_and_login_cc_system($user, $password);
+    }
+
+    # The first user cannot write to the serial device, so run the check as root
+    select_serial_terminal;
+    assert_script_run("id $user");
+    check_os_release();
+    # The system stays running, poweroff is called in the schedule
+}
+
+# Do the installation on the screen with the sle16-cc-* needles
+sub install_on_screen {
+    my ($user, $password) = @_;
     select_cc_grub_entry();
     accept_screen 'sle16-cc-fips-installation';
     accept_screen 'sle16-cc-license-agreement';
@@ -139,15 +229,6 @@ sub run {
     assert_screen 'sle16-cc-initializing', DEFAULT_TIMEOUT;
     accept_screen 'sle16-cc-storage-proposal';
     accept_screen 'sle16-cc-installation-finished', INSTALLATION_TIMEOUT;
-
-    # The system reboots
-    unlock_and_login_cc_system($user, $password);
-
-    # The first user cannot write to the serial device, so run the check as root
-    select_serial_terminal;
-    assert_script_run("id $user");
-    check_os_release();
-    # The system stays running, poweroff is called in the schedule
 }
 
 1;

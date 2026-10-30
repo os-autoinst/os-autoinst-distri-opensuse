@@ -103,6 +103,10 @@ sub run {
     my $is_remote_disabled = get_var('EXTRABOOTPARAMS', '') =~ /inst\.remote=0/;
 
     if (is_agama) {
+        # The 16.0 Common Criteria (CC) installer (inst.cc=1) on s390x uses the console before the Agama messages are shown.
+        # The Agama installer on s390x does NOT support CC, the CC installer is ncurses based.
+        # Another module (sle16cc.pm) will handle the non-agama, ncurses-based CC installer.
+        return if get_var('EXTRABOOTPARAMS', '') =~ /\binst\.cc=1\b/;
         my %expectations = (
             pattern => $is_remote_disabled
             ? 'Remote access to the Agama installer is disabled, it can be used only locally'
