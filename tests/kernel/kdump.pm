@@ -10,10 +10,11 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use kdump_utils;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = @_;
-    select_console('root-console');
+    select_serial_terminal;
     configure_service(test_type => 'function', yast_interface => 'cli');
     check_function(test_type => 'function');
 
