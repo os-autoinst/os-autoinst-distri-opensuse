@@ -115,7 +115,7 @@ sub run_cmd {
 
     # Ensure SSH keepalives to detect hung connections faster
     if ($args{ssh_keepalive}) {
-        $args{ssh_opts} //= '';
+        $args{ssh_opts} //= $self->{my_instance}->ssh_opts();
         $args{ssh_opts} .= ' -o ServerAliveInterval=15 -o ServerAliveCountMax=3' unless $args{ssh_opts} =~ /ServerAliveInterval/;
     }
 
@@ -127,7 +127,7 @@ sub run_cmd {
     delete($args{ssh_keepalive});
 
     $self->{my_instance}->update_instance_ip();
-    $self->{my_instance}->wait_for_ssh(timeout => $timeout);
+    _wait_for_instance_ssh($self->{my_instance}, timeout => $timeout);
     if ($args{rc_only}) {
         delete($args{rc_only});
         return $self->{my_instance}->ssh_script_run(cmd => "sudo $cmd", timeout => $timeout, %args);
@@ -331,7 +331,7 @@ sub get_hana_topology {
 }
 
 =head2 is_hana_online
-    is_hana_online([timeout => 120, wait_for_start => 'false']);
+    is_hana_online([timeout => 120, wait_for_start => 'false', retry_ssh => 0]);
 
     Check if hana DB is online.
 
@@ -340,6 +340,8 @@ sub get_hana_topology {
 =item B<wait_for_start> - Define 'wait_for_start' to wait for DB to start.
 
 =item B<timeout> - timeout for the wait of the online state
+
+=item B<retry_ssh> - query the DB state with SSH keepalive and retries, to survive the node being fenced or rebooted meanwhile
 
 =back
 =cut
@@ -353,12 +355,17 @@ sub is_hana_online {
     my $db_status;
 
     while ($consecutive_passes < 3) {
-        $db_status = $self->get_replication_info()->{online} eq "true" ? 1 : 0;
+        $db_status = $self->get_replication_info(retry_ssh => $args{retry_ssh})->{online} eq "true" ? 1 : 0;
         return $db_status unless $args{wait_for_start};
 
-        # Reset pass counter in case of fail.
-        $consecutive_passes = $db_status ? ++$consecutive_passes : 0;
-        die("DB did not start within defined timeout: $timeout s") if (time - $start_time > $timeout);
+        # Require three consecutive online results within the timeout.
+        $consecutive_passes = $db_status ? $consecutive_passes + 1 : 0;
+
+        die("HANA did not achieve three consecutive online checks within $timeout s "
+              . "(last online=$db_status, consecutive=$consecutive_passes)")
+          if (time - $start_time > $timeout);
+
+        return 1 if $consecutive_passes >= 3;
         sleep 10;
     }
     return $db_status;
@@ -422,6 +429,7 @@ sub wait_hana_node_up {
 
     # Make sure SSH port 22 is reachable or timeout
     while (($duration = time() - $start_time) < $args{timeout}) {
+        _refresh_public_ip($instance);
         $exit_code = script_run('nc -vz -w 1 ' . $instance->{public_ip} . ' 22', quiet => 1);
         record_info("WAIT_FOR_SSH_PORT_OPEN", "exit_code = $exit_code, duration = $duration");
         last if (defined($exit_code) and $exit_code == 0);
@@ -499,7 +507,7 @@ sub stop_hana {
 
         # Ensure the remote node is in a normal state before to trigger the crash
         $self->{my_instance}->update_instance_ip();
-        $self->{my_instance}->wait_for_ssh(timeout => $timeout, scan_ssh_host_key => 1);
+        _wait_for_instance_ssh($self->{my_instance}, timeout => $timeout, scan_ssh_host_key => 1);
 
         $self->{my_instance}->ssh_assert_script_run(cmd => 'sudo su -c sync', timeout => $timeout);
 
@@ -543,7 +551,11 @@ sub stop_hana {
         my $sapadmin = lc(get_required_var('INSTANCE_SID')) . 'adm';
         $self->run_cmd(cmd => $cmd, runas => $sapadmin, timeout => $timeout);
         $self->{my_instance}->update_instance_ip();
-        $self->{my_instance}->wait_for_ssh(timeout => $timeout, username => 'cloudadmin', scan_ssh_host_key => 1);
+        _wait_for_instance_ssh(
+            $self->{my_instance},
+            timeout => $timeout,
+            username => 'cloudadmin',
+            scan_ssh_host_key => 1);
     }
 }
 
@@ -800,15 +812,26 @@ sub enable_replication {
 }
 
 =head2 get_replication_info
-    get_replication_info();
+    get_replication_info([retry_ssh => 0]);
 
     Parses "hdbnsutil -sr_state" command output.
     Returns hash of found values converted to lowercase and replaces spaces to underscores.
+    Set 'retry_ssh' to run the command with SSH keepalive and retries (run_cmd_retry).
 =cut
 
 sub get_replication_info {
-    my ($self) = @_;
-    my $output_cmd = $self->run_cmd(cmd => 'hdbnsutil -sr_state 2>&1', runas => get_required_var('SAP_SIDADM'));
+    my ($self, %args) = @_;
+    my $method = $args{retry_ssh} ? 'run_cmd_retry' : 'run_cmd';
+    my %ssh_args;
+    if ($args{retry_ssh}) {
+        $ssh_args{ssh_opts} = $self->{my_instance}->ssh_opts();
+        $ssh_args{ssh_keepalive} = 1;
+    }
+
+    my $output_cmd = $self->$method(
+        cmd => 'hdbnsutil -sr_state 2>&1',
+        runas => get_required_var('SAP_SIDADM'),
+        %ssh_args);
     $output_cmd = join "\n", grep /:[^\^]/, split /\n/, $output_cmd;
     record_info('Replication info', $output_cmd);
     # Create a hash from hdbnsutil output, convert to lowercase with underscore instead of space.
@@ -894,6 +917,76 @@ sub wait_for_sync {
     }
 }
 
+# Poll angi recovery using process-bounded SSH commands. Fencing may
+# interrupt a connection after an SSH availability check.
+sub _wait_for_pacemaker_angi {
+    my ($self, %args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    my $start_time = time;
+    my %command_args = (
+        rc_only => 1,
+        apply_graceful_timeout => 1,
+        quiet => 1,
+        timeout => 30,
+    );
+
+    while (time - $start_time < $timeout) {
+        sleep 15;
+        last if time - $start_time >= $timeout;
+
+        my $pm_rc = eval {
+            $self->run_cmd(
+                cmd => 'systemctl --no-pager is-active pacemaker',
+                %command_args
+            );
+        };
+        my $cs_rc = eval {
+            $self->run_cmd(
+                cmd => 'systemctl --no-pager is-active corosync',
+                %command_args
+            );
+        };
+
+        record_info('WAIT CLUSTER',
+            'pacemaker rc=' . (defined($pm_rc) ? $pm_rc : 'unavailable')
+              . ' corosync rc=' . (defined($cs_rc) ? $cs_rc : 'unavailable')
+              . ' elapsed=' . (time - $start_time));
+
+        next unless defined($pm_rc) && $pm_rc == 0
+          && defined($cs_rc) && $cs_rc == 0;
+
+        my $cib_rc = eval {
+            $self->run_cmd(cmd => $crm_mon_cmd, %command_args);
+        };
+        next unless defined($cib_rc) && $cib_rc == 0;
+
+        record_info('Cluster Ready',
+            'Pacemaker and Corosync are active and crm_mon succeeded.');
+        return 1;
+    }
+
+    for my $diagnostic (
+        ['Pacemaker status', 'systemctl --no-pager status pacemaker'],
+        ['Corosync status', 'systemctl --no-pager status corosync'],
+        ['Corosync Info', 'journalctl -u corosync -n 80 --no-pager']
+      )
+    {
+        my ($title, $cmd) = @$diagnostic;
+        my $rc = eval {
+            $self->run_cmd(cmd => $cmd, %command_args);
+        };
+        my $error = $@;
+
+        record_info($title,
+            "$cmd\n"
+              . (defined($rc) ? "Exit code: $rc" : "Command failed: $error")
+              . "\nSee serial-terminal output for command output.",
+            result => 'fail');
+    }
+
+    die('wait_for_pacemaker [ERROR] Cluster services failed to fully initialize within timeout');
+}
+
 =head2 wait_for_pacemaker
     wait_for_pacemaker([timeout => $timeout]);
 
@@ -908,6 +1001,10 @@ sub wait_for_sync {
 
 sub wait_for_pacemaker {
     my ($self, %args) = @_;
+
+    return _wait_for_pacemaker_angi($self, %args)
+      if get_var('USE_SAP_HANA_SR_ANGI');
+
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my $start_time = time;
     my $systemd_pm_cmd = 'systemctl --no-pager is-active pacemaker';
@@ -1054,6 +1151,81 @@ sub sbd_delay_formula() {
     my $calculated_delay = calculate_sbd_start_delay(\%params);
     record_info('SBD wait', "Calculated SBD start delay: $calculated_delay");
     return $calculated_delay;
+}
+
+# update_instance_ip() is a no-op for PUBLIC_CLOUD_SLES4SAP.
+sub _refresh_public_ip {
+    my ($instance) = @_;
+
+    return unless get_var('USE_SAP_HANA_SR_ANGI');
+    return unless check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+
+    my $tag = get_required_var('QESAP_DEPLOYMENT_NAME') . '-cluster';
+    my $ip = eval {
+        sles4sap::qesap::aws::qesap_aws_filter_query(
+            cmd => 'describe-instances',
+            filter => join(' ',
+                "'Name=tag:$tag,Values=$instance->{instance_id}'",
+                "'Name=instance-state-name,Values=running'"),
+            query => "'Reservations[].Instances[].PublicIpAddress'");
+    };
+
+    if ($@) {
+        record_info('IP LOOKUP', "Unable to refresh public IP: $@");
+        return;
+    }
+
+    # Missing IPs and multiple matches must not replace the current address.
+    return unless defined $ip;
+    chomp $ip;
+    return unless $ip =~ /^\d{1,3}(?:\.\d{1,3}){3}$/;
+
+    if ($ip ne $instance->public_ip) {
+        record_info('IP CHANGED', $instance->public_ip . " -> $ip");
+        $instance->public_ip($ip);
+    }
+
+    return $ip;
+}
+
+# Refresh the address between SSH attempts, including while fencing finishes.
+sub _wait_for_instance_ssh {
+    my ($instance, %args) = @_;
+
+    return $instance->wait_for_ssh(%args)
+      unless get_var('USE_SAP_HANA_SR_ANGI')
+      && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+
+    my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
+    my $deadline = time + $timeout;
+    my $ssh_opts = $instance->ssh_opts()
+      . ' -o ControlPath=none -o ConnectTimeout=10'
+      . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+
+    while (time < $deadline) {
+        my $ip = _refresh_public_ip($instance);
+        my $remaining = $deadline - time;
+        last if $remaining <= 0;
+
+        if (defined $ip) {
+            my $rc = $instance->ssh_script_run(
+                cmd => 'true',
+                ssh_opts => $ssh_opts,
+                (defined $args{username} ? (username => $args{username}) : ()),
+                timeout => ($remaining < 15 ? $remaining : 15),
+                apply_graceful_timeout => 1,
+                quiet => 1);
+
+            if (defined $rc && $rc == 0) {
+                $instance->scan_ssh_host_key() if $args{scan_ssh_host_key};
+                return;
+            }
+        }
+
+        sleep 5 if time < $deadline;
+    }
+
+    die "SSH recovery timed out after $timeout seconds for $instance->{instance_id}";
 }
 
 =head2 cloud_file_content_replace
