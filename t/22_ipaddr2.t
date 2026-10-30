@@ -2371,4 +2371,70 @@ subtest '[ipaddr2_logs_collect] supportconfig timeout triggers diagnostic' => su
     ok((any { /SC timeout/ } @record_info_calls), "record_info called with SC timeout");
 };
 
+subtest '[ipaddr2_ssh_internal] kill_on_timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { my ($cmd, %args) = @_; push @calls, [$cmd, $args{timeout}]; return 124; });
+
+    my $ret = sles4sap::ipaddr2::ipaddr2_ssh_internal(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi', timeout => 42, no_assert => 1, kill_on_timeout => 1);
+
+    is($ret, undef, 'Return undef when the shell timeout kills ssh');
+    like($calls[0][0], qr/^timeout -k 5 42 ssh .*Marconi/, 'ssh is wrapped in a shell timeout');
+    is($calls[0][1], 62, 'script_run timeout is 20s longer than the shell timeout');
+    dies_ok { sles4sap::ipaddr2::ipaddr2_ssh_internal(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi', kill_on_timeout => 1) } 'Die without no_assert';
+};
+
+subtest '[ipaddr2_ssh_internal] kill_on_timeout scaled' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { my ($cmd, %args) = @_; push @calls, [$cmd, $args{timeout}]; return 0; });
+    set_var('TIMEOUT_SCALE', 3);
+
+    sles4sap::ipaddr2::ipaddr2_ssh_internal(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi', timeout => 42, kill_on_timeout => 1);
+
+    set_var('TIMEOUT_SCALE', undef);
+    like($calls[0][0], qr/^timeout -k 5 126 ssh /, 'Shell timeout scaled by TIMEOUT_SCALE');
+    is($calls[0][1], 62, 'script_run timeout not scaled here: script_run scales it');
+};
+
+subtest '[ipaddr2_ssh_internal] without kill_on_timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { my ($cmd, %args) = @_; push @calls, [$cmd, $args{timeout}]; return 124; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = sles4sap::ipaddr2::ipaddr2_ssh_internal(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi', timeout => 42, no_assert => 1);
+
+    is($ret, 124, 'rc 124 returned as is');
+    like($calls[0][0], qr/^ssh /, 'ssh is not wrapped');
+    is($calls[0][1], 42, 'script_run timeout unchanged');
+};
+
+subtest '[ipaddr2_ssh_internal_output] no_assert and kill_on_timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my ($cmd, %args);
+    $ipaddr2->redefine(script_output => sub { ($cmd, %args) = @_; return 'Meucci'; });
+    set_var('TIMEOUT_SCALE', 3);
+
+    my $out = sles4sap::ipaddr2::ipaddr2_ssh_internal_output(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi', timeout => 42, no_assert => 1, kill_on_timeout => 1);
+
+    set_var('TIMEOUT_SCALE', undef);
+    is($out, 'Meucci', 'Return the output');
+    like($cmd, qr/^timeout --foreground -k 5 126 ssh .*Marconi/, 'ssh is wrapped in a scaled foreground shell timeout');
+    is($args{timeout}, 62, 'script_output timeout is 20s longer than the shell timeout');
+    ok($args{proceed_on_failure}, 'script_output does not die on failure');
+};
+
+subtest '[ipaddr2_ssh_internal_output] without the new arguments' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my ($cmd, %args);
+    $ipaddr2->redefine(script_output => sub { ($cmd, %args) = @_; return 'Meucci'; });
+
+    sles4sap::ipaddr2::ipaddr2_ssh_internal_output(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi');
+
+    like($cmd, qr/^ssh /, 'ssh is not wrapped');
+    is_deeply(\%args, {timeout => 90}, 'script_output called only with the default timeout');
+};
+
 done_testing;

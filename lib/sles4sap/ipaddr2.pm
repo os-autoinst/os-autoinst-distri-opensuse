@@ -1385,6 +1385,11 @@ It dies for timeout and if exit code is not zero and no_assert is not defined.
 
 =item B<retry> - Number of retries in case of failure. Default 1 (no retry)
 
+=item B<kill_on_timeout> - If specified, wrap the ssh command in a shell C<timeout -k 5>,
+                           so a hung ssh is killed on the worker after B<timeout> seconds
+                           (scaled by TIMEOUT_SCALE) and the console is free for the next command.
+                           The kill is handled as a timeout: die, or return undef with B<no_assert>.
+
 =back
 =cut
 
@@ -1400,12 +1405,24 @@ sub ipaddr2_ssh_internal(%args) {
         bastion_ip => $args{bastion_ip},
         cmd => $args{cmd});
 
+    my $script_timeout = $args{timeout};
+    if ($args{kill_on_timeout}) {
+        # script_run scales its timeout by TIMEOUT_SCALE, the shell timeout has to be scaled explicitly
+        $command = join(' ', 'timeout', '-k', '5', bmwqemu::scale_timeout($args{timeout}), $command);
+        $script_timeout = $args{timeout} + 20;
+    }
+
     my $ret;
     for (1 .. $args{retry}) {
-        eval { $ret = script_run($command, timeout => $args{timeout}); };
+        eval { $ret = script_run($command, timeout => $script_timeout); };
         if ($@) {
             die $@ unless $args{no_assert};
             record_info('SSH timeout', "cmd: $command\nerr: $@", result => 'fail');
+            return undef;
+        }
+        if ($args{kill_on_timeout} && defined $ret && ($ret == 124 || $ret == 137)) {
+            die "Command $command killed by the shell timeout, rc:$ret" unless $args{no_assert};
+            record_info('SSH timeout', "cmd: $command\nkilled by the shell timeout, rc:$ret", result => 'fail');
             return undef;
         }
         return $ret if (defined $ret && $ret == 0);
@@ -1439,6 +1456,14 @@ Return the command output.
 
 =item B<timeout> - Execution timeout, default 90sec
 
+=item B<no_assert> - If specified, do not die when the command fails:
+                     return its output anyway. The caller has to validate it.
+
+=item B<kill_on_timeout> - If specified, wrap the ssh command in a shell C<timeout -k 5>,
+                           so a hung ssh is killed on the worker after B<timeout> seconds
+                           (scaled by TIMEOUT_SCALE). Without B<no_assert> the kill is a failure
+                           and the function dies.
+
 =back
 =cut
 
@@ -1448,12 +1473,20 @@ sub ipaddr2_ssh_internal_output(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{timeout} //= 90;
 
-    return script_output(
-        ipaddr2_ssh_internal_cmd(
-            id => $args{id},
-            bastion_ip => $args{bastion_ip},
-            cmd => $args{cmd}),
-        timeout => $args{timeout});
+    my $command = ipaddr2_ssh_internal_cmd(
+        id => $args{id},
+        bastion_ip => $args{bastion_ip},
+        cmd => $args{cmd});
+    my %so_args = (timeout => $args{timeout});
+    if ($args{kill_on_timeout}) {
+        # script_output runs the command in a non-interactive shell:
+        # --foreground keeps ssh in the foreground process group of the terminal, like without timeout.
+        # script_output scales its timeout by TIMEOUT_SCALE, the shell timeout has to be scaled explicitly
+        $command = join(' ', 'timeout', '--foreground', '-k', '5', bmwqemu::scale_timeout($args{timeout}), $command);
+        $so_args{timeout} = $args{timeout} + 20;
+    }
+    $so_args{proceed_on_failure} = 1 if $args{no_assert};
+    return script_output($command, %so_args);
 }
 
 =head2 ipaddr2_cluster_create
