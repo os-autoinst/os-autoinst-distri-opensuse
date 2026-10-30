@@ -1,0 +1,53 @@
+From 172b02bbbba8b030c22a7d918315f97d2af3fb67 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 30 Oct 2026 13:27:26 +0100
+Subject: [PATCH] tests/lists.bats: expect host arch in
+ manifest-from-{tag,digest}
+
+These tests pull a multi-arch image list and hardcode amd64 as the
+architecture of the selected instance. On any other host (e.g. aarch64)
+buildah correctly picks the host architecture, so the assertion fails:
+
+  expected: =~ 'amd64'
+    actual:    'arm64'
+
+Compare against the host architecture reported by `buildah info`
+instead.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/lists.bats | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/tests/lists.bats b/tests/lists.bats
+index 51fa205f63..608f141371 100644
+--- a/tests/lists.bats
++++ b/tests/lists.bats
+@@ -371,19 +371,23 @@ IMAGE_LIST_S390X_INSTANCE_DIGEST=sha256:fc5aae77765f7f26f729bad7bfb3cef1bf4e9260
+ }
+ 
+ @test "manifest-from-tag" {
++    run_buildah info --format '{{.host.arch}}'
++    arch="$output"
+     run_buildah from $WITH_POLICY_JSON --name test-container ${IMAGE_LIST}
+     run_buildah inspect --format '{{.OCIv1.Architecture}}' ${IMAGE_LIST#docker://}
+-    expect_output --substring amd64
++    expect_output --substring "$arch"
+     run_buildah inspect --format '{{.OCIv1.Architecture}}' test-container
+-    expect_output --substring amd64
++    expect_output --substring "$arch"
+ }
+ 
+ @test "manifest-from-digest" {
++    run_buildah info --format '{{.host.arch}}'
++    arch="$output"
+     run_buildah from $WITH_POLICY_JSON --name test-container ${IMAGE_LIST_DIGEST}
+     run_buildah inspect --format '{{.OCIv1.Architecture}}' ${IMAGE_LIST_DIGEST#docker://}
+-    expect_output --substring amd64
++    expect_output --substring "$arch"
+     run_buildah inspect --format '{{.OCIv1.Architecture}}' test-container
+-    expect_output --substring amd64
++    expect_output --substring "$arch"
+ }
+ 
+ @test "manifest-from-instance" {

@@ -21,6 +21,7 @@ buildah:
   # https://github.com/containers/buildah/pull/6602 is needed with docker v29
   # https://github.com/containers/buildah/pull/6701 is needed to test on arches other than amd64
   # https://github.com/containers/buildah/pull/6791 - CI: remove dependencies on online apt repositories
+  # https://github.com/containers/buildah/pull/7206 - tests/lists.bats: expect host arch in manifest-from-{tag,digest}
   5495:
     max: "1.36.0"
   6226:
@@ -36,6 +37,8 @@ buildah:
   6791:
     min: "1.39.5"
     max: "1.44.0"
+  7206:
+    min: "1.46.0"
 
 buildx:
   # https://github.com/docker/buildx/pull/3475 - test: Handle version not having the initial 'v'
