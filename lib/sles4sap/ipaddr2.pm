@@ -510,7 +510,8 @@ in the deployment that has public IP.
 
 sub ipaddr2_bastion_ssh_addr(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    return $args{bastion_ip} ? USER . '@' . $args{bastion_ip} : undef;
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
+    return USER . '@' . $args{bastion_ip};
 }
 
 =head2 ipaddr2_bastion_key_accept
@@ -524,12 +525,15 @@ for the meaning of the exit codes.
 
 =over
 
-=item B<bastion_ip> - Public IP address of the bastion. Mandatory.
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                           Providing it as an argument is recommended
+                           to avoid having to query Azure to get it.
 
 =back
 =cut
 
 sub ipaddr2_bastion_key_accept(%args) {
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
     croak("Argument < bastion_ip > missing") unless $args{bastion_ip};
 
     # Clean up known_hosts on the machine running the test script
@@ -1451,6 +1455,7 @@ sub ipaddr2_ssh_internal_output(%args) {
     foreach (qw(id cmd)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    die "Problem getting bastion public IP" unless $args{bastion_ip};
     $args{timeout} //= 90;
 
     return script_output(
