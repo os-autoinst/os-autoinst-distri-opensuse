@@ -2181,5 +2181,14 @@
             ]
         },
         "type": "bug"
+    },
+    "bsc#1287746": {
+        "type": "ignore",
+        "description": "rebootmgrd.*: varlink_reboot failed, falling back to systemctl",
+        "products": {
+          "microos": [
+                "Tumbleweed"
+            ]
+        }
     }
 }
