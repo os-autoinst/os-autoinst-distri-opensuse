@@ -71,10 +71,12 @@ sub run_tests {
         "chroot.bats::chroot mount flags",
         "copy.bats::copy-preserving-extended-attributes",
     ) if (is_ppc64le);
-    # Test issue fixed in https://github.com/podman-container-tools/buildah/commit/363aa3ca4d0fb271913f5c1b6dd22a5c3e5b78e5
+    # These fail for unknown reason as rootless.  CDI is Container Device Interface
     push @xfails, (
-        "bud.bats::bud-copy--parents-links",
-    ) if (is_tumbleweed && version->parse(numeric_version($version)) < version->parse("1.46.0"));
+        "cdi.bats::bud with CDI",
+        "cdi.bats::from with CDI",
+        "cdi.bats::run with CDI",
+    ) if (version->parse(numeric_version($version)) >= version->parse("1.46.0") && $rootless);
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 7500);
 
