@@ -35,7 +35,8 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 0};
+    my ($self) = @_;
+    return {%{$self->SUPER::test_flags()}, fatal => 0};
 }
 
 1;
