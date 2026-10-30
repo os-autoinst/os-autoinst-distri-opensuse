@@ -1520,6 +1520,11 @@ sub qesap_cluster_logs {
     # return != 0 means no inventory
     return if (script_run("test -e $inventory", 60));
     foreach my $host ('hana[0]', 'hana[1]') {
+        unless (qesap_host_is_reachable(provider => $provider, host => $host)) {
+            record_info('Skip Collection', "$host unreachable, skipping cluster log collection", result => 'fail');
+            next;
+        }
+
         foreach my $cmd (qesap_cluster_log_cmds(provider => $provider)) {
             my $log_filename = "$host-$cmd->{Output}";
             $log_filename =~ s/[\[\]"]//g;
@@ -1594,6 +1599,51 @@ sub qesap_save_y2logs {
     upload_logs($local_path, failok => 1);
 }
 
+=head3 qesap_host_is_reachable
+
+    qesap_host_is_reachable(provider => 'aws', host => 'hana[0]');
+
+Quick reachability probe for a single inventory host vai Ansible ping.
+
+Dies if mandatory arguments are missing.
+Returns 1 if host answers Ansible ping within timeout, 0 otherwise.
+
+=over
+
+=item B<provider> - cloud provider, same format as PUBLIC_CLOUD_PROVIDER
+
+=item B<host> - host in the inventory
+
+=item B<user> - user on remote host, default to 'cloudadmin'
+
+=item B<inventory> - optional, ansible inventory file path
+
+=item B<timeout> - optional, default 60s (scaled)
+
+=item B<retry> - optional, default 2
+
+=back
+=cut
+
+sub qesap_host_is_reachable {
+    my (%args) = @_;
+    foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{user} //= 'cloudadmin';
+    $args{inventory} //= qesap_get_inventory(provider => $args{provider});
+    $args{timeout} //= bmwqemu::scale_timeout(60);
+    $args{retry} //= 2;
+
+    my $ansible_cmd = join(' ',
+        'ansible', qq("$args{host}"),
+        '-i', $args{inventory},
+        '-u', $args{user},
+        '-m', 'ping');
+
+    my $ret = qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout}, retry => $args{retry});
+    record_info('Reachability', "Host $args{host} " . ($ret ? 'unreachable' : 'reachable'));
+    return $ret == 0 ? 1 : 0;
+}
+
 =head3 qesap_supportconfig_logs
 
   Collect supportconfig logs from all HANA nodes of a deployed cluster
@@ -1615,6 +1665,10 @@ sub qesap_supportconfig_logs {
     # return != 0 means no inventory
     return if (script_run("test -e $args{inventory}", 60));
     foreach my $host ('hana[0]', 'hana[1]') {
+        unless (qesap_host_is_reachable(provider => $args{provider}, host => $host)) {
+            record_info('Skip Collection', "$host unreachable, skipping supportconfig log collection", result => 'fail');
+            next;
+        }
         qesap_upload_supportconfig_logs(host => $host, provider => $args{provider}, failok => 1);
     }
 }
