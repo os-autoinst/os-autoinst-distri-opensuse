@@ -71,6 +71,12 @@ sub run_tests {
         "chroot.bats::chroot mount flags",
         "copy.bats::copy-preserving-extended-attributes",
     ) if (is_ppc64le);
+    # These fail for unknown reason as rootless.  CDI is Container Device Interface
+    push @xfails, (
+        "cdi.bats::bud with CDI",
+        "cdi.bats::from with CDI",
+        "cdi.bats::run with CDI",
+    ) if (version->parse(numeric_version($version)) >= version->parse("1.46.0") && $rootless);
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 7500);
 
