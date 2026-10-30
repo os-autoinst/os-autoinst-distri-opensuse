@@ -19,26 +19,48 @@ my $stub_log = '/tmp/opencode-stub.log';
 my $stderr_log = '/tmp/opencode-stderr.log';
 my $port = 18080;
 my $reply = 'OPENQA_STUB_OK';
+my $tmux = 'tmux -L opencode-test';
+
+# The XDG directories are redirected so the session store cannot outlive the test.
+sub opencode_env {
+    return
+      "env HOME=$workdir XDG_CONFIG_HOME=$workdir/config XDG_DATA_HOME=$workdir/data "
+      . "XDG_CACHE_HOME=$workdir/cache XDG_STATE_HOME=$workdir/state "
+      . "OPENCODE_DISABLE_MODELS_FETCH=1 OPENCODE_DISABLE_AUTOUPDATE=1 OPENCODE_DISABLE_PROJECT_CONFIG=1";
+}
 
 # stdin is closed because opencode reads it whenever it is not a terminal, and
 # stdout is piped because it only writes the bare answer there when it is not
 # one: on a console it decorates the answer onto stderr instead, which no
 # assertion could then match. stderr is kept in a file the failure hook uploads.
-# The XDG directories are redirected so the session store cannot outlive the test.
 sub opencode {
     my ($args) = @_;
-    return
-      "env HOME=$workdir XDG_CONFIG_HOME=$workdir/config XDG_DATA_HOME=$workdir/data "
-      . "XDG_CACHE_HOME=$workdir/cache XDG_STATE_HOME=$workdir/state "
-      . "OPENCODE_DISABLE_MODELS_FETCH=1 OPENCODE_DISABLE_AUTOUPDATE=1 OPENCODE_DISABLE_PROJECT_CONFIG=1 "
-      . "opencode $args </dev/null 2>>$stderr_log | cat";
+    return opencode_env() . " opencode $args </dev/null 2>>$stderr_log | cat";
+}
+
+# tmux gives the interfaces a terminal; remain-on-exit keeps a crashed one's screen.
+sub interactive_ok {
+    my ($name, $args) = @_;
+    assert_script_run "$tmux -f /dev/null start-server ';' set-option -g remain-on-exit on ';' "
+      . "new-session -d -s $name -x 120 -y 40 \"" . opencode_env() . " opencode $args --standalone --prompt 'say hello'\"";
+    # a crashed or dead interface cannot show the reply any more, so the poll stops there
+    script_retry("$tmux capture-pane -p -J -S - -t $name | grep -qF -e $reply -e 'OpenCode crashed' || $tmux display-message -p -t $name '#{pane_dead}' | grep -qx 1",
+        delay => 5, retry => 24, die => 0);
+    my $screen = script_output("$tmux capture-pane -p -J -S - -t $name", proceed_on_failure => 1);
+    my $ok = $screen =~ /\Q$reply\E/
+      && script_output("$tmux display-message -p -t $name '#{pane_dead}'", proceed_on_failure => 1) eq '0';
+    my $known_crash = !$ok && $screen =~ m{\Q.replace(/^#/\E};
+    record_info($name, $screen, result => $ok ? 'ok' : $known_crash ? 'softfail' : 'fail');
+    script_run "$tmux kill-session -t $name";
+    record_soft_failure "bsc#1288219 - opencode $name crashes at startup" if $known_crash;
+    return $ok || $known_crash;
 }
 
 sub run {
     select_serial_terminal;
 
-    install_package('opencode', trup_apply => 1) if script_run('rpm -q opencode');
-    record_info('package', script_output('rpm -q opencode'));
+    install_package('opencode tmux', trup_apply => 1) if script_run('rpm -q opencode tmux');
+    record_info('package', script_output('rpm -q opencode tmux'));
 
     # a mis-stripped binary reports the bun runtime's version instead of its own
     my $version = script_output(q(rpm -q --queryformat '%{VERSION}' opencode));
@@ -68,9 +90,14 @@ sub run {
     die 'no text event carrying the stub reply in the json stream'
       unless $json =~ /"type":"text".*\Q$reply\E/;
     record_info('round trip', "the stub provider answered $reply in both output formats");
+
+    # both are checked so one run shows whether each interface works
+    my @broken = map { $_->[0] } grep { !interactive_ok(@$_) } ([tui => ''], [mini => 'mini -m stub/stub-model']);
+    die "interactive interface failed: @broken" if @broken;
 }
 
 sub cleanup {
+    script_run "$tmux kill-server";
     script_run "pkill -f $stub";
     script_run opencode('service stop');
     script_run "rm -rf $workdir $stub $stderr_log";

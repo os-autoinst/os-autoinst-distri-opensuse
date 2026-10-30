@@ -1,5 +1,6 @@
 {
     "$schema": "https://opencode.ai/config.json",
+    "model": "stub/stub-model",
     "provider": {
         "stub": {
             "npm": "@ai-sdk/openai-compatible",
