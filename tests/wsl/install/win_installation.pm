@@ -41,19 +41,13 @@ sub run {
     # Verify that WSL has been properly installed during OS deployment
     $self->open_powershell_as_admin;
     $self->run_in_powershell(
-        cmd => '$port.WriteLine($(wsl --version))',
+        cmd => '$port.WriteLine($(wsl --version)); $port.WriteLine("WSL-CHECK-END")',
         code => sub {
-            my $serial_output = wait_serial(
-                qr/WSL version: \d+\.\d+\.\d+\.\d+/,
-                expect_not_found => 1
-            );
-            if ($serial_output == undef) {
-                record_info("WSL installed", "WSL has been deployed properly!");
-            } elsif ($serial_output =~ qr/The Windows Subsystem for Linux is not installed./) {
-                die("WSL has not been installed during OS deployment...");
-            } else {
-                die("WSL unexpected error", "Unexpected error installing WSL:\n\n$serial_output");
-            }
+            # wsl.exe prints UTF-16, so PowerShell can add NUL bytes between the characters
+            my $serial_output = wait_serial(qr/WSL-CHECK-END/, timeout => 120) // die("No answer from 'wsl --version' on the serial port");
+            $serial_output =~ s/\0//g;
+            die("WSL has not been installed during OS deployment...\n\n$serial_output") unless $serial_output =~ qr/WSL version: \d+\.\d+\.\d+\.\d+/;
+            record_info("WSL installed", "WSL has been deployed properly!");
         }
     );
     $self->run_in_powershell(
