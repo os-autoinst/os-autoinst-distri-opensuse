@@ -162,25 +162,20 @@ sub qesap_az_setup_native_fencing_permissions {
     }
 
     # Enable system assigned identity
-    my $vm_id = script_output(join(' ',
-            'az vm identity assign',
-            '--only-show-errors',
-            "-g '$args{resource_group}'",
-            "-n '$args{vm_name}'",
-            "--query 'systemAssignedIdentity'",
-            '-o tsv'));
-    die "Returned output '$vm_id' does not match ID pattern" if (!az_validate_uuid_pattern(uuid => $vm_id));
+    my $vm_id = az_vm_identity_assign(
+        name => $args{vm_name},
+        resource_group => $args{resource_group}
+    );
 
     # Assign role
-    my $subscription_id = script_output('az account show --query "id" -o tsv');
+    my $subscription_id = az_account_get_subscription_id();
     my $role_id = az_role_definition_list(name => "Linux Fence Agent Role");
-    my $az_cmd = join(' ', 'az role assignment',
-        'create --only-show-errors',
-        "--assignee-object-id $vm_id",
-        '--assignee-principal-type ServicePrincipal',
-        "--role '$role_id'",
-        "--scope '/subscriptions/$subscription_id/resourceGroups/$args{resource_group}'");
-    assert_script_run($az_cmd);
+    az_role_assignment_create(
+        assignee_object_id => $vm_id,
+        assignee_principal_type => 'ServicePrincipal',
+        role => $role_id,
+        scope => "/subscriptions/$subscription_id/resourceGroups/$args{resource_group}"
+    );
 }
 
 =head2 qesap_az_get_tenant_id
