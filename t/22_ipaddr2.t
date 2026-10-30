@@ -1792,7 +1792,7 @@ subtest '[ipaddr2_logs_collect]' => sub {
     my @ssh_calls;
     my @calls;
     $ipaddr2->redefine(script_run => sub {
-            push @ssh_calls, $_[0] if $_[0] =~ /^ssh /;
+            push @ssh_calls, $_[0] if $_[0] =~ /\bssh .*-J /;
             push @calls, $_[0];
             return 0;
     });
@@ -1827,6 +1827,8 @@ subtest '[ipaddr2_logs_collect]' => sub {
     ok((any { /tar .*-C \/root\/\.azure commands az\.sess az\.json/ } @calls), "az cli logs collected");
     ok((none { /msal_token_cache|service_principal_entries/ } @calls), "az credential files not collected");
     ok((any { /azure_cli_logs\.tar\.gz/ } @upload_calls), "az cli logs uploaded");
+    ok((all { /^timeout -k 5 \d+ ssh / } @ssh_calls), "All the ssh to the internal VMs are wrapped in a shell timeout");
+    ok((all { /^timeout -k 5 \d+ scp / } grep { /\bscp / } @calls), "All the scp are wrapped in a shell timeout");
 };
 
 subtest '[ipaddr2_logs_collect] az cli logs failure' => sub {
@@ -1876,7 +1878,7 @@ subtest '[ipaddr2_logs_collect] skip scp on failure' => sub {
             return 1;
     });
     $ipaddr2->redefine(script_run => sub {
-            push @scp_calls, $_[0] if $_[0] =~ /^scp /;
+            push @scp_calls, $_[0] if $_[0] =~ /\bscp /;
             return 0;
     });
     my @calls;
@@ -2369,6 +2371,199 @@ subtest '[ipaddr2_logs_collect] supportconfig timeout triggers diagnostic' => su
     # After supportconfig times out, a diagnostic ps command should be issued
     ok((any { /ps aux.*supportconfig.*zypper.*rpm/ } @ssh_cmds), "diagnostic ps command issued after supportconfig timeout");
     ok((any { /SC timeout/ } @record_info_calls), "record_info called with SC timeout");
+};
+
+subtest '[ipaddr2_ssh_internal] kill_on_timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { my ($cmd, %args) = @_; push @calls, [$cmd, $args{timeout}]; return 124; });
+
+    my $ret = sles4sap::ipaddr2::ipaddr2_ssh_internal(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi', timeout => 42, no_assert => 1, kill_on_timeout => 1);
+
+    is($ret, undef, 'Return undef when the shell timeout kills ssh');
+    like($calls[0][0], qr/^timeout -k 5 42 ssh .*Marconi/, 'ssh is wrapped in a shell timeout');
+    is($calls[0][1], 62, 'script_run timeout is 20s longer than the shell timeout');
+    dies_ok { sles4sap::ipaddr2::ipaddr2_ssh_internal(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi', kill_on_timeout => 1) } 'Die without no_assert';
+};
+
+subtest '[ipaddr2_ssh_internal] kill_on_timeout scaled' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { my ($cmd, %args) = @_; push @calls, [$cmd, $args{timeout}]; return 0; });
+    set_var('TIMEOUT_SCALE', 3);
+
+    sles4sap::ipaddr2::ipaddr2_ssh_internal(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi', timeout => 42, kill_on_timeout => 1);
+
+    set_var('TIMEOUT_SCALE', undef);
+    like($calls[0][0], qr/^timeout -k 5 126 ssh /, 'Shell timeout scaled by TIMEOUT_SCALE');
+    is($calls[0][1], 62, 'script_run timeout not scaled here: script_run scales it');
+};
+
+subtest '[ipaddr2_ssh_internal] without kill_on_timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { my ($cmd, %args) = @_; push @calls, [$cmd, $args{timeout}]; return 124; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $ret = sles4sap::ipaddr2::ipaddr2_ssh_internal(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi', timeout => 42, no_assert => 1);
+
+    is($ret, 124, 'rc 124 returned as is');
+    like($calls[0][0], qr/^ssh /, 'ssh is not wrapped');
+    is($calls[0][1], 42, 'script_run timeout unchanged');
+};
+
+subtest '[ipaddr2_ssh_internal_output] no_assert and kill_on_timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my ($cmd, %args);
+    $ipaddr2->redefine(script_output => sub { ($cmd, %args) = @_; return 'Meucci'; });
+    set_var('TIMEOUT_SCALE', 3);
+
+    my $out = sles4sap::ipaddr2::ipaddr2_ssh_internal_output(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi', timeout => 42, no_assert => 1, kill_on_timeout => 1);
+
+    set_var('TIMEOUT_SCALE', undef);
+    is($out, 'Meucci', 'Return the output');
+    like($cmd, qr/^timeout --foreground -k 5 126 ssh .*Marconi/, 'ssh is wrapped in a scaled foreground shell timeout');
+    is($args{timeout}, 62, 'script_output timeout is 20s longer than the shell timeout');
+    ok($args{proceed_on_failure}, 'script_output does not die on failure');
+};
+
+subtest '[ipaddr2_ssh_internal_output] without the new arguments' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my ($cmd, %args);
+    $ipaddr2->redefine(script_output => sub { ($cmd, %args) = @_; return 'Meucci'; });
+
+    sles4sap::ipaddr2::ipaddr2_ssh_internal_output(id => 1, bastion_ip => '1.2.3.4', cmd => 'Marconi');
+
+    like($cmd, qr/^ssh /, 'ssh is not wrapped');
+    is_deeply(\%args, {timeout => 90}, 'script_output called only with the default timeout');
+};
+
+subtest '[ipaddr2_logs_collect] one failing log does not stop the others' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @upload_calls;
+    $ipaddr2->redefine(upload_logs => sub { my ($file, %args) = @_; push @upload_calls, [$file, $args{failok}]; return 'up'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.0.0'; });
+    my @scp_calls;
+    $ipaddr2->redefine(script_run => sub {
+            my ($cmd) = @_;
+            return 0 unless $cmd =~ /\bscp /;
+            push @scp_calls, $cmd;
+            # Download of y2logs from VM 1 killed by the shell timeout
+            return $cmd =~ /y2logs_1/ ? 124 : 0;
+    });
+    # crm report fails on VM 1 and supportconfig is killed by the shell timeout on VM 2
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            return 1 if ($args{cmd} =~ /crm report/ && $args{id} == 1);
+            return undef if ($args{cmd} =~ /supportconfig/ && $args{id} == 2);
+            return 0;
+    });
+    my $ret;
+
+    lives_ok { $ret = ipaddr2_logs_collect() } 'No die for failures on single logs';
+
+    note("\n  UPLOAD -->  " . join("\n  UPLOAD -->  ", map { $_->[0] } @upload_calls));
+    is($ret, 0, 'Return 0');
+    is(scalar @scp_calls, 6, 'scp called for all the 6 generated logs');
+    # 8 remote logs - crm_report_1 - supportconfig_2 - y2logs_1 + 2 ssh logs + az cli logs
+    is(scalar @upload_calls, 8, 'upload_logs called for all the other logs');
+    ok((none { $_->[0] =~ /crm_report_1|scc_supportconfig_2|y2logs_1/ } @upload_calls), 'Failed logs not uploaded');
+    ok((any { $_->[0] =~ /crm_report_2/ } @upload_calls), 'crm_report of VM 2 uploaded after the failure on VM 1');
+    ok((all { $_->[1] } @upload_calls), 'All the uploads use failok');
+};
+
+subtest '[ipaddr2_logs_collect] supportutils version not available' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(upload_logs => sub { return 'up'; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+    # Lower layer: rpm fails, script_output dies unless proceed_on_failure is set
+    $ipaddr2->redefine(script_output => sub {
+            my ($cmd, %args) = @_;
+            die 'script failed' unless $args{proceed_on_failure};
+            return 'package supportutils is not installed';
+    });
+    my @ssh_cmds;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { my (%args) = @_; push @ssh_cmds, $args{cmd}; return 0; });
+    $ipaddr2->noop('record_soft_failure');
+
+    lives_ok { ipaddr2_logs_collect() } 'No die when the supportutils version is not available';
+
+    is((scalar grep { /sudo supportconfig/ } @ssh_cmds), 2, 'supportconfig still called on both VMs');
+    ok((none { /< \/dev\/null/ } @ssh_cmds), 'No bsc#1268173 workaround without version');
+};
+
+subtest '[ipaddr2_logs_collect] all logs collected' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(upload_logs => sub { return 'up'; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.0.0'; });
+
+    is(ipaddr2_logs_collect(), 1, 'Return 1 when all the logs are collected');
+};
+
+subtest '[ipaddr2_post_fail_hook] cleanup after log collection failures' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(record_soft_failure => sub { });
+    # upload without failok dies
+    $ipaddr2->redefine(upload_logs => sub { my ($file, %args) = @_; die "curl failed for $file" unless $args{failok}; return 'up'; });
+    # bastion reachable, ssh and scp to the internal VMs fail
+    $ipaddr2->redefine(script_run => sub { return $_[0] =~ /ssh .*-J |\bscp / ? 255 : 0; });
+    $ipaddr2->redefine(script_output => sub { my ($cmd, %args) = @_; die 'script failed' unless $args{proceed_on_failure}; return ''; });
+    my $cleanup_called = 0;
+    $ipaddr2->redefine(ipaddr2_cleanup => sub { $cleanup_called = 1; });
+
+    lives_ok { ipaddr2_post_fail_hook() } 'post_fail_hook does not die';
+    ok($cleanup_called, 'ipaddr2_cleanup called');
+};
+
+subtest '[ipaddr2_logs_collect] no bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my $pubip_called = 0;
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { $pubip_called++; return; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @upload_calls;
+    $ipaddr2->redefine(upload_logs => sub { push @upload_calls, $_[0]; return 'up'; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+    my $ssh_called = 0;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { $ssh_called++; return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_script_run => sub { $ssh_called++; return 0; });
+    my $ret;
+
+    lives_ok { $ret = ipaddr2_logs_collect() } 'No die without bastion IP';
+
+    is($ret, 0, 'Return 0');
+    is($pubip_called, 1, 'Azure queried only once for the bastion IP');
+    is($ssh_called, 0, 'No ssh without bastion IP');
+    is(scalar @upload_calls, 3, 'Local logs still uploaded (2 ssh logs + az cli logs)');
+};
+
+subtest '[ipaddr2_logs_collect] bastion not reachable' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @upload_calls;
+    $ipaddr2->redefine(upload_logs => sub { push @upload_calls, $_[0]; return 'up'; });
+    # ssh to the bastion fails with 255, everything else on the worker is fine
+    $ipaddr2->redefine(script_run => sub { return $_[0] =~ /ssh .*'true'/ ? 255 : 0; });
+    my $ssh_internal_called = 0;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { $ssh_internal_called++; return 0; });
+    my $ret;
+
+    lives_ok { $ret = ipaddr2_logs_collect() } 'No die when the bastion is not reachable';
+
+    is($ret, 0, 'Return 0');
+    is($ssh_internal_called, 0, 'No ssh to the internal VMs');
+    is(scalar @upload_calls, 3, 'Local logs still uploaded (2 ssh logs + az cli logs)');
 };
 
 done_testing;

@@ -87,6 +87,10 @@ use constant PING_CMD => 'ping -c 3';
 # 30 s is the minimum allowed value: the slowest observed call (ping -c 3) took 3.3 s,
 # so the margin is far larger than needed.
 use constant BASTION_SSH_TIMEOUT => 30;
+# Time limit, in seconds, for each scp used to download the logs from the internal VMs.
+use constant SCP_TIMEOUT => 30;
+# Time limit, in seconds, for each upload_logs in ipaddr2_logs_collect.
+use constant UPLOAD_TIMEOUT => 90;
 
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
@@ -1385,6 +1389,11 @@ It dies for timeout and if exit code is not zero and no_assert is not defined.
 
 =item B<retry> - Number of retries in case of failure. Default 1 (no retry)
 
+=item B<kill_on_timeout> - If specified, wrap the ssh command in a shell C<timeout -k 5>,
+                           so a hung ssh is killed on the worker after B<timeout> seconds
+                           (scaled by TIMEOUT_SCALE) and the console is free for the next command.
+                           The kill is handled as a timeout: die, or return undef with B<no_assert>.
+
 =back
 =cut
 
@@ -1400,12 +1409,24 @@ sub ipaddr2_ssh_internal(%args) {
         bastion_ip => $args{bastion_ip},
         cmd => $args{cmd});
 
+    my $script_timeout = $args{timeout};
+    if ($args{kill_on_timeout}) {
+        # script_run scales its timeout by TIMEOUT_SCALE, the shell timeout has to be scaled explicitly
+        $command = join(' ', 'timeout', '-k', '5', bmwqemu::scale_timeout($args{timeout}), $command);
+        $script_timeout = $args{timeout} + 20;
+    }
+
     my $ret;
     for (1 .. $args{retry}) {
-        eval { $ret = script_run($command, timeout => $args{timeout}); };
+        eval { $ret = script_run($command, timeout => $script_timeout); };
         if ($@) {
             die $@ unless $args{no_assert};
             record_info('SSH timeout', "cmd: $command\nerr: $@", result => 'fail');
+            return undef;
+        }
+        if ($args{kill_on_timeout} && defined $ret && ($ret == 124 || $ret == 137)) {
+            die "Command $command killed by the shell timeout, rc:$ret" unless $args{no_assert};
+            record_info('SSH timeout', "cmd: $command\nkilled by the shell timeout, rc:$ret", result => 'fail');
             return undef;
         }
         return $ret if (defined $ret && $ret == 0);
@@ -1439,6 +1460,14 @@ Return the command output.
 
 =item B<timeout> - Execution timeout, default 90sec
 
+=item B<no_assert> - If specified, do not die when the command fails:
+                     return its output anyway. The caller has to validate it.
+
+=item B<kill_on_timeout> - If specified, wrap the ssh command in a shell C<timeout -k 5>,
+                           so a hung ssh is killed on the worker after B<timeout> seconds
+                           (scaled by TIMEOUT_SCALE). Without B<no_assert> the kill is a failure
+                           and the function dies.
+
 =back
 =cut
 
@@ -1448,12 +1477,20 @@ sub ipaddr2_ssh_internal_output(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{timeout} //= 90;
 
-    return script_output(
-        ipaddr2_ssh_internal_cmd(
-            id => $args{id},
-            bastion_ip => $args{bastion_ip},
-            cmd => $args{cmd}),
-        timeout => $args{timeout});
+    my $command = ipaddr2_ssh_internal_cmd(
+        id => $args{id},
+        bastion_ip => $args{bastion_ip},
+        cmd => $args{cmd});
+    my %so_args = (timeout => $args{timeout});
+    if ($args{kill_on_timeout}) {
+        # script_output runs the command in a non-interactive shell:
+        # --foreground keeps ssh in the foreground process group of the terminal, like without timeout.
+        # script_output scales its timeout by TIMEOUT_SCALE, the shell timeout has to be scaled explicitly
+        $command = join(' ', 'timeout', '--foreground', '-k', '5', bmwqemu::scale_timeout($args{timeout}), $command);
+        $so_args{timeout} = $args{timeout} + 20;
+    }
+    $so_args{proceed_on_failure} = 1 if $args{no_assert};
+    return script_output($command, %so_args);
 }
 
 =head2 ipaddr2_cluster_create
@@ -2687,18 +2724,34 @@ Collect logs from the ipaddr2 cluster.
                             skip supportconfig log collection.
 
 =back
+
+The function does not die for the failure of a single log:
+each failure is recorded with record_info and the collection goes on with the next log.
+If the bastion is not reachable, the logs on the internal VMs are skipped
+and only the logs on the worker are collected.
+Return 1 if all the logs are collected, 0 otherwise.
+
 =cut
 
 sub ipaddr2_logs_collect(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
-    # No die, let the test run
-    return unless $args{bastion_ip};
-    my $ret = ipaddr2_ssh_bastion_script_run(
-        bastion_ip => $args{bastion_ip},
-        cmd => 'true');
-    return if $ret;
     $args{no_supportconfig} //= 0;
-    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+    my $remote_ok = 0;
+    if (!$args{bastion_ip}) {
+        record_info('Logs skip', 'No bastion public IP: skip the logs on the internal VMs', result => 'fail');
+    } else {
+        my $ret = ipaddr2_ssh_bastion_script_run(
+            bastion_ip => $args{bastion_ip},
+            cmd => 'true');
+        if ($ret) {
+            record_info('Logs skip', "Bastion $args{bastion_ip} not reachable, rc:$ret: skip the logs on the internal VMs", result => 'fail');
+        } else {
+            $remote_ok = 1;
+        }
+    }
+    my $all_ok = $remote_ok;
+    # Only compose it when the bastion IP is known
+    my $bastion_ssh_addr = $remote_ok ? ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}) : undef;
     my $vm_addr;
     my $worker_tmp_dir;
     my $scp_ret;
@@ -2715,6 +2768,7 @@ sub ipaddr2_logs_collect(%args) {
         next if ($args{no_supportconfig} && defined $log->{name} && $log->{name} eq 'supportconfig');
 
         if (defined $log->{remote_log} && $log->{remote_log} == 1) {
+            next unless $remote_ok;
             $timeout = $log->{timeout} // 300;
             # Iterate through each remote VM to generate and collect logs.
             foreach my $id (1 .. 2) {
@@ -2726,6 +2780,7 @@ sub ipaddr2_logs_collect(%args) {
                     record_info('Terminal stuck',
                         "Cannot reach shell prompt, skipping remaining logs for VM $id",
                         result => 'fail');
+                    $all_ok = 0;
                     last;
                 }
 
@@ -2737,12 +2792,17 @@ sub ipaddr2_logs_collect(%args) {
                 # stdin when stdin is not a terminal, blocking indefinitely over SSH. Redirect stdin
                 # from /dev/null so ausearch falls back to reading /var/log/audit/audit.log directly.
                 if (defined $log_data{name} && $log_data{name} eq 'supportconfig') {
-                    my $supportutils_ver = ipaddr2_ssh_internal_output(
+                    my $rpm_out = ipaddr2_ssh_internal_output(
                         id => $id,
                         bastion_ip => $args{bastion_ip},
+                        no_assert => 1,
+                        kill_on_timeout => 1,
                         cmd => "rpm -q --queryformat '%{VERSION}' supportutils");
+                    my ($supportutils_ver) = ($rpm_out // '') =~ /^\s*(\d[\w.+~-]*)\s*$/;
                     # The ausearch call was introduced in supportutils 3.1.25 (bsc#1209979, Jun 2023).
-                    if (package_version_cmp($supportutils_ver, '3.1.25') >= 0) {
+                    if (!defined $supportutils_ver) {
+                        record_info('SC version', "Cannot get the supportutils version on VM $id, output:'" . ($rpm_out // 'undef') . "'", result => 'fail');
+                    } elsif (package_version_cmp($supportutils_ver, '3.1.25') >= 0) {
                         $log_data{cmd} =~ s/(sudo supportconfig .+?)\s*&&/$1 < \/dev\/null &&/;
                         record_soft_failure('bsc#1268173 - supportconfig hangs when run non-interactively.');
                     }
@@ -2755,6 +2815,7 @@ sub ipaddr2_logs_collect(%args) {
                         id => $id,
                         bastion_ip => $args{bastion_ip},
                         no_assert => 1,
+                        kill_on_timeout => 1,
                         timeout => $timeout,
                         cmd => $log_data{cmd});
 
@@ -2767,6 +2828,7 @@ sub ipaddr2_logs_collect(%args) {
                             id => $id,
                             bastion_ip => $args{bastion_ip},
                             no_assert => 1,
+                            kill_on_timeout => 1,
                             timeout => 30,
                             cmd => 'ps aux --sort=-pcpu | grep -E "supportconfig|zypper|rpm" | grep -v grep');
                     }
@@ -2778,23 +2840,33 @@ sub ipaddr2_logs_collect(%args) {
                     $local_file = join('/', $worker_tmp_dir, basename($remote_file));
                     $vm_addr = USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $id);
                     $scp_cmd = join(' ',
+                        'timeout', '-k', '5', bmwqemu::scale_timeout(SCP_TIMEOUT),
                         'scp',
                         '-J', $bastion_ssh_addr,
                         "$vm_addr:$remote_file", $local_file);
                     record_info("bastion_ssh_addr:$bastion_ssh_addr vm_addr:$vm_addr ", $scp_cmd);
-                    $scp_ret = script_run($scp_cmd);
+                    $scp_ret = script_run($scp_cmd, timeout => SCP_TIMEOUT + 20);
 
                     # If download was successful, upload the local file to openQA.
-                    upload_logs($local_file) if ($scp_ret == 0);
+                    if (defined $scp_ret && $scp_ret == 0) {
+                        upload_logs($local_file, failok => 1, timeout => bmwqemu::scale_timeout(UPLOAD_TIMEOUT));
+                    } else {
+                        record_info('Log fail', "Download of $remote_file from VM $id failed, rc:" . ($scp_ret // 'undef'), result => 'fail');
+                        $all_ok = 0;
+                    }
+                } else {
+                    record_info('Log fail', "Command to generate $remote_file on VM $id failed, rc:" . ($cmd_ret // 'undef'), result => 'fail');
+                    $all_ok = 0;
                 }
             }
         } else {
             # call it without id
             %log_data = %{$log->{f_log}->()};
-            upload_logs($log_data{file});
+            upload_logs($log_data{file}, failok => 1, timeout => bmwqemu::scale_timeout(UPLOAD_TIMEOUT));
         }
     }
-    _ipaddr2_azure_cli_logs();
+    $all_ok = 0 unless _ipaddr2_azure_cli_logs();
+    return $all_ok;
 }
 
 =head2 _ipaddr2_azure_cli_logs
@@ -2806,6 +2878,7 @@ The az cli writes one log file for each command in /root/.azure/commands,
 with the start and the end timestamps and the exit code.
 The other files in /root/.azure are not collected: they contain credentials.
 Failures are not fatal.
+Return 1 on success, 0 on failure.
 
 =cut
 
@@ -2819,9 +2892,10 @@ sub _ipaddr2_azure_cli_logs {
     };
     if ($@ || !defined $ret || $ret != 0) {
         record_info('az cli logs', 'Failed to collect the az cli logs: ' . ($@ || 'Exit code: ' . ($ret // 'undef')));
-        return;
+        return 0;
     }
     upload_logs($file, failok => 1);
+    return 1;
 }
 
 =head2 ipaddr2_ssh_intrusion_detection
