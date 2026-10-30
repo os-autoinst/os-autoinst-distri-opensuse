@@ -114,7 +114,14 @@ sub run {
 
         $instance->wait_for_ssh();
 
-        my $real_hostname = $instance->ssh_script_output(cmd => 'hostname', username => 'cloudadmin');
+        my $out = $instance->ssh_script_output(
+            cmd => 'echo "REAL_HOSTNAME=$(hostname)"',
+            username => 'cloudadmin',
+        );
+        # Guard against banners or other unrelated output
+        my ($real_hostname) = $out =~ /^REAL_HOSTNAME=(\S+)\s*$/m;
+        die "Could not read hostname from ssh output: [$out]"
+          if ((is_azure() || is_gce()) && !defined $real_hostname);
         # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
         die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
           if ((is_azure() || is_gce()) && ($expected_hostname ne $real_hostname));

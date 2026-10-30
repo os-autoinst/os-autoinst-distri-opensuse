@@ -1589,14 +1589,24 @@ sub get_online_string {
 
     Returns the SAPHanaSR-showattr version
 
+Only the expected lines of the command outputs are used, so unrelated
+output (like ssh banners) can not be re-injected into a command
+or mistaken for the version.
+
 =cut
 
 sub saphanasr_showAttr_version {
     my ($self) = @_;
     # We check a version and also a type of the SAPHanaSR package
     my $which_output = $self->run_cmd(cmd => 'which SAPHanaSR-showAttr', quiet => 1);
-    my $version_output = $self->run_cmd(cmd => "rpm -qf $which_output", quiet => 1);
-    record_info('SAPHanaSR INFO', "path=$which_output; version=$version_output");
+    # Keep only the absolute path line
+    my ($path) = $which_output =~ m{^(/\S+)\s*$}m;
+    die "Could not find SAPHanaSR-showAttr path in output: [$which_output]" unless defined $path;
+    my $rpm_output = $self->run_cmd(cmd => "rpm -qf $path", quiet => 1);
+    # Keep only the package line (e.g. SAPHanaSR-angi-1.2.10-150600.3.1.noarch)
+    my ($version_output) = $rpm_output =~ /^(SAPHanaSR\S*)\s*$/m;
+    $version_output //= '';
+    record_info('SAPHanaSR INFO', "path=$path; version=$version_output");
 
     if ($version_output =~ /(\d+\.\d+(?:\.\d+)*)/) {
         return $1;
