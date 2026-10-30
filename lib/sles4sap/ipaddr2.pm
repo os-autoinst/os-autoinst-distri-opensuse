@@ -87,6 +87,10 @@ use constant PING_CMD => 'ping -c 3';
 # 30 s is the minimum allowed value: the slowest observed call (ping -c 3) took 3.3 s,
 # so the margin is far larger than needed.
 use constant BASTION_SSH_TIMEOUT => 30;
+# Time limit, in seconds and scaled by TIMEOUT_SCALE, for each scp used to download the logs from the internal VMs.
+use constant SCP_TIMEOUT => 30;
+# Time limit, in seconds and scaled by TIMEOUT_SCALE, for each upload_logs in ipaddr2_logs_collect.
+use constant UPLOAD_TIMEOUT => 90;
 
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
 our $bastion_pub_ip = DEPLOY_PREFIX . '-pub_ip';
@@ -2720,17 +2724,23 @@ Collect logs from the ipaddr2 cluster.
                             skip supportconfig log collection.
 
 =back
+
+The function does not die for the failure of a single log:
+each failure is recorded with record_info and the collection goes on with the next log.
+Return 1 if all the logs are collected, 0 otherwise.
+
 =cut
 
 sub ipaddr2_logs_collect(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     # No die, let the test run
-    return unless $args{bastion_ip};
+    return 0 unless $args{bastion_ip};
     my $ret = ipaddr2_ssh_bastion_script_run(
         bastion_ip => $args{bastion_ip},
         cmd => 'true');
-    return if $ret;
+    return 0 if $ret;
     $args{no_supportconfig} //= 0;
+    my $all_ok = 1;
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     my $vm_addr;
     my $worker_tmp_dir;
@@ -2759,6 +2769,7 @@ sub ipaddr2_logs_collect(%args) {
                     record_info('Terminal stuck',
                         "Cannot reach shell prompt, skipping remaining logs for VM $id",
                         result => 'fail');
+                    $all_ok = 0;
                     last;
                 }
 
@@ -2770,12 +2781,17 @@ sub ipaddr2_logs_collect(%args) {
                 # stdin when stdin is not a terminal, blocking indefinitely over SSH. Redirect stdin
                 # from /dev/null so ausearch falls back to reading /var/log/audit/audit.log directly.
                 if (defined $log_data{name} && $log_data{name} eq 'supportconfig') {
-                    my $supportutils_ver = ipaddr2_ssh_internal_output(
+                    my $rpm_out = ipaddr2_ssh_internal_output(
                         id => $id,
                         bastion_ip => $args{bastion_ip},
+                        no_assert => 1,
+                        kill_on_timeout => 1,
                         cmd => "rpm -q --queryformat '%{VERSION}' supportutils");
+                    my ($supportutils_ver) = ($rpm_out // '') =~ /^\s*(\d[\w.+~-]*)\s*$/;
                     # The ausearch call was introduced in supportutils 3.1.25 (bsc#1209979, Jun 2023).
-                    if (package_version_cmp($supportutils_ver, '3.1.25') >= 0) {
+                    if (!defined $supportutils_ver) {
+                        record_info('SC version', "Cannot get the supportutils version on VM $id, output:'" . ($rpm_out // 'undef') . "'", result => 'fail');
+                    } elsif (package_version_cmp($supportutils_ver, '3.1.25') >= 0) {
                         $log_data{cmd} =~ s/(sudo supportconfig .+?)\s*&&/$1 < \/dev\/null &&/;
                         record_soft_failure('bsc#1268173 - supportconfig hangs when run non-interactively.');
                     }
@@ -2788,6 +2804,7 @@ sub ipaddr2_logs_collect(%args) {
                         id => $id,
                         bastion_ip => $args{bastion_ip},
                         no_assert => 1,
+                        kill_on_timeout => 1,
                         timeout => $timeout,
                         cmd => $log_data{cmd});
 
@@ -2800,6 +2817,7 @@ sub ipaddr2_logs_collect(%args) {
                             id => $id,
                             bastion_ip => $args{bastion_ip},
                             no_assert => 1,
+                            kill_on_timeout => 1,
                             timeout => 30,
                             cmd => 'ps aux --sort=-pcpu | grep -E "supportconfig|zypper|rpm" | grep -v grep');
                     }
@@ -2811,23 +2829,33 @@ sub ipaddr2_logs_collect(%args) {
                     $local_file = join('/', $worker_tmp_dir, basename($remote_file));
                     $vm_addr = USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $id);
                     $scp_cmd = join(' ',
+                        'timeout', '-k', '5', bmwqemu::scale_timeout(SCP_TIMEOUT),
                         'scp',
                         '-J', $bastion_ssh_addr,
                         "$vm_addr:$remote_file", $local_file);
                     record_info("bastion_ssh_addr:$bastion_ssh_addr vm_addr:$vm_addr ", $scp_cmd);
-                    $scp_ret = script_run($scp_cmd);
+                    $scp_ret = script_run($scp_cmd, timeout => SCP_TIMEOUT + 20);
 
                     # If download was successful, upload the local file to openQA.
-                    upload_logs($local_file) if ($scp_ret == 0);
+                    if (defined $scp_ret && $scp_ret == 0) {
+                        upload_logs($local_file, failok => 1, timeout => bmwqemu::scale_timeout(UPLOAD_TIMEOUT));
+                    } else {
+                        record_info('Log fail', "Download of $remote_file from VM $id failed, rc:" . ($scp_ret // 'undef'), result => 'fail');
+                        $all_ok = 0;
+                    }
+                } else {
+                    record_info('Log fail', "Command to generate $remote_file on VM $id failed, rc:" . ($cmd_ret // 'undef'), result => 'fail');
+                    $all_ok = 0;
                 }
             }
         } else {
             # call it without id
             %log_data = %{$log->{f_log}->()};
-            upload_logs($log_data{file});
+            upload_logs($log_data{file}, failok => 1, timeout => bmwqemu::scale_timeout(UPLOAD_TIMEOUT));
         }
     }
-    _ipaddr2_azure_cli_logs();
+    $all_ok = 0 unless _ipaddr2_azure_cli_logs();
+    return $all_ok;
 }
 
 =head2 _ipaddr2_azure_cli_logs
@@ -2839,6 +2867,7 @@ The az cli writes one log file for each command in /root/.azure/commands,
 with the start and the end timestamps and the exit code.
 The other files in /root/.azure are not collected: they contain credentials.
 Failures are not fatal.
+Return 1 on success, 0 on failure.
 
 =cut
 
@@ -2852,9 +2881,10 @@ sub _ipaddr2_azure_cli_logs {
     };
     if ($@ || !defined $ret || $ret != 0) {
         record_info('az cli logs', 'Failed to collect the az cli logs: ' . ($@ || 'Exit code: ' . ($ret // 'undef')));
-        return;
+        return 0;
     }
     upload_logs($file, failok => 1);
+    return 1;
 }
 
 =head2 ipaddr2_ssh_intrusion_detection
