@@ -119,9 +119,10 @@ subtest '[qesap_az_setup_native_fencing_permissions]' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my @calls;
     my $vm_id = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return $vm_id; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return 1; });
+    $qesap->redefine(az_vm_identity_assign => sub { my %args = @_; push @calls, "az vm identity assign -g '$args{resource_group}' -n '$args{name}'"; return $vm_id; });
+    $qesap->redefine(az_account_get_subscription_id => sub { push @calls, 'az account show'; return $vm_id; });
     $qesap->redefine(az_role_definition_list => sub { return 'ROLEID-Squall-888'; });
+    $qesap->redefine(az_role_assignment_create => sub { my %args = @_; push @calls, "az role assignment create --assignee-object-id $args{assignee_object_id} $args{scope} StrawhatPirates"; return {rc => 0}; });
 
     my %mandatory_args = (
         vm_name => 'CaptainUsop',
@@ -138,15 +139,14 @@ subtest '[qesap_az_setup_native_fencing_permissions]' => sub {
 subtest '[qesap_az_setup_native_fencing_permissions] invalid UUID' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my @calls;
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'AnneBonny'; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; return 1; });
+    $qesap->redefine(az_vm_identity_assign => sub { die "Returned 'AnneBonny' does not match ID pattern"; });
 
     my %mandatory_args = (
         vm_name => 'CaptainUsop',
         resource_group => 'StrawhatPirates'
     );
 
-    dies_ok { ok qesap_az_setup_native_fencing_permissions(%mandatory_args) } 'PASS with all args defined';
+    dies_ok { qesap_az_setup_native_fencing_permissions(%mandatory_args) } 'Die when VM ID is invalid';
 };
 
 subtest '[qesap_az_get_tenant_id] missing arguments' => sub {
