@@ -15,7 +15,6 @@
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'consoletest';
-use XML::LibXML;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use containers::utils qw(reset_container_network_if_needed);
