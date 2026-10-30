@@ -49,7 +49,12 @@ sub critest {
 
     run_command "containerd config dump | tee /etc/containerd/config.toml";
     # cni-plugins are installed in /usr/libexec/cni instead of /opt/cni
-    run_command q(sed -i 's,bin_dir =.*,bin_dir = "/usr/libexec/cni",' /etc/containerd/config.toml);
+    # containerd 2.4 replaced bin_dir with bin_dirs
+    if (version->parse(numeric_version($version)) >= version->parse("2.4.0")) {
+        run_command q(sed -i "s,bin_dirs =.*,bin_dirs = ['/usr/libexec/cni']," /etc/containerd/config.toml);
+    } else {
+        run_command q(sed -i 's,bin_dir =.*,bin_dir = "/usr/libexec/cni",' /etc/containerd/config.toml);
+    }
 
     # Workaround for https://bugzilla.opensuse.org/show_bug.cgi?id=1257963
     if (script_output("crictl info -o go-template --template '{{.config.enableSelinux}}'") ne "true") {
