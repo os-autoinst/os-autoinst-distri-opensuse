@@ -1,0 +1,24 @@
+multimachine_topology:
+  name: ltp_net_2hosts
+
+  networks:
+    - id: mgmt
+      ipv4_cidr: "10.146.14.0/23"
+      ipv6_cidr: "fd00:1:1:1::/64"
+
+  nodes:
+    - id: merckx
+      role: rhost
+      interfaces:
+        - id: eno1
+          network: mgmt
+          ipv4: "10.146.14.90"
+          ipv6: "fd00:1:1:1::1"
+
+    - id: coppi
+      role: lhost
+      interfaces:
+        - id: eno1
+          network: mgmt
+          ipv4: "10.146.14.87"
+          ipv6: "fd00:1:1:1::2"

@@ -386,6 +386,12 @@ sub run {
     (is_jeos && is_sle('>15')) && install_package 'system-user-bin system-user-daemon';
     check_kernel_package(get_kernel_flavor()) if $cmd_file;
 
+    # LTP network tests with two hosts: the rhost runs no tests, see run_ltp
+    if (get_ltp_net_role() eq 'rhost') {
+        setup_ltp_rhost;
+        return;
+    }
+
     # boot_ltp will schedule the tests and shutdown_ltp if there is a command
     # file
     if (get_var('LTP_INSTALL_REBOOT') || (is_transactional && $cmd_file)) {
