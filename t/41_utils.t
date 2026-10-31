@@ -43,4 +43,38 @@ subtest 'need_unlock_after_bootloader' => sub {
     is(need_unlock_after_bootloader(), 1, 'Common Criteria on s390x forces unlock (returns 1)');
 };
 
+subtest 'zypper_patches' => sub {
+    my $mock_utils = Test::MockModule->new('utils');
+    my $mock_script_output = '';
+    $mock_utils->redefine('script_output', sub { return $mock_script_output });
+    $mock_utils->redefine('is_sle', sub { 0 });
+
+    my %patch = (
+        repository => 'repo1',
+        name => 'patch1',
+        category => 'security',
+        severity => 'critical',
+        interactive => '---',
+        status => 'Needed',
+        summary => 'Security update 1',
+    );
+
+    $mock_script_output = <<'EOF';
+Repository | Name   | Category | Severity | Interactive | Status | Since | Summary
+-----------+--------+----------+----------+-------------+--------+-------+------------------
+repo1      | patch1 | security | critical | ---         | Needed | 1d    | Security update 1
+EOF
+    is_deeply(zypper_patches(), [{%patch, since => '1d'}], 'layout with Since column');
+
+    $mock_script_output = <<'EOF';
+Repository | Name   | Category | Severity | Interactive | Status | Summary
+-----------+--------+----------+----------+-------------+--------+------------------
+repo1      | patch1 | security | critical | ---         | Needed | Security update 1
+EOF
+    is_deeply(zypper_patches(), [\%patch], 'layout without Since column');
+
+    $mock_script_output = "No updates found.\n";
+    is_deeply(zypper_patches(), [], 'no table in output');
+};
+
 done_testing();
