@@ -505,6 +505,10 @@
 <dd>
 
 </dd>
+<dt id="kill_on_timeout---If-specified-wrap-the-ssh-command-in-a-shell-timeout--k-5-so-a-hung-ssh-is-killed-on-the-worker-after-timeout-seconds-scaled-by-TIMEOUT_SCALE-and-the-console-is-free-for-the-next-command.-The-kill-is-handled-as-a-timeout:-die-or-return-undef-with-no_assert"><b>kill_on_timeout</b> - If specified, wrap the ssh command in a shell <code>timeout -k 5</code>, so a hung ssh is killed on the worker after <b>timeout</b> seconds (scaled by TIMEOUT_SCALE) and the console is free for the next command. The kill is handled as a timeout: die, or return undef with <b>no_assert</b>.</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h2 id="ipaddr2_ssh_internal_output">ipaddr2_ssh_internal_output</h2>
@@ -531,6 +535,14 @@
 
 </dd>
 <dt id="timeout---Execution-timeout-default-90sec1"><b>timeout</b> - Execution timeout, default 90sec</dt>
+<dd>
+
+</dd>
+<dt id="no_assert---If-specified-do-not-die-when-the-command-fails:-return-its-output-anyway.-The-caller-has-to-validate-it"><b>no_assert</b> - If specified, do not die when the command fails: return its output anyway. The caller has to validate it.</dt>
+<dd>
+
+</dd>
+<dt id="kill_on_timeout---If-specified-wrap-the-ssh-command-in-a-shell-timeout--k-5-so-a-hung-ssh-is-killed-on-the-worker-after-timeout-seconds-scaled-by-TIMEOUT_SCALE-.-Without-no_assert-the-kill-is-a-failure-and-the-function-dies"><b>kill_on_timeout</b> - If specified, wrap the ssh command in a shell <code>timeout -k 5</code>, so a hung ssh is killed on the worker after <b>timeout</b> seconds (scaled by TIMEOUT_SCALE). Without <b>no_assert</b> the kill is a failure and the function dies.</dt>
 <dd>
 
 </dd>
@@ -1078,11 +1090,13 @@
 </dd>
 </dl>
 
+<p>The function does not die for the failure of a single log: each failure is recorded with record_info and the collection goes on with the next log. If the bastion is not reachable, the logs on the internal VMs are skipped and only the logs on the worker are collected. Return 1 if all the logs are collected, 0 otherwise.</p>
+
 <h2 id="ipaddr2_azure_cli_logs">_ipaddr2_azure_cli_logs</h2>
 
 <pre><code>_ipaddr2_azure_cli_logs();</code></pre>
 
-<p>Collect the az cli logs from the worker in a tarball and upload it. The az cli writes one log file for each command in /root/.azure/commands, with the start and the end timestamps and the exit code. The other files in /root/.azure are not collected: they contain credentials. Failures are not fatal.</p>
+<p>Collect the az cli logs from the worker in a tarball and upload it. The az cli writes one log file for each command in /root/.azure/commands, with the start and the end timestamps and the exit code. The other files in /root/.azure are not collected: they contain credentials. Failures are not fatal. Return 1 on success, 0 on failure.</p>
 
 <h2 id="ipaddr2_ssh_intrusion_detection">ipaddr2_ssh_intrusion_detection</h2>
 
