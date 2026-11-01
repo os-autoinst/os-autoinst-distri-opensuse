@@ -2600,4 +2600,19 @@ subtest '[ipaddr2_ssh_internal_output] no bastion IP' => sub {
     is($script_output_called, 0, 'No command executed');
 };
 
+subtest '[ipaddr2_logs_collect] invalid bastion IP from az' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    my $az_called = 0;
+    $ipaddr2->redefine(az_network_publicip_get => sub { $az_called++; return 'Invalid_IP_Galileo'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(upload_logs => sub { return 'up'; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+    my $ret;
+
+    lives_ok { $ret = ipaddr2_logs_collect() } 'No die for an invalid bastion IP';
+    is($ret, 0, 'Return 0');
+    is($az_called, 1, 'Azure queried only once for the bastion IP');
+};
+
 done_testing;
