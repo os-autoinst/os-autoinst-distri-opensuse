@@ -62,6 +62,7 @@ sub run {
 
     record_info("skopeo version", script_output("skopeo --version"));
     record_info("skopeo package version", script_output("rpm -q skopeo"));
+    record_info("skopeo go version", script_output("go version -m \$(command -v skopeo)"));
 
     switch_to_user;
 

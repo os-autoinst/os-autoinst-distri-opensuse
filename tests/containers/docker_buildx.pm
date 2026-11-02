@@ -37,6 +37,7 @@ sub setup {
     $version = script_output qq($docker_buildx version | awk '{ print \$2 }');
     $version = "v$version" if ($version !~ /^v/);
     record_info "docker-buildx version", $version;
+    record_info "docker-buildx go version", script_output("go version -m $docker_buildx");
 
     patch_sources "buildx", $version, "tests";
 

@@ -28,6 +28,7 @@ sub setup {
 
     $version = script_output q(containerd --version | awk '{ print $3 }');
     record_info "containerd version", $version;
+    record_info "containerd go version", script_output("go version -m \$(command -v containerd)");
 
     configure_containerd_mirror $version;
     run_command "systemctl enable --now containerd";

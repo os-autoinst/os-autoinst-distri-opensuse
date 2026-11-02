@@ -103,6 +103,7 @@ sub run {
     record_info("podman version", script_output("podman version -f json | jq -Mr"));
     record_info("podman info", script_output("podman info -f json"));
     record_info("podman package version", script_output("rpm -q podman"));
+    record_info("podman go version", script_output("go version -m \$(command -v podman)"));
 
     # The tests expect an exact list of unqualified-search-registries containing "quay.io" and we ship:
     # unqualified-search-registries = ["registry.opensuse.org", "registry.suse.com", "docker.io"]

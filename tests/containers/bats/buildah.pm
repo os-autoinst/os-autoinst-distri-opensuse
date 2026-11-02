@@ -121,6 +121,7 @@ sub run {
     record_info("buildah version", script_output("buildah --version"));
     record_info("buildah info", script_output("buildah info"));
     record_info("buildah package version", script_output("rpm -q buildah"));
+    record_info("buildah go version", script_output("go version -m \$(command -v buildah)"));
 
     enable_docker;
     $docker_version = script_output "docker version --format '{{.Client.Version}}'";

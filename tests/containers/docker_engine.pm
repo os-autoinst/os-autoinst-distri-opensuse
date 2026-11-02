@@ -38,6 +38,7 @@ sub setup {
     $version =~ s/-ce$//;
     $version = "docker-v$version";
     record_info "docker version", $version;
+    record_info "dockerd go version", script_output("go version -m \$(command -v dockerd)");
 
     # Used by skopeo in containers/download-frozen-image.sh
     configure_podman_mirror;

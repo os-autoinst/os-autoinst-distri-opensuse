@@ -54,6 +54,7 @@ sub setup {
     $version = script_output q(podman --version | awk '{ print $3 }');
     $version = "v$version";
     record_info("version", $version);
+    record_info("podman go version", script_output("go version -m \$(command -v podman)"));
     record_info("info", script_output("podman info -f json"));
     record_info("OCI features", script_output("$oci_runtime features"));
     record_info("OCI runtime", script_output("$oci_runtime --version"));
