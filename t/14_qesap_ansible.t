@@ -816,4 +816,41 @@ ansible:
     like($yaml_data, qr/sequences:/, 'Create: added under sequences:');
 };
 
+subtest '[qesap_ansible_create_section] prevalidate sequence' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(qesap_get_file_paths => sub {
+            return (qesap_conf_trgt => '/conf.yaml', qesap_conf_filename => 'conf.yaml');
+    });
+    $qesap->redefine(assert_script_run => sub { });
+    $qesap->redefine(autoinst_url => sub { 'http://fixture' });
+    my $yaml_data;
+    $qesap->redefine(save_tmp_file => sub { $yaml_data = $_[1] });
+    for my $apiver (3, 4) {
+        $yaml_data = undef;
+        $qesap->redefine(script_output => sub {
+                return "apiver: $apiver\nansible:\n  sequences:\n    test: [existing.yaml]\n  variables:\n    sid: HA0\n";
+        });
+        my $ok = eval {
+            qesap_ansible_create_section(
+                ansible_section => 'prevalidate',
+                section_content => ['sap-hana-prevalidate.yaml -e @/tmp/qesap-prevalidate-vars.json']);
+            1;
+        };
+        my $error = $@;
+        if ($apiver == 3) {
+            ok(!$ok, 'Reject a custom sequence in API 3');
+            like($error, qr/apiver >= 4/, 'Explain required configuration format');
+            ok(!defined $yaml_data, 'Do not rewrite unsupported configuration');
+            next;
+        }
+        ok($ok, 'Accept prevalidate in API 4');
+        my $parsed = YAML::PP->new->load_string($yaml_data);
+        is_deeply($parsed->{ansible}{sequences}{prevalidate},
+            ['sap-hana-prevalidate.yaml -e @/tmp/qesap-prevalidate-vars.json'], 'Prevalidate is a named sequence');
+        ok(!exists $parsed->{ansible}{prevalidate}, 'No misplaced top-level prevalidate');
+        is_deeply($parsed->{ansible}{sequences}{test}, ['existing.yaml'], 'Keep existing test sequence');
+        is_deeply($parsed->{ansible}{variables}, {sid => 'HA0'}, 'Keep existing variables');
+    }
+};
+
 done_testing;
