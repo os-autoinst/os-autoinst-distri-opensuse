@@ -8,7 +8,7 @@ schedule:
     - fips/fips_setup
     - fips/curl_fips_rc4_seed
     - console/aide_check
-    - console/gpg
+    - console/oqa_agnostic/gpg_agnostic
     - console/journald_fss
     - fips/openssh/ssh_keyscan_fips
     - console/git

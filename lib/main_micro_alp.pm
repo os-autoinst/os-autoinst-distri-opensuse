@@ -295,7 +295,7 @@ sub load_fips_tests {
     loadtest 'fips/gnutls/gnutls_base_check';
     loadtest 'fips/gnutls/gnutls_server';
     loadtest 'fips/gnutls/gnutls_client';
-    loadtest 'console/gpg';
+    loadtest(is_microos ? 'console/oqa_agnostic/gpg_agnostic' : 'console/gpg');
     # Need to investigate why this doesn't work in MicroOS
     loadtest 'fips/mozilla_nss/nss_smoke' unless is_microos;
 }

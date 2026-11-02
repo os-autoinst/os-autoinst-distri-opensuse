@@ -1768,7 +1768,9 @@ sub load_extra_tests_console {
     # salt_agnostic needs Python 3.6; SLE 12 and Leap 42.3 do not have it
     loadtest "console/salt" if (is_sle('<15') || is_leap('<15'));
     loadtest "console/oqa_agnostic/salt_agnostic" if ((is_jeos && is_sle('<16.0')) || is_opensuse);
-    loadtest "console/gpg";
+    # The agnostic gpg test needs Python 3.6+, so SLE 12 keeps the console
+    # test. JeOS keeps it until the agnostic test is verified there.
+    loadtest((is_sle('<15') || is_jeos) ? "console/gpg" : "console/oqa_agnostic/gpg_agnostic");
     loadtest "console/rsync";
     loadtest "console/clamav" unless is_arm;
     loadtest "console/shells";
