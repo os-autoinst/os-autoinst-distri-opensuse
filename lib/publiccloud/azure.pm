@@ -429,7 +429,8 @@ sub create_image_definition {
         record_info("gen img-def", "Create image definitions:\n$definition");
         assert_script_run("az sig image-definition create --resource-group '$resource_group' --gallery-name '$gallery' " .
               "--gallery-image-definition '$definition' --os-type Linux --publisher '$publisher' --offer '$offer' --sku '$sku' " .
-              "--architecture '$arch' --hyper-v-generation '$gen' --os-state 'Generalized' --location " . $self->storage_region, timeout => 300);
+              "--architecture '$arch' --hyper-v-generation '$gen' --os-state 'Generalized' " .
+              "--features 'DiskControllerTypes=SCSI,NVMe IsAcceleratedNetworkSupported=True' --location " . $self->storage_region, timeout => 300);
     }
 }
 
@@ -510,6 +511,12 @@ sub terraform_apply {
     $args{vars}->{offer} = $offer if ($offer);
     $args{vars}->{sku} = $sku if ($sku);
     $args{vars}->{'storage-account'} = $storage_account if ($storage_account);
+    my $disk_controller = get_var('PUBLIC_CLOUD_AZURE_DISK_CONTROLLER');
+    $args{vars}->{disk_controller_type} = $disk_controller if ($disk_controller);
+    if (get_var('PUBLIC_CLOUD_ACCNET')) {
+        die 'PUBLIC_CLOUD_ACCNET is not supported with managed images, use a Compute Gallery image' if ($self->get_image_id());
+        $args{vars}->{accelerated_networking} = 'true';
+    }
 
     return $self->SUPER::terraform_apply(%args);
 }

@@ -901,4 +901,32 @@ subtest '[terraform_apply] init/plan failures die with captured output, no regio
     _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_ALTERNATE_REGIONS PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
 };
 
+subtest '[azure terraform_apply] accelerated networking and disk controller vars' => sub {
+    require publiccloud::azure;
+    my $vars;
+    my $image_id = '';
+    my $parent = Test::MockModule->new('publiccloud::provider', no_auto => 1);
+    $parent->redefine(terraform_apply => sub { my ($self, %args) = @_; $vars = $args{vars}; return });
+    my $child = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    $child->redefine(get_image_id => sub { $image_id });
+    my $azure = bless {}, 'publiccloud::azure';
+
+    $azure->terraform_apply();
+    ok(!exists $vars->{accelerated_networking} && !exists $vars->{disk_controller_type}, 'no vars by default');
+
+    set_var('PUBLIC_CLOUD_ACCNET', 'mana');
+    $azure->terraform_apply();
+    is($vars->{accelerated_networking}, 'true', 'ACCNET enables accelerated networking');
+    ok(!exists $vars->{disk_controller_type}, 'ACCNET keeps the default disk controller');
+
+    set_var('PUBLIC_CLOUD_AZURE_DISK_CONTROLLER', 'NVMe');
+    $azure->terraform_apply();
+    is($vars->{disk_controller_type}, 'NVMe', 'PUBLIC_CLOUD_AZURE_DISK_CONTROLLER is passed to terraform');
+
+    $image_id = '/subscriptions/x/images/y';
+    throws_ok { $azure->terraform_apply() } qr/managed images/, 'ACCNET with a managed image dies';
+
+    _unset(qw/PUBLIC_CLOUD_ACCNET PUBLIC_CLOUD_AZURE_DISK_CONTROLLER/);
+};
+
 done_testing;

@@ -64,6 +64,8 @@ sub load_maintenance_publiccloud_tests {
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_EC2_ENCLAVE_TESTS')) {
         loadtest "publiccloud/aws_enclave", run_args => $args;
+    } elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
+        loadtest "publiccloud/azure_accnet", run_args => $args;
     } else {
         my $smoketest = get_var('PUBLIC_CLOUD_SMOKETEST')
           && !get_var('PUBLIC_CLOUD_CONSOLE_TESTS')
@@ -123,10 +125,7 @@ sub load_latest_publiccloud_tests {
         return;    # Do not continue as there is no instance to destroy
     }
 
-    if (get_var('PUBLIC_CLOUD_ACCNET')) {
-        loadtest 'publiccloud/az_accelerated_net', run_args => $args;
-    }
-    elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
+    if (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
         loadtest "publiccloud/azure_aitl", run_args => $args;
         return;    # Do not continue as there is no instance to destroy
     }
@@ -158,6 +157,8 @@ sub load_latest_publiccloud_tests {
                 loadtest("publiccloud/bsc_1205002", run_args => $args);
             } elsif (get_var('PUBLIC_CLOUD_EC2_ENCLAVE_TESTS')) {
                 loadtest "publiccloud/aws_enclave", run_args => $args;
+            } elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
+                loadtest "publiccloud/azure_accnet", run_args => $args;
             } else {    # All test cases below excluding check_service require tunelled environment
                 my $smoketest = get_var('PUBLIC_CLOUD_SMOKETEST')
                   && !get_var('PUBLIC_CLOUD_CONSOLE_TESTS')
