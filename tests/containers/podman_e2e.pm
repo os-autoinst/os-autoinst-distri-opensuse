@@ -84,6 +84,10 @@ sub run {
         TESTFLAGS => "--junit-report=report.xml",
         TMPDIR => "/var/tmp",
     );
+
+    my $run_tests = get_var("RUN_TESTS");
+    $env{FOCUS} = $run_tests if $run_tests;
+
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
     $env{STORAGE_DRIVER} = "overlay" if (version->parse(numeric_version($version)) > version->parse("6.0.0"));
 
@@ -117,7 +121,7 @@ sub run {
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
     my $default_targets = "localintegration";
     $default_targets .= " remoteintegration" unless (is_sle || get_var("ROOTLESS"));
-    my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
+    my @targets = split('\s+', get_var('TARGETS', $default_targets));
     foreach my $target (@targets) {
         run_timeout_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3000;
         upload_logs "$target.txt", failok => 1;
