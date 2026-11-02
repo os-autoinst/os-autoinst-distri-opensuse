@@ -12,18 +12,10 @@ use serial_terminal qw(select_serial_terminal);
 
 sub check_hash {
     my ($expected_hash, $calculated_hash) = @_;
-    my $message;
-    my $result;
 
-    if ($expected_hash eq $calculated_hash) {
-        $message = 'Pass: Hash values matched';
-        $result = 'ok';
-    } else {
-        $message = "Error: Hash values did not match. Expected: $expected_hash, Got: $calculated_hash";
-        $result = 'fail';
-    }
-
-    record_info('Hash Check', $message, result => $result);
+    die "Hash values did not match. Expected: $expected_hash, Got: $calculated_hash"
+      unless $expected_hash eq $calculated_hash;
+    record_info('Hash Check', 'Pass: Hash values matched');
 }
 
 sub run {
