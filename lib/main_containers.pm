@@ -321,6 +321,11 @@ sub load_helm_chart_tests {
 }
 
 sub load_container_tests {
+    _load_container_tests();
+    loadtest 'containers/sut_packages' unless (is_public_cloud || get_var('CONTAINER_UPDATE_HOST'));
+}
+
+sub _load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
 
     if (get_var('CONTAINER_UPDATE_HOST')) {

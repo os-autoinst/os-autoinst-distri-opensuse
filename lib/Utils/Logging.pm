@@ -41,7 +41,34 @@ our @EXPORT = qw(
   export_logs_basic
   export_logs_desktop
   record_avc_selinux_alerts
+  upload_sut_packages
 );
+
+=head2 upload_sut_packages
+
+ upload_sut_packages([instance => $instance]);
+
+Lists the installed packages (C<rpm -qa | LC_ALL=C sort>) and stores them as C<sut_packages.txt> in the job
+result directory. openQA uses this file for C<diff_sut_packages_to_last_good> in the "Investigation" tab.
+It must be a result file, not an asset. If C<$instance> is given, the command runs there over SSH.
+Failures are ignored.
+
+=cut
+
+sub upload_sut_packages {
+    my (%args) = @_;
+    my $file = '/tmp/sut_packages.txt';
+    my $cmd = "rpm -qa | LC_ALL=C sort > $file";
+    if (my $instance = $args{instance}) {
+        $instance->ssh_script_run($cmd, timeout => 180);
+        $instance->upload_log($file, log_name => 'sut_packages.txt', failok => 1);
+    }
+    else {
+        script_run($cmd, timeout => 180);
+        upload_logs($file, log_name => 'sut_packages.txt', failok => 1);
+    }
+    path('ulogs/sut_packages.txt')->move_to('sut_packages.txt') if -e 'ulogs/sut_packages.txt';
+}
 
 =head2 save_and_upload_log
 
