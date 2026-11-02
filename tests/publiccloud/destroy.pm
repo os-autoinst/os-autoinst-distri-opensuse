@@ -12,6 +12,7 @@ use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::utils;
 use testapi;
 use utils;
+use Utils::Logging 'upload_sut_packages';
 
 sub run {
     my ($self, $args) = @_;
@@ -21,6 +22,7 @@ sub run {
 
     if ($instance) {
         eval {
+            upload_sut_packages(instance => $instance);
             upload_final_logs($instance);
             $provider->finalize_logging($instance);
         };
