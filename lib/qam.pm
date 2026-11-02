@@ -120,12 +120,11 @@ sub add_test_repositories {
 
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
-    # For sle16 staging tests, PR should be untrusted key
+    # Import keys for maintenance test repositories before refreshing them.
     if (is_transactional) {
         trup_call('-c run zypper -n --gpg-auto-import-keys ref', timeout => 1400);
     } else {
-        my $import_key = is_sle('>=16') ? '--gpg-auto-import-keys' : '';
-        zypper_call("$import_key ref", timeout => 1400, exitcode => [0, 106]);
+        zypper_call('--gpg-auto-import-keys ref', timeout => 1400, exitcode => [0, 106]);
     }
 
     # return the count of repos-1 because counter is increased also on last cycle

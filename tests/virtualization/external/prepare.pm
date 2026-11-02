@@ -11,12 +11,23 @@ use testapi;
 use utils;
 use version_utils;
 
+sub remove_stale_testsuites_repo {
+    # The controller image can contain this unpublished repository.
+    # Match the URI because the image version and repository alias can vary.
+    my $repos = zypper_repos('-u');
+    my @repo_ids = map { $_->{order} }
+      grep { ($_->{uri} // '') =~ m{/Devel:/SLEnkins:/testsuites/SLE_12_SP3/?$} } @$repos;
+    # Remove higher numbers first because repository numbers can change.
+    zypper_call("rr $_") for sort { $b <=> $a } @repo_ids;
+}
+
 sub run {
     my ($self) = @_;
     select_console("root-console");
     script_run("SUSEConnect -r " . get_var('SCC_REGCODE'), timeout => 420);
     assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
     assert_script_run "rm /etc/zypp/repos.d/TEST* || true";
+    remove_stale_testsuites_repo();
     zypper_call '-t --gpg-auto-import-keys in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
 
     # Fill the current pairs of hostname & address into /etc/hosts file
