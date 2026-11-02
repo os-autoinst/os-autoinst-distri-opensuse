@@ -34,11 +34,11 @@ sub setup {
     # Tests use "ctr"
     run_command "cp /usr/sbin/containerd-ctr /usr/local/bin/ctr";
 
+    record_info "dockerd go version", script_output("go version -m \$(command -v dockerd)");
     $version = script_output "docker version --format '{{.Client.Version}}' 2>/dev/null", proceed_on_failure => 1;
     $version =~ s/-ce$//;
     $version = "docker-v$version";
     record_info "docker version", $version;
-    record_info "dockerd go version", script_output("go version -m \$(command -v dockerd)");
 
     # Used by skopeo in containers/download-frozen-image.sh
     configure_podman_mirror;
