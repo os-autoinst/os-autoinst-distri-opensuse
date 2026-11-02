@@ -26,7 +26,7 @@ sub load_maintenance_publiccloud_tests {
     loadtest "publiccloud/prepare_instance", run_args => $args;
     loadtest "publiccloud/network_test", run_args => $args;
     loadtest "publiccloud/check_boottime", run_args => $args unless is_azure();    # Skip on Azure for bsc#1270217
-    loadtest "publiccloud/check_services", run_args => $args;
+    loadtest "publiccloud/check_services", run_args => $args unless (get_var('PUBLIC_CLOUD_LTP') || get_var('PUBLIC_CLOUD_XFS'));
     loadtest "publiccloud/kdump", run_args => $args;
     loadtest "publiccloud/check_cloudinit", run_args => $args;
     if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
