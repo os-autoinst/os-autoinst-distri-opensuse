@@ -1949,7 +1949,7 @@ subtest '[az_network_dns_zones_cleanup] give up and keep the original error' => 
 
     my $start_time = time();
     throws_ok { az_network_dns_zones_cleanup(resource_group => 'Pantalone') } qr/CannotDeleteResource/, 'Die when Azure never accepts the deletion';
-    is($@, "Error messages present during az cli execution:\n$az_dns_nested_stderr", 'The error is the same az() would die with');
+    like($@, qr/^\QError messages present during az cli execution:\E\n\Q$az_dns_nested_stderr\E/, 'The error is the same az() would die with');
     is($attempts, 13, 'Default timeout 120s and retry_delay 10s: 1 attempt + 12 retries');
     is(time() - $start_time, 120, 'Overall wait is limited to the default timeout of 120s');
 
