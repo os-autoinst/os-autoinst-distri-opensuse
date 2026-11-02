@@ -40,19 +40,11 @@ sub run {
     my $openssl_version = script_output('openssl --version');
     record_info('OpenSSL version', $openssl_version);
 
-    # prepare test data
-    record_info('preparing test data');
-    my $data_url = data_url('security/openqa_agnostic/python/testApacheSSLPQC');
-    my $test_dir = '~/testApacheSSLPQC';
-    assert_script_run "mkdir -p $test_dir";
-    assert_script_run "curl -s -o $test_dir/pqc-ssl.conf $data_url/pqc-ssl.conf";
-
-    # run test
+    # run test, test files (incl. pqc-ssl.conf) are listed by 'runtest -f'
     my $test = agnosticTestRunner->new({
             language => 'python',
             name => 'testApacheSSLPQC',
-            domain => 'security',
-            files => 'runtest apache_pqc_ssl_test.py'
+            domain => 'security'
         }
     );
     $test->setup()->run_test()->parse_results()->cleanup();
