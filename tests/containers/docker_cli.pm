@@ -42,11 +42,11 @@ sub setup {
     run_command "echo 127.0.0.1 privateregistry >> /etc/hosts";
     run_command "echo 127.0.0.1 tlsregistry >> /etc/hosts";
 
+    record_info "docker go version", script_output("go version -m \$(command -v docker)");
     $version = script_output "docker version --format '{{.Client.Version}}' 2>/dev/null", proceed_on_failure => 1;
     $version =~ s/-ce$//;
     $version = "v$version";
     record_info "docker version", $version;
-    record_info "docker go version", script_output("go version -m \$(command -v docker)");
 
     patch_sources "cli", $version, "e2e";
 

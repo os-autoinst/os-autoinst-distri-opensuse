@@ -51,10 +51,10 @@ sub run {
     run_command "zypper addrepo https://download.opensuse.org/repositories/home:/cyphar:/containers/$os_version/home:cyphar:containers.repo";
     run_command "zypper --gpg-auto-import-keys -n install --allow-vendor-change go-mtree";
 
+    record_info("umoci go version", script_output("go version -m \$(command -v umoci)"));
     my $umoci_version = script_output("umoci --version | awk '{ print \$3; exit }'");
     $umoci_version = "v$umoci_version";
     record_info("umoci version", $umoci_version);
-    record_info("umoci go version", script_output("go version -m \$(command -v umoci)"));
 
     switch_to_user;
 

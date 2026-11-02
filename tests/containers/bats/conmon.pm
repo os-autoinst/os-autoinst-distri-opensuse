@@ -40,9 +40,9 @@ sub run {
 
     $self->setup_pkgs(@pkgs);
 
+    record_info("conmon package info", script_output("rpm -qi conmon"));
     my $conmon_version = script_output("conmon --version | awk '/version/ { print \$3 }'");
     record_info("conmon version", $conmon_version);
-    record_info("conmon package version", script_output("rpm -q conmon"));
 
     switch_to_user;
 

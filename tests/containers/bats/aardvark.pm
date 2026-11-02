@@ -46,8 +46,8 @@ sub run {
     $self->setup_pkgs(@pkgs);
 
     $aardvark = script_output "rpm -ql aardvark-dns | grep podman/aardvark-dns";
+    record_info("aardvark-dns package info", script_output("rpm -qi aardvark-dns"));
     record_info("aardvark-dns version", script_output("$aardvark --version"));
-    record_info("aardvark-dns package version", script_output("rpm -q aardvark-dns"));
 
     # Download aardvark sources
     $version = script_output "$aardvark --version | awk '{ print \$2 }'";
