@@ -22,6 +22,8 @@ Its primary tasks are:
 
 =item - Verify connectivity and hostname consistency for all instances.
 
+=item - Disable the sshd pre-login banner that hardened images configure.
+
 =item - Setup Azure native fencing permissions for MSI configurations.
 
 =item - Initialize SSH options for future CLI interactions.
@@ -113,6 +115,14 @@ sub run {
         }
 
         $instance->wait_for_ssh();
+
+        # Hardened images (SCAP rule sshd_enable_warning_banner) set an sshd Banner.
+        # The ssh client writes the banner to stderr and it gets mixed with the command output.
+        # Set 'Banner none' and reload sshd. Do nothing if no Banner is configured.
+        $instance->ssh_assert_script_run(
+            cmd => 'f=$(sudo grep -rliE "^[[:space:]]*Banner[[:space:]]" /etc/ssh/sshd_config /etc/ssh/sshd_config.d) || exit 0; ' .
+              'sudo sed -i -E "s/^[[:space:]]*Banner[[:space:]].*/Banner none/I" $f && sudo sshd -t && sudo systemctl reload sshd',
+            username => 'cloudadmin');
 
         my $real_hostname = $instance->ssh_script_output(cmd => 'hostname', username => 'cloudadmin');
         # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
