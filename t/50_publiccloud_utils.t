@@ -26,6 +26,7 @@ subtest '[export boundary] exported vs internal helpers' => sub {
         is_container_host is_hardened is_cloudinit_supported
         get_python_exec get_ssh_key_algo get_ssh_private_key_path pc_data_url
         additional_repos calculate_custodian_ttl check_dns
+        has_gcemetadata_ipv6_stall_bug is_gce_metadata_ipv6_unreachable
         )) {
         ok(__PACKAGE__->can($exported), "$exported is exported into caller");
     }
@@ -387,6 +388,158 @@ subtest '[check_dns] resolv.conf and a host, retries and optional failure' => su
     ok(!@cmds, 'nothing runs on the instance for a bad setting');
 
     _unset(qw/PUBLIC_CLOUD_DNS_CHECK_HOST/);
+};
+
+subtest '[has_gcemetadata_ipv6_stall_bug] GCE and python-gcemetadata < 1.1.2' => sub {
+    # bsc#1277388
+    my $version;
+    my @cmds;
+    my $inst = Test::MockObject->new;
+    $inst->mock(ssh_script_output => sub { my (undef, %args) = @_; push @cmds, $args{cmd}; $version });
+
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+    ok(!has_gcemetadata_ipv6_stall_bug($inst), 'not affected outside GCE');
+    ok(!@cmds, 'nothing runs on the instance outside GCE');
+
+    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+    $version = "1.1.1\n";
+    ok(has_gcemetadata_ipv6_stall_bug($inst), '1.1.1 is affected');
+    like($cmds[0], qr/rpm -q .*python-gcemetadata/, 'the version comes from rpm');
+    $version = '1.1.2';
+    ok(!has_gcemetadata_ipv6_stall_bug($inst), '1.1.2 is not affected');
+    $version = '1.2.0';
+    ok(!has_gcemetadata_ipv6_stall_bug($inst), '1.2.0 is not affected');
+    $version = 'package python-gcemetadata is not installed';
+    ok(!has_gcemetadata_ipv6_stall_bug($inst), 'a missing package is not affected');
+
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER/);
+};
+
+subtest '[is_gce_metadata_ipv6_unreachable] IPv4 and IPv6 metadata requests' => sub {
+    # bsc#1277388
+    my $utils = Test::MockModule->new('publiccloud::utils', no_auto => 1);
+    $utils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    my (%rc, @cmds);
+    my $inst = Test::MockObject->new;
+    $inst->mock(ssh_script_run => sub {
+            my (undef, %args) = @_;
+            push @cmds, $args{cmd};
+            return $rc{$args{cmd} =~ /-6$/ ? 6 : 4};
+    });
+
+    %rc = (4 => 0, 6 => 28);
+    ok(is_gce_metadata_ipv6_unreachable($inst), 'only IPv4 replies');
+    ok((grep { /curl .*-m 5 .*Metadata-Flavor: Google.*metadata\.google\.internal.* -4$/ } @cmds), 'IPv4 request has a time limit');
+    ok((grep { /curl .*-m 5 .*Metadata-Flavor: Google.*metadata\.google\.internal.* -6$/ } @cmds), 'IPv6 request has a time limit');
+
+    %rc = (4 => 0, 6 => 0);
+    ok(!is_gce_metadata_ipv6_unreachable($inst), 'both reply');
+    %rc = (4 => 28, 6 => 28);
+    ok(!is_gce_metadata_ipv6_unreachable($inst), 'none replies');
+    %rc = (4 => 127, 6 => 127);
+    is(is_gce_metadata_ipv6_unreachable($inst), undef, 'undef without curl');
+    %rc = (4 => undef, 6 => 28);
+    ok(!is_gce_metadata_ipv6_unreachable($inst), 'an IPv4 request without exit code is not a reply');
+};
+
+subtest '[registercloudguest] timeout recovery and bsc#1277388' => sub {
+    my $utils = Test::MockModule->new('publiccloud::utils', no_auto => 1);
+    my (@soft, @calls, @retry_args, @first_rc);
+    my ($version, %curl_rc);
+    $utils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    $utils->redefine(record_soft_failure => sub { push @soft, $_[0] });
+    $utils->redefine(script_run => sub { 1 });
+    my $inst = Test::MockObject->new;
+    $inst->mock(username => sub { 'susetest' });
+    $inst->mock(public_ip => sub { '1.2.3.4' });
+    $inst->mock(ssh_script_retry => sub {
+            my (undef, %args) = @_;
+            push @calls, $args{cmd};
+            push @retry_args, {%args};
+            return @first_rc ? shift @first_rc : 0;
+    });
+    $inst->mock(ssh_script_output => sub {
+            my (undef, %args) = @_;
+            return $args{cmd} =~ /python-gcemetadata/ ? $version : '11.0.3';
+    });
+    $inst->mock(ssh_script_run => sub {
+            my (undef, %args) = @_;
+            push @calls, $args{cmd};
+            return $curl_rc{$args{cmd} =~ /-6$/ ? 6 : 4} if $args{cmd} =~ /curl/;
+            return 0;
+    });
+    $inst->mock(ssh_assert_script_run => sub { my (undef, $cmd) = @_; push @calls, $cmd });
+    my $reset = sub { @soft = (); @calls = (); @retry_args = (); @first_rc = @_ };
+
+    set_var('SCC_REGCODE', 'ABCD');
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+    ($version, %curl_rc) = ('1.1.1', 4 => 0, 6 => 28);
+
+    $reset->(0);
+    registercloudguest($inst);
+    is(scalar @retry_args, 1, 'a successful first attempt is not retried');
+    is($retry_args[0]{retry}, 1, 'the first attempt runs alone');
+    is($retry_args[0]{die}, 0, 'the first attempt does not die');
+    like($calls[0], qr/sudo registercloudguest\s+-r ABCD/, 'registercloudguest registers with the regcode');
+    ok(!(grep { /pkill/ } @calls), 'no process is stopped after a success');
+
+    $reset->(1);
+    registercloudguest($inst);
+    is($retry_args[-1]{retry}, 2, 'a failure is retried two more times');
+    ok(!(grep { /pkill/ } @calls), 'no process is stopped when there is no timeout');
+    ok(!@soft, 'no soft failure when there is no timeout');
+
+    $reset->(124);
+    registercloudguest($inst);
+    ok((grep { /pkill -f '\[r\]egistercloudguest'/ } @calls), 'the old registercloudguest is stopped for bsc#1277388');
+    is_deeply(\@soft, ['bsc#1277388 - registercloudguest timeout, gcemetadata stops on the IPv6 metadata server'], 'bsc#1277388 is reported');
+    ok((grep { /pkill -f '\[g\]cemetadata'/ } @calls), 'the old gcemetadata is stopped');
+    my ($sed) = grep { /sed -i .*\/etc\/hosts/ } @calls;
+    ok($sed, '/etc/hosts is changed');
+    # Apply the sed expression to an /etc/hosts sample, to check which lines it changes
+    my ($expr) = $sed =~ m{sed -i '/(.+?)/s/\^/#/'};
+    $expr =~ s/\[\^#\[:space:\]\]/[^#\\s]/g;
+    $expr =~ s/\[\^\[:space:\]\]/\\S/g;
+    $expr =~ s/\[\[:space:\]\]/\\s/g;
+    my @changed = grep { /$expr/ } (
+        '127.0.0.1       localhost',
+        '::1             localhost ipv6-localhost ipv6-loopback',
+        '# 169.254.169.254 metadata.google.internal',
+        '169.254.169.254 metadata.google.internal',
+        'fd20:ce::254    metadata.google.internal',
+        'fd00:aaaa::1 metadata.google.internal metadata',
+    );
+    is_deeply(\@changed, ['fd20:ce::254    metadata.google.internal', 'fd00:aaaa::1 metadata.google.internal metadata'], 'only the IPv6 addresses of the metadata server are removed');
+    is($calls[-1], $calls[0], 'registration runs again after the work-around');
+    is($retry_args[-1]{retry}, 2, 'the timeout is retried two more times');
+
+    %curl_rc = (4 => 127, 6 => 127);
+    $reset->(124);
+    registercloudguest($inst);
+    is(scalar @soft, 1, 'without curl, the timeout and the version are sufficient');
+
+    %curl_rc = (4 => 0, 6 => 0);
+    $reset->(124);
+    registercloudguest($inst);
+    ok(!@soft, 'no bsc#1277388 when the IPv6 metadata server replies');
+    ok(!(grep { /pkill|etc\/hosts/ } @calls), 'nothing changes on the SUT when the IPv6 metadata server replies');
+
+    ($version, %curl_rc) = ('1.1.2', 4 => 0, 6 => 28);
+    $reset->(124);
+    registercloudguest($inst);
+    ok(!@soft, 'no bsc#1277388 with python-gcemetadata 1.1.2');
+    ok(!(grep { /curl/ } @calls), 'no metadata request with python-gcemetadata 1.1.2');
+    ok(!(grep { /pkill|etc\/hosts/ } @calls), 'nothing changes on the SUT with python-gcemetadata 1.1.2');
+
+    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+    $reset->(124);
+    registercloudguest($inst);
+    ok(!@soft, 'no bsc#1277388 outside GCE');
+    ok(!(grep { /pkill|etc\/hosts/ } @calls), 'nothing changes on the SUT outside GCE');
+
+    _unset(qw/SCC_REGCODE PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER/);
 };
 
 subtest '[ssh_allow_openqa_port_selinux] addresses $instance directly, not the current console' => sub {
