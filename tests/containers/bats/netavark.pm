@@ -44,7 +44,7 @@ sub run {
     $self->setup_pkgs(@pkgs);
 
     $netavark = script_output "rpm -ql netavark | grep podman/netavark";
-    record_info("netavark package version", script_output("rpm -q netavark"));
+    record_info("netavark package info", script_output("rpm -qi netavark"));
     record_info("netavark version", script_output("$netavark --version"));
 
     $version = script_output "$netavark --version | awk '{ print \$2 }'";

@@ -118,7 +118,7 @@ sub run {
 
     $self->setup_pkgs(@pkgs);
 
-    record_info("buildah package version", script_output("rpm -q buildah"));
+    record_info("buildah package info", script_output("rpm -qi buildah"));
     record_info("buildah go version", script_output("go version -m \$(command -v buildah)"));
     record_info("buildah version", script_output("buildah --version"));
     record_info("buildah info", script_output("buildah info"));

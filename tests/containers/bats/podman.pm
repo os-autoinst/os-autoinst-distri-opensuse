@@ -100,7 +100,7 @@ sub run {
     run_command "modprobe ip6_tables";
     run_command "modprobe null_blk nr_devices=1 || true";
 
-    record_info("podman package version", script_output("rpm -q podman"));
+    record_info("podman package info", script_output("rpm -qi podman"));
     record_info("podman go version", script_output("go version -m \$(command -v podman)"));
     record_info("podman version", script_output("podman version -f json | jq -Mr"));
     record_info("podman info", script_output("podman info -f json"));

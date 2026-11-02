@@ -60,7 +60,7 @@ sub run {
     # Note: This file is no longer present on podman v6.0 / skopeo v1.23
     run_command "sed -i '/sigstore-staging:/d' /etc/containers/registries.d/default.yaml" if (script_run("test -f /etc/containers/registries.d/default.yaml") == 0);
 
-    record_info("skopeo package version", script_output("rpm -q skopeo"));
+    record_info("skopeo package info", script_output("rpm -qi skopeo"));
     record_info("skopeo go version", script_output("go version -m \$(command -v skopeo)"));
     record_info("skopeo version", script_output("skopeo --version"));
 

@@ -62,7 +62,7 @@ sub run {
 
     $self->setup_pkgs(@pkgs);
 
-    record_info("runc package version", script_output("rpm -q runc"));
+    record_info("runc package info", script_output("rpm -qi runc"));
     record_info("runc go version", script_output("go version -m \$(command -v runc)"));
     record_info("runc version", script_output("runc --version"));
     record_info("runc features", script_output("runc features"));
