@@ -17,7 +17,9 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use mmapi 'get_current_job_id';
+use publiccloud::utils qw(register_addon);
 use publiccloud::zypper qw(pc_zypper_call);
+use version_utils qw(is_sle);
 
 # creation_token of the persistent EFS provisioned by the infra terraform (aws/tf/main.tf)
 use constant EFS_CREATION_TOKEN => 'tf-efs';
@@ -45,6 +47,8 @@ sub run {
     my $region = $self->{my_instance}->region;
     my $job_id = get_current_job_id();
 
+    # On SLE 16 aws-efs-utils is only shipped by PackageHub (on SLE 15 by sle-module-public-cloud)
+    register_addon($self->{my_instance}->username . '@' . $self->{my_instance}->public_ip, 'phub') if (is_sle('16+'));
     pc_zypper_call($self->{my_instance}, 'in aws-efs-utils');
 
     # Package content inspection and validation
