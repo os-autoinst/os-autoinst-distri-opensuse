@@ -35,7 +35,7 @@ set -e
 source ../lib/helper.sh
 
 # Define files required for this test
-TEST_FILES=(apache_pqc_ssl_test.py)
+TEST_FILES=(apache_pqc_ssl_test.py pqc-ssl.conf)
 
 # Delegate argument processing to the helper
 handle_args "$0" "$@"
