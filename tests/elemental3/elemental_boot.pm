@@ -93,10 +93,8 @@ sub run {
         send_key('ret', wait_screen_change => 1);
         wait_still_screen(timeout => 120);
 
-        # In recovery mode we have auto-login configured on tty1
-        console('root-console')->set_tty(1);
-        select_console('root-console', await_console => 0);
-
+        # In recovery mode we have auto-login configured on tty1, so we are
+        # already at the root shell prompt on the active SUT console
         # Check for recovery boot option
         assert_script_run('grep -q recovery /proc/cmdline');
         record_info('RECOVERY', 'Booted in recovery mode!');
