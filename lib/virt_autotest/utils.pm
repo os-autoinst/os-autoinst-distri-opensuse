@@ -74,6 +74,7 @@ our @EXPORT = qw(
   manage_system_service
   check_port_state
   is_registered_sles
+  is_registered_agama
   is_registered_system
   do_system_registration
   check_system_registration
@@ -286,6 +287,7 @@ sub get_expected_host_version {
 sub get_expected_host_build {
     return if get_var('AFTER_UPGRADE');
     return if get_var('VERSION_TO_INSTALL', get_var('VERSION')) ne get_var('VERSION');
+    return if !is_registered_agama();
     my $build = get_var('BUILD', '');
     return unless $build =~ /^\d+\.\d+$/;
     return $build;
@@ -1451,6 +1453,12 @@ sub is_registered_sles {
     else {
         return 1;
     }
+}
+
+#Detect whether SUT host is installed with agama and registration
+sub is_registered_agama {
+    my $registered = (is_agama and get_var('INST_INSTALL_URL') and !get_var('AGAMA_FORCE_REGISTER')) ? 0 : 1;
+    return $registered;
 }
 
 =head2 is_registered_system
