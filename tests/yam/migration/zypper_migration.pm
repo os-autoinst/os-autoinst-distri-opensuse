@@ -42,7 +42,7 @@ sub run {
       || die "Target version $target_version was not found.";
 
     my ($target_id) = $match =~ $zypper_prompts->{migration_target}
-      || die "Target id was not found";
+      or die "Target id was not found";
 
     wait_serial($zypper_prompts->{select_id}, 60) || die "ID selection prompt not found";
     enter_cmd $target_id;

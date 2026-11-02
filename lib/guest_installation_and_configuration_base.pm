@@ -1535,7 +1535,7 @@ sub config_guest_installation_method {
 
     $self->config_guest_installation_media;
     my $_guest_installation_media = render_autoinst_url(url => $self->{guest_installation_media});
-    if ($_guest_installation_media =~ /^http\:\/\//im and script_output("curl --silent -I $_guest_installation_media | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") != "200") {
+    if ($_guest_installation_media =~ /^http\:\/\//im and script_output("curl --silent -I $_guest_installation_media | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") !~ /^(?:200|301)$/) {
         record_info("Installation media $_guest_installation_media does not exist", script_output("curl -I $_guest_installation_media", proceed_on_failure => 1), result => 'fail');
         $self->record_guest_installation_result('FAILED');
     }
@@ -1545,11 +1545,11 @@ sub config_guest_installation_method {
         $self->{guest_installation_fine_grained_media} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
         $_guest_installation_fine_grained_media = render_autoinst_url(url => $self->{guest_installation_fine_grained_media});
         my $_guest_arch = ($self->{guest_arch} ? $self->{guest_arch} : get_required_var('ARCH'));
-        if (script_output("curl --silent -I $_guest_installation_fine_grained_media | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") == "200") {
+        if (script_output("curl --silent -I $_guest_installation_fine_grained_media | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") =~ /^(?:200|301)$/) {
             if ($self->{guest_installation_method} eq 'directkernel') {
                 my $_loader = ((!$self->is_guest_ppc64le or ($self->is_guest_ppc64le and is_sle('>=16.1', $self->{guest_version}))) ? 'loader' : '');
-                assert_script_run("curl -s -o $self->{guest_image_folder}/linux $_guest_installation_fine_grained_media/boot/$_guest_arch/$_loader/linux");
-                assert_script_run("curl -s -o $self->{guest_image_folder}/initrd $_guest_installation_fine_grained_media/boot/$_guest_arch/$_loader/initrd");
+                assert_script_run("curl -L -s -o $self->{guest_image_folder}/linux $_guest_installation_fine_grained_media/boot/$_guest_arch/$_loader/linux");
+                assert_script_run("curl -L -s -o $self->{guest_image_folder}/initrd $_guest_installation_fine_grained_media/boot/$_guest_arch/$_loader/initrd");
             }
         }
         else {
@@ -1563,7 +1563,7 @@ sub config_guest_installation_method {
         $self->{guest_installation_fine_grained_repos} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
         foreach (split(',', $self->{guest_installation_fine_grained_repos})) {
             my $_guest_installation_fine_grained_repo = render_autoinst_url(url => $_);
-            if (script_output("curl --silent -I $_guest_installation_fine_grained_repo | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") != "200") {
+            if (script_output("curl --silent -I $_guest_installation_fine_grained_repo | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") !~ /^(?:200|301)$/) {
                 record_info("Fine-grained repo $_guest_installation_fine_grained_repo does not exist", script_output("curl -I $_guest_installation_fine_grained_repo", proceed_on_failure => 1), result => 'fail');
                 $self->record_guest_installation_result('FAILED');
             }
@@ -1654,13 +1654,13 @@ sub config_guest_installation_media {
         }
     }
     elsif ($self->{guest_installation_media} =~ /^.*\.(raw|raw\.xz|qcow2)$/i) {
-        if (script_output("curl --silent -I " . render_autoinst_url(url => $self->{guest_installation_media}) . " | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") == "200") {
+        if (script_output("curl --silent -I " . render_autoinst_url(url => $self->{guest_installation_media}) . " | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") =~ /^(?:200|301)$/) {
             if ($self->{guest_installation_media} =~ /^.*\.raw\.xz$/i) {
-                assert_script_run("curl -s -o $self->{guest_storage_backing_path}.xz " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 1200);
+                assert_script_run("curl -L -s -o $self->{guest_storage_backing_path}.xz " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 1200);
                 assert_script_run("xz -d $self->{guest_storage_backing_path}.xz", timeout => 120);
             }
             else {
-                assert_script_run("curl -s -o $self->{guest_storage_backing_path} " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 3600);
+                assert_script_run("curl -L -s -o $self->{guest_storage_backing_path} " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 3600);
             }
         }
         else {
@@ -1852,7 +1852,7 @@ sub config_guest_provision_ignition {
     else {
         $_ignition_config = (($self->{guest_storage_backing_path} =~ /encrypted/i) ? 'ignition_config_encrypted_image.ign' : 'ignition_config_non_encrypted_image.ign');
     }
-    assert_script_run("curl -s -o $self->{guest_log_folder}/config.ign " . data_url("virt_autotest/guest_unattended_installation_files/$_ignition_config"));
+    assert_script_run("curl -L -s -o $self->{guest_log_folder}/config.ign " . data_url("virt_autotest/guest_unattended_installation_files/$_ignition_config"));
     $_ignition_config = $self->{guest_log_folder} . '/config.ign';
     my $_ssh_public_key = $_host_params{ssh_public_key};
     $_ssh_public_key =~ s/\//PLACEHOLDER/img;
@@ -1953,7 +1953,7 @@ sub config_guest_provision_combustion {
     else {
         $_combustion_config = 'combustion_script';
     }
-    assert_script_run("curl -s -o $self->{guest_log_folder}/script " . data_url("virt_autotest/guest_unattended_installation_files/$_combustion_config"));
+    assert_script_run("curl -L -s -o $self->{guest_log_folder}/script " . data_url("virt_autotest/guest_unattended_installation_files/$_combustion_config"));
     $_combustion_config = "$self->{guest_log_folder}/script";
     my $_ssh_public_key = $_host_params{ssh_public_key};
     $_ssh_public_key =~ s/\//PLACEHOLDER/img;
@@ -2092,7 +2092,7 @@ sub config_guest_unattended_installation {
     $self->reveal_myself;
     if (($self->{guest_installation_automation_method} =~ /autoyast|kickstart|autoagama|autounattend/i) and ($self->{guest_installation_automation_file} ne '')) {
         diag("Guest $self->{guest_name} is going to use unattended installation file $self->{guest_installation_automation_file}.");
-        assert_script_run("curl -s -o $_host_params{common_log_folder}/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file} " . data_url("virt_autotest/guest_unattended_installation_files/$self->{guest_installation_automation_file}"));
+        assert_script_run("curl -L -s -o $_host_params{common_log_folder}/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file} " . data_url("virt_autotest/guest_unattended_installation_files/$self->{guest_installation_automation_file}"));
         $self->{guest_installation_automation_file} = "$_host_params{common_log_folder}/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file}";
         assert_script_run("chmod 777 $self->{guest_installation_automation_file}");
 
