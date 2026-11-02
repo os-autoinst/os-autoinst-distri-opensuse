@@ -46,6 +46,7 @@ sub setup {
     $version =~ s/-ce$//;
     $version = "v$version";
     record_info "docker version", $version;
+    record_info "docker go version", script_output("go version -m \$(command -v docker)");
 
     patch_sources "cli", $version, "e2e";
 

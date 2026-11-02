@@ -54,6 +54,7 @@ sub run {
     my $umoci_version = script_output("umoci --version | awk '{ print \$3; exit }'");
     $umoci_version = "v$umoci_version";
     record_info("umoci version", $umoci_version);
+    record_info("umoci go version", script_output("go version -m \$(command -v umoci)"));
 
     switch_to_user;
 
