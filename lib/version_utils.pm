@@ -20,6 +20,7 @@ use constant {
         qw(
           is_sle
           is_sled
+          is_sle_nvidia
           is_pre_15
           is_microos
           is_leap_micro
@@ -429,6 +430,15 @@ Check if distribution is SLED
 
 sub is_sled {
     return check_var('SLE_PRODUCT', 'sled');
+}
+
+=head2 is_sle_nvidia
+
+Returns true if called on SLES for NVIDIA
+=cut
+
+sub is_sle_nvidia {
+    return check_var('AGAMA_PRODUCT_ID', 'SLES_NVIDIA');
 }
 
 =head2 is_transactional
