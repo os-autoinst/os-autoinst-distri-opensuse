@@ -40,15 +40,19 @@ sub run {
         sub { /Unknown command/mg }, proceed_on_failure => 1);
     #script_output("lftp -d -u $user,$pwd -e 'set ftp:ssl-force true' localhost", expect => 'Command failed');
 
-    # create a batch of commands to be executed by lftp
+    # Create a batch of commands to be executed by lftp.
+    # Do not use "queue": queued jobs make lftp move to the background on "bye",
+    # and then the exit status is always 0. With cmd:fail-exit, lftp stops at
+    # the first failed command and returns a non-zero exit status.
     my $lftp_script_file = qq{
-        open -u $user,$pwd localhost
+        set cmd:fail-exit true
         set ftp:ssl-force true
+        open -u $user,$pwd localhost
         mkdir test
         cd test
         cd ..
-        queue ls
-        queue rmdir test
+        ls
+        rmdir test
         bye
     };
     script_output("echo '$lftp_script_file' > lftp_script_file.txt");
