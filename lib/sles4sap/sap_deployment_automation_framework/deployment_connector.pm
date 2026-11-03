@@ -493,7 +493,8 @@ sub get_deployment_tags {
         deployment_id => get_current_job_id(),
         openqa_build => get_var('BUILD', 'N/A'),
         deployment_scenario => get_var('SDAF_DEPLOYMENT_SCENARIO', 'N/A'),
-        openqa_created_date => Time::Piece->new->datetime()
+        # Use UTC. The value has no timezone offset and readers parse it as UTC.
+        openqa_created_date => gmtime->datetime()
     );
 
     $tags{no_cleanup_tag()} = '1' if get_var('SDAF_RETAIN_DEPLOYMENT');
