@@ -214,6 +214,10 @@ sub configure_rootless_docker {
     run_command qq(DAEMON_JSON=\$(jq '.+{"registry-mirrors": ["http://$registry"]}' \$HOME/.config/docker/daemon.json));
     run_command q(tee $HOME/.config/docker/daemon.json <<< "$DAEMON_JSON");
 
+    record_info "rootlesskit package info", script_output("rpm -qi rootlesskit");
+    record_info "rootlesskit go version", script_output(q(go version -m $(command -v rootlesskit)));
+    record_info "rootlesskit version", script_output("rootlesskit --version");
+
     # https://docs.docker.com/engine/security/rootless/
     run_command "dockerd-rootless-setuptool.sh install";
     run_command "systemctl --user enable --now docker";
