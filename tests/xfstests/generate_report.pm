@@ -30,18 +30,21 @@ my $STATUS_LOG = '/opt/status.log';
 my $LOG_DIR = '/opt/log';
 my $KDUMP_DIR = '/opt/kdump';
 my $JUNIT_FILE = '/opt/output.xml';
+# Short commands normally return instantly, but can be delayed for a minute
+# or more when the worker host is under heavy disk I/O (poo#209184)
+my $CMD_TIMEOUT = 180;
 
 sub log_end {
     my $file = shift;
     my $cmd = "echo 'Test run complete' >> $file";
     send_key 'ret';
-    script_run($cmd, proceed_on_failure => 1);
+    script_run($cmd, timeout => $CMD_TIMEOUT, proceed_on_failure => 1);
 }
 
 # Compress all sub directories under $dir and upload them.
 sub upload_subdirs {
     my ($dir, $timeout) = @_;
-    my $output = script_output("if [ -d $dir ]; then find $dir -maxdepth 1 -mindepth 1 -type f -or -type d; else echo $dir folder not exist; fi");
+    my $output = script_output("if [ -d $dir ]; then find $dir -maxdepth 1 -mindepth 1 -type f -or -type d; else echo $dir folder not exist; fi", $CMD_TIMEOUT);
     if ($output =~ /folder not exist/) { return; }
     for my $subdir (split(/\n/, $output)) {
         next if ($subdir =~ /subtest_result_num/);
@@ -94,7 +97,7 @@ sub run {
 
     # Recover status log after snapshot rollback. Worker-side buffer
     # survives VM rollbacks; save it directly on the worker via save_ulog.
-    my $log_line = int(script_output("cat $STATUS_LOG 2>/dev/null | wc -l", 60, proceed_on_failure => 1));
+    my $log_line = int(script_output("cat $STATUS_LOG 2>/dev/null | wc -l", $CMD_TIMEOUT, proceed_on_failure => 1));
     my $recovered_log;
     if ($log_line < 2) {
         $recovered_log = get_status_log_content();
@@ -106,7 +109,7 @@ sub run {
 
     # Finalize status log and upload it
     log_end($STATUS_LOG);
-    upload_logs($STATUS_LOG, timeout => 60, log_name => $STATUS_LOG);
+    upload_logs($STATUS_LOG, timeout => $CMD_TIMEOUT, log_name => $STATUS_LOG);
     upload_subdirs($LOG_DIR, 1200);
 
     # Upload kdump logs if not set "NO_KDUMP=1"
@@ -115,7 +118,7 @@ sub run {
     }
 
     # Upload system log
-    upload_system_logs();
+    upload_system_logs(timeout => $CMD_TIMEOUT, upload_timeout => $CMD_TIMEOUT);
 
     # Summary: use recovered worker-side log if SUT copy was lost
     my $status_content = $recovered_log // script_output("cat $STATUS_LOG", 600);
