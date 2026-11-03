@@ -8,3 +8,10 @@ schedule:
     - console/gdb
     - console/coredump_collect
     - console/zypper_log_packages
+    - console/add_phub_extension
+    - '{{stalld}}'
+conditional_schedule:
+    stalld:
+        FLAVOR:
+            'Online':
+                - console/stalld
