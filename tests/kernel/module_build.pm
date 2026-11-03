@@ -14,11 +14,12 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use package_utils 'install_package';
+use kernel 'get_kernel_devel_libs';
 
 sub run {
     select_serial_terminal;
     # kernel live patch scenario has devel package already installed
-    install_package('kernel-default-devel', trup_apply => 1) unless get_var('KGRAFT');
+    install_package(get_kernel_devel_libs(), trup_apply => 1) unless get_var('KGRAFT');
     # Prepare module sources
     assert_script_run("curl -L -v " . autoinst_url . "/data/kernel/module > module.data && cpio -id < module.data && rm module.data");
     assert_script_run "cd data";

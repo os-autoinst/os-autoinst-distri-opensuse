@@ -18,7 +18,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
-use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt is_transactional is_sle_micro is_bootloader_grub2_bls is_bootloader_sdboot);
+use version_utils;
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
@@ -368,6 +368,12 @@ sub run {
     # Make sure latest installed packages ready before enable service in setup_network
     if (is_transactional) {
         reboot_on_changes;
+    }
+
+    # Workaround: SLES for NVIDIA does not ship the hostname command (bsc#1287638)
+    if (is_sle_nvidia() && script_run('rpm -q hostname') != 0) {
+        record_soft_failure 'bsc#1287638 -- hostname is missing in SLES for NVIDIA default installation, installing it';
+        install_package('hostname');
     }
 
     setup_network;

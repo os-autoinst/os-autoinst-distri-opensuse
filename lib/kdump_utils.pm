@@ -14,7 +14,7 @@ use Utils::Backends;
 use Utils::Architectures;
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse is_transactional
-  is_leap_micro is_sle_micro);
+  is_leap_micro is_sle_micro is_sle_nvidia);
 use utils 'ensure_serialdev_permissions';
 use virt_autotest::utils 'is_xen_host';
 
@@ -53,7 +53,10 @@ sub get_repo_url_for_kdump_sle {
       if get_var('REPO_SLE_MODULE_BASESYSTEM_DEBUG')
       and is_sle('15+');
 
-    my $repo = is_sle('16+') ? 'REPO_SLES_16_DEBUG' : 'REPO_SLES_DEBUG';
+    my $repo = 'REPO_SLES_DEBUG';
+    if (is_sle('16+')) {
+        $repo = is_sle_nvidia() ? 'REPO_SLES_NVIDIA_16_DEBUG' : 'REPO_SLES_16_DEBUG';
+    }
     return join('/', $openqa_url, get_var("$repo")) if get_var("$repo");
 }
 
