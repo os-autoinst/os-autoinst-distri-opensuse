@@ -30,8 +30,40 @@ sub run {
         $timeout += 120 if is_pvm;
 
         my $enable_root_ssh = (is_sle_micro('>=6.0') && is_s390x) ? 1 : 0;
-        $self->wait_boot(bootloader_time => $timeout, enable_root_ssh => $enable_root_ssh);
+        if (is_s390x && get_var('S390_ZKVM')) {
+            eval { $self->wait_boot(bootloader_time => $timeout, enable_root_ssh => $enable_root_ssh) };
+            if (my $err = $@) {
+                die $err unless $err =~ /Passwor\[dt\]/;
+                record_info('login retry', "Login prompt dropped the user name, retrying:\n$err");
+                $self->retry_svirt_login(enable_root_ssh => $enable_root_ssh);
+            }
+        } else {
+            $self->wait_boot(bootloader_time => $timeout, enable_root_ssh => $enable_root_ssh);
+        }
     }
+}
+
+# Finish the svirt login done by reconnect_s390 when agetty dropped the
+# typed user name while redrawing the login prompt
+sub retry_svirt_login {
+    my ($self, %args) = @_;
+    my $attempts = 3;
+    for my $attempt (1 .. $attempts) {
+        type_line_svirt 'root';
+        last if wait_serial(qr/Passwor[dt]/, 30);
+        die 'Password prompt not found after typing root' if $attempt == $attempts;
+    }
+    type_line_svirt $testapi::password;
+    type_line_svirt 'systemctl is-active network', expect => qr/^active\s*$/m;
+    if ($args{enable_root_ssh}) {
+        type_line_svirt 'mkdir -p /etc/ssh/sshd_config.d';
+        type_line_svirt "echo 'PermitRootLogin yes' \\> /etc/ssh/sshd_config.d/root.conf";
+        type_line_svirt 'systemctl restart sshd';
+    }
+    type_line_svirt 'systemctl is-active sshd', expect => qr/^active\s*$/m;
+    select_console(check_var('DESKTOP', 'textmode') ? 'root-console' : 'x11', await_console => 0);
+    $self->wait_boot_past_bootloader;
+    $self->{in_wait_boot} = 0;
 }
 
 sub test_flags {
