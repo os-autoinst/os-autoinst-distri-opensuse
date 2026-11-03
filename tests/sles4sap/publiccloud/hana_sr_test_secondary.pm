@@ -98,8 +98,12 @@ sub run {
 
     $self->stop_hana(method => $db_action, online_string => $online_string);
 
+    if (manual_cluster_start()) {
+        # Only a crash fences the secondary, stop and kill are recovered by the cluster.
+        $self->recover_fenced_node(peer => $run_args->{$hana_sites[0]}) if $db_action eq 'crash';
+    }
     # SBD delay is active only after reboot
-    if ($db_action eq 'crash' || $db_action eq 'stop') {
+    elsif ($db_action eq 'crash' || $db_action eq 'stop') {
         record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
         # sleep needs to be a little longer than sbd start delay
         sleep($sbd_delay + 30);
