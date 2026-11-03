@@ -1,6 +1,6 @@
 From: "Ricardo B. Marlière" <rbm@suse.com>
-Date: Tue, 19 Aug 2025 18:12:13 -0300
-Subject: selftests/livepatch: Ignore NO_SUPPORT line in dmesg
+Date: Tue, 3 Nov 2026 08:03:52 -0300
+Subject: [PATCH] selftests/livepatch: Ignore NO_SUPPORT line in dmesg
 Patch-mainline: Never, SLE specific
 References: poo#187320
 
@@ -9,16 +9,21 @@ unexpected by upstream selftests.
 
 Signed-off-by: Ricardo B. Marlière <rbm@suse.com>
 ---
- tools/testing/selftests/livepatch/functions.sh |    1 +
+ tools/testing/selftests/livepatch/functions.sh | 1 +
  1 file changed, 1 insertion(+)
 
+diff --git a/tools/testing/selftests/livepatch/functions.sh b/tools/testing/selftests/livepatch/functions.sh
+index 429fce1f3143..5089762dcd79 100644
 --- a/tools/testing/selftests/livepatch/functions.sh
 +++ b/tools/testing/selftests/livepatch/functions.sh
-@@ -321,6 +321,7 @@ function check_result {
- 	result=$(dmesg | awk -v last_dmesg="$LAST_DMESG" 'p; $0 == last_dmesg { p=1 }' | \
+@@ -346,6 +346,7 @@ function check_result {
  		 grep -e 'livepatch:' -e 'test_klp' | \
  		 grep -v '\(tainting\|taints\) kernel' | \
+ 		 grep -v 'kobject: .*parent.*(delayed' | \
 +		 grep -v 'setting NO_SUPPORT taint flag' | \
+ 		 sed 's/^<[0-9]*>//' | \
  		 sed 's/^\[[ 0-9.]*\] //' | \
  		 sed 's/^\[[ ]*[CT][0-9]*\] //')
- 
+-- 
+2.56.0
+
