@@ -68,6 +68,15 @@ sub run_tests {
         # This test is racy on ppc64le:
         "090-events.bats::events - died event contains OOMKilled attribute",
     ) if (version->parse(numeric_version($version)) >= version->parse("6.0.0"));
+    push @xfails, (
+        # These fail due to https://bugzilla.opensuse.org/show_bug.cgi?id=1289089
+        "030-run.bats::podman create container with conflicting name",
+        "040-ps.bats::podman ps --external",
+        "055-rm.bats::podman rm container from storage",
+        "060-mount.bats::podman mount external container - basic test",
+        "140-diff.bats::podman diff with buildah container",
+        "700-play.bats::podman kube play --replace external storage",
+    ) if (is_tumbleweed && is_ppc64le);
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 6900);
 
