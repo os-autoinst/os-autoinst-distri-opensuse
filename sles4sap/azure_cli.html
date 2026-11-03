@@ -86,6 +86,7 @@
       <li><a href="#az_network_dns_links_cleanup">az_network_dns_links_cleanup</a></li>
       <li><a href="#az_network_dns_zones_cleanup">az_network_dns_zones_cleanup</a></li>
       <li><a href="#az_role_definition_list">az_role_definition_list</a></li>
+      <li><a href="#az_graph_query">az_graph_query</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -2002,6 +2003,27 @@ identifiers for Azure resources.</code></pre>
 <dl>
 
 <dt id="name-Name-of-the-role"><b>name</b> Name of the role</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_graph_query">az_graph_query</h2>
+
+<pre><code>az_graph_query(statements=&gt;[
+    &#39;where name startswith &quot;MyResource&quot;&#39;,
+    &#39;&#39;
+])</code></pre>
+
+<p>Function for executing KQL with azure resource graph. For this to work you need to have `resource-graph` extension installed using command <code>&#39;az extension add --name resource-graph --upgrade&#39;</code></p>
+
+<dl>
+
+<dt id="statements-Array-reference-of-statements.-One-statement-per-element"><b>statements</b> Array reference of statements. One statement per element.</dt>
+<dd>
+
+</dd>
+<dt id="query-Additional-query-using-Jmespath-Optional"><b>query</b> Additional query using Jmespath (Optional)</dt>
 <dd>
 
 </dd>
