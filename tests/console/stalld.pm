@@ -54,7 +54,7 @@ sub run {
     # Install packages required for compiling stalld and running upstream tests
     # For sle16.x some packages are in PackgeHub that must be added as repo
     script_run("zypper lr -EU");
-    install_package('git gcc make clang libclang13 bpftool libbpf-devel llvm libLLVM21', trup_reboot => 1);
+    install_package('git gcc make clang libclang13 bpftool libbpf-devel llvm', trup_reboot => 1);
     assert_script_run("rm -rf $srcdir");
     assert_script_run("git clone $repo $srcdir", timeout => 120);
 
