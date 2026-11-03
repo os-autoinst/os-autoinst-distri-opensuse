@@ -114,6 +114,16 @@ sub run {
     }
     # keep a copy before the destructive splice loop below empties @binaries
     my @all_binaries = @binaries;
+
+    # Instrumented snapperd makes cleaning up zypper's pre/post snapshots too
+    # slow in snapper_cleanup. No solvable matches, so the plugin creates none.
+    # Write it before the package installation below, which is what creates
+    # those snapshots.
+    if (grep { m{/snapper$} } @all_binaries) {
+        write_sut_file('/etc/snapper/zypp-plugin.conf',
+            qq{<?xml version="1.0" encoding="utf-8"?>\n<snapper-zypp-plugin-conf>\n  <solvables/>\n</snapper-zypp-plugin-conf>\n});
+    }
+
     for (@{$test_data->{helper_packages} // []}) {
         push @packages, $_;
     }
