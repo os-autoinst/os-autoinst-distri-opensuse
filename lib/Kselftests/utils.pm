@@ -81,6 +81,10 @@ sub build
     install_package('-t pattern --recommends devel_kernel', trup_apply => 1);
     zypper_call('rl kernel-source kernel-syms') if $lock_kernel_pkgs;
 
+    # poo#209427 -- needed for `make headers` after upstream
+    # commit 7c1bcd3f127f ("kbuild: use prefix-map for host and user progs")
+    install_package('gcc13', trup_apply => 1) if is_sle('<16.0');
+
     # On immutable systems the build dir is read-only; mount a writable overlayfs on it.
     my $real_build_dir = script_output("readlink -f $build_dir");
     if (script_run("test -w $real_build_dir") != 0) {
