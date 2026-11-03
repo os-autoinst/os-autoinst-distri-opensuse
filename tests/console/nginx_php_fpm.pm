@@ -12,6 +12,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils qw(install_package uninstall_package);
 use version_utils qw(is_sle is_leap php_version);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
@@ -34,7 +35,7 @@ sub run {
         }
     }
 
-    zypper_call("-v in nginx $php_pkg $php_pkg-fpm $php_pkg-pear");
+    install_package("nginx $php_pkg $php_pkg-fpm $php_pkg-pear", trup_reboot => 1);
     systemctl("enable --now nginx php-fpm");
 
     # Configure php_fpm
@@ -65,6 +66,7 @@ EOF
 
     validate_script_output("nginx -t", sub { m/syntax is ok\n.*test is successful/ });
     validate_script_output("php-fpm --test", sub { m/test is successful/ });
+    script_run("php-fpm --info");
 
     # Add appArmor allow rule /srv/www/htdocs/* r, to the php-fpm profile
     # and reload the profile
@@ -89,9 +91,14 @@ EOF
 
     validate_script_output("ls -l /run/php-fpm", sub { m/php-fpm.sock/ });
 
+    # Re-start php-fpm and nginx service
+    systemctl("restart php-fpm nginx");
+
     # Check that the server responds
     # It may take few seconds after the nginx.service is (re)started
-    script_retry('curl http://localhost/test.php', delay => 5, retry => 3);
+    script_retry('curl http://localhost/', delay => 5, retry => 5);
+    systemctl("status php-fpm");
+    script_retry('curl http://localhost/test.php', delay => 5, retry => 5);
 
     # Verify the code written in test.php is getting executed for GET request
     validate_script_output("wget -qO - http://localhost/test.php", sub { m/PHP is working:\s[0-9]?.*$/ });
@@ -104,7 +111,7 @@ sub post_fail_hook {
 
 sub cleanup {
     my ($php, $php_pkg, $php_ver) = php_version();
-    zypper_call("rm nginx $php_pkg $php_pkg-fpm $php_pkg-pear");
+    uninstall_package("nginx $php_pkg $php_pkg-fpm $php_pkg-pear", trup_reboot => 1);
     script_run("rm -f /srv/www/htdocs/test.php");
 }
 1;
