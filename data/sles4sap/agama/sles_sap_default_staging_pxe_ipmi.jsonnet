@@ -49,14 +49,20 @@ local urls = std.split(repo, ",");
   scripts: {
     pre: [
       {
-        name: 'wipefs',
+        name: 'cleanup-storage',
         content: |||
           #!/usr/bin/env bash
-          for i in `lsblk -n -l -o NAME -d -e 7,11,254`
-              do wipefs -af /dev/$i
-              sleep 1
-              sync
+          set -x
+          swapoff -a
+          umount -f /dev/sda* 2>/dev/null || true
+          vgchange -an 2>/dev/null || true
+          multipath -F 2>/dev/null || true
+          for p in /dev/sda[0-9]*; do
+            [ -b "$p" ] && wipefs -af "$p" || true
           done
+          wipefs -af /dev/sda
+          partprobe /dev/sda || true
+          sync
         |||,
       },
     ],
