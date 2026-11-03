@@ -192,7 +192,7 @@ sub run {
         # is present in the base image of all of the products
         # See https://jira.suse.com/browse/SLE-16271
         zypper_call('search --provides --match-exact Mesa');
-        zypper_call('search --provides --match-exact mesa', {exit_code => 104});
+        zypper_call('search --provides --match-exact mesa', exit_code => 104);
     }
 }
 
