@@ -310,6 +310,8 @@ QESAP_INSTALL_GITHUB_BRANCH | string | | Git branch. Ignored if QESAP_INSTALL_VE
 QESAP_INSTALL_GITHUB_NO_VERIFY | string | | Configure http.sslVerify false. Ignored if QESAP_VER is configured.
 QESAP_ROLES_INSTALL_GITHUB_REPO | string | github.com/sap-linuxlab/community.sles-for-sap | Git repository where to clone from. Ignored if QESAP_ROLES_INSTALL_VERSION is configured.
 QESAP_ROLES_INSTALL_GITHUB_BRANCH | string | | Git branch. Ignored if QESAP_ROLES_INSTALL_VERSION is configured.
+QESAP_CLUSTER_START_DELAY | integer | | Passed to qe-sap-deployment as `qesap_cluster_start_delay`. Seconds after boot before the cluster starts on SAPHanaSR-angi nodes with native fencing on Azure or GCE. `0`: the cluster does not start at boot and the HanaSR test modules start it on a fenced node after its fencing is complete. Unset: qe-sap-deployment default (180).
+ANGI_VARIANT | string | | Passed to qe-sap-deployment as `angi_variant`: SAPHanaSR-angi configuration variant on Azure and GCE, `progressive` (qe-sap-deployment default when unset), `conservative` or `none`. Ignored without USE_SAP_HANA_SR_ANGI.
 SMELT_URL | string | https://smelt.suse.de | Defines the URL for the SUSE Maintenance Extensible Lightweight Toolset, SMELT for short.
 TRANSACTIONAL | boolean | false | Mark the SUT as a transactional system. Used in SLFO.
 
