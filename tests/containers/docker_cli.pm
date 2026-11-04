@@ -29,6 +29,8 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
+    record_info "docker go version", script_output("go version -m \$(command -v docker)");
+
     # privateregistry (e2e/compose-env.yaml) is plain HTTP, so the host
     # dockerd needs to be told to treat it as insecure.
     configure_docker(selinux => 1, tls => 1, insecure_registries => ["privateregistry:5001"]);
@@ -42,7 +44,6 @@ sub setup {
     run_command "echo 127.0.0.1 privateregistry >> /etc/hosts";
     run_command "echo 127.0.0.1 tlsregistry >> /etc/hosts";
 
-    record_info "docker go version", script_output("go version -m \$(command -v docker)");
     $version = script_output "docker version --format '{{.Client.Version}}' 2>/dev/null", proceed_on_failure => 1;
     $version =~ s/-ce$//;
     $version = "v$version";

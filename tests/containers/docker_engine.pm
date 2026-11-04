@@ -26,6 +26,8 @@ sub setup {
     push @pkgs, "qemu-linux-user" unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
 
+    record_info "dockerd go version", script_output("go version -m \$(command -v dockerd)");
+
     configure_docker(selinux => 1, tls => 0);
 
     # https://docs.docker.com/build/building/multi-platform/
@@ -34,7 +36,6 @@ sub setup {
     # Tests use "ctr"
     run_command "cp /usr/sbin/containerd-ctr /usr/local/bin/ctr";
 
-    record_info "dockerd go version", script_output("go version -m \$(command -v dockerd)");
     $version = script_output "docker version --format '{{.Client.Version}}' 2>/dev/null", proceed_on_failure => 1;
     $version =~ s/-ce$//;
     $version = "docker-v$version";

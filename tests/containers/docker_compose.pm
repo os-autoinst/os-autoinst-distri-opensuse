@@ -24,17 +24,19 @@ sub setup {
     my @pkgs = qw(docker docker-buildx docker-compose go1.27 make openssl);
     $self->setup_pkgs(@pkgs);
 
+    record_info "docker-compose package info", script_output("rpm -qi docker-compose");
+    record_info "docker-compose go version", script_output("go version -m $docker_compose");
+
+    $version = script_output qq($docker_compose version | awk '{ print \$4 }');
+    $version = "v$version" if ($version !~ /^v/);
+    record_info "docker-compose version", $version;
+
     # docker-compose tests needs to be patched upstream to support SELinux
     configure_docker(selinux => 0, tls => 1);
 
     # Some tests need this file
     run_command "mkdir /root/.docker || true";
     run_command "touch /root/.docker/config.json";
-
-    record_info "docker-compose go version", script_output("go version -m $docker_compose");
-    $version = script_output qq($docker_compose version | awk '{ print \$4 }');
-    $version = "v$version" if ($version !~ /^v/);
-    record_info "docker-compose version", $version;
 
     patch_sources "compose", $version, "pkg/e2e";
 }

@@ -151,6 +151,9 @@ sub configure_docker {
     $args{tls} //= get_var("DOCKER_TLS", 0);
     $args{insecure_registries} //= [];
 
+    # Record this first, because dockerd may fail to restart below
+    record_info "docker package info", script_output("rpm -qi docker");
+
     # docker-compose is needed for tests but is not available on SLES 15
     install_docker_compose if (is_sle("<16") && script_run("test -f /usr/lib/docker/cli-plugins/docker-compose"));
 
