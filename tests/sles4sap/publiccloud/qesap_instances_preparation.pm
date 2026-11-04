@@ -86,7 +86,7 @@ sub run {
         my $expected_hostname = $instance->{instance_id};
         # We need to scan for the SSH host key as the Ansible later
         $instance->update_instance_ip();
-        if (is_sle('>=16.1')) {
+        if (is_sle('>=16.0')) {
             # Hardened images enable an sshd pre-login banner via a drop-in included from sshd_config.
             # sshd keeps the first value it reads, so "Banner none" must be the first line of sshd_config.
             my $sshd_config = '/etc/ssh/sshd_config';
