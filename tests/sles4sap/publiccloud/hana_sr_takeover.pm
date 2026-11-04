@@ -79,10 +79,10 @@ sub run {
     # Stop/kill/crash HANA DB and wait till SSH is again available with pacemaker running.
     $self->stop_hana(method => $takeover_action, online_string => $online_string);
 
-    if (manual_cluster_start()) {
+    if (angi_fence_recovery()) {
         # The peer is Promoted only after this node is fenced or stopped its HANA cleanly.
         my ($site_a, $site_b) = get_hana_site_names();
-        $self->recover_fenced_node(peer => $run_args->{$site_name eq $site_a ? $site_b : $site_a}, takeover => 1);
+        $self->recover_fenced_node(peer => $run_args->{$site_name eq $site_a ? $site_b : $site_a}, takeover => 1, rebooted => $takeover_action eq 'crash');
     }
     elsif ($takeover_action eq 'crash' || $takeover_action eq 'stop') {
         my $wait_time = $sbd_delay + 60;

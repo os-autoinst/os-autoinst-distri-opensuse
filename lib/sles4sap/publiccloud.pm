@@ -36,7 +36,7 @@ use saputils;
 
 our @EXPORT = qw(
   run_cmd
-  manual_cluster_start
+  angi_fence_recovery
   recover_fenced_node
   run_cmd_retry
   get_promoted_hostname
@@ -901,42 +901,84 @@ sub wait_for_sync {
     }
 }
 
-=head2 manual_cluster_start
-    manual_cluster_start();
+=head2 angi_fence_recovery
+    angi_fence_recovery();
 
-    True when the cluster does not start at boot: SAPHanaSR-angi with native
-    fencing on Azure or GCE, deployed with C<QESAP_CLUSTER_START_DELAY=0>.
-    The test then starts the cluster on a fenced node, see C<recover_fenced_node>.
+    True for SAPHanaSR-angi jobs on Azure or GCE with an angi variant
+    (ANGI_VARIANT 'conservative' or 'progressive'), where a failed node can get
+    fenced: the test
+    waits on the peer for the fencing to complete and then starts the cluster
+    on the node, see C<recover_fenced_node>.
 =cut
 
-sub manual_cluster_start {
-    return get_var('USE_SAP_HANA_SR_ANGI') && check_var('FENCING_MECHANISM', 'native')
-      && (is_azure() || is_gce()) && check_var('QESAP_CLUSTER_START_DELAY', '0');
+sub angi_fence_recovery {
+    return get_var('USE_SAP_HANA_SR_ANGI') && (is_azure() || is_gce()) && get_var('ANGI_VARIANT', '') =~ /^(conservative|progressive)$/;
 }
 
 =head2 recover_fenced_node
-    recover_fenced_node(peer => $peer_instance, [takeover => 1, timeout => 900]);
+    recover_fenced_node(peer => $peer_instance, [takeover => 1, rebooted => 1, optional => 1, timeout => 900]);
 
     Poll the cluster from the surviving node C<peer> after a failure on
     C<< $self->{my_instance} >>. The peer reports that node OFFLINE once its
     fencing is complete. With C<takeover>, also wait until the peer is
     Promoted. Then, if the node was fenced, wait for it to boot, start the
     cluster on it and return 1; otherwise return 0. Dies on timeout.
+    With C<rebooted> (crash), the node also counts as fenced once the peer
+    reports it online again and Pacemaker is active on it.
+    With C<optional>, the failure does not always fence the node: also return 0
+    once HANA is online again on the node and the peer never reported the node
+    UNCLEAN or OFFLINE.
+    With C<takeover>, dies early if the cluster restarted HANA on the node and
+    kept it Promoted without fencing it: there will be no takeover.
 =cut
 
 sub recover_fenced_node {
     my ($self, %args) = @_;
     my $node = $self->{my_instance}{instance_id};
+    my $target = $self->{my_instance};
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 900);
     my $start = time;
     my $fenced = 0;
+    my $pending = 0;
+    my $recovered = 0;
+    my $hana_online_cmd = 'sudo su - ' . lc(get_required_var('INSTANCE_SID')) . "adm -c 'hdbnsutil -sr_state' | grep -q 'online: true'";
+    # Never dies: a node that goes down during the command counts as not online
+    my $hana_online = sub { ($target->ssh_script_run(cmd => $hana_online_cmd, timeout => 90, quiet => 1, apply_graceful_timeout => 1) // 1) == 0 };
     {
         local $self->{my_instance} = $args{peer};
         while (1) {
+            # Read the Promoted node first. The peer is promoted only after the fencing of
+            # this node is confirmed, so a status taken afterwards shows it as OFFLINE.
+            my $promoted = $args{takeover} ? $self->get_promoted_hostname(proceed_on_failure => 1) // 'none' : 'none';
             my $status = $self->run_cmd(cmd => $crm_mon_cmd, proceed_on_failure => 1, quiet => 1, timeout => 30);
             $fenced ||= $status =~ /Node \Q$node\E(?: \(\d+\))?: OFFLINE/;
-            my $promoted = $args{takeover} ? $self->get_promoted_hostname(proceed_on_failure => 1) // 'none' : 'none';
+            # The node is UNCLEAN from the fencing request until the fencing is confirmed
+            $pending ||= $fenced || $status =~ /Node \Q$node\E(?: \(\d+\))?: UNCLEAN/;
+            # A node that rebooted and runs the cluster again (SBD, timer) was fenced before it rejoined
+            $fenced ||= ($args{rebooted} || $pending) && $status =~ /Node \Q$node\E(?: \(\d+\))?: online/
+              && $target->ssh_script_run(cmd => 'sudo systemctl is-active pacemaker', timeout => 30, quiet => 1) == 0;
             last if $args{takeover} ? $promoted eq $args{peer}{instance_id} : $fenced;
+            if ($args{optional} && !$pending) {
+                # No fencing request so far. Without one the cluster restarts HANA on the node:
+                # the node is recovered once HANA is online in two polls in a row.
+                $recovered = $hana_online->() ? $recovered + 1 : 0;
+                if ($recovered >= 2) {
+                    record_info('Not fenced', "'$node' was not fenced, HANA is online again");
+                    return 0;
+                }
+            }
+            if ($args{takeover} && !$pending && $promoted eq $node) {
+                # Not fenced and still Promoted: the cluster did not react yet, or it restarted the primary
+                # in place. HANA was stopped by the test, so HANA online again means there is no takeover.
+                $recovered = $hana_online->() ? $recovered + 1 : 0;
+                if ($recovered >= 3) {
+                    $self->record_takeover_diagnostics();
+                    die("recover_fenced_node [ERROR] Takeover aborted by local primary recovery on '$node':\n$status");
+                }
+            }
+            elsif ($args{takeover}) {
+                $recovered = 0;
+            }
             die("recover_fenced_node [ERROR] '$node' not recovered within $timeout s (fenced: $fenced, Promoted: $promoted):\n$status")
               if time - $start > $timeout;
             record_info('Wait fence', "'$node' fenced: $fenced, Promoted: $promoted, elapsed: " . (time - $start));
@@ -946,7 +988,7 @@ sub recover_fenced_node {
     return 0 unless $fenced;
     record_info('Fenced', "'$node' is fenced, starting the cluster on it");
     wait_hana_node_up($self->{my_instance}, timeout => 900, ssh_keepalive => 1, accept_degraded => 1);
-    $self->run_cmd(cmd => 'crm cluster start', timeout => 300);
+    $self->run_cmd(cmd => 'crm cluster start', timeout => 600);
     $self->wait_for_pacemaker();
     return 1;
 }

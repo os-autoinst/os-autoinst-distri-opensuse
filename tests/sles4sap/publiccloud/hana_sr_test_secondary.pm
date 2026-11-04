@@ -98,9 +98,8 @@ sub run {
 
     $self->stop_hana(method => $db_action, online_string => $online_string);
 
-    if (manual_cluster_start()) {
-        # Only a crash fences the secondary, stop and kill are recovered by the cluster.
-        $self->recover_fenced_node(peer => $run_args->{$hana_sites[0]}) if $db_action eq 'crash';
+    if (angi_fence_recovery()) {
+        $self->recover_fenced_node(peer => $run_args->{$hana_sites[0]}, $db_action eq 'crash' ? (rebooted => 1) : (optional => 1, timeout => 300));
     }
     # SBD delay is active only after reboot
     elsif ($db_action eq 'crash' || $db_action eq 'stop') {
