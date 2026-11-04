@@ -32,15 +32,15 @@ sub setup {
     record_info "docker-buildx package info", script_output("rpm -qi docker-buildx");
     record_info "docker-buildx go version", script_output("go version -m $docker_buildx");
 
+    $version = script_output qq($docker_buildx version | awk '{ print \$2 }');
+    $version = "v$version" if ($version !~ /^v/);
+    record_info "docker-buildx version", $version;
+
     configure_docker(selinux => 1, tls => 1);
 
     # The tests expect the plugins to be in PATH without the "docker-" prefix
     run_command "cp $docker_buildx /usr/local/bin/buildx";
     run_command "cp $docker_compose /usr/local/bin/compose";
-
-    $version = script_output qq($docker_buildx version | awk '{ print \$2 }');
-    $version = "v$version" if ($version !~ /^v/);
-    record_info "docker-buildx version", $version;
 
     patch_sources "buildx", $version, "tests";
 
