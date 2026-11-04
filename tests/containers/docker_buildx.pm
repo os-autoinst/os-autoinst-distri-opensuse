@@ -29,6 +29,7 @@ sub setup {
     my $docker_buildx = "/usr/lib/docker/cli-plugins/docker-buildx";
     my $docker_compose = "/usr/lib/docker/cli-plugins/docker-compose";
 
+    record_info "docker-buildx package info", script_output("rpm -qi docker-buildx");
     record_info "docker-buildx go version", script_output("go version -m $docker_buildx");
 
     configure_docker(selinux => 1, tls => 1);
