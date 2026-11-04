@@ -26,15 +26,17 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
+    my $docker_buildx = "/usr/lib/docker/cli-plugins/docker-buildx";
+    my $docker_compose = "/usr/lib/docker/cli-plugins/docker-compose";
+
+    record_info "docker-buildx go version", script_output("go version -m $docker_buildx");
+
     configure_docker(selinux => 1, tls => 1);
 
     # The tests expect the plugins to be in PATH without the "docker-" prefix
-    my $docker_buildx = "/usr/lib/docker/cli-plugins/docker-buildx";
-    my $docker_compose = "/usr/lib/docker/cli-plugins/docker-compose";
     run_command "cp $docker_buildx /usr/local/bin/buildx";
     run_command "cp $docker_compose /usr/local/bin/compose";
 
-    record_info "docker-buildx go version", script_output("go version -m $docker_buildx");
     $version = script_output qq($docker_buildx version | awk '{ print \$2 }');
     $version = "v$version" if ($version !~ /^v/);
     record_info "docker-buildx version", $version;
