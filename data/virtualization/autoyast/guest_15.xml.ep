@@ -380,7 +380,53 @@ chmod 600 /root/.ssh/authorized_keys
 <filename>initial_boot_notify.sh</filename>
 <source>
 <![CDATA[
-ip a | grep eth0 | grep -Po '(?<=inet )[\d.]+' > /root/$(hostname); logger "IP is written into file"; curl -k -u root:<%= $testapi::password %> -T /root/$(hostname) sftp://{{SUT_IP}}/tmp/guests_ip/ --ftp-create-dirs; exit 0;
+#!/bin/bash
+# This init script runs before the guest has an address. A one-shot curl
+# used to exit 0 on failure, so the host never got /tmp/guests_ip/<guest>
+# (poo#209820). Upload from a unit that runs after the network is online.
+install -d -m 0755 /usr/local/bin /etc/systemd/system
+cat > /usr/local/bin/report_vm_ip_to_host.sh << 'EOF'
+#!/bin/bash
+name=<%= $vm_name %>
+dest=/root/$name
+try=0
+while [ "$try" -lt 30 ]; do
+    try=$((try + 1))
+    addr=$(ip -4 -o addr show dev eth0 scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n 1)
+    if ! printf '%s\n' "$addr" | grep -Eq '^[0-9]+(\.[0-9]+){3}$'; then
+        addr=$(ip -4 -o addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n 1)
+    fi
+    if printf '%s\n' "$addr" | grep -Eq '^[0-9]+(\.[0-9]+){3}$'; then
+        printf '%s\n' "$addr" > "$dest"
+        if curl -f -k -u "root:<%= $testapi::password %>" -T "$dest" sftp://{{SUT_IP}}/tmp/guests_ip/ --ftp-create-dirs; then
+            logger -t report_vm_ip_to_host "uploaded $name"
+            exit 0
+        fi
+    fi
+    sleep 10
+done
+logger -t report_vm_ip_to_host "upload failed for $name"
+exit 0
+EOF
+chmod 0755 /usr/local/bin/report_vm_ip_to_host.sh
+cat > /etc/systemd/system/report_vm_ip_to_host.service << 'EOF'
+[Unit]
+Description=Report vm ip to host
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/report_vm_ip_to_host.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload
+systemctl enable report_vm_ip_to_host.service
+systemctl start --no-block report_vm_ip_to_host.service
+exit 0
 ]]></source>
 </script>
 </init-scripts>
