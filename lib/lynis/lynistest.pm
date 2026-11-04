@@ -223,8 +223,7 @@ sub check_exceptions {
         ".*dm-event.service.*UNSAFE*",
         ".*emergency.service.*UNSAFE*",
         ".*firewalld.service.*UNSAFE*",
-        ".*getty\@tty1.service.*UNSAFE*",
-        ".*getty\@tty6.service.*UNSAFE*",
+        ".*getty\@tty[1-6].service.*UNSAFE*",
         ".*lvm2-lvmpolld.service.*UNSAFE*",
         ".*nscd.service.*UNSAFE*",
         ".*plymouth-start.service.*UNSAFE*",
@@ -254,6 +253,7 @@ sub check_exceptions {
         ".*purge-kernels.service.*UNSAFE*",
         ".*serial-getty\@hvc1.service.*UNSAFE*",
         ".*serial-getty\@sclp_line0.service.*UNSAFE*",
+        ".*serial-getty\@ttysclp0.service.*UNSAFE*",
         # xvnc@ is the per-connection openQA VNC unit on s390x
         ".*xvnc\@.*.service.*UNSAFE*",
         ".*/etc/issue contents.*WEAK*",
