@@ -14,12 +14,13 @@
 <ul id="index"><li><a href="../../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
+      <li><a href="#get_retention_time">get_retention_time</a></li>
       <li><a href="#calculate_net_addr_space">calculate_net_addr_space</a></li>
       <li><a href="#calculate_subnets">calculate_subnets</a></li>
       <li><a href="#calculate_ip_count">calculate_ip_count</a></li>
       <li><a href="#list_expired_files">list_expired_files</a></li>
       <li><a href="#list_network_lease_files">list_network_lease_files</a></li>
-      <li><a href="#acquire_network_file_lease">acquire_network_file_lease</a></li>
+      <li><a href="#assign_network_file">assign_network_file</a></li>
       <li><a href="#check_peering_exists">check_peering_exists</a></li>
       <li><a href="#assign_defined_network">assign_defined_network</a></li>
       <li><a href="#create_lease_file">create_lease_file</a></li>
@@ -32,6 +33,20 @@
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
 <p>Library with common functions for Microsoft SDAF deployment automation related to networking setup.</p>
+
+<h2 id="get_retention_time">get_retention_time</h2>
+
+<pre><code>get_retention_time(age_in_s=&gt;&#39;3600&#39;);</code></pre>
+
+<p>Serves as retention date/time calculator. Accepts <b>age_in_s</b> and convets it to retention date/time in UTC format <code>Y-m-dTH:MZ</code>. Mostly intended to pass to some azure cli commands.</p>
+
+<dl>
+
+<dt id="age_in_s:-Age-in-seconds"><b>age_in_s</b>: Age in seconds</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="calculate_net_addr_space">calculate_net_addr_space</h2>
 
@@ -81,7 +96,7 @@
 </dd>
 </dl>
 
-<p>Returns names of lease blob files within &#39;network-spaces&#39; container which are older than retention time. Test will search network spaces which were reserved more than <b>$check_older_than_sec</b> seconds ago. Default 7h should be plenty for not triggering race condition between network assignment and actual infrastructure creation.</p>
+<p>Returns names of lease blob files within &#39;network-spaces&#39; container which are older than retention time. Test will search network spaces which were reserved more than <b>$check_older_than_sec</b> seconds ago.</p>
 
 <h2 id="list_network_lease_files">list_network_lease_files</h2>
 
@@ -89,9 +104,10 @@
 
 <p>Returns names of all lease blob files within &#39;network-spaces&#39; container.</p>
 
-<h2 id="acquire_network_file_lease">acquire_network_file_lease</h2>
+<h2 id="assign_network_file">assign_network_file</h2>
 
-<pre><code>acquire_network_file_lease(network_lease_file=&gt;&#39;192.168.1.0&#39; [, storage_account=&gt;&#39;some account&#39;]);</code></pre>
+<pre><code>assign_network_file(network_lease_file=&gt;&#39;192.168.1.0&#39;,
+    networks_older_than=&gt;9001 [, storage_account=&gt;&#39;some account&#39;]);</code></pre>
 
 <dl>
 
@@ -103,9 +119,13 @@
 <dd>
 
 </dd>
+<dt id="networks_older_than:-Update-will-be-successful-only-if-the-last-modification-time-is-older-than-time-specified"><b>networks_older_than</b>: Update will be successful only if the last modification time is older than time specified</dt>
+<dd>
+
+</dd>
 </dl>
 
-<p>Acquire network lease for a blob. Returns blob lease UUID which is later required for getting permission to modify blob file.</p>
+<p>Attempt a write operation on a network lease blob file. Return &#39;1&#39; (true) if attempt was successfull, otherwise undef (false).</p>
 
 <h2 id="check_peering_exists">check_peering_exists</h2>
 
@@ -131,7 +151,7 @@
 
 <h2 id="assign_defined_network">assign_defined_network</h2>
 
-<pre><code>assign_defined_network(deployer_vnet_name=&gt;&#39;SHODAN-vnet&#39; [, networks_older_than=&gt;3600]);</code></pre>
+<pre><code>assign_defined_network(deployer_vnet_name=&gt;&#39;SHODAN-vnet&#39;, networks_older_than=&gt;3600);</code></pre>
 
 <dl>
 
@@ -145,9 +165,9 @@
 </dd>
 </dl>
 
-<p>Assign network that has already lease file present in storage account. Lists existing network files which were modified more than <b>$args{networks_older_than}</b> seconds in the past and picks one of the files at random. A check is performed if the network space is already peered to deployer virtual network <b>deployer_vnet_name</b> and IBSm. Last step is to attempt to assign a blob lease for the network file associated. Blob file lease serves as a locking mechanism to prevent multiple tests assign same network space, causing collisions.</p>
+<p>Assign network that has already lease file present in storage account. Lists existing network files which were modified more than <b>$args{networks_older_than}</b> seconds in the past and picks one of the files at random. Successfull file write represents a soft lock for a network address space associated with a file. After that a series of checks are performed to ensure address space is not being used.</p>
 
-<p>For a successful network assignment these criteria must be met: - there is blob file that represents a network space in storage account (check list_expired_files()) - function is able to assign a 60s blob file lease to reserve exclusive network rights - network peering between network space and deployer virtual network does not exist - network peering between network space and IBSm virtual network does not exist (if in maintenance mode)</p>
+<p>For a successful network assignment these criteria must be met: - there is blob file that represents a network space in storage account (check list_expired_files()) - function is able to perform a write operation on a file older than <b>$args{networks_older_than}</b> - network peering between network space and deployer virtual network does not exist - network peering between network space and IBSm virtual network does not exist (if in maintenance mode)</p>
 
 <p>Argument <b>networks_older_than</b> value should be greater than time between the start of this function and <b>lib/sles4sap/sap_deployment_automation_framework sdaf_execute_deployment()</b> creating network resources. This serves to prevent a race condition where a test picks network space which another test already assigned but haven&#39;t created network resources yet.</p>
 

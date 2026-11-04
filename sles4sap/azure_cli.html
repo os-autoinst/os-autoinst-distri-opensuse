@@ -1671,7 +1671,10 @@ identifiers for Azure resources.</code></pre>
 
 <h2 id="az_storage_blob_update">az_storage_blob_update</h2>
 
-<pre><code>az_storage_blob_update(container_name=&gt;&#39;container&#39;, account_name=&gt;&#39;stuff&#39;, name=&#39;blobby&#39; [, lease_id=42]);</code></pre>
+<pre><code>az_storage_blob_update(container_name=&gt;&#39;container&#39;,
+    account_name=&gt;&#39;stuff&#39;,
+    name=&#39;blobby&#39;
+    [, lease_id=42, if_unmodified_since=&gt;&#39;1999-12-31T00:00Z&#39;]);</code></pre>
 
 <p>Update properties of storage blob. Returns az cli command exit code.</p>
 
@@ -1690,6 +1693,14 @@ identifiers for Azure resources.</code></pre>
 
 </dd>
 <dt id="lease_id-Lease-id-in-case-there-is-a-lease-put-on-a-file"><b>lease_id</b> Lease id in case there is a lease put on a file</dt>
+<dd>
+
+</dd>
+<dt id="if_unmodified_since-update-only-if-unmodified-since-UTC-datetime-Y-m-dTH:MZ"><b>if_unmodified_since</b> update only if unmodified since UTC datetime (Y-m-d&#39;T&#39;H:M&#39;Z&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="failok---Ignore-error-messages-and-return-result.-Default:-Inherited-by-az"><b>failok</b> - Ignore error messages and return result. Default: Inherited by `az()`</dt>
 <dd>
 
 </dd>
