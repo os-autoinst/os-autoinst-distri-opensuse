@@ -636,7 +636,13 @@ Also handle workarounds when needed.
 sub handle_welcome_screen {
     my (%args) = @_;
     assert_screen([qw(opensuse-welcome opensuse-welcome-gnome40-activities)], $args{timeout});
-    send_key 'esc' if match_has_tag('opensuse-welcome-gnome40-activities');
+    if (match_has_tag('opensuse-welcome-gnome40-activities')) {
+        if (!wait_screen_change { send_key 'esc' }) {
+            # Click if we lost focus and 'esc' did not work
+            mouse_set(512, 384);
+            mouse_click();
+        }
+    }
     # The checkbox to start on boot is now dropped, but we need to care for it
     # in the case of older installs where the autostart is still there.
     check_screen('opensuse-welcome-show-on-boot');
