@@ -380,7 +380,20 @@ chmod 600 /root/.ssh/authorized_keys
 <filename>initial_boot_notify.sh</filename>
 <source>
 <![CDATA[
-ip a | grep eth0 | grep -Po '(?<=inet )[\d.]+' > /root/$(hostname); logger "IP is written into file"; curl -k -u root:<%= $testapi::password %> -T /root/$(hostname) sftp://{{SUT_IP}}/tmp/guests_ip/ --ftp-create-dirs; exit 0;
+#!/bin/bash
+% if ($vm_name =~ /^sles15sp[67]/i) {
+# AutoYaST can run without HOME. Set it so curl can find the client key.
+export HOME=/root
+# Work around curl 8.22.0/libssh loading an empty key path when no key exists.
+mkdir -p -m 700 /root/.ssh || exit 1
+if [ ! -e /root/.ssh/id_rsa ]; then
+  ssh-keygen -q -t rsa -b 3072 -N '' -f /root/.ssh/id_rsa </dev/null || exit 1
+fi
+% }
+guest_ip_file="/root/$(hostname)"
+ip a | grep eth0 | grep -Po '(?<=inet )[\d.]+' > "$guest_ip_file" || exit 1
+logger "IP is written into file"
+curl -k -u root:<%= $testapi::password %> -T "$guest_ip_file" sftp://{{SUT_IP}}/tmp/guests_ip/ --ftp-create-dirs
 ]]></source>
 </script>
 </init-scripts>

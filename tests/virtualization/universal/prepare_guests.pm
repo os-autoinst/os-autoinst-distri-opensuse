@@ -122,6 +122,9 @@ sub create_autoyast_profile {
     };
     my $output = Mojo::Template->new(vars => 1)->render($profile, $vars);
     save_tmp_file("$vm_name.xml", $output);
+    if ($vm_name =~ /^sles15sp[67]/i) {
+        record_soft_failure("bsc#1289491 - Apply the curl/libssh SFTP authentication workaround for $vm_name");
+    }
     # Copy profile to ulogs directory, so profile is available in job logs
     make_path('ulogs');
     copy(hashed_string("$vm_name.xml"), "ulogs/$vm_name.xml");
