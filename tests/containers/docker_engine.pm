@@ -125,7 +125,10 @@ sub run {
         "github.com/moby/moby/v2/integration/container::TestStatsNetworkStats",
     ) if (get_var("ROOTLESS"));
     push @xfails, (
+        # These fail due to https://bugzilla.suse.com/show_bug.cgi?id=1278193
         "github.com/moby/moby/v2/integration/container::TestExecSocketDenied",
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/AF_ALG",
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/AF_VSOCK",
         "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80",
         "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80/AF_ALG",
         "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80/AF_INET",
