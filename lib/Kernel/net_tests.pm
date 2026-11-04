@@ -27,7 +27,10 @@ our @EXPORT_OK = qw(
   add_ipv6_route
   add_ipv4_addr
   add_ipv4_route
+  add_ip_addr
+  add_ip_route
   check_ipv6_addr
+  check_ip_addr
   config_ipsec
   dump_ipsec_debug
   flush_xfrm
@@ -213,6 +216,48 @@ sub add_ipv4_route {
     assert_script_run("ip route add $args{dst} via $args{via}");
 }
 
+=head2 add_ip_addr
+
+ add_ip_addr(ip_version => 'ipv4', ip => '192.0.2.10', dev => 'eth0', plen => 24);
+ add_ip_addr(ip_version => 'ipv6', ip => '2001:db8::1', dev => 'eth0', plen => 64);
+
+Address-family agnostic wrapper around C<add_ipv4_addr> and C<add_ipv6_addr>.
+Dispatches on C<ip_version> (C<'ipv4'> or C<'ipv6'>, defaults to C<'ipv6'>)
+and forwards the remaining arguments unchanged, so each underlying
+function's own default C<plen> still applies when C<plen> is omitted.
+
+Lets a single test module support both address families without
+duplicating the add-address call at every call site.
+
+=cut
+
+sub add_ip_addr {
+    my (%args) = @_;
+    my $ip_version = delete $args{ip_version} // 'ipv6';
+    return add_ipv4_addr(%args) if $ip_version eq 'ipv4';
+    return add_ipv6_addr(%args) if $ip_version eq 'ipv6';
+    die "add_ip_addr: unknown ip_version '$ip_version'";
+}
+
+=head2 add_ip_route
+
+ add_ip_route(ip_version => 'ipv4', dst => '192.0.2.0/24', via => '192.0.2.1');
+ add_ip_route(ip_version => 'ipv6', dst => '2001:db8:2::/64', via => '2001:db8::1');
+
+Address-family agnostic wrapper around C<add_ipv4_route> and
+C<add_ipv6_route>. Dispatches on C<ip_version> (C<'ipv4'> or C<'ipv6'>,
+defaults to C<'ipv6'>).
+
+=cut
+
+sub add_ip_route {
+    my (%args) = @_;
+    my $ip_version = delete $args{ip_version} // 'ipv6';
+    return add_ipv4_route(%args) if $ip_version eq 'ipv4';
+    return add_ipv6_route(%args) if $ip_version eq 'ipv6';
+    die "add_ip_route: unknown ip_version '$ip_version'";
+}
+
 =head2 check_ipv6_addr
 
  check_ipv6_addr();
@@ -241,6 +286,29 @@ sub check_ipv6_addr {
         $tries -= 1;
         sleep(5);
     }
+}
+
+=head2 check_ip_addr
+
+ check_ip_addr(ip_version => 'ipv4');
+ check_ip_addr(ip_version => 'ipv6');
+
+Address-family agnostic readiness check after assigning a static address.
+Dispatches on C<ip_version> (C<'ipv4'> or C<'ipv6'>, defaults to C<'ipv6'>).
+
+For C<'ipv6'> this waits out Duplicate Address Detection via
+C<check_ipv6_addr>. For C<'ipv4'> this is a no-op: a statically assigned
+IPv4 address is usable as soon as C<ip addr add> returns, there is no
+DAD-equivalent wait required.
+
+=cut
+
+sub check_ip_addr {
+    my (%args) = @_;
+    my $ip_version = $args{ip_version} // 'ipv6';
+    return check_ipv6_addr() if $ip_version eq 'ipv6';
+    return if $ip_version eq 'ipv4';
+    die "check_ip_addr: unknown ip_version '$ip_version'";
 }
 
 =head2 flush_xfrm
@@ -377,20 +445,30 @@ sub config_ipsec {
 =head2 dump_ipsec_debug
 
  dump_ipsec_debug();
+ dump_ipsec_debug(ip_version => 'ipv4');
 
 Record detailed debugging information about IPsec state, policy, and
-IPv6 routing. Useful for post-failure diagnostics.
+routing. Useful for post-failure diagnostics.
+
+C<ip_version> selects C<'ipv4'> or C<'ipv6'> routes to dump (defaults to
+C<'ipv6'>, matching the address family used by the original IPv6-only
+IPsec test).
 
 =cut
 
 sub dump_ipsec_debug {
+    my (%args) = @_;
+    my $ip_version = $args{ip_version} // 'ipv6';
+    my $route_cmd = $ip_version eq 'ipv4' ? 'ip -4 route' : 'ip -6 route';
+    my $route_label = $ip_version eq 'ipv4' ? 'IPv4 routes' : 'IPv6 routes';
+
     my $state = script_output('ip -d xfrm state', proceed_on_failure => 1);
     my $policy = script_output('ip -d xfrm policy', proceed_on_failure => 1);
-    my $routes = script_output('ip -6 route', proceed_on_failure => 1);
+    my $routes = script_output($route_cmd, proceed_on_failure => 1);
 
     record_info('IPsec state', $state);
     record_info('IPsec policy', $policy);
-    record_info('IPv6 routes', $routes);
+    record_info($route_label, $routes);
 }
 
 =head2 validate_ipsec_tcpdump
@@ -422,11 +500,12 @@ sub validate_ipsec_tcpdump {
 =head2 validate_tcpdump
 
  validate_tcpdump(
-     dump  => $dump,
-     check => 'esp' | ['esp','pmtud'],
-     spi   => '0x12345678',
-     mtu   => 1300,
-     dev   => 'ens4'
+     dump       => $dump,
+     check      => 'esp' | ['esp','pmtud'],
+     spi        => '0x12345678',
+     mtu        => 1300,
+     dev        => 'ens4',
+     ip_version => 'ipv4' | 'ipv6',
  );
 
 Validate tcpdump output for expected IPsec traffic patterns.
@@ -434,7 +513,10 @@ Validate tcpdump output for expected IPsec traffic patterns.
 Supported checks:
 
 - C<esp>:   Verify that ESP packets are present and match the expected SPI.
-- C<pmtud>: Verify that ICMPv6 Packet Too Big messages appear with the expected MTU.
+- C<pmtud>: Verify that a Packet Too Big / Fragmentation Needed message
+  appears with the expected MTU. C<ip_version> (defaults to C<'ipv6'>)
+  selects between the ICMPv6 "packet too big" wording and the ICMPv4
+  "unreachable - need to frag" wording.
 
 If multiple checks are requested, all of them must be found in the dump.
 Missing patterns cause the test to fail via C<record_info(..., result => 'fail')>.
@@ -449,11 +531,12 @@ sub validate_tcpdump {
     my $expected_spi = $args{spi};    # expected SPI
     my $mtu = $args{mtu};    # expected MTU
     my $dev = $args{dev};    # optional
+    my $ip_version = $args{ip_version} // 'ipv6';    # 'ipv4' or 'ipv6', selects the pmtud pattern
 
     # Normalize: allow single scalar check => 'esp'
     $checks = [$checks] unless ref $checks eq 'ARRAY';
 
-    record_info("Validating tcpdump on $dev (checks: " . join(',', @$checks) . ")");
+    record_info('INFO', "Validating tcpdump on $dev (checks: " . join(',', @$checks) . ")");
 
     foreach my $check (@$checks) {
 
@@ -467,8 +550,19 @@ sub validate_tcpdump {
         }
 
         elsif ($check eq 'pmtud') {
-            unless ($dump =~ /ICMP6.*packet too big.*mtu\s*$mtu/i) {
-                record_info("FAIL", "Missing ICMPv6 Packet Too Big (mtu=$mtu)", result => 'fail');
+            if ($ip_version eq 'ipv4') {
+                # Linux/tcpdump render ICMPv4 "Fragmentation Needed" (type 3,
+                # code 4) as "... unreachable - need to frag (mtu NNN) ..."
+                unless ($dump =~ /ICMP.*unreachable.*need to frag.*mtu\s*$mtu/i) {
+                    record_info("FAIL", "Missing ICMPv4 Fragmentation Needed (mtu=$mtu" . ($dev ? ", dev=$dev" : "") . ")",
+                        result => 'fail');
+                }
+            }
+            else {
+                unless ($dump =~ /ICMP6.*packet too big.*mtu\s*$mtu/i) {
+                    record_info("FAIL", "Missing ICMPv4 Fragmentation Needed (mtu=$mtu" . ($dev ? ", dev=$dev" : "") . ")",
+                        result => 'fail');
+                }
             }
         }
 
