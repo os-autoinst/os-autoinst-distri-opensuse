@@ -236,6 +236,13 @@ sub cleanup_known_coredumps {
         'https://gitlab.isc.org/isc-projects/bind9/-/work_items/2983' => {
             cmdline => q(9.18.33/bin/named/.libs/named -D doth),
         },
+        # moby's TestExecSocketDenied/socketcall_int80 runs "int $0x80", which raises SIGSEGV
+        # if the host kernel has no ia32 emulation
+        'https://github.com/moby/moby/blob/master/integration/container/testdata/socketcall.c' => {
+            cmdline => q(/tmp/socketcall_af_),
+            signals => [qw(SEGV)],
+            architectures => [qw(x86_64)],
+        },
     );
 
     my $arch = get_var('ARCH');
