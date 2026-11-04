@@ -142,8 +142,12 @@ sub run_test {
     my $result_src = $self->{result_format} eq 'TAP' ? 'results.tap' : 'results.xml';
     my $name = $self->{name};
     my $output_log = "/tmp/${name}_output.log";
+    # openQA identifies XUnit results by the testsuite name. The default
+    # pytest name is 'pytest', thus two agnostic tests in one job collide and
+    # one of them can stay without a result. Set a unique name for each test.
+    my $env = $self->{language} eq 'python' ? "PYTEST_ADDOPTS='-o junit_suite_name=${name}_pytest' " : '';
     my $command = 'cd ' . $self->{test_dir} . ' && chmod +x ' . $run_script
-      . ' && ( set -o pipefail; ' . $run_script . " 2>&1 | tee $output_log )"
+      . ' && ( set -o pipefail; ' . $env . $run_script . " 2>&1 | tee $output_log )"
       . ' && mv ' . $result_src . ' ' . $self->{result_file};
     assert_script_run($command, timeout => $self->{run_timeout}, quiet => 1);
     upload_logs($output_log, failok => 1);
