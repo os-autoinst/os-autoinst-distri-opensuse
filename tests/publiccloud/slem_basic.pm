@@ -107,11 +107,7 @@ sub run {
     # SELinux tests
     my $getenforce = $instance->ssh_script_output('sudo getenforce');
     record_info("SELinux state", $getenforce);
-    if (is_sle_micro('<5.4')) {
-        die "SELinux should be permissive" unless ($getenforce =~ /Permissive/i);
-    } else {
-        die "SELinux should be enforcing" unless ($getenforce =~ /Enforcing/i);
-    }
+    die "SELinux should be enforcing" unless ($getenforce =~ /Enforcing/i);
     pc_transactional_call($instance, 'setup-selinux', exitcode => [0], no_reboot => 1);
     $instance->softreboot();
 
