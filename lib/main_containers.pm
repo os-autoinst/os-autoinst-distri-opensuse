@@ -291,6 +291,7 @@ sub update_host_and_publish_hdd {
         # we only need to shutdown the VM before publishing the HDD
         loadtest 'boot/boot_to_desktop';
         loadtest 'containers/update_host';
+        loadtest 'containers/host_configuration';
         loadtest 'containers/bci_prepare';
         loadtest 'containers/k3s_helm_install' if get_var('VERSION', '') =~ /Leap16/;
     }

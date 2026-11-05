@@ -42,7 +42,8 @@ schedule:
     - '{{boot_ppc}}'
     - installation/first_boot
     - console/system_prepare
-    - containers/install_updates
+    - containers/update_host
+    - containers/host_configuration
     - '{{fips}}'
     - containers/bci_prepare
     - '{{k3s_helm_install}}'
