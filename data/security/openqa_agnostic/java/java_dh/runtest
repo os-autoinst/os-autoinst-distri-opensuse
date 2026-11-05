@@ -1,0 +1,30 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: java diffie-hellman
+# desc: Verifies finite-field Diffie-Hellman key pair generation and key agreement via the JCA, for one or more key sizes
+# steps:
+#   - generate a DH key pair for each key size given as argument, for example "runtest 2048 3072" (default 2048, 3072 and 4096 bits)
+#   - perform DH key agreement between two parties and confirm both derive the identical shared secret
+#   - confirm the shared secret is not longer than the prime modulus
+#   - confirm the shared secret changes when agreeing with a different, unrelated peer key (negative test)
+#   - confirm the JCA rejects a weak peer public value y=1 (negative test)
+# author: <emil.miler@suse.com>
+# maintainer: QE Security <none@suse.de>
+# expected: results.tap reports all tests passed
+# platform: SLE 16.1
+# tags: security java diffie-hellman DH key-agreement
+# ---
+# METADATA_END
+
+set -e
+source ../lib/helper.sh
+
+TEST_FILES=(DhKeyAgreementTest.java)
+handle_args "$0" "$@"
+
+ensure_command_available "javac"
+
+javac DhKeyAgreementTest.java
+# Optional arguments are key sizes in bits and go straight to the test
+java DhKeyAgreementTest "$@" > results.tap
