@@ -86,6 +86,7 @@ sub run {
         my $expected_hostname = $instance->{instance_id};
         # We need to scan for the SSH host key as the Ansible later
         $instance->update_instance_ip();
+        $instance->wait_for_ssh();
         if (is_sle('>=16.0')) {
             # Hardened images enable an sshd pre-login banner and disable TCP forwarding (needed by the
             # ssh tunnel) via a drop-in included from sshd_config. sshd keeps the first value it reads,
