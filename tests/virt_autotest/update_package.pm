@@ -14,7 +14,33 @@ use version_utils 'is_sle';
 use virt_utils;
 use ipmi_backend_utils;
 use Utils::Architectures;
-use virt_autotest::utils qw(is_xen_host is_kvm_host is_registered_sles);
+use virt_autotest::utils qw(is_xen_host is_kvm_host is_registered_sles get_expected_host_version);
+
+# Split a version string into the release and the service pack,
+# "15-SP7" and "15.7" both give (15, 7).
+sub parse_os_version {
+    my ($version) = @_;
+    my ($release) = $version =~ /^(\d+)/;
+    my ($service_pack) = $version =~ /(?:-sp|\.)(\d+)$/i;
+    return ($release // '', $service_pack // 0);
+}
+
+# login_console checks the host version on other architectures, but not on s390x.
+# update_virt_rpms installs the packages of the version under test, so make sure
+# that the s390x LPAR runs exactly that version before the host is changed.
+sub check_lpar_host_version {
+    my $expected_version = get_expected_host_version;
+    my ($expected_release, $expected_service_pack) = parse_os_version($expected_version);
+    #Versions without a release number cannot be compared
+    return unless $expected_release;
+
+    my (undef, $output) = lpar_cmd('cat /etc/os-release', {timeout => 60});
+    my ($host_version) = $output =~ /^VERSION="?([^"\r\n]+)"?/m;
+    die "Failed to get the LPAR host version, going to terminate following test!" unless $host_version;
+    my ($host_release, $host_service_pack) = parse_os_version($host_version);
+    record_info('Host version check', "LPAR host $host_version is compared with the expected version '$expected_version'");
+    die "LPAR host version '$host_version' does not match the expected version '$expected_version', going to terminate following test!" unless ($host_release eq $expected_release and $host_service_pack == $expected_service_pack);
+}
 
 sub update_package {
     my $self = shift;
@@ -30,6 +56,7 @@ sub update_package {
 
     $update_pkg_cmd = $update_pkg_cmd . " 2>&1 | tee /tmp/update_virt_rpms.log ";
     if (is_s390x) {
+        check_lpar_host_version;
         lpar_cmd("$update_pkg_cmd");
         lpar_upload_logs("/tmp/update_virt_rpms.log");
         lpar_cmd("rm -f /tmp/update_virt_rpms.log");
