@@ -54,6 +54,11 @@ sub run_tests {
         "rmi.bats::rmi with cached images",
     ) if (version->parse(numeric_version($version)) <= version->parse("1.39.5"));
     push @xfails, (
+        # Fails since quay.io/skopeo/stable:latest was updated on 2026-11-04:
+        # the old containers/image doesn't find the blob to reuse on the second push
+        "blobcache.bats::blobcache: blobs must be reused when pushing across registry",
+    ) if (version->parse(numeric_version($version)) <= version->parse("1.39.5"));
+    push @xfails, (
         "bud.bats::bud with --cgroup-parent",
     ) if (version->parse(numeric_version($version)) <= version->parse("1.39.5") && !$rootless);
     push @xfails, (
