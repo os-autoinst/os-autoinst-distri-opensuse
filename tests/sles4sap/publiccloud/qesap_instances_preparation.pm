@@ -95,9 +95,12 @@ sub run {
             my %ssh_args = (username => 'cloudadmin');
             my @overrides = ('Banner none', 'AllowTcpForwarding yes');
 
+            # SLE 16 ships the sshd defaults in /usr/etc/ssh/sshd_config and uses /etc/ssh/sshd_config
+            # only if it exists. Some images have none: seed it from the vendor file, which keeps
+            # the Include lines for the sshd_config.d drop-ins, so the overrides below still come first.
             $instance->ssh_assert_script_run(
-                cmd => "sudo test -f $sshd_config",
-                fail_message => "$sshd_config not found on $instance->{instance_id}",
+                cmd => "sudo test -f $sshd_config || sudo cp /usr/etc/ssh/sshd_config $sshd_config",
+                fail_message => "$sshd_config missing on $instance->{instance_id} and no /usr/etc/ssh/sshd_config to seed it from",
                 %ssh_args);
 
             my $head = $instance->ssh_script_output(cmd => "sudo head -n" . scalar(@overrides) . " $sshd_config", %ssh_args);
