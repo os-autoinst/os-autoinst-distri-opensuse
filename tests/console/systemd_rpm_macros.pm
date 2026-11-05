@@ -14,6 +14,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
+use package_utils 'install_package';
 
 sub build_mt {
     zypper_call("in rpm-build");
@@ -27,7 +28,7 @@ sub run {
     select_serial_terminal;
 
     # Call macros to make sure they are available
-    zypper_call("in systemd-rpm-macros");
+    install_package("systemd-rpm-macros", trup_reboot => 1);
     assert_script_run 'wget --quiet ' . data_url('console/test_systemd_rpm_macros.sh');
     assert_script_run 'wget --quiet ' . data_url('console/systemd_rpm_macros_list');
     assert_script_run 'chmod +x test_systemd_rpm_macros.sh';
@@ -45,7 +46,7 @@ sub run {
             assert_script_run(qq(zypper mr -e --refresh $source_repo));
         }
         zypper_call("--gpg-auto-import-keys ref", 300) if (get_var('FIPS') || get_var('FIPS_ENABLED'));
-        build_mt();
+        build_mt() unless (is_transactional);
         if ($source_repo) {
             assert_script_run(qq(zypper mr -d $source_repo));
         }
