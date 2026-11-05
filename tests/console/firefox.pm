@@ -11,7 +11,9 @@ use testapi;
 use utils 'zypper_call';
 use serial_terminal 'select_serial_terminal';
 use python_version_utils 'get_python3_binary';
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_transactional);
+use package_utils 'install_package';
+use transactional 'reboot_on_changes';
 
 sub run {
     select_serial_terminal;
@@ -20,19 +22,30 @@ sub run {
     my $latest_python = script_output(q(zypper se '/^python3[0-9][0-9]-psutil$/' | awk -F '|' '/python3[0-9][0-9]-psutil/ ) .
           q({ if (match($2, /python3[0-9][0-9]/)) print substr($2, RSTART, RLENGTH) }' | tail -n1));
     my $python_bin = get_python3_binary($latest_python);
-    zypper_call("-v in MozillaFirefox $latest_python ${latest_python}-pip ${latest_python}-wheel ${latest_python}-psutil");
+    install_package("MozillaFirefox $latest_python ${latest_python}-pip ${latest_python}-wheel ${latest_python}-psutil", trup_reboot => 1);
     my $version = get_var('VERSION');
     zypper_call("mr -e SLE-Product-SLES-$version-Source") if is_sle('16+');
+    # add source repo from INCIDENT_REPO
+    if (check_var('FLAVOR', 'Online-Updates-Staging') || check_var('FLAVOR', 'Online-Immutable-Updates-Staging')) {
+        my @repos = split(/,/, get_var('INCIDENT_REPO', ''));
+        while (my ($i, $repo) = each(@repos)) {
+            chop $repo if $repo =~ /\/$/;
+            zypper_call("ar -f $repo-Source/ TEST_${i}_Source");
+        }
+        zypper_call('--gpg-auto-import-keys ref') if check_var('FLAVOR', 'Online-Immutable-Updates-Staging');
+    }
     zypper_call('-v si -D MozillaFirefox');
+    reboot_on_changes if is_transactional;
     zypper_call("mr -d SLE-Product-SLES-$version-Source") if is_sle('16+');
+    script_run('rm -f /etc/zypp/repos.d/TEST_*_Source.repo') if check_var('FLAVOR', 'Online-Updates-Staging') || check_var('FLAVOR', 'Online-Immutable-Updates-Staging');
     my $ff_version = script_output('firefox --version');
     my ($ff_major) = $ff_version =~ /Firefox\s+(\d+)/;
     record_info('Firefox version', $ff_version);
     record_info('Python version', $latest_python);
     record_info('Prepare', 'Prepare test env, requirements etc.');
     assert_script_run('cd /usr/src/packages/SOURCES/');
-    assert_script_run('tar -xf firefox-*.source.tar.xz --wildcards "*/testing/mozbase" "*/testing/marionette"');
-    assert_script_run('cd firefox-*/');
+    assert_script_run('tar -xf firefox-*.source.tar.xz -C /root --wildcards "*/testing/mozbase*" "*/testing/marionette*"');
+    assert_script_run('cd /root/firefox-*/');
     assert_script_run("$python_bin -m venv --system-site-packages .venv && source .venv/bin/activate");
     assert_script_run('pip install --upgrade pip');
     assert_script_run('for p in testing/mozbase/* testing/marionette/*; do ' .
