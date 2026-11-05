@@ -20,8 +20,9 @@ our @EXPORT = qw(upload_system_logs upload_supportconfig_log);
 
 # Save the output of $cmd into $file and upload it
 sub system_status {
-    my ($self, $log) = @_;
+    my ($self, $log, $timeout) = @_;
     $log //= "/tmp/system-status.txt";
+    $timeout //= 40;
 
     my %cmds = (
         kernel => "uname -a",
@@ -39,29 +40,34 @@ sub system_status {
         my $cmd = "echo '=========> $key <=========' >> $log; ";
         $cmd .= "$cmds{$key} >> $log; ";
         $cmd .= "echo '' >> $log";
-        script_run($cmd, 40);
+        script_run($cmd, $timeout);
     }
     return $log;
 }
 
 sub journalctl_log {
-    my ($self, $log) = @_;
+    my ($self, $log, $timeout) = @_;
     $log //= "/tmp/journalctl.txt";
-    script_run("journalctl -b -o short-precise >$log", 40);
+    script_run("journalctl -b -o short-precise >$log", $timeout // 40);
     return $log;
 }
 
 sub dmesg_log {
-    my ($self, $log) = @_;
+    my ($self, $log, $timeout) = @_;
     $log //= "/tmp/dmesg.txt";
-    script_run("dmesg >$log", 40);
+    script_run("dmesg >$log", $timeout // 40);
     return $log;
 }
 
+# Optional: timeout => <s> for the commands (default 40),
+# upload_timeout => <s> for the uploads (default 100)
 sub upload_system_logs {
-    upload_logs(system_status(), timeout => 100, failok => 1);
-    upload_logs(journalctl_log(), timeout => 100, failok => 1);
-    upload_logs(dmesg_log(), timeout => 100, failok => 1);
+    my (%args) = @_;
+    my $timeout = $args{timeout} // 40;
+    my $upload_timeout = $args{upload_timeout} // 100;
+    upload_logs(system_status(undef, undef, $timeout), timeout => $upload_timeout, failok => 1);
+    upload_logs(journalctl_log(undef, undef, $timeout), timeout => $upload_timeout, failok => 1);
+    upload_logs(dmesg_log(undef, undef, $timeout), timeout => $upload_timeout, failok => 1);
 }
 
 sub upload_supportconfig_log {
