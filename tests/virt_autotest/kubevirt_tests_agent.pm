@@ -124,7 +124,9 @@ __END
     $self->check_service_status();
     assert_script_run("grep static /var/lib/kubelet/cpu_manager_state");
 
-    my $kubevirt_ver = script_output(qq(ssh root\@$server_ip "rpm -q --qf \%{VERSION} kubevirt-tests"));
+    my $kubevirt_tests_rel = get_versioned_kubevirt_release();
+    my $kubevirt_tests_pkg = $kubevirt_tests_rel ? "kubevirt-$kubevirt_tests_rel-tests" : 'kubevirt-tests';
+    my $kubevirt_ver = script_output(qq(ssh root\@$server_ip "rpm -q --qf \%{VERSION} $kubevirt_tests_pkg"));
     # Install Longhorn dependencies
     if (is_transactional) {
         if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0")) {
