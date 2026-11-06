@@ -1,0 +1,8 @@
+---
+name:         build_answer_file.yaml
+description:  >
+      Builds the Windows answer file image and publishes it as an asset.
+      The Windows installation job uses the image as its second disk.
+schedule:
+  - boot/boot_to_desktop
+  - wsl/install/build_answer_file
