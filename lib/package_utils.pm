@@ -50,7 +50,7 @@ sub install_package {
         die "install_package: 'trup_reboot' and 'trup_apply' are mutually exclusive" if $args{trup_reboot} && $args{trup_apply};
         record_info('install_package', $args{skip_trup}) if $args{skip_trup} =~ /\w+/;
         return if $args{skip_trup};
-        $packages .= ' ' . $args{trup_extra} // '';
+        $packages .= ' ' . ($args{trup_extra} // '');
         my $cmd = 'pkg in -l ' . $packages;
         $cmd = '-c ' . $cmd if $args{trup_continue} // 0;
         $ret = trup_call($cmd, timeout => $args{timeout});
@@ -60,7 +60,7 @@ sub install_package {
     else {
         record_info('install_package', $args{skip_zypper}) if ($args{skip_zypper} // '') =~ /\w+/;
         return if $args{skip_zypper};
-        $packages .= ' ' . $args{zypper_extra} // '' if defined $args{zypper_extra};
+        $packages .= ' ' . ($args{zypper_extra} // '');
         $ret = zypper_call('in -l ' . $packages, timeout => $args{timeout});
     }
     return $ret;
@@ -134,7 +134,7 @@ sub uninstall_package {
         die "uninstall_package: 'trup_reboot' and 'trup_apply' are mutually exclusive" if $args{trup_reboot} && $args{trup_apply};
         record_info('uninstall_package', $args{skip_trup}) if $args{skip_trup} =~ /\w+/;
         return if $args{skip_trup};
-        $packages .= ' ' . $args{trup_extra} // '';
+        $packages .= ' ' . ($args{trup_extra} // '');
         my $cmd = 'pkg remove ' . $packages;
         $cmd = '-c ' . $cmd if $args{trup_continue} // 0;
         $ret = trup_call($cmd, timeout => $args{timeout});
@@ -144,7 +144,7 @@ sub uninstall_package {
     else {
         record_info('uninstall_package', $args{skip_zypper}) if $args{skip_zypper} =~ /\w+/;
         return if $args{skip_zypper};
-        $packages .= ' ' . $args{zypper_extra} // '';
+        $packages .= ' ' . ($args{zypper_extra} // '');
         $ret = zypper_call('rm ' . $packages, timeout => $args{timeout});
     }
     return $ret;

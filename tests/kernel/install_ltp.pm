@@ -151,7 +151,7 @@ sub install_build_dependencies {
 
 sub prepare_ltp_git {
     my $url = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
-    my $rel = get_var('LTP_RELEASE');
+    my $rel = get_var('LTP_RELEASE', '');
     my $prefix = get_ltproot();
     my $configure = "./configure --prefix=$prefix";
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '--with-open-posix-testsuite --with-realtime-testsuite');
@@ -273,8 +273,8 @@ sub check_cpu_ucode {
 
 sub run {
     my $self = shift;
-    my $inst_ltp = get_var 'INSTALL_LTP';
-    my $cmd_file = get_var('LTP_COMMAND_FILE');
+    my $inst_ltp = get_var('INSTALL_LTP');
+    my $cmd_file = get_var('LTP_COMMAND_FILE', '');
     my $is_ima = $cmd_file =~ m/^ima$/i;
     my $grub_param;
 
