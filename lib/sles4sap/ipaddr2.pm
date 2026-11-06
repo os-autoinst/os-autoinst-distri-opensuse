@@ -50,6 +50,7 @@ our @EXPORT = qw(
   ipaddr2_bastion_key_accept
   ipaddr2_bastion_pubip
   ipaddr2_bastion_ssh_addr
+  ipaddr2_bastion_sshd_override
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
   ipaddr2_scc_check
@@ -564,6 +565,45 @@ sub ipaddr2_bastion_key_accept(%args) {
         cmd => 'whoami',
         bastion_ip => $args{bastion_ip});
     return $ret if $ret;
+    return 0;
+}
+
+=head2 ipaddr2_bastion_sshd_override
+
+    my $ret = ipaddr2_bastion_sshd_override(bastion_ip => '1.2.3.4');
+
+Put "Banner none" and "AllowTcpForwarding yes" on the first lines of the bastion sshd_config.
+The hardened sshd profile of SLE 16 images disables TCP forwarding, which ssh -J to the
+internal VMs needs, and shows a banner on every login. sshd keeps the first value it reads,
+so the overrides go on the first lines of sshd_config, seeded from the vendor file in
+/usr/etc when the image has none. Same override as in
+tests/sles4sap/publiccloud/qesap_instances_preparation.pm.
+Return 0 on success, or the exit code of the first command that fails.
+
+=over
+
+=item B<bastion_ip> - Public IP address of the bastion. Mandatory.
+
+=back
+=cut
+
+sub ipaddr2_bastion_sshd_override(%args) {
+    croak("Argument < bastion_ip > missing") unless $args{bastion_ip};
+
+    # No single quotes in these commands: ipaddr2_ssh_bastion_script_run wraps them in single quotes.
+    my $sshd_config = '/etc/ssh/sshd_config';
+    foreach my $cmd (
+        "sudo test -f $sshd_config || sudo cp /usr/etc/ssh/sshd_config $sshd_config",
+        "sudo sed -i \"1i Banner none\" $sshd_config",
+        "sudo sed -i \"1i AllowTcpForwarding yes\" $sshd_config",
+        'sudo sshd -t',
+        'sudo systemctl reload sshd') {
+        my $ret = ipaddr2_ssh_bastion_script_run(cmd => $cmd, bastion_ip => $args{bastion_ip});
+        if ($ret) {
+            record_info('sshd override', "Command failed with exit code $ret: $cmd", result => 'fail');
+            return $ret;
+        }
+    }
     return 0;
 }
 
