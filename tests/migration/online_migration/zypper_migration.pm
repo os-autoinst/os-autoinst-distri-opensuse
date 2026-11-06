@@ -63,7 +63,7 @@ sub run {
         if (script_run('systemctl is-active apparmor.service') == 0) {
             systemctl('disable --now apparmor.service');
         }
-        assert_script_run("echo 'url: " . get_required_var('SCC_URL') . "' > /etc/SUSEConnect") if is_sle('16.1+');
+        assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect") if is_sle('16.1+') && get_var('SCC_URL');
         script_run("(transactional-update migration; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     } else {
         my $option = (is_leap_migration) || (get_var("SCC_ADDONS") =~ /phub/) || (get_var("SMT_URL") =~ /smt/) ? " --allow-vendor-change " : " ";
