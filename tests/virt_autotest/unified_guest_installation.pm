@@ -32,6 +32,7 @@
 # lib/concurrent_guest_installations for detailed information about them.
 # Some additional test suite level settings are also added to facilitate
 # more convenient and flexible test run, including:
+# UNIFIED_GUEST_DO_REGISTRATIONS
 # UNIFIED_GUEST_SCC_URLS
 # UNIFIED_GUEST_INSTALLATION_BUILDS
 # UNIFIED_GUEST_INSTALLATION_MEDIA
@@ -42,6 +43,7 @@
 # UNIFIED_GUEST_NETWORK_MODES
 # UNIFIED_GUEST_OSINFOS
 # They are assigned to guest parameters:
+# [guest_do_registration]
 # [guest_registration_server]
 # [guest_build]
 # [guest_installation_media]
@@ -50,6 +52,7 @@
 # [guest_product_mode]
 # [guest_network_type]
 # [guest_network_mode]
+# [guest_osinfo]
 # Their values are separated also by pipe symbol to differentiate values
 # that belong to different guests. Multiple values that are separated by
 # comma are allowed for single guest for setting:
@@ -90,9 +93,10 @@ sub run {
     my %store_of_guests;
     my @guest_installation_media = my @guest_installation_fine_grained_media = my @guest_installation_fine_grained_repos = ('') x scalar @guest_names;
     my @guest_product_modes = my @guest_installation_builds = my @guest_network_types = my @guest_network_modes = my @guest_osinfos = ('') x scalar @guest_names;
-    my @guest_registration_servers = my @guest_registration_codes = my @guest_registration_extensions_codes = ('') x scalar @guest_names;
+    my @guest_do_registrations = my @guest_registration_servers = my @guest_registration_codes = my @guest_registration_extensions_codes = ('') x scalar @guest_names;
     @guest_installation_media = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_MEDIA', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_MEDIA', '') ne '');
     @guest_installation_builds = split(/\|/, get_var('UNIFIED_GUEST_INSTALLATION_BUILDS', '')) if (get_var('UNIFIED_GUEST_INSTALLATION_BUILDS', '') ne '');
+    @guest_do_registrations = split(/\|/, get_var('UNIFIED_GUEST_DO_REGISTRATIONS', '')) if (get_var('UNIFIED_GUEST_DO_REGISTRATIONS', '') ne '');
     @guest_registration_servers = split(/\|/, get_var('UNIFIED_GUEST_SCC_URLS', '')) if (get_var('UNIFIED_GUEST_SCC_URLS', '') ne '');
     @guest_registration_codes = split(/\|/, get_var('UNIFIED_GUEST_REG_CODES', '')) if (get_var('UNIFIED_GUEST_REG_CODES', '') ne '');
     @guest_registration_extensions_codes = split(/\|/, get_var('UNIFIED_GUEST_REG_EXTS_CODES', '')) if (get_var('UNIFIED_GUEST_REG_EXTS_CODES', '') ne '');
@@ -106,6 +110,7 @@ sub run {
         $store_of_guests{$element}{PROFILE} = $guest_profiles[$index];
         $store_of_guests{$element}{INSTALL_MEDIA} = $guest_installation_media[$index];
         $store_of_guests{$element}{INSTALL_BUILD} = $guest_installation_builds[$index];
+        $store_of_guests{$element}{DO_REGISTRATION} = $guest_do_registrations[$index];
         $store_of_guests{$element}{REG_SERVER} = $guest_registration_servers[$index];
         $store_of_guests{$element}{REG_CODE} = $guest_registration_codes[$index];
         $store_of_guests{$element}{REG_EXTS_CODES} = $guest_registration_extensions_codes[$index];

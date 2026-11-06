@@ -324,6 +324,18 @@ sub set_bootscript_firstboot_config {
 sub run {
     my $self = shift;
 
+    if (get_var('VIRT_NEW_GUEST_MIGRATION_SOURCE') and get_var('PARALLEL_WITH')) {
+        set_var('MIRROR_HTTP', 'http://openqa.suse.de/assets/repo/fixed/SLES-16.0-Full-x86_64-GM.install/');
+        set_var('REPO_0_TO_INSTALL', 'fixed/SLES-16.0-Full-x86_64-GM.install');
+        set_var('REPO_99', 'fixed/SLES-16.0-Full-x86_64-GM.install');
+        set_var('INST_INSTALL_URL', 'http://openqa.suse.de/assets/repo/fixed/SLES-16.0-Full-x86_64-GM.install/install/');
+    }
+    elsif (get_var('VIRT_NEW_GUEST_MIGRATION_DESTINATION')) {
+        set_var('MIRROR_HTTP', 'http://openqa.suse.de/assets/repo/SLES-16.1-Full-x86_64-Build82.3.install');
+        set_var('REPO_0', 'SLES-16.1-Full-x86_64-Build82.3.install');
+        set_var('INST_INSTALL_URL', 'http://openqa.suse.de/assets/repo/SLES-16.1-Full-x86_64-Build82.3.install/install/');
+    }
+
     poweroff_host;
 
     # Note:

@@ -865,8 +865,6 @@ elsif (get_var("VIRT_AUTOTEST")) {
         #Before host installation starts, swtich to version REPO_0_TO_INSTALL if it is set
         #Save VERSION TO TARGET_DEVELOPING_VERSION
         set_var('TARGET_DEVELOPING_VERSION', get_var('VERSION'));
-        #Switch to VERSION_TO_INSTALL
-        set_var('VERSION', get_var('VERSION_TO_INSTALL'));
     }
     if (get_var("PROXY_MODE")) {
         loadtest "virt_autotest/proxymode_login_proxy";
