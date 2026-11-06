@@ -27,7 +27,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils qw (is_sle has_selinux);
+use version_utils qw (is_sle has_selinux is_tumbleweed);
 use serial_terminal 'select_serial_terminal';
 use scheduler 'get_test_suite_data';
 use repo_tools 'add_qa_head_repo';
@@ -91,15 +91,20 @@ sub run {
     } else {
         # set SELinux to permissive, as it is not supported by coverage tools
         assert_script_run 'setenforce 0' if has_selinux;
-        # The image's snapshot repos mixed with the download.opensuse.org ones
-        # cause file conflicts when a package split is only in one of them, and
-        # every extra repo multiplies the cost of each instrumented zypper call.
-        zypper_call('mr -d --all');
         %repositories = (
             devtools => 'http://download.opensuse.org/repositories/devel:/tools/openSUSE_Tumbleweed',
             main => 'http://download.opensuse.org/tumbleweed/repo/oss/',
             update => 'http://download.opensuse.org/update/tumbleweed/',
             debug => 'http://download.opensuse.org/debug/tumbleweed/repo/oss/');
+        if (is_tumbleweed) {
+            # The image's snapshot repos mixed with the download.opensuse.org
+            # ones cause file conflicts when a package split is only in one of
+            # them, and every extra repo multiplies the cost of each
+            # instrumented zypper call. non-oss is re-added from the same
+            # source so all repos stay at the same point in time.
+            zypper_call('mr -d --all');
+            $repositories{non_oss} = 'http://download.opensuse.org/tumbleweed/repo/non-oss/';
+        }
     }
     while (my ($name, $url) = each(%repositories)) {
         # Priority 1: some HDD images already have a same-purpose debug repo (e.g. an
