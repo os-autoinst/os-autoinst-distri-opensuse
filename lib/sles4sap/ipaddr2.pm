@@ -582,12 +582,15 @@ Return 0 on success, or the exit code of the first command that fails.
 
 =over
 
-=item B<bastion_ip> - Public IP address of the bastion. Mandatory.
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended
+                      to avoid having to query Azure to get it.
 
 =back
 =cut
 
 sub ipaddr2_bastion_sshd_override(%args) {
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
     croak("Argument < bastion_ip > missing") unless $args{bastion_ip};
 
     # No single quotes in these commands: ipaddr2_ssh_bastion_script_run wraps them in single quotes.
