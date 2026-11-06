@@ -125,9 +125,11 @@ __END
     assert_script_run("grep static /var/lib/kubelet/cpu_manager_state");
 
     # SLE 16 ships only versioned kubevirt<version>-tests packages (bsc#1252126)
+    my $kubevirt_tests_rel = get_versioned_kubevirt_release();
+    my $kubevirt_tests_pkg = $kubevirt_tests_rel ? "kubevirt-$kubevirt_tests_rel-tests" : 'kubevirt-tests';
     my $kubevirt_ver = is_sle('>=16')
       ? script_output(qq(ssh root\@$server_ip "rpm -qa --qf \%{VERSION} 'kubevirt[0-9]*.[0-9]*-tests'"))
-      : script_output(qq(ssh root\@$server_ip "rpm -q --qf \%{VERSION} kubevirt-tests"));
+      : script_output(qq(ssh root\@$server_ip "rpm -q --qf \%{VERSION} $kubevirt_tests_pkg"));
     # Install Longhorn dependencies
     if (is_transactional) {
         if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0")) {
