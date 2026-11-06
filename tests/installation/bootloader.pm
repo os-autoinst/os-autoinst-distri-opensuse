@@ -19,6 +19,7 @@
 # - Send ret or ctrl-x to boot system
 # - Compare boot parameters with parameters obtained by serial, unless it is
 # live image
+# - Don't register to scc on sle12sp3 due to bsc#1289496
 # Maintainer: QE Core <qe-core@suse.de>
 
 ## no os-autoinst style
@@ -60,7 +61,7 @@ sub run {
     push @params, bootmenu_network_source;
     push @params, bootmenu_remote_target;
     push @params, specific_bootmenu_params;
-    push @params, registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless get_var('SLP_RMT_INSTALL') || is_opensuse || (check_var('VERSION', '12-SP3') && check_var('FLAVOR', 'Server-DVD-Updates-TERADATA'));
+    push @params, registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless get_var('SLP_RMT_INSTALL') || is_opensuse || (check_var('VERSION', '12-SP3') && get_var('FLAVOR') =~ /TERADATA/);
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
     # on ppc64le boot have to be confirmed with ctrl-x or F10
     # and it doesn't have nice graphical menu with video and language options

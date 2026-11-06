@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-  % unless ($check_var->('VERSION', '12-SP3') and $check_var->('FLAVOR', 'Server-DVD-Updates-TERADATA')) {
+  % unless ($check_var->('VERSION', '12-SP3') and $get_var->('FLAVOR') =~ m/TERADATA/) {
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
     <email><%= $get_var->('SCC_EMAIL') %></email>
@@ -56,7 +56,7 @@
         <alias>12-SP3-LTSS-TERADATA-Updates</alias>
       </listentry>
       % }
-      % if ($check_var->('VERSION', '12-SP3') and $check_var->('FLAVOR', 'Server-DVD-Updates-TERADATA')) {
+      % if ($check_var->('VERSION', '12-SP3') and $get_var->('FLAVOR') =~ m/TERADATA/) {
       <listentry>
         <media_url>http://dist.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3-TERADATA/x86_64/product/</media_url>
         <name>12-SP3-TERADATA-Products</name>
