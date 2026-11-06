@@ -54,10 +54,12 @@ QE-SAP <qe-sap@suse.de>
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
+use version_utils qw( is_sle );
 use sles4sap::ipaddr2 qw(
   ipaddr2_bastion_key_accept
   ipaddr2_bastion_pubip
   ipaddr2_internal_key_accept
+  ipaddr2_bastion_sshd_override
   ipaddr2_internal_key_gen
   ipaddr2_post_fail_hook
 );
@@ -75,6 +77,12 @@ sub run {
     die "Problem getting bastion public IP" unless $bastion_ip;
     my $ret = ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
     die "Bastion key accept failed with exit code $ret" if $ret;
+
+    # Deal with ssh banner / tcp forwarding in >=16 images
+    if (is_sle('>=16.0')) {
+        $ret = ipaddr2_bastion_sshd_override(bastion_ip => $bastion_ip);
+        die "Bastion sshd override failed with exit code $ret" if $ret;
+    }
 
     my %int_key_args = (bastion_ip => $bastion_ip);
     # unsupported option "accept-new" for default ssh used in 12sp5
