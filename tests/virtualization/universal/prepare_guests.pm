@@ -183,7 +183,9 @@ sub run {
     # Note: TBD for modular libvirt. See poo#129086 for detail.
     restart_libvirtd;
     assert_script_run('for i in $(virsh list --name|grep -v Domain-0);do virsh destroy $i;done');
-    assert_script_run('for i in $(virsh list --name --inactive); do if [[ $i == win* ]]; then virsh undefine $i; else virsh undefine $i --remove-all-storage; fi; done');
+    # --nvram is required for a UEFI domain and ignored when the domain has
+    # no NVRAM, so one call covers legacy and UEFI guests (poo#209673).
+    assert_script_run('for i in $(virsh list --name --inactive); do if [[ $i == win* ]]; then virsh undefine $i --nvram; else virsh undefine $i --remove-all-storage --nvram; fi; done');
     script_run("[ -f /root/.ssh/known_hosts ] && > /root/.ssh/known_hosts");
     script_run 'rm -rf /tmp/guests_ip';
 
