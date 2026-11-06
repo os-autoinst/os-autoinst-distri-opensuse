@@ -121,6 +121,10 @@ sub logs_from_salt {
             record_soft_failure('bsc#1211591');
             $softfail_flag = 1;
         }
+        if (script_run('grep "Error during asyncio shutdown.*\'asyncio_loop\'" /var/log/salt/minion') == 0) {
+            record_soft_failure('pr#792');
+            $softfail_flag = 1;
+        }
         if (is_master_node && script_run('grep "Encountered StreamClosedException" /var/log/salt/master') == 0) {
             record_soft_failure('bsc#1213635');
             $softfail_flag = 1;
