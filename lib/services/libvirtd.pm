@@ -20,7 +20,7 @@ our %guest_params = (
     ram => '',
     memory => '512',
     vcpus => '',
-    osinfo => 'detect=on,require=off',
+    'os-type' => '',
     disk => 'none',
     network => '',
     graphics => 'vnc',
