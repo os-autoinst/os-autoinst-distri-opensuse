@@ -381,6 +381,8 @@ subtest '[ipaddr2_bastion_sshd_override]' => sub {
 };
 
 subtest '[ipaddr2_bastion_sshd_override] missing bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return; });
     throws_ok { ipaddr2_bastion_sshd_override() } qr/bastion_ip/, 'Croak if bastion IP is missing';
 };
 
@@ -394,6 +396,13 @@ subtest '[ipaddr2_bastion_sshd_override] stop at the first failure' => sub {
 
     is($ret, 3, 'Return the exit code of the failing command');
     ok((scalar @calls eq 2), "Stop after the failure: " . (scalar @calls) . ' calls');
+};
+
+subtest '[ipaddr2_bastion_sshd_override] no Azure query for the bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(script_run => sub { return 0; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { die 'ipaddr2_bastion_pubip must not be called'; });
+    is(ipaddr2_bastion_sshd_override(bastion_ip => '1.2.3.4'), 0, 'Return 0 on success');
 };
 
 subtest '[ipaddr2_ssh_bastion_script_run]' => sub {
