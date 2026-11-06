@@ -72,6 +72,9 @@ sub get_kernel_devel_flavor {
     elsif (get_var('COCO')) {
         $devel_pack = 'kernel-devel-coco';
     }
+    elsif (get_kernel_flavor eq 'kernel-nvidia64kb') {
+        $devel_pack = 'kernel-devel-nvidia';
+    }
 
     return $devel_pack;
 }
