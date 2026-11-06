@@ -784,9 +784,9 @@ sub start_gnome_settings {
 sub unlock_user_settings {
     start_gnome_settings;
     type_string "users";
-    assert_screen "settings-users-selected";
-    send_key "ret";
-    wait_still_screen(1, 2);
+    assert_and_click "settings-users-selected";
+    # make sure the system users row is selected before proceeding
+    assert_and_click "system-users-row" unless check_screen("users-settings", 5);
     assert_screen "users-settings";
     assert_and_click "Unlock-user-settings";
     assert_screen "authentication-required-user-settings";
