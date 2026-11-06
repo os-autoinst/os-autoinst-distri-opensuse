@@ -87,6 +87,8 @@
       <li><a href="#az_network_dns_zones_cleanup">az_network_dns_zones_cleanup</a></li>
       <li><a href="#az_role_definition_list">az_role_definition_list</a></li>
       <li><a href="#az_graph_query">az_graph_query</a></li>
+      <li><a href="#az_account_get_subscription_id">az_account_get_subscription_id</a></li>
+      <li><a href="#az_role_assignment_create">az_role_assignment_create</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -2035,6 +2037,43 @@ identifiers for Azure resources.</code></pre>
 
 </dd>
 <dt id="query-Additional-query-using-Jmespath-Optional"><b>query</b> Additional query using Jmespath (Optional)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_account_get_subscription_id">az_account_get_subscription_id</h2>
+
+<pre><code>my $subscription_id = az_account_get_subscription_id();</code></pre>
+
+<p>Return current Azure subscription ID.</p>
+
+<h2 id="az_role_assignment_create">az_role_assignment_create</h2>
+
+<pre><code>az_role_assignment_create(
+    assignee_object_id =&gt; $vm_id,
+    role =&gt; $role_id,
+    scope =&gt; &quot;/subscriptions/$subscription_id/resourceGroups/$resource_group&quot;,
+    assignee_principal_type =&gt; &#39;ServicePrincipal&#39;
+);</code></pre>
+
+<p>Create a role assignment using Azure CLI.</p>
+
+<dl>
+
+<dt id="assignee_object_id---Assignee-object-principal-ID"><b>assignee_object_id</b> - Assignee object/principal ID</dt>
+<dd>
+
+</dd>
+<dt id="role---Role-name-or-ID"><b>role</b> - Role name or ID</dt>
+<dd>
+
+</dd>
+<dt id="scope---Resource-scope-for-the-assignment"><b>scope</b> - Resource scope for the assignment</dt>
+<dd>
+
+</dd>
+<dt id="assignee_principal_type---Optional-principal-type-e.g.-ServicePrincipal"><b>assignee_principal_type</b> - Optional principal type (e.g. ServicePrincipal)</dt>
 <dd>
 
 </dd>
