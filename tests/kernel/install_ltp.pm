@@ -273,8 +273,8 @@ sub check_cpu_ucode {
 
 sub run {
     my $self = shift;
-    my $inst_ltp = get_var 'INSTALL_LTP';
-    my $cmd_file = get_var('LTP_COMMAND_FILE');
+    my $inst_ltp = get_var('INSTALL_LTP');
+    my $cmd_file = get_var('LTP_COMMAND_FILE', '');
     my $is_ima = $cmd_file =~ m/^ima$/i;
     my $grub_param;
 
