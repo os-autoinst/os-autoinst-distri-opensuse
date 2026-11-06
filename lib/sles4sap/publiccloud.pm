@@ -36,6 +36,8 @@ use saputils;
 
 our @EXPORT = qw(
   run_cmd
+  angi_fence_recovery
+  recover_fenced_node
   run_cmd_retry
   get_promoted_hostname
   is_hana_resource_running
@@ -410,6 +412,8 @@ sub is_hana_resource_running {
 
 =item B<ssh_keepalive> - optional: enable SSH keepalive options
 
+=item B<accept_degraded> - optional: return when the system is up but a unit failed, instead of waiting for 'running'
+
 =back
 =cut
 
@@ -445,6 +449,10 @@ sub wait_hana_node_up {
             if ($out =~ /degraded/ && $failed_service =~ /guestregister/) {
                 record_soft_failure('bsc#1238152 - Restart guestregister service');
                 $instance->ssh_script_run(cmd => 'sudo systemctl restart guestregister.service', timeout => 600, apply_graceful_timeout => 1);
+            }
+            if ($args{accept_degraded}) {
+                record_info('WAIT_FOR_SYSTEM', "System is up but degraded, failed units:\n$failed_service");
+                return;
             }
         }
         record_info('WAIT_FOR_SYSTEM', "System state: $out");
@@ -892,6 +900,62 @@ sub wait_for_sync {
         record_info('Cluster status', $self->run_cmd(cmd => $crm_mon_cmd));
         die("wait_for_sync [ERROR] Replication SYNC did not finish within defined timeout. ($timeout sec).");
     }
+}
+
+=head2 angi_fence_recovery
+    angi_fence_recovery();
+
+    True for SAPHanaSR-angi jobs on Azure or GCE with an angi variant
+    (ANGI_VARIANT not 'none'), where a failed node can get fenced: the test
+    waits on the peer for the fencing to complete and then starts the cluster
+    on the node, see C<recover_fenced_node>.
+=cut
+
+sub angi_fence_recovery {
+    return get_var('USE_SAP_HANA_SR_ANGI') && (is_azure() || is_gce()) && !check_var('ANGI_VARIANT', 'none');
+}
+
+=head2 recover_fenced_node
+    recover_fenced_node(peer => $peer_instance, [takeover => 1, rebooted => 1, timeout => 900]);
+
+    Poll the cluster from the surviving node C<peer> after a failure on
+    C<< $self->{my_instance} >>. The peer reports that node OFFLINE once its
+    fencing is complete. With C<takeover>, also wait until the peer is
+    Promoted. Then, if the node was fenced, wait for it to boot, start the
+    cluster on it and return 1; otherwise return 0. Dies on timeout.
+    With C<rebooted> (crash), the node also counts as fenced once the peer
+    reports it online again and Pacemaker is active on it.
+=cut
+
+sub recover_fenced_node {
+    my ($self, %args) = @_;
+    my $node = $self->{my_instance}{instance_id};
+    my $target = $self->{my_instance};
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 900);
+    my $start = time;
+    my $fenced = 0;
+    {
+        local $self->{my_instance} = $args{peer};
+        while (1) {
+            my $status = $self->run_cmd(cmd => $crm_mon_cmd, proceed_on_failure => 1, quiet => 1, timeout => 30);
+            $fenced ||= $status =~ /Node \Q$node\E(?: \(\d+\))?: OFFLINE/;
+            # A crashed node that rebooted and runs the cluster again (SBD, timer) was fenced before it rejoined
+            $fenced ||= $args{rebooted} && $status =~ /Node \Q$node\E(?: \(\d+\))?: online/
+              && $target->ssh_script_run(cmd => 'sudo systemctl is-active pacemaker', timeout => 30, quiet => 1) == 0;
+            my $promoted = $args{takeover} ? $self->get_promoted_hostname(proceed_on_failure => 1) // 'none' : 'none';
+            last if $args{takeover} ? $promoted eq $args{peer}{instance_id} : $fenced;
+            die("recover_fenced_node [ERROR] '$node' not recovered within $timeout s (fenced: $fenced, Promoted: $promoted):\n$status")
+              if time - $start > $timeout;
+            record_info('Wait fence', "'$node' fenced: $fenced, Promoted: $promoted, elapsed: " . (time - $start));
+            sleep 15;
+        }
+    }
+    return 0 unless $fenced;
+    record_info('Fenced', "'$node' is fenced, starting the cluster on it");
+    wait_hana_node_up($self->{my_instance}, timeout => 900, ssh_keepalive => 1, accept_degraded => 1);
+    $self->run_cmd(cmd => 'crm cluster start', timeout => 600);
+    $self->wait_for_pacemaker();
+    return 1;
 }
 
 =head2 wait_for_pacemaker
@@ -1362,6 +1426,8 @@ sub create_hana_vars_section {
     $hana_vars{sap_hana_install_instance_number} = get_required_var('INSTANCE_ID');
     $hana_vars{sap_domain} = get_var('SAP_DOMAIN', 'qesap.example.com');
     $hana_vars{use_sap_hana_sr_angi} = get_var('USE_SAP_HANA_SR_ANGI', 'false');
+    $hana_vars{angi_variant} = get_var('ANGI_VARIANT') if get_var('ANGI_VARIANT');
+    $hana_vars{qesap_cluster_start_delay} = get_var('QESAP_CLUSTER_START_DELAY') if defined get_var('QESAP_CLUSTER_START_DELAY');
     $hana_vars{sap_hana_install_update_firewall} = get_var('SLES4SAP_FIREWALL_PORTS', 'false');
     $hana_vars{firewall_cfg} = get_var('SLES4SAP_FIREWALL', 'ignore');
     my @hana_sites = get_hana_site_names();
