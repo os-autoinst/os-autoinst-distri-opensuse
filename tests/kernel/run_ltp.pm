@@ -20,9 +20,12 @@ use Utils::Backends qw(is_backend_s390x is_pvm);
 use serial_terminal;
 use Mojo::File 'path';
 use Mojo::JSON;
-use LTP::utils qw(prepare_ltp_env unmask_serial_failures);
+use LTP::utils qw(get_ltp_net_role prepare_ltp_env setup_ltp_lhost unmask_serial_failures);
 use LTP::WhiteList;
 require bmwqemu;
+
+# All run_ltp modules of the job share the package, see setup_ltp_lhost
+my $lhost_ready;
 
 # The shell reports a process killed by signal N as exit code 128 + N.
 use constant SHELL_SIGNAL_OFFSET => 128;
@@ -413,6 +416,11 @@ sub run {
     my $fin_msg = "### TEST $test->{name} COMPLETE >>> ";
     my $cmd_text = qq($test->{command}; echo "$fin_msg\$?.");
 
+    if (get_ltp_net_role() eq 'lhost' && !$lhost_ready) {
+        setup_ltp_lhost;
+        $lhost_ready = 1;
+    }
+
     my $klog_stamp = "OpenQA::run_ltp.pm: Starting $test->{name}";
     my $start_time = thetime();
 
@@ -577,5 +585,31 @@ native openQA runner, not to tests run by kirk.
 
 Reboot SUT after each test (unless last test or TCONF). It prolongs testing
 significantly, but for some tests may be necessary, e.g. ltp_ima_reboot.
+
+=head2 ROLE
+
+Set C<ROLE> to C<lhost> or C<rhost> to run LTP network tests, which use
+C<tst_net.sh>, on two hosts instead of in a network namespace. The lhost
+runs the tests from C<LTP_COMMAND_FILE>. The rhost is the remote host
+(C<RHOST>): it runs no tests and sets no C<LTP_COMMAND_FILE>. The rhost job
+must be the parallel parent of the lhost job (C<PARALLEL_WITH> in the lhost
+job).
+
+The schedule includes the C<multimachine_topology> of the hosts in
+C<test_data>, with the roles C<lhost> and C<rhost>, and the barrier
+C<LTP_NET_RHOST_READY> in C<multimachine_barriers>. See
+F<schedule/kernel/agama_ltp_net_2hosts_baremetal.yaml> and
+F<docs/KERNEL_BAREMETAL_MULTIMACHINE.md>. The first interface of a node is
+the management link: the tests use ssh to C<RHOST> on it. The second
+interface is the test link. If a node has only one interface, it is also
+the test link.
+
+C<install_ltp> prepares the rhost: it adds the LTP tools to C<PATH> for
+ssh commands and waits until the lhost job is done. Before the first test,
+C<run_ltp> copies the ssh key of the lhost to the rhost. On the lhost, the
+tests get these C<tst_net.sh> variables from the topology: C<RHOST>,
+C<LHOST_IFACES>, C<RHOST_IFACES>, C<IPV4_LHOST>, C<IPV4_RHOST>, and also
+C<IPV6_LHOST> and C<IPV6_RHOST> if both test interfaces have an C<ipv6>
+address. C<LTP_ENV> can override them.
 
 =cut

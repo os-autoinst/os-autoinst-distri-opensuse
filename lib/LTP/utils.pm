@@ -23,11 +23,16 @@ use kernel 'get_kernel_flavor';
 use serial_terminal 'select_serial_terminal';
 use kdump_utils 'configure_service';
 use package_utils;
+use lockapi 'barrier_wait';
+use mmapi qw(get_children wait_for_children);
+use Kernel::multimachine_topology qw(get_local_node get_node_by_role get_topology_network require_field);
+use Kernel::net_tests qw(set_link_up has_ipv4_addr wait_for_ipv4_addr add_ipv4_addr add_ipv6_addr get_net_prefix_len);
 
 our @EXPORT = qw(
   check_kernel_taint
   unmask_serial_failures
   export_ltp_env
+  get_ltp_net_role
   get_ltproot
   get_ltp_openposix_test_list_file
   get_ltp_version_file
@@ -35,6 +40,8 @@ our @EXPORT = qw(
   loadtest_kernel
   log_versions
   prepare_ltp_env
+  setup_ltp_lhost
+  setup_ltp_rhost
   schedule_tests
   shutdown_ltp
   want_ltp_32bit
@@ -174,8 +181,121 @@ sub prepare_ltp_env {
         assert_script_run("lsblk -la; export LTP_BIG_DEV=$block_dev");
     }
 
+    my $net_role = get_ltp_net_role();
+    setup_ltp_net_ifaces(get_local_node()) if $net_role;
+    if ($net_role eq 'lhost') {
+        my $env = get_ltp_net_env();
+        assert_script_run('export ' . join(' ', map { "$_=$env->{$_}" } sort keys %$env));
+    }
+
+    # LTP_ENV can override the tst_net.sh variables
     export_ltp_env;
     assert_script_run('cd $LTPROOT/testcases/bin');
+}
+
+# LTP network tests with two hosts (tst_net.sh): the lhost runs the tests,
+# the rhost is the remote host (RHOST). The ROLE variable selects the host,
+# the multimachine_topology in test_data defines the hosts.
+sub get_ltp_net_role {
+    my $role = get_var('ROLE', '');
+    return $role =~ /^[lr]host$/ ? $role : '';
+}
+
+# The first interface is the management link (RHOST, ssh). The second
+# interface is the test link. If the node has only one interface, it is
+# also the test link.
+sub get_ltp_net_ifaces {
+    my ($node) = @_;
+    my $ifaces = require_field($node->{interfaces}, "multimachine_topology interfaces missing for node '$node->{id}'");
+    return ($ifaces->[0], $ifaces->[1] // $ifaces->[0]);
+}
+
+# Address with the prefix length of its network, e.g. 10.0.0.2/24
+sub get_ltp_net_addr {
+    my ($iface, $ipver) = @_;
+    my $ip = $iface->{"ipv$ipver"} or return;
+    my $cidr = get_topology_network($iface->{network})->{"ipv${ipver}_cidr"} // '';
+    my $plen = get_net_prefix_len(net => $cidr);
+    return defined $plen ? "$ip/$plen" : $ip;
+}
+
+# Variables for tst_net.sh on the lhost
+sub get_ltp_net_env {
+    my ($lmgmt, $lif) = get_ltp_net_ifaces(get_node_by_role('lhost'));
+    my ($rmgmt, $rif) = get_ltp_net_ifaces(get_node_by_role('rhost'));
+    my %env = (
+        RHOST => require_field($rmgmt->{ipv4}, "multimachine_topology ipv4 missing for interface '$rmgmt->{id}' of rhost"),
+        LHOST_IFACES => $lif->{id},
+        RHOST_IFACES => $rif->{id},
+        IPV4_LHOST => require_field(get_ltp_net_addr($lif, 4), "multimachine_topology ipv4 missing for interface '$lif->{id}' of lhost"),
+        IPV4_RHOST => require_field(get_ltp_net_addr($rif, 4), "multimachine_topology ipv4 missing for interface '$rif->{id}' of rhost"),
+    );
+
+    if ($lif->{ipv6} && $rif->{ipv6}) {
+        $env{IPV6_LHOST} = get_ltp_net_addr($lif, 6);
+        $env{IPV6_RHOST} = get_ltp_net_addr($rif, 6);
+    }
+
+    return \%env;
+}
+
+# Set up the interfaces of the node. The management link gets its IPv4
+# address from the lab network (DHCP). Add the other addresses of the
+# topology if they are missing, e.g. after a reboot.
+sub setup_ltp_net_ifaces {
+    my ($node) = @_;
+    my ($mgmt) = get_ltp_net_ifaces($node);
+
+    for my $iface (@{$node->{interfaces}}) {
+        my $dev = $iface->{id};
+
+        set_link_up($dev);
+        if ($iface == $mgmt) {
+            wait_for_ipv4_addr($dev, require_field($iface->{ipv4}, "multimachine_topology ipv4 missing for interface '$dev' of node '$node->{id}'"));
+        }
+        elsif ($iface->{ipv4} && !has_ipv4_addr($dev, $iface->{ipv4})) {
+            add_ipv4_addr(ip => $iface->{ipv4}, dev => $dev,
+                plen => get_net_prefix_len(net => get_topology_network($iface->{network})->{ipv4_cidr} // ''));
+        }
+
+        if ($iface->{ipv6} && script_run("ip -6 -o addr show dev $dev | grep -q ' $iface->{ipv6}/'") != 0) {
+            add_ipv6_addr(ip => $iface->{ipv6}, dev => $dev,
+                plen => get_net_prefix_len(net => get_topology_network($iface->{network})->{ipv6_cidr} // ''));
+        }
+    }
+}
+
+# Prepare the lhost for the tests, call it once before the first test
+sub setup_ltp_lhost {
+    my $env = get_ltp_net_env();
+    my $rhost = $env->{RHOST};
+
+    barrier_wait({name => 'LTP_NET_RHOST_READY', check_dead_job => 1});
+
+    # tst_rhost_run runs commands on the rhost with ssh as root
+    assert_script_run('test -f ~/.ssh/id_rsa || ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa');
+    exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$rhost");
+    assert_script_run("ssh -o BatchMode=yes root\@$rhost command -v tst_net_iface_prefix",
+        fail_message => 'Passwordless ssh to rhost or LTP PATH on rhost does not work');
+
+    my (undef, $rif) = get_ltp_net_ifaces(get_node_by_role('rhost'));
+    script_retry("ping -i0.02 -c 3 $rif->{ipv4}", retry => 5, delay => 2);
+    script_retry("ping -6 -i0.02 -c 3 $rif->{ipv6}", retry => 5, delay => 2) if $env->{IPV6_RHOST};
+
+    record_info('tst_net.sh', join("\n", map { "$_=$env->{$_}" } sort keys %$env));
+}
+
+# Prepare the rhost and keep it running until the lhost job is done
+sub setup_ltp_rhost {
+    my $children = get_children() // die 'Cannot get the parallel children of this job';
+    die 'The rhost job must be the parallel parent of the lhost job' unless %$children;
+
+    # the commands of tst_rhost_run need the LTP tools in PATH
+    my $ltproot = get_ltproot();
+    assert_script_run("echo 'export LTPROOT=$ltproot PATH=$ltproot/testcases/bin:\$PATH' >> ~/.bashrc");
+
+    barrier_wait({name => 'LTP_NET_RHOST_READY', check_dead_job => 1});
+    wait_for_children;
 }
 
 sub parse_int {
@@ -329,7 +449,7 @@ EOF
         script_run('cat /etc/hostname');
 
         script_run('ip addr');
-        script_run('ip netns exec ltp_ns ip addr');
+        script_run('if [ -z "$RHOST" ]; then ip netns exec ltp_ns ip addr; fi');
         script_run('ip route');
         script_run('ip -6 route');
     }
