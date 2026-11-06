@@ -6,7 +6,7 @@
 # Summary: Check public cloud specific services
 # Maintainer: QE-C team <qa-c@suse.de>
 
-# Requires publiccloud/check_boottime to run first (poo#205311): waagent.service starts only after guestregister.service finishes, so a not-yet-booted instance reports it as inactive.
+# waagent.service starts only after guestregister.service finishes, so on Azure we wait for it (poo#205311).
 
 use Mojo::Base 'publiccloud::basetest';
 use serial_terminal 'select_serial_terminal';
@@ -61,6 +61,8 @@ sub run {
     unless (is_sle_micro('<=5.4')) {
         if (is_azure) {
             # waagent (Azure Linux VM Agent)
+            # guestregister.service takes up to ~60 s on PAYG and waagent starts after it (poo#205311)
+            $instance->ssh_script_retry('systemctl is-active waagent.service', retry => 9, delay => 10, die => 0);
             record_info('waagent', $instance->ssh_script_output('systemctl --no-pager --full status waagent*', proceed_on_failure => 1));
             $instance->ssh_assert_script_run('systemctl is-active waagent.service');
         }
