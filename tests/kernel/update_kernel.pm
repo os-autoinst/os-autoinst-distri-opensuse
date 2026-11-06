@@ -514,7 +514,8 @@ sub install_requirements {
           liburing2
           net-tools
         );
-    } elsif ($flavor =~ /Nvidia/) {
+    } elsif ($flavor =~ /Nvidia(?!64kb)/) {
+        # Nvidia driver flavors only, not kernel-nvidia64kb
         return if get_var('NVIDIA_FIRST_RELEASE');
         @requirements = nvidia_utils::get_nvidia_driver(variant => 'cuda');
     } elsif ($flavor =~ /Base/) {
