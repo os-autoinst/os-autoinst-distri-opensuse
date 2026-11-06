@@ -91,6 +91,10 @@ sub run {
     } else {
         # set SELinux to permissive, as it is not supported by coverage tools
         assert_script_run 'setenforce 0' if has_selinux;
+        # The image's snapshot repos mixed with the download.opensuse.org ones
+        # cause file conflicts when a package split is only in one of them, and
+        # every extra repo multiplies the cost of each instrumented zypper call.
+        zypper_call('mr -d --all');
         %repositories = (
             devtools => 'http://download.opensuse.org/repositories/devel:/tools/openSUSE_Tumbleweed',
             main => 'http://download.opensuse.org/tumbleweed/repo/oss/',
