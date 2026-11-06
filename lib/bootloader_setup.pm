@@ -562,7 +562,13 @@ sub uefi_bootmenu_params {
 
         # navigate to the beginning of the line containing *linux* command
         wait_screen_change(sub { send_key "home"; }, 5);
-        $linux += is_sle('=12-SP5') ? 2 : 6;
+        if (is_tumbleweed()) {
+            $linux += 4;
+        } elsif (is_sle('=12-SP5')) {
+            $linux += 2;
+        } else {
+            $linux += 6;
+        }
         # On Leap/SLE we need to move down (grub 2.04)
         # skip additional movement downwards in
         # sle15sp4+, leap15.4+ and TW (grub 2.06)
