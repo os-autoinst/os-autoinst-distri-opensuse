@@ -20,6 +20,14 @@ use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';
 use version_utils qw(is_jeos is_sle);
 
+# funkoverage gives every shimmed binary exactly these file capabilities
+sub only_funkoverage_caps {
+    my ($getcap) = @_;
+    my (undef, @clauses) = split ' ', $getcap;
+    my @caps = map { split /,/, (split /[=+-]/)[0] } @clauses;
+    return @caps && !grep { !/^cap_(bpf|perfmon|dac_read_search|sys_resource)$/ } @caps;
+}
+
 sub run {
     my ($self) = @_;
     my ($ping_group_range, $capability, $cmd, $rc);
@@ -121,7 +129,11 @@ sub run {
         my $msg = "capability '$capability' is not needed when ICMP socket allowed for non-root user: '$ping_group_range'";
         if (is_sle('=15-SP3')) {
             record_info('Unneeded capability', "bsc#1196840#c29: $msg", result => 'softfail');
-        } else {
+        }
+        elsif (get_var('BINARY_COVERAGE') && only_funkoverage_caps($capability)) {
+            record_info('Unneeded capability', "$msg (funkoverage capabilities)");
+        }
+        else {
             record_info('Unneeded capability', $msg, result => 'fail');
             $self->result("fail");
         }
