@@ -10,10 +10,12 @@ use virt_autotest::common;
 use testapi;
 use utils;
 use version_utils;
+use mm_network qw(configure_dhcp);
 
 sub run {
     my ($self) = @_;
     select_console("root-console");
+    configure_dhcp();
     script_run("SUSEConnect -r " . get_var('SCC_REGCODE'), timeout => 420);
     assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
     assert_script_run "rm /etc/zypp/repos.d/TEST* || true";
