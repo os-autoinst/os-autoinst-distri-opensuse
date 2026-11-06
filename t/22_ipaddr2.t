@@ -361,6 +361,41 @@ subtest '[ipaddr2_bastion_key_accept] ssh timeout' => sub {
     like($calls[0], qr/^timeout -k 5 \d+ ssh/, 'accept-new ssh is wrapped in timeout');
 };
 
+subtest '[ipaddr2_bastion_sshd_override]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+
+    my $ret = ipaddr2_bastion_sshd_override(bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 0, 'Return 0 on success');
+    ok((scalar @calls eq 5), "Exactly 5 calls and get " . (scalar @calls));
+    ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
+    ok((any { /cp \/usr\/etc\/ssh\/sshd_config/ } @calls), 'sshd_config seeded from /usr/etc');
+    ok((any { /1i Banner none/ } @calls), 'Banner none prepended');
+    ok((any { /1i AllowTcpForwarding yes/ } @calls), 'AllowTcpForwarding yes prepended');
+    like($calls[3], qr/sshd -t/, 'sshd config tested before the reload');
+    like($calls[4], qr/systemctl reload sshd/, 'sshd reloaded last');
+    ok((none { /sshd_config'.*'/ } @calls), 'No single quotes inside the remote command');
+};
+
+subtest '[ipaddr2_bastion_sshd_override] missing bastion IP' => sub {
+    throws_ok { ipaddr2_bastion_sshd_override() } qr/bastion_ip/, 'Croak if bastion IP is missing';
+};
+
+subtest '[ipaddr2_bastion_sshd_override] stop at the first failure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return (scalar @calls == 2) ? 3 : 0; });
+
+    my $ret = ipaddr2_bastion_sshd_override(bastion_ip => '1.2.3.4');
+
+    is($ret, 3, 'Return the exit code of the failing command');
+    ok((scalar @calls eq 2), "Stop after the failure: " . (scalar @calls) . ' calls');
+};
+
 subtest '[ipaddr2_ssh_bastion_script_run]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my ($cmd, %sr_args);
