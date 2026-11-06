@@ -186,4 +186,36 @@ subtest find_whitelist_entry_nested => sub {
         'a single-key lookup landing on a nested group (not an array) is not mistaken for issues');
 };
 
+subtest retry_entries => sub {
+    my $tmpfile = tempfile;
+    set_var('LTP_KNOWN_ISSUES_LOCAL' => "$tmpfile");
+
+    my $known_issues_json = {
+        suite => {
+            flaky => [
+                {retval => '^1$', log => 'EBUSY \(16\)', retry => 3, message => 'flaky'},
+            ],
+            known_first => [
+                {message => 'known entry'},
+                {retry => 2, message => 'retry entry'},
+            ],
+        },
+    };
+
+    $tmpfile->spew(Mojo::JSON::encode_json($known_issues_json));
+
+    my $env = {retval => 1, log => "TBROK: unlinkat(test-21): EBUSY (16)\n"};
+    my $whitelist = LTP::WhiteList->new();
+
+    is($whitelist->find_retry_entry($env, 'suite', 'flaky')->{retry}, 3, 'find_retry_entry returns the retry entry');
+    is($whitelist->find_retry_entry({%$env, retval => 2}, 'suite', 'flaky'), undef, 'find_retry_entry checks retval');
+    is($whitelist->find_retry_entry({%$env, log => "ENOSPC (28)\n"}, 'suite', 'flaky'), undef, 'find_retry_entry checks the log');
+    is($whitelist->find_retry_entry($env, 'suite', 'known_first')->{message}, 'retry entry', 'find_retry_entry skips an entry without retry');
+    is($whitelist->find_whitelist_entry($env, 'suite', 'flaky'), undef, 'find_whitelist_entry skips a retry entry');
+
+    for my $lookup (qw(find_retry_entry find_whitelist_entry)) {
+        is($whitelist->$lookup($env, 'no_suite', 'flaky'), undef, "$lookup finds nothing for an unknown suite");
+    }
+};
+
 done_testing;
