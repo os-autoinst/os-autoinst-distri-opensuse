@@ -22,6 +22,7 @@ use bootloader_setup qw(change_grub_config);
 our @EXPORT = qw(
   set_grub_timeout
   install_cni_plugins
+  get_versioned_kubevirt_release
 );
 
 sub set_grub_timeout {
@@ -32,6 +33,16 @@ sub set_grub_timeout {
         record_info('GRUB', script_output('cat /etc/default/grub'));
         assert_script_run('transactional-update grub.cfg');
     }
+}
+
+sub get_versioned_kubevirt_release {
+    # The versioned kubevirt RPM names (kubevirt-<release>-*) do not Provide the
+    # legacy unversioned names; KUBEVIRT_VERSIONED_PKGS selects them and is
+    # assigned on SLE 15-SP7 unless the job set it, with the release auto-detected from BUILD
+    set_var('KUBEVIRT_VERSIONED_PKGS', 1) if (get_var('VERSION') eq '15-SP7' && !defined(get_var('KUBEVIRT_VERSIONED_PKGS')));
+    return undef unless get_var('KUBEVIRT_VERSIONED_PKGS');
+    my ($release) = (get_var('BUILD') // '') =~ /kubevirt-(1\.\d+)/;
+    return $release;
 }
 
 sub install_cni_plugins {
