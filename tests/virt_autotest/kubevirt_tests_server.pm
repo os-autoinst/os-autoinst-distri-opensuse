@@ -203,7 +203,19 @@ sub install_kubevirt_packages {
     my $virt_tests_repo;
     my $virt_manifests_pkgs = 'containerized-data-importer-manifests kubevirt-manifests kubevirt-virtctl';
     my $virt_tests_pkg = 'kubevirt-tests';
+    my $kubevirt_manifests_pkg = 'kubevirt-manifests';
+    our $kubevirt_share_prefix = '/usr/share/kube-virt';
     my $search_manifests;
+
+    # SLE 15-SP7 takes the versioned kubevirt RPM names, which do
+    # not Provide the legacy unversioned names, so those cannot select the incident builds
+    my $kubevirt_rel = get_versioned_kubevirt_release();
+    if ($kubevirt_rel) {
+        $virt_manifests_pkgs = "containerized-data-importer-manifests kubevirt-$kubevirt_rel-manifests kubevirt-$kubevirt_rel-virtctl";
+        $virt_tests_pkg = "kubevirt-$kubevirt_rel-tests";
+        $kubevirt_manifests_pkg = "kubevirt-$kubevirt_rel-manifests";
+        $kubevirt_share_prefix = "/usr/share/kube-virt-$kubevirt_rel";
+    }
 
     record_info('Install kubevirt packages', '');
     # Development Tools repo for OBS Module, e.g. http://download.suse.de/download/ibs/SUSE/Products/SLE-Module-Development-Tools-OBS/15-SP4/x86_64/product/
@@ -230,7 +242,7 @@ sub install_kubevirt_packages {
         my $dst_repo = "registry.suse.de/suse/maintenance/$incident_id/containerfile";
         my $manifest;
         if (get_var('BUILD') =~ /kubevirt/) {
-            $manifest = "/usr/share/kube-virt/manifests/release/kubevirt-operator.yaml";
+            $manifest = "$kubevirt_share_prefix/manifests/release/kubevirt-operator.yaml";
             record_info("Patch kubevirt-operator to suse.de");
         } elsif (get_var('BUILD') =~ /cdi-cloner-container/) {
             $manifest = "/usr/share/cdi/manifests/release/cdi-operator.yaml";
@@ -264,7 +276,7 @@ sub install_kubevirt_packages {
     }
 
     # Install Longhorn dependencies
-    our $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} kubevirt-manifests");
+    our $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} $kubevirt_manifests_pkg");
     record_info('Kubevirt test version', $kubevirt_ver);
     zypper_call('in jq open-iscsi') if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0"));
 
@@ -303,6 +315,7 @@ sub install_kubevirt_packages {
 sub deploy_kubevirt_manifests {
     my $self = shift;
     our $kubevirt_ver;
+    our $kubevirt_share_prefix;
 
     # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
     assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt') if (is_transactional);
@@ -312,6 +325,7 @@ sub deploy_kubevirt_manifests {
     my $tag1 = "registry:5000/kubevirt/alpine-ext-kernel-boot-demo:devel";
     assert_script_run("curl -JLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/c41969bca710335f7966b1588abca9958a33ff24/pre-pull.sh");
 
+    assert_script_run("sed -i 's|^KUBEVIRT_OPERATOR=.*|KUBEVIRT_OPERATOR=$kubevirt_share_prefix/manifests/release/kubevirt-operator.yaml|' pre-pull.sh");
     my $pre_pull = script_output('sh pre-pull.sh');
     assert_script_run("curl -JLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/c41969bca710335f7966b1588abca9958a33ff24/node-helper.yaml.in");
     assert_script_run("sed -e 's#__IMAGE1__#$image1#g' -e 's#__TAG1__#$tag1#g' -e 's#__PRE_PULL__#$pre_pull#g' node-helper.yaml.in | kubectl apply -f -");
@@ -327,13 +341,13 @@ sub deploy_kubevirt_manifests {
     assert_script_run("kubectl apply -f /usr/share/cdi/manifests/release/cdi-cr.yaml");
     assert_script_run("kubectl -n cdi wait cdis cdi --for condition=available --timeout=30m", timeout => 1800);
 
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-operator.yaml");
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-cr.yaml");
+    assert_script_run("kubectl apply -f $kubevirt_share_prefix/manifests/release/kubevirt-operator.yaml");
+    assert_script_run("kubectl apply -f $kubevirt_share_prefix/manifests/release/kubevirt-cr.yaml");
     assert_script_run("kubectl -n kubevirt wait kv kubevirt --for condition=available --timeout=30m", timeout => 1800);
 
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/rbac-for-testing.yaml");
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/disks-images-provider.yaml");
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/uploadproxy-nodeport.yaml");
+    assert_script_run("kubectl apply -f $kubevirt_share_prefix/manifests/testing/rbac-for-testing.yaml");
+    assert_script_run("kubectl apply -f $kubevirt_share_prefix/manifests/testing/disks-images-provider.yaml");
+    assert_script_run("kubectl apply -f $kubevirt_share_prefix/manifests/testing/uploadproxy-nodeport.yaml");
 
     if ($kubevirt_ver lt "0.50.0") {
         my $hostname = script_output('hostname');
@@ -482,7 +496,7 @@ sub run_virt_tests {
     record_info('Run kubevirt tests', $kubevirt_ver);
 
     # Create a valid config for the test suite
-    # Default testing config path: /usr/share/kube-virt/manifests/testing/default-config.json
+    # Default testing config path: /usr/share/kube-virt[-<rel>]/manifests/testing/default-config.json
     if ($kubevirt_ver lt "0.50.0") {
         $test_suite_conf = '/tmp/local-config.json';
         assert_script_run(qq(cat > $test_suite_conf <<EOF
