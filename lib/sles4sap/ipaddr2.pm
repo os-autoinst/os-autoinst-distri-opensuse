@@ -50,7 +50,7 @@ our @EXPORT = qw(
   ipaddr2_bastion_key_accept
   ipaddr2_bastion_pubip
   ipaddr2_bastion_ssh_addr
-  ipaddr2_bastion_sshd_override
+  ipaddr2_sshd_override
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
   ipaddr2_scc_check
@@ -568,15 +568,17 @@ sub ipaddr2_bastion_key_accept(%args) {
     return 0;
 }
 
-=head2 ipaddr2_bastion_sshd_override
+=head2 ipaddr2_sshd_override
 
-    my $ret = ipaddr2_bastion_sshd_override(bastion_ip => '1.2.3.4');
+    my $ret = ipaddr2_sshd_override(bastion_ip => '1.2.3.4');          # bastion
+    my $ret = ipaddr2_sshd_override(bastion_ip => '1.2.3.4', id => 2); # internal VM 2
 
-Put "Banner none" and "AllowTcpForwarding yes" on the first lines of the bastion sshd_config.
-The hardened sshd profile of SLE 16 images disables TCP forwarding, which ssh -J to the
-internal VMs needs, and shows a banner on every login. sshd keeps the first value it reads,
-so the overrides go on the first lines of sshd_config, seeded from the vendor file in
-/usr/etc when the image has none. Same override as in
+Put "Banner none" and "AllowTcpForwarding yes" on the first lines of the sshd_config of
+one VM of the deployment. The hardened sshd profile of SLE 16 images disables TCP
+forwarding, which ssh -J through the bastion and crm cluster init/join between the nodes
+need, and shows a banner on every login. sshd keeps the first value it reads, so the
+overrides go on the first lines of sshd_config, seeded from the vendor file in /usr/etc
+when the image has none. Same override as in
 tests/sles4sap/publiccloud/qesap_instances_preparation.pm.
 Return 0 on success, or the exit code of the first command that fails.
 
@@ -586,14 +588,17 @@ Return 0 on success, or the exit code of the first command that fails.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<id> - ID of the internal VM to configure. Without it the bastion is configured.
+
 =back
 =cut
 
-sub ipaddr2_bastion_sshd_override(%args) {
+sub ipaddr2_sshd_override(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     croak("Argument < bastion_ip > missing") unless $args{bastion_ip};
+    my $target = $args{id} ? "internal VM $args{id}" : 'bastion';
 
-    # No single quotes in these commands: ipaddr2_ssh_bastion_script_run wraps them in single quotes.
+    # No single quotes in these commands: the ipaddr2 ssh helpers wrap them in single quotes.
     my $sshd_config = '/etc/ssh/sshd_config';
     foreach my $cmd (
         "sudo test -f $sshd_config || sudo cp /usr/etc/ssh/sshd_config $sshd_config",
@@ -601,10 +606,12 @@ sub ipaddr2_bastion_sshd_override(%args) {
         "sudo sed -i \"1i AllowTcpForwarding yes\" $sshd_config",
         'sudo sshd -t',
         'sudo systemctl reload sshd') {
-        my $ret = ipaddr2_ssh_bastion_script_run(cmd => $cmd, bastion_ip => $args{bastion_ip});
-        if ($ret) {
-            record_info('sshd override', "Command failed with exit code $ret: $cmd", result => 'fail');
-            return $ret;
+        my $ret = $args{id}
+          ? ipaddr2_ssh_internal(id => $args{id}, cmd => $cmd, bastion_ip => $args{bastion_ip}, no_assert => 1)
+          : ipaddr2_ssh_bastion_script_run(cmd => $cmd, bastion_ip => $args{bastion_ip});
+        if (!defined $ret || $ret) {
+            record_info('sshd override', "$target: command failed with exit code " . ($ret // 'undef') . ": $cmd", result => 'fail');
+            return $ret // 1;
         }
     }
     return 0;
