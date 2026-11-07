@@ -61,6 +61,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_bastion_wait_ssh
   ipaddr2_internal_key_accept
   ipaddr2_bastion_sshd_override
+  ipaddr2_internal_sshd_override
   ipaddr2_internal_key_gen
   ipaddr2_post_fail_hook
 );
@@ -80,7 +81,7 @@ sub run {
     my $ret = ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
     die "Bastion key accept failed with exit code $ret" if $ret;
 
-    # Deal with ssh banner / tcp forwarding in >=16 images
+    # Deal with ssh banner / tcp forwarding in >=16 images: the bastion first, as ssh -J needs it
     if (is_sle('>=16.0')) {
         $ret = ipaddr2_bastion_sshd_override(bastion_ip => $bastion_ip);
         die "Bastion sshd override failed with exit code $ret" if $ret;
@@ -91,6 +92,12 @@ sub run {
     $int_key_args{key_checking} = 'no' if (check_var('IPADDR2_KEYCHECK_OLD', '1'));
     $ret = ipaddr2_internal_key_accept(%int_key_args);
     die "Internal key accept failed with exit code $ret" if $ret;
+
+    # Same on the internal VMs, reachable now through the bastion: crm init/join ssh between them
+    if (is_sle('>=16.0')) {
+        $ret = ipaddr2_internal_sshd_override(bastion_ip => $bastion_ip);
+        die "Internal VMs sshd override failed with exit code $ret" if $ret;
+    }
 
     # default for ipaddr2_internal_key_gen is cloudadmin
     $int_key_args{user} = 'root' unless check_var('IPADDR2_ROOTLESS', '1');
