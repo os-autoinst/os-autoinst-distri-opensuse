@@ -168,6 +168,7 @@ sub ssh_script_output {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
     my $ssh_cmd = $self->_prepare_ssh_cmd(%args);
+    $self->_wrap_timeout(\%args, \$ssh_cmd) if $args{apply_graceful_timeout};
     delete($args{cmd});
     delete($args{ssh_opts});
     delete($args{username});
