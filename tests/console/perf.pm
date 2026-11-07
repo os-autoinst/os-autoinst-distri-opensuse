@@ -94,6 +94,14 @@ sub run {
     assert_script_run('timeout 5 perf --no-pager list');
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    # The module is non-fatal, do not leave the probe to later modules
+    select_serial_terminal;
+    script_run('DEBUGINFOD_URLS= timeout 30 perf probe -d tcp_sendmsg');
+}
+
 sub test_flags {
     return {fatal => 0, no_rollback => 1};
 }
