@@ -33,6 +33,8 @@ reboot if diff between the current FS and the new snapshot.
 C<trup_apply> parameter will apply pending changes from the new snapshot
 without rebooting, using C<transactional-update apply>.
 C<trup_reboot> and C<trup_apply> are mutually exclusive.
+C<allow_vendor_change> parameter will add C<--allow-vendor-change> to the
+zypper call.
 
 B<Warning>: Only use C<trup_apply> for end user applications and server services.
 Do not use it for kernel packages or system libraries that require a reboot,
@@ -61,7 +63,8 @@ sub install_package {
         record_info('install_package', $args{skip_zypper}) if ($args{skip_zypper} // '') =~ /\w+/;
         return if $args{skip_zypper};
         $packages .= ' ' . ($args{zypper_extra} // '');
-        $ret = zypper_call('in -l ' . $packages, timeout => $args{timeout});
+        my $opts = $args{allow_vendor_change} ? '--allow-vendor-change ' : '';
+        $ret = zypper_call('in -l ' . $opts . $packages, timeout => $args{timeout});
     }
     return $ret;
 }

@@ -27,7 +27,7 @@ sub run {
         add_suseconnect_product(get_addon_fullname('phub'));    # For clang
         zypper_call("--gpg-auto-import-keys ref");
     }
-    install_package('clang bpftool libbpf-devel', trup_apply => 1);
+    install_package('clang bpftool libbpf-devel', trup_apply => 1, allow_vendor_change => 1);
 
     # Build the BPF program
     assert_script_run('curl -sO ' . data_url('kernel/trace_output.bpf.c'));
