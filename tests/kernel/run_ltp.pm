@@ -289,6 +289,7 @@ sub write_extra_test_result {
     my ($self, $details) = @_;
     my $dir = bmwqemu::result_dir();
     my $filename = $details->{test_fqn} =~ s/:/_/gr;
+    $filename .= '_retry' . ($self->{ltp_attempt} - 1) if ($self->{ltp_attempt} // 1) > 1;
     my $result = 'failed';
     $result = 'passed' if ($details->{test}->{result} eq 'PASS');
     $result = 'skipped' if ($details->{test}->{result} eq 'CONF');
@@ -394,9 +395,8 @@ sub pre_run_hook {
     $self->SUPER::pre_run_hook;
 }
 
-sub run {
+sub run_attempt {
     my ($self, $tinfo) = @_;
-    die 'Need LTP_COMMAND_FILE to know which tests to run' unless $tinfo && $tinfo->runfile;
     my $runfile = $tinfo->runfile;
     my $timeout = get_var('LTP_TIMEOUT') || 900;
     my $is_posix = $runfile =~ m/^\s*openposix\s*$/i;
@@ -449,6 +449,7 @@ sub run {
         enter_cmd("($cmd_text) 2>\&1 | tee /dev/$serialdev");
     }
     my $test_log = wait_serial(qr/$fin_msg\d+\./, $timeout, 0, record_output => 1);
+    $env{log} = $test_log;
     my ($timed_out, $result_export) = $self->record_ltp_result($runfile, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);
     $self->{timed_out} = $timed_out;
 
@@ -468,9 +469,46 @@ sub run {
 
     upload_logs($strace_log) if (check_var_array('LTP_DEBUG', 'strace'));
     script_run('vmstat -w');
+    return $result_export;
+}
+
+sub run {
+    my ($self, $tinfo) = @_;
+    die 'Need LTP_COMMAND_FILE to know which tests to run' unless $tinfo && $tinfo->runfile;
+
+    my $runfile = $tinfo->runfile;
+    my $test = $tinfo->test;
+    my $result_before = $self->{result};
+    my $attempt = 1;
+    my ($result_export, $entry);
+
+    while (1) {
+        $self->{ltp_attempt} = $attempt;
+        $result_export = $self->run_attempt($tinfo);
+        last unless ($self->{result} // '') eq 'fail';
+
+        $entry = LTP::WhiteList->new()->find_retry_entry($self->{ltp_env}, $runfile, $test->{name});
+        last unless $entry && $attempt <= $entry->{retry};
+
+        record_info("Retry $attempt/$entry->{retry}", join("\n", "LTP:$runfile:$test->{name} failed, run it again", $entry->{message} // ()));
+        $self->{result} = $result_before;
+        $attempt++;
+    }
+
+    if ($attempt > 1) {
+        if ($result_export->{status} eq 'pass') {
+            my $msg = "LTP:$runfile:$test->{name} did not pass in first go: it passed on run $attempt, after " . ($attempt - 1) . " failed run(s)";
+            $self->record_soft_failure_result(join("\n", $msg, $entry->{message} // ()));
+        }
+        else {
+            # Only a clean pass makes up for a failure, TCONF does not.
+            $self->{result} = 'fail';
+        }
+    }
 
     # reboot unless TCONF or last test
-    $self->do_reboot if (get_var('LTP_REBOOT_AFTER_TEST') && !$test->{last} && $env{retval} != 32);
+    # ltp_env is the %env of the run which just ended. Its retval is the exit code of the test.
+    $self->do_reboot if (get_var('LTP_REBOOT_AFTER_TEST') && !$test->{last} && $self->{ltp_env}->{retval} != 32);
 }
 
 # Only propogate death don't create it from failure [2]
@@ -512,6 +550,14 @@ executed by the shell.
 The output of each test case is parsed for lines containing CONF and FAIL.
 If these terms are found in the output then a neutral or fail result will be
 reported, otherwise a pass.
+
+A failed test case is run again, if its entry in the LTP_KNOWN_ISSUES file has
+C<retry: N>, where N is the number of extra runs. To retry only a known failure,
+the entry should have C<retval> (regex for the exit code, for example C<^1$>)
+and C<log> (regex for the output). If a run passes, the module is a soft failure
+and the failed runs stay visible as steps. If all runs fail, the module fails.
+Kernel errors on the serial console are checked once, after the last run, so a
+kernel error from a failed run still fails the module.
 
 [2] This overrides the default basetest class behaviour because the LTP tests
     are able to continue after most failures (without reverting to a
