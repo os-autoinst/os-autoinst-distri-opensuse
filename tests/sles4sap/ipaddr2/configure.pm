@@ -58,6 +58,7 @@ use version_utils qw( is_sle );
 use sles4sap::ipaddr2 qw(
   ipaddr2_bastion_key_accept
   ipaddr2_bastion_pubip
+  ipaddr2_bastion_wait_ssh
   ipaddr2_internal_key_accept
   ipaddr2_bastion_sshd_override
   ipaddr2_internal_key_gen
@@ -75,6 +76,7 @@ sub run {
     record_info("TEST STAGE", "Prepare all the ssh connections within the 2 internal VMs");
     my $bastion_ip = ipaddr2_bastion_pubip();
     die "Problem getting bastion public IP" unless $bastion_ip;
+    ipaddr2_bastion_wait_ssh(bastion_ip => $bastion_ip);
     my $ret = ipaddr2_bastion_key_accept(bastion_ip => $bastion_ip);
     die "Bastion key accept failed with exit code $ret" if $ret;
 
