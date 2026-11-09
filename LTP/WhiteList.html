@@ -15,6 +15,7 @@
   <li>
     <ul>
       <li><a href="#find_whitelist_entry">find_whitelist_entry</a></li>
+      <li><a href="#find_retry_entry">find_retry_entry</a></li>
     </ul>
   </li>
 </ul><h1>lib/LTP/WhiteList.pm</h1>
@@ -24,6 +25,12 @@
 <pre><code>find_whitelist_entry($env, @test_keys);</code></pre>
 
 <p>Walk the whitelist hash following <code>@test_keys</code>, from the least to the most specific (for example: collection, parent test, subtest). All but the last key must match exactly; the last key (the leaf) is then looked up directly, or, failing that, matched against a <code>&#39;*&#39;</code> entry&#39;s <code>test</code> regex at whichever level the walk stopped. This allows a whitelist file to nest entries to an arbitrary depth, with the <code>&#39;*&#39;</code> wildcard always scoped to the most specific level reached.</p>
+
+<h2 id="find_retry_entry">find_retry_entry</h2>
+
+<pre><code>find_retry_entry($env, @test_keys);</code></pre>
+
+<p>Same lookup as <code>find_whitelist_entry</code>, but return the first matching entry which has a <code>retry</code> key. <code>retry</code> is the number of extra runs for a failed test.</p>
 
 
 </body>
