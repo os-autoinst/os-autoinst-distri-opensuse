@@ -283,34 +283,67 @@ sub run {
 }
 
 # Collect logs when host is in emergency/maintenance mode and ssh is unavailable.
-# Login on SOL console, show basic diagnostics on screen, then try to start sshd
-# to upload complete logs. Returns 1 if ssh is available afterwards, otherwise 0.
+# Log in as root on the SOL console and show diagnostics on screen so that they are
+# recorded in screenshots and the video even when the worker has no route to the
+# SUT at all, then try to start sshd to additionally upload complete logs.
+# Returns 1 if ssh is available afterwards, otherwise 0.
 sub collect_emergency_mode_logs {
     my $sut_ip = get_required_var('SUT_IP');
 
     reset_consoles;
     select_console 'sol', await_console => 0;
-    send_key 'ret';
-    unless (check_screen('emergency-mode', 30)) {
-        record_info('No ssh access', "Port 22 is not open on $sut_ip and emergency mode is not detected on SOL console", result => 'fail');
-        return 0;
+    save_screenshot;
+    # Check the screen before pressing 'ret': on the maintenance prompt another
+    # empty 'ret' is just one more failed login attempt
+    unless (check_screen('emergency-mode', 5)) {
+        send_key 'ret';
+        check_screen('emergency-mode', 15);
     }
-    record_info('Emergency mode', "Host $sut_ip is in emergency/maintenance mode", result => 'fail');
+    if (match_has_tag('emergency-mode')) {
+        record_info('Emergency mode', "Host $sut_ip is in emergency/maintenance mode", result => 'fail');
+    } else {
+        record_info('No emergency mode match', "Port 22 is not open on $sut_ip and the emergency mode screen was not matched "
+              . 'on the SOL console, attempting to collect logs anyway', result => 'fail');
+    }
+
+    # Log in as root on the maintenance prompt
     type_password;
     send_key 'ret';
     wait_still_screen(3);
-    # Keep diagnostics in screenshots in case sshd can not be started
-    enter_cmd('clear; systemctl --failed --no-pager');
+    if (check_screen('emergency-mode', 10)) {
+        # The maintenance prompt is still shown, so the root login did not succeed
+        record_info('Root login failed', 'Maintenance prompt still shown after entering the root password, retrying once', result => 'fail');
+        type_password;
+        send_key 'ret';
+        wait_still_screen(3);
+        return 0 if (check_screen('emergency-mode', 10));
+    }
+
+    # Show diagnostics on the SOL console; they stay available in screenshots and
+    # the video even if sshd can not be started below
+    enter_cmd('clear; systemctl --failed --no-pager; echo; echo "===== /proc/cmdline ====="; cat /proc/cmdline');
     wait_still_screen(3);
     save_screenshot;
     enter_cmd('clear; journalctl -b -p err --no-pager | tail -n 40');
     wait_still_screen(3);
     save_screenshot;
+    # Capture 'systemctl status' for every failed unit (e.g. boot-efi.mount) together
+    # with its journal. Clear the screen before each unit so that one screenshot per
+    # unit shows a full status output.
+    enter_cmd('for u in $(systemctl list-units --failed --no-legend --plain | awk \'{print $1}\'); do '
+          . 'clear; echo "===== systemctl status $u ====="; systemctl status "$u" --no-pager; echo; '
+          . 'echo "===== journalctl -u $u ====="; journalctl -b -u "$u" --no-pager | tail -n 25; echo; sleep 15; done');
+    for (1 .. 12) {
+        save_screenshot;
+        sleep 15;
+    }
+
     enter_cmd('systemctl start sshd.service');
     return 0 unless (check_port_state($sut_ip, 22, 6, 10));
 
     # /run is tmpfs and writable even if root filesystem is mounted read-only
     my $log_dir = '/run/emergency_mode_logs';
+    reset_consoles;
     select_console 'log-console';
     script_run("mkdir -p $log_dir");
     script_run("journalctl -b --no-pager -o short-precise > $log_dir/journal.log");
@@ -318,7 +351,10 @@ sub collect_emergency_mode_logs {
     script_run("cat /proc/cmdline > $log_dir/cmdline.log");
     script_run("cp /etc/fstab $log_dir/fstab");
     script_run("(lsblk -f; echo; blkid; echo; findmnt) > $log_dir/storage.log 2>&1");
-    script_run("cp /run/initramfs/rdsosreport.txt $log_dir/");
+    # rdsosreport.txt only exists in dracut's initramfs emergency shell, not in
+    # systemd emergency mode after switch-root
+    script_run("test -f /run/initramfs/rdsosreport.txt && cp /run/initramfs/rdsosreport.txt $log_dir/ "
+          . "|| echo 'no rdsosreport.txt (systemd emergency mode, not dracut)'");
     script_run("tar czf /run/emergency_mode_logs.tar.gz -C /run emergency_mode_logs");
     upload_logs('/run/emergency_mode_logs.tar.gz', failok => 1);
     return 1;
@@ -326,11 +362,15 @@ sub collect_emergency_mode_logs {
 
 sub post_fail_hook {
     my ($self) = @_;
-    # All further log collection relies on ssh consoles, skip it if ssh can not be recovered
-    if (is_ipmi && !check_port_state(get_required_var('SUT_IP'), 22, 3, 10)) {
-        return unless (collect_emergency_mode_logs);
+    my $ssh_available = 1;
+    if (is_ipmi) {
+        $ssh_available = check_port_state(get_required_var('SUT_IP'), 22, 3, 10);
+        collect_emergency_mode_logs unless ($ssh_available);
+        # sshd may have been started on the SOL console, check the port again
+        $ssh_available = check_port_state(get_required_var('SUT_IP'), 22, 3, 10);
     }
-    if (check_var('PERF_KERNEL', '1') || check_var('VIRT_AUTOTEST', '1')) {
+    # All further log collection relies on ssh consoles, skip it if ssh can not be recovered
+    if ($ssh_available && (check_var('PERF_KERNEL', '1') || check_var('VIRT_AUTOTEST', '1'))) {
         select_console 'log-console';
         # show efi boot entry
         if (check_var('IPXE_UEFI', '1') or check_var('UEFI', '1')) {
