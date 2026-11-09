@@ -41,6 +41,11 @@ to collect boot logs.
 
 Enable trusted launch for the VMs.
 
+=item B<IPADDR2_VM_SIZE>
+
+Azure VM size for all three VMs: the two cluster nodes and the bastion.
+A default is used if not provided.
+
 =item B<PUBLIC_CLOUD_PROVIDER>
 
 Specifies the public cloud provider for deployment. Currently, only AZURE is supported.
@@ -122,6 +127,7 @@ sub run {
     $cloudinit_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');
     my %deployment = (
         os => $os,
+        vm_size => get_var('IPADDR2_VM_SIZE', 'Standard_D2s_v5'),
         diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0));
 
     $deployment{region} = $provider->provider_client->region;

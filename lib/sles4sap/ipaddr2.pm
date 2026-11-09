@@ -223,6 +223,9 @@ Create a deployment in Azure designed for this specific test.
 
 =item B<os> - existing Load balancer NAME
 
+=item B<vm_size> - Azure size for all three VMs (two cluster nodes and the bastion).
+                   Optional, if not provided the az_vm_create default is used.
+
 =item B<diagnostic> - enable diagnostic features if 1
 
 =item B<cloudinit_profile> - filename of the cloud-init profile. Usually this one is the return value of
@@ -375,6 +378,9 @@ sub ipaddr2_infra_deploy(%args) {
         ssh_pubkey => get_ssh_private_key_path() . '.pub',
         public_ip => "",
         tags => $tags);
+    # Same size for the cluster nodes and the bastion: all three run the same
+    # image, and the bastion is the hop every other command goes through.
+    $vm_create_generic_args{size} = $args{vm_size} if $args{vm_size};
 
     my %vm_create_internal_args = %vm_create_generic_args;
     $vm_create_internal_args{availability_set} = $as;
