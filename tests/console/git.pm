@@ -39,8 +39,8 @@ sub run {
 
     # Prepare ssh
     assert_script_run("mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/known_hosts");
-    assert_script_run("rm -rf ~/.ssh/id_rsa");
     assert_script_run("ssh-keyscan -H localhost >> ~/.ssh/known_hosts");
+    assert_script_run("rm -rf ~/.ssh/id_rsa");
     assert_script_run("ssh-keygen -q -trsa -b4096 -f ~/.ssh/id_rsa -N ''");
     assert_script_run("cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys");
 
