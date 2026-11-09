@@ -2,7 +2,7 @@
   sslCertificates():: {
     sslCertificates: [
       {
-        fingerprint: "F6:7A:ED:BB:BC:94:CF:55:9D:B3:BA:74:7A:87:05:EF:67:4E:C2:DB",
+        fingerprint: "29:2E:42:D7:E9:BF:B7:71:25:B9:47:DD:CF:0A:80:F7:E9:FB:F2:71",
         algorithm: "SHA1",
       }
     ]
