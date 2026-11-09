@@ -91,7 +91,8 @@ sub run {
         # Choose entry to test
         send_key_until_needlematch('elemental3-bootmenu-recovery', 'down');
         send_key('ret', wait_screen_change => 1);
-        wait_still_screen(timeout => 120);
+        assert_screen('text-logged-in-root', timeout => 120);
+        wait_still_screen();
 
         # In recovery mode we have auto-login configured on tty1, so we are
         # already at the root shell prompt on the active SUT console
