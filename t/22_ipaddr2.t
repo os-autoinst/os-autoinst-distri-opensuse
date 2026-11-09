@@ -86,6 +86,40 @@ subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
     ok(($#calls > 0), "There are some command calls");
     ok((any { /vm create.*custom-data/ } @cmds), 'custom-data in az vm create when cloud-init is enabled');
     ok((any { /sudo cloud-init status/ } @cmds), 'wait cloud-init when cloud-init is enabled');
+    ok((none { /vm create.*ip2t-vm-bastion.*custom-data/ } @cmds), 'No custom-data for the bastion without bastion_cloudinit_profile');
+    ok((none { /run-command.*--vm-name ip2t-vm-bastion/ } @cmds), 'No cloud-init wait on the bastion without bastion_cloudinit_profile');
+};
+
+subtest '[ipaddr2_infra_deploy] bastion_cloudinit_profile' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    $ipaddr2->redefine(qesap_get_public_cloud_tags => sub { return (); });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
+    $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+    $azcli->redefine(az => sub {
+            my %args = @_;
+            push @calls, ['azure_cli', $args{az_args}];
+            return {rc => 0, stdout => '{"id": "fake_id"}'};
+    });
+
+    ipaddr2_infra_deploy(
+        region => 'Marconi',
+        os => 'Meucci:gen2:ByoS',
+        bastion_cloudinit_profile => '/CCCCC/DDDDD');
+
+    my @cmds = map { $_->[1] } @calls;
+    note("C-->  $_") for @cmds;
+
+    ok((any { /vm create.*ip2t-vm-bastion.*custom-data \/CCCCC\/DDDDD/ } @cmds), 'Bastion VM created with its cloud-init profile');
+    ok((none { /vm create.*ip2t-vm-0[12].*custom-data/ } @cmds), 'Internal VMs created without custom-data');
+    ok((any { /run-command.*--vm-name ip2t-vm-bastion.*cloud-init status/ } @cmds), 'Wait cloud-init on the bastion');
+    ok((none { /run-command.*--vm-name ip2t-vm-0[12]/ } @cmds), 'No cloud-init wait on the internal VMs');
 };
 
 subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
@@ -1598,6 +1632,31 @@ subtest '[ipaddr2_cloudinit_create] nginx_root' => sub {
           "\n--------------------------");
 
     like($cloud_init_content, qr/echo.*>.*ABCD.*index/, "cloud-init deploy the index.html in a custom folder");
+};
+
+subtest '[ipaddr2_cloudinit_bastion_create]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my ($cloud_init_file, $cloud_init_content);
+    $ipaddr2->redefine(write_sut_file => sub {
+            ($cloud_init_file, $cloud_init_content) = @_;
+            return; });
+    $ipaddr2->noop('upload_logs');
+
+    my $ret = ipaddr2_cloudinit_bastion_create();
+
+    note("cloud_init_content:\n" .
+          "--------------------------\n" .
+          $cloud_init_content .
+          "\n--------------------------");
+
+    is($ret, $cloud_init_file, 'Return the path of the written profile');
+    like($cloud_init_content, qr/^#cloud-config/, 'Profile starts with the cloud-config header');
+    like($cloud_init_content, qr{path: /etc/ssh/sshd_config\.d/0-ipaddr2-bastion\.conf},
+        'Drop-in name sorts before 00-complianceascode-hardening.conf');
+    like($cloud_init_content, qr/AllowTcpForwarding yes/, 'Enable TCP forwarding');
+    like($cloud_init_content, qr/Banner none/, 'Remove the banner');
+    like($cloud_init_content, qr/sshd -t && systemctl try-reload-or-restart sshd/, 'Validate and reload sshd');
+    unlike($cloud_init_content, qr/nginx|registercloudguest/, 'Bastion profile is only about sshd');
 };
 
 subtest '[ipaddr2_os_connectivity_sanity]' => sub {
