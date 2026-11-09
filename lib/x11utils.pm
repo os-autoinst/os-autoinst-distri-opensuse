@@ -638,9 +638,9 @@ sub handle_welcome_screen {
     assert_screen([qw(opensuse-welcome opensuse-welcome-gnome40-activities)], $args{timeout});
     if (match_has_tag('opensuse-welcome-gnome40-activities')) {
         if (!wait_screen_change { send_key 'esc' }) {
-            # Click if we lost focus and 'esc' did not work
-            mouse_set(512, 384);
-            mouse_click();
+            # On aarch64 Tumbleweed, 'esc' key has no effect anynore, so use 'super' key - boo#1289464
+            record_soft_failure('boo#1289464 - Use "super" key instead of "esc" key');
+            send_key "super";
         }
     }
     # The checkbox to start on boot is now dropped, but we need to care for it

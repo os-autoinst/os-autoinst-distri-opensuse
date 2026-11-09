@@ -867,7 +867,13 @@ sub wait_boot_past_bootloader {
     # user will want to start something. For openQA, we simply press 'esc' to close
     # it again and really end up on the desktop
     if (match_has_tag('gnome-activities')) {
-        send_key 'esc';
+        if (is_tumbleweed() && is_aarch64()) {
+            # On aarch64 Tumbleweed, 'esc' key has no effect anynore, so use 'super' key - boo#1289464
+            record_soft_failure('boo#1289464 - Use "super" key instead of "esc" key');
+            send_key "super";
+        } else {
+            send_key "esc";
+        }
         @tags = grep { !/gnome-activities/ } @tags;
     }
     # if we reached a logged in desktop we are done here
