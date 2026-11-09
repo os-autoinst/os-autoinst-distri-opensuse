@@ -50,6 +50,7 @@ our @EXPORT = qw(
   ipaddr2_bastion_key_accept
   ipaddr2_bastion_pubip
   ipaddr2_bastion_ssh_addr
+  ipaddr2_bastion_wait_ssh
   ipaddr2_bastion_sshd_override
   ipaddr2_internal_key_accept
   ipaddr2_internal_key_gen
@@ -517,6 +518,48 @@ sub ipaddr2_bastion_ssh_addr(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     die "Problem getting bastion public IP" unless $args{bastion_ip};
     return USER . '@' . $args{bastion_ip};
+}
+
+=head2 ipaddr2_bastion_wait_ssh
+
+    ipaddr2_bastion_wait_ssh(bastion_ip => '1.2.3.4');
+
+Wait until the bastion accepts a real ssh session. Checking that port 22
+accepts TCP connections is not sufficient: sshd listens well before a
+booting VM is able to complete key exchange and login (observed: TCP
+connect succeeds, but no protocol banner arrives within 30 s).
+Dies if no session succeeds within B<timeout>.
+
+=over
+
+=item B<bastion_ip> - Public IP address of the bastion. Mandatory.
+
+=item B<timeout> - Overall wait in seconds. Default 600.
+
+=back
+=cut
+
+sub ipaddr2_bastion_wait_ssh(%args) {
+    croak("Argument < bastion_ip > missing") unless $args{bastion_ip};
+    $args{timeout} //= 600;
+
+    # A real ssh session, not a TCP probe: sshd listens well before a
+    # booting hardened image can complete key exchange and PAM login.
+    my $probe = join(' ',
+        'timeout', '-k', '5', '30',
+        'ssh',
+        '-o', 'BatchMode=yes',
+        '-o', 'ConnectTimeout=10',
+        '-o', 'StrictHostKeyChecking=accept-new',
+        ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
+        'true');
+    my $start = time;
+    while ((time - $start) < $args{timeout}) {
+        return if (script_run($probe, timeout => 45) == 0);
+        record_info('Bastion wait', "ssh to $args{bastion_ip} not usable yet");
+        sleep 15;
+    }
+    die "ssh to bastion $args{bastion_ip} not usable after $args{timeout}s";
 }
 
 =head2 ipaddr2_bastion_key_accept
