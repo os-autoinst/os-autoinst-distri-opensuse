@@ -48,11 +48,11 @@ sub run {
         "expect sqlite3/expect.sh",
         sub {
             m/
-            (?i:sqlite).*>\ SELECT\ name,\ year\ FROM\ movie\ LIMIT\ 2;\r\n
-            name\|year\r\n
-            The\ Dead\ Don't\ Die\|2019\r\n
-            Night\ on\ Earth\|1991\r\n
-            .*(?i:sqlite).*>\ .quit
+            (?i:sqlite).*?SELECT\ name,\ year\ FROM\ movie\ LIMIT\ 2;\r?\n
+            name\|year\r?\n
+            The\ Dead\ Don't\ Die\|2019\r?\n
+            Night\ on\ Earth\|1991\r?\n
+            .*(?i:sqlite).*?\.quit
             /x
         },
     );
