@@ -40,11 +40,11 @@ sub run {
 
     # Prepare ssh
     assert_script_run("mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/known_hosts");
-    assert_script_run("rm -rf ~/.ssh/id_rsa");
     # ssh-keyscan prints a banner comment before the key; fail when no key
     # line is printed so script_retry retries a slow or broken scan.
     script_retry(q{ssh-keyscan -T 20 -H localhost | tee -a ~/.ssh/known_hosts | grep -v '^#' >/dev/null},
         retry => 3, delay => 5, timeout => 60, fail_message => 'ssh-keyscan did not return a localhost host key');
+    assert_script_run("rm -rf ~/.ssh/id_rsa");
     assert_script_run("ssh-keygen -q -trsa -b4096 -f ~/.ssh/id_rsa -N ''");
     assert_script_run("cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys");
 
