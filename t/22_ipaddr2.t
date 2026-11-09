@@ -894,7 +894,7 @@ subtest '[ipaddr2_os_sanity] multiple failed services' => sub {
 
     throws_ok { ipaddr2_os_sanity(); } qr/Test died on VM 1 due to failed services\./, 'Dies when multiple services failed';
     is($is_sle_calls[0], '=16.1', 'is_sle queried specifically for =16.1');
-    ok((none { /bsc#1271814/ } @soft_failures), 'record_soft_failure not called');
+    ok((any { /bsc#1271814/ } @soft_failures), 'Known unit is still recorded as soft failure before dying on the unknown one');
 };
 
 subtest '[ipaddr2_os_sanity] cleanoldsepoldir failure non-SLE 16.1' => sub {

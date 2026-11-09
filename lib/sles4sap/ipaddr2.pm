@@ -1030,20 +1030,31 @@ sub ipaddr2_os_sanity(%args) {
                 }
             }
 
-            # Check if this matches bsc#1271814
-            if (is_sle('=16.1') && @failed_units == 1 && $failed_units[0] eq 'cleanoldsepoldir') {
-                my $snapper_check = ipaddr2_ssh_internal(id => $_,
-                    cmd => 'rpm -q snapper',
-                    bastion_ip => $args{bastion_ip},
-                    no_assert => 1);
-
-                if (defined $snapper_check && $snapper_check != 0) {
-                    record_soft_failure('bsc#1271814 - snapper is intentionally not installed on Public Cloud images');
+            # Known issues: soft fail and drop them from the list, die on whatever remains.
+            my @unknown_units;
+            foreach my $unit (@failed_units) {
+                # bsc#1271814: snapper is intentionally not installed on Public Cloud images
+                if ($unit eq 'cleanoldsepoldir' && is_sle('=16.1')) {
+                    my $snapper_check = ipaddr2_ssh_internal(id => $_,
+                        cmd => 'rpm -q snapper',
+                        bastion_ip => $args{bastion_ip},
+                        no_assert => 1);
+                    if (defined $snapper_check && $snapper_check != 0) {
+                        record_soft_failure('bsc#1271814 - snapper is intentionally not installed on Public Cloud images');
+                        next;
+                    }
+                }
+                # SLE 16 images run aidecheck.service at every boot;
+                # It leaves the system 'degraded' due to bsc#1289744
+                if ($unit eq 'aidecheck' && is_sle('>=16')) {
+                    record_soft_failure('bsc#1289744 - aidecheck.service failed on hardened SLE 16 image');
                     next;
                 }
+                push @unknown_units, $unit;
             }
+            next if (@failed_units && !@unknown_units);
 
-            # If not matching the known issue, record error and die as before
+            # If not matching a known issue, record error and die as before
             record_info('Error', "The Services failed on VM $_:\n$failed_services", result => 'fail');
             die "Test died on VM $_ due to failed services.";
         }
