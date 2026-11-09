@@ -37,12 +37,12 @@ sub run {
 
         # Wait for the first automatic login screen
         assert_screen('linux-login', timeout => 120);
-        wait_still_screen();
 
         # OS installation is done automatically as well as the reboot after installation
         # We just have to wait for the VM to reboot and a login screen to appear
         wait_screen_change(undef, bmwqemu::scale_timeout(300));
-        assert_screen('linux-login', timeout => 120);
+        assert_screen([qw(linux-login emergency-mode emergency-shell)], timeout => 120);
+        handle_emergency_if_needed;
         wait_still_screen();
     }
 
