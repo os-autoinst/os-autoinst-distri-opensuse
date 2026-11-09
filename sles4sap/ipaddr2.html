@@ -20,6 +20,7 @@
       <li><a href="#ipaddr2_infra_deploy">ipaddr2_infra_deploy</a></li>
       <li><a href="#ipaddr2_bastion_pubip">ipaddr2_bastion_pubip</a></li>
       <li><a href="#ipaddr2_bastion_ssh_addr">ipaddr2_bastion_ssh_addr</a></li>
+      <li><a href="#ipaddr2_bastion_wait_ssh">ipaddr2_bastion_wait_ssh</a></li>
       <li><a href="#ipaddr2_bastion_key_accept">ipaddr2_bastion_key_accept</a></li>
       <li><a href="#ipaddr2_bastion_sshd_override">ipaddr2_bastion_sshd_override</a></li>
       <li><a href="#ipaddr2_internal_key_accept">ipaddr2_internal_key_accept</a></li>
@@ -159,6 +160,24 @@
 </dd>
 </dl>
 
+<h2 id="ipaddr2_bastion_wait_ssh">ipaddr2_bastion_wait_ssh</h2>
+
+<pre><code>ipaddr2_bastion_wait_ssh(bastion_ip =&gt; &#39;1.2.3.4&#39;);</code></pre>
+
+<p>Wait until the bastion accepts a real ssh session. Checking that port 22 accepts TCP connections is not sufficient: sshd listens well before a booting VM is able to complete key exchange and login (observed: TCP connect succeeds, but no protocol banner arrives within 30 s). Dies if no session succeeds within <b>timeout</b>.</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Mandatory"><b>bastion_ip</b> - Public IP address of the bastion. Mandatory.</dt>
+<dd>
+
+</dd>
+<dt id="timeout---Overall-wait-in-seconds.-Default-600"><b>timeout</b> - Overall wait in seconds. Default 600.</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="ipaddr2_bastion_key_accept">ipaddr2_bastion_key_accept</h2>
 
 <pre><code>my $ret = ipaddr2_bastion_key_accept(bastion_ip =&gt; &#39;1.2.3.4&#39;);</code></pre>
@@ -181,7 +200,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Mandatory"><b>bastion_ip</b> - Public IP address of the bastion. Mandatory.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Mandatory1"><b>bastion_ip</b> - Public IP address of the bastion. Mandatory.</dt>
 <dd>
 
 </dd>
@@ -195,7 +214,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Mandatory1"><b>bastion_ip</b> - Public IP address of the bastion. Mandatory.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Mandatory2"><b>bastion_ip</b> - Public IP address of the bastion. Mandatory.</dt>
 <dd>
 
 </dd>
@@ -425,7 +444,7 @@
 
 <dl>
 
-<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Mandatory2"><b>bastion_ip</b> - Public IP address of the bastion. Mandatory.</dt>
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Mandatory3"><b>bastion_ip</b> - Public IP address of the bastion. Mandatory.</dt>
 <dd>
 
 </dd>
