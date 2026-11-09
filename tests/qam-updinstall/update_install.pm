@@ -101,7 +101,8 @@ my @conflicting_packages = (
     'patterns-base-fips-certified',
     'gnu-compilers-hpc-macros-devel', 'gnu12-compilers-hpc-macros-devel',
     'openssl-ibmca-engine', 'openssl-ibmca-provider', 'openssl-ibmca',
-    'openmpi3-config', 'openmpi2-config'
+    'openmpi3-config', 'openmpi2-config',
+    'raspberrypi-firmware-config-camera', 'raspberrypi-firmware-config'
 );
 
 # https://progress.opensuse.org/issues/153388
