@@ -10,8 +10,9 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
 use Mojo::Base 'x11test';
+use Utils::Architectures qw(is_aarch64);
 use testapi;
-use version_utils qw(is_leap);
+use version_utils qw(is_leap is_tumbleweed);
 
 
 sub run {
@@ -36,7 +37,13 @@ sub run {
     }
     assert_screen 'test-desktop_mainmenu-1', 20;
 
-    send_key "esc";
+    if (check_var("DESKTOP", "gnome") && is_tumbleweed() && is_aarch64()) {
+        # On aarch64 Tumbleweed, 'esc' key has no effect anynore, so use 'super' key - boo#1289464
+        record_soft_failure('boo#1289464 - Use "super" key instead of "esc" key');
+        send_key "super";
+    } else {
+        send_key "esc";
+    }
 }
 
 sub ocr_checklist {
