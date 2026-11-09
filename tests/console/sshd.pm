@@ -23,7 +23,7 @@
 use Mojo::Base 'consoletest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
-use utils qw(systemctl exec_and_insert_password zypper_call random_string clear_console);
+use utils qw(systemctl exec_and_insert_password zypper_call random_string clear_console script_retry);
 use Utils::Architectures 'is_ppc64le';
 use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap is_opensuse is_public_cloud);
 use services::sshd;
@@ -89,7 +89,10 @@ sub test_cryptographic_policies {
     systemctl("restart sshd");
 
     # Add all the ssh public key hashes as known hosts
-    assert_script_run("ssh-keyscan -H localhost > ~/.ssh/known_hosts");
+    # ssh-keyscan prints a banner comment before the key; fail when no key
+    # line is printed so script_retry retries a slow or broken scan.
+    script_retry(q{ssh-keyscan -T 20 -H localhost | tee ~/.ssh/known_hosts | grep -v '^#' >/dev/null},
+        retry => 3, delay => 5, timeout => 60, fail_message => 'ssh-keyscan did not return a localhost host key');
 
     # Test all the policies
     foreach my $policy (@policies) {
