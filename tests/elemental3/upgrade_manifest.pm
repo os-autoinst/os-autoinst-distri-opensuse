@@ -51,7 +51,7 @@ sub run {
         url => $totest_path,
         arch => $arch,
         regex =>
-          ".*${k8s}-manifest-\(${k8s_version_prefix}\\.[0-9]*\)-\(.*\)"
+          ".*${k8s}-manifest-\(${k8s_version_prefix}.*\)-\(.*\)"
     );
     my ($url, $version) = split(/:/, $uri);
     record_info('Upgrade URI', "url: ${url} / version: ${version}");

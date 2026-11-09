@@ -392,7 +392,7 @@ sub run {
             url => $totest_path,
             arch => $arch,
             regex =>
-              ".*${k8s}-manifest-\(${k8s_version_prefix}\\.[0-9]*\)-\(.*\)"
+              ".*${k8s}-manifest-\(${k8s_version_prefix}.*\)-\(.*\)"
         );
 
         my $elemental3_uri = get_artifact_uri(
