@@ -191,7 +191,7 @@ sub run {
 
         # JeOS is never deployed with Linuxrc involved,
         # so 'regurl' does not apply there.
-        registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless is_jeos || (is_sle_micro && get_var('BOOT_HDD_IMAGE')) || is_opensuse;
+        registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless is_jeos || (is_sle_micro && get_var('BOOT_HDD_IMAGE')) || is_opensuse || (check_var('VERSION', '12-SP3') && get_var('FLAVOR') =~ /TERADATA/);
 
         # boot
         mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
