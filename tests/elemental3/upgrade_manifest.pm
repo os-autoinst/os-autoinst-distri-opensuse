@@ -47,12 +47,13 @@ sub run {
         assert_script_run("kubectl ${ns} rollout status deployment -l k8s-app=kube-dns", timeout => $timeout);
     }
 
-    my $uri = get_artifact_uri(
+    my $uri = get_var('CONTAINER_IMAGE_TO_TEST');
+    $uri = get_artifact_uri(
         url => $totest_path,
         arch => $arch,
         regex =>
           ".*${k8s}-manifest-\(${k8s_version_prefix}.*\)-\(.*\)"
-    );
+    ) if check_var('CONTAINER_IMAGE_TO_TEST', '');
     my ($url, $version) = split(/:/, $uri);
     record_info('Upgrade URI', "url: ${url} / version: ${version}");
 
