@@ -1,0 +1,8 @@
+name: crypto_policies_agnostic
+description: >
+    This is for crypto-policies testing, using the openQA-agnostic pytest suite
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - security/crypto_policies/crypto_policies_setup
+    - security/oqa_agnostic/crypto_policies_agnostic

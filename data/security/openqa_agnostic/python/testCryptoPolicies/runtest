@@ -1,0 +1,49 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: crypto-policies
+# desc: >
+#   Switches the system-wide crypto-policies (LEGACY, BSI, FUTURE, DEFAULT)
+#   and checks that sshd, BIND, GnuTLS and NSS keep working with each one.
+#   By default the services are restarted to apply each policy. When
+#   CRYPTO_POLICY=<policy> is set, the caller has already set that policy and
+#   rebooted, and only this policy is checked.
+# steps:
+#   - check that an unknown policy is rejected
+#   - for each policy: set it and restart sshd and named (skipped when
+#     CRYPTO_POLICY is set, then only that policy is checked)
+#   - check the active policy and that sshd and named are running
+#   - BIND - validate the root DNS signature, query rndc, query a local zone
+#   - GnuTLS - create a CA and a server certificate, handshake gnutls-cli to gnutls-serv
+#   - NSS - trust a new certificate in an NSS database, fetch a page from
+#     openssl s_server with tstclnt
+#   - reset the policy to DEFAULT and restore named.conf
+# author: <frantisek.simorda@suse.com>
+# maintainer: QE Security <none@suse.de>
+# expected: all tests pass
+# platform: SLE 16.1 (also immutable), Tumbleweed
+# tags: security crypto-policies bind gnutls nss poo#208152
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_crypto_policies.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+for cmd in update-crypto-policies systemctl certtool gnutls-serv gnutls-cli certutil openssl rpm rndc delv host named; do
+    ensure_command_available "$cmd"
+done
+
+set +e
+pytest -v --tb=short test_crypto_policies.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc
