@@ -1215,9 +1215,9 @@ sub prepare_sapinst_profile {
     file_content_replace($profile_target_file, %replace_params);
 }
 
-=head2 prepare_sap_instances_data
+=head2 netweaver_installation_data
 
- $self->prepare_sap_instances_data();
+ $self->netweaver_installation_data();
 
 Prepares data for installation of all SAP components using openqa parameter "SAP_INSTANCES".
 parameter example: SAP_INSTANCES = "ASCS,ERS,PAS,AAS".
@@ -1257,11 +1257,12 @@ sub netweaver_installation_data {
         sidadm => $self->get_sidadm(),
         sidadm_uid => $sidadm_uid,
         sapsys_gid => $sapsys_gid,
-        sap_master_password => get_required_var('_SECRET_SAP_MASTER_PASSWORD'),
         sap_directory => "/usr/sap/$sap_sid"
     );
 
     return \%installation_data if check_var('SUPPORT_SERVER', '1');    # Supportserver does not need anything below
+
+    $installation_data{sap_master_password} = get_required_var('_SECRET_SAP_MASTER_PASSWORD');
 
     # Instance specific data
     foreach (@defined_instances) {
