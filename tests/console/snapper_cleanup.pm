@@ -20,7 +20,6 @@
 use Mojo::Base 'btrfs_test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'clear_console';
 use version_utils qw(is_sle is_tumbleweed is_leap);
 
 my $btrfs_fs_usage = 'btrfs filesystem usage / --raw';
@@ -52,20 +51,15 @@ sub qgroup_excl_space {
 
 sub snapper_cleanup {
     my ($self) = @_;
-    my $snaps_numb = "snapper list | grep number | wc -l";
-
-    script_run($btrfs_fs_usage, 120);
     # we want to fill up disk enough so that snapper cleanup triggers
     my $fill_space = "dd if=/dev/urandom of=$scratch_dir/data bs=1M count=$scratchfile_mb";
     my $snap_create = "snapper create --cleanup number --description $snap_desc --command '$fill_space'";
-    assert_script_run "btrfs filesystem show --mbytes /";
 
-    for (1 .. $n_scratch_prepost) { assert_script_run("$snap_create", 500); }
-    assert_script_run('sync');
-    script_run "echo There are `$snaps_numb` snapshots BEFORE cleanup";
+    assert_script_run("(set -e; for i in \$(seq $n_scratch_prepost); do $snap_create; done)", 500);
     # cleanup created snapshots
     # softfail the test if hitting bsc#1206814, so that the subsequent test runs are not affected
-    my $output = script_output('snapper cleanup number || echo "error detected"', 300, proceed_on_failure => 1);
+    # snapperd refuses the cleanup while it compares the last pre/post pair in the background
+    my $output = script_output(q{timeout 120 sh -c 'until out=$(snapper cleanup number 2>&1); do echo "$out"; echo "$out" | grep -q "Config is in use" || exit 1; sleep 1; done' || echo "error detected"}, 300, proceed_on_failure => 1);
     if ($output =~ m/error detected/) {
         if (($output =~ m/Failure\s+\(error\.something\)\./) && is_leap) {
             record_soft_failure 'bsc#1206814';
@@ -80,11 +74,7 @@ sub snapper_cleanup {
     # Only the SPACE_LIMIT cleanup goes below the NUMBER_LIMIT upper bound
     $self->{space_cleanups}++ if $test_snaps < $number_limit_upper;
     record_info('cleanup', "test snapshots: $test_snaps, qgroup 1/0 exclusive: $qgroup_excl_space, SPACE_LIMIT: $space_limit_bytes");
-    script_run "echo There are `$snaps_numb` snapshots AFTER cleanup";
-    assert_script_run("btrfs qgroup show -pcre /");
-    assert_script_run("snapper list");
-    clear_console unless testapi::is_serial_terminal();
-    script_run($btrfs_fs_usage, 120);
+    assert_script_run("btrfs qgroup show -pcre / && snapper list");
     # The scratch file shared with the last deleted snapshot is exclusive by
     # now, which snapper could not see yet
     my $max_excl_space = $space_limit_bytes + $scratchfile_mb * 1024 * 1024;
