@@ -41,8 +41,8 @@ sub run {
     select_text_console;
 
     # 0. Set up environment
-    # Install usbguard packages
-    zypper_call('in libusbguard1 usbguard usbguard-devel usbguard-tools usbutils', timeout => 900);
+    # Runtime packages only: the test never compiles against libusbguard
+    zypper_call('in usbguard usbguard-tools usbutils', timeout => 900);
 
     # Start audit service
     systemctl("restart $audit_service");
