@@ -17,7 +17,6 @@ terraform:
     os_owner: '%OS_OWNER%'
     public_key: '%SLES4SAP_PUBSSHKEY%'
     aws_credentials: '/root/amazon_credentials'
-    hana_instancetype: '%HANA_INSTANCE_TYPE%'
     hana_vm_size: '%HANA_INSTANCE_TYPE%'
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
