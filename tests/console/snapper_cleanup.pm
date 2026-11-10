@@ -149,12 +149,9 @@ sub run {
     assert_script_run "snapper set-config SPACE_LIMIT=$space_limit";
     assert_script_run("snapper get-config");    # report customized cfg
     assert_script_run("btrfs qgroup show -pc /");
-    # We need to run snapper at least couple of times to ensure it cleans up properly
-    # Specifically: let Iteration $n - 3 be the last to not yet be forced by the
-    # NUMBER_LIMIT setting alone to actually carry out clean-ups
-    my $n = $number_limit_upper / ($n_scratch_prepost * 2) + 3;
-
-    for (1 .. $n) { $self->snapper_cleanup(); }
+    # Every iteration exceeds SPACE_LIMIT and from the second one on also
+    # NUMBER_LIMIT, so three iterations exercise both cleanups
+    for (1 .. 3) { $self->snapper_cleanup(); }
     die 'SPACE_LIMIT never made snapper cleanup remove a snapshot' unless $self->{space_cleanups} || $self->{softfailed};
 
     # tidy up and restore default settings
