@@ -69,8 +69,8 @@ subtest '[qesap_get_public_cloud_tags] HTTP/HTTPS URLs with and without trailing
             );
             like(
                 $tags{openqa_created_date},
-                qr/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/,
-                "openqa_created_date tag is '" . ($tags{openqa_created_date} // 'undef') . "' and expect ISO 8601 format"
+                qr/^\d{8}T\d{6}Z$/,
+                "openqa_created_date tag is '" . ($tags{openqa_created_date} // 'undef') . "' and expect ISO 8601 basic format"
             );
         }
     }
@@ -94,8 +94,8 @@ subtest '[qesap_get_public_cloud_tags] Fallback to OPENQA_HOSTNAME' => sub {
     );
     like(
         $tags_fallback{openqa_created_date},
-        qr/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/,
-        "openqa_created_date tag is '" . ($tags_fallback{openqa_created_date} // 'undef') . "' and expect ISO 8601 format"
+        qr/^\d{8}T\d{6}Z$/,
+        "openqa_created_date tag is '" . ($tags_fallback{openqa_created_date} // 'undef') . "' and expect ISO 8601 basic format"
     );
 };
 
