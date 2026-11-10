@@ -7,6 +7,7 @@
 # Summary: Setup dovecot and postfix servers as backend for evolution
 # - Stop packagekit service
 # - Install on SLED dovecot from Server Apllications module else install dovecot and postfix
+# - Start postfix, so that its first configuration does not overwrite our settings
 # - Configure dovecot enabling ssl and for use of plain login
 # - Enable postix smtp auth in dovecot and generate certificates
 # - Configure postfix enabling tls, smtpd sasl and hostname as localhost
@@ -42,6 +43,11 @@ sub run() {
         }
         zypper_call("in dovecot 'openssl(cli)' postfix", exitcode => [0, 102, 103]);
         zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
+        # The first start of postfix runs config_postfix, which rewrites
+        # main.cf from /etc/sysconfig/postfix. This removes the TLS settings
+        # that are applied below. Start postfix now, so that this happens
+        # before we configure it.
+        systemctl 'start postfix';
     }
 
     # Configure dovecot for sle16 and tumbleweed, see https://progress.opensuse.org/issues/182768
