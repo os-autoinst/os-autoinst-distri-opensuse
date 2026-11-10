@@ -53,14 +53,11 @@ sub run {
     # Delete all those snapshots we just created so other tests are not confused
     assert_script_run("snapper delete --sync $first_snap_to_delete-" . $self->get_last_snap_number(), timeout => 600);
     assert_script_run("snapper list", timeout => 120);
-    # check whether average system load is below treshold
-    # wait until the load gets below 0.2
-    select_console 'root-console';
-    # 6s per iteration -> 10min by default
-    my $iterations = 100 * get_var('TIMEOUT_SCALE', 1);
-    my $cmd = qq(for i in {1..${iterations}}; do read -d' ' load </proc/loadavg; uptime > /dev/$serialdev; if [ "\${load/./}" -le 10 ]; then echo 'LOAD_OK' > /dev/$serialdev; break; fi; sleep 6; done);
-    enter_cmd("( $cmd )\&");
-    wait_serial('LOAD_OK', timeout => 600, no_regex => 1) or die 'System average load was not settled after taking snapshots';
+    # Wait until no task is running or blocked so the snapshot cleanup
+    # does not spill into the next module. Busy tasks are printed.
+    my $retries = 300 * get_var('TIMEOUT_SCALE', 1);
+    script_retry(q{! ps -eLo stat=,comm= | grep '^[RD]' | grep -Ev ' (ps|grep)$'},
+        retry => $retries, delay => 2, fail_message => 'System did not settle after deleting snapshots');
 }
 
 sub test_flags {
