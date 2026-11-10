@@ -51,8 +51,15 @@ sub run {
     if ($is_devel_dms_required->()) {
         zypper_call("rr devel_DMS");
     }
-    my $repo_num = script_output(q(zypper lr -u | awk -F '|' '/(cd|ftp):/ {printf $1}'));
-    zypper_call("rr $repo_num") if $repo_num;
+    my @media_repos_to_remove_before_migration;
+    foreach my $line (split /\n/, script_output('zypper lr -u')) {
+        my ($num, $alias, undef, undef, undef, undef, $uri) = split /\s*\|\s*/, $line;
+        push @media_repos_to_remove_before_migration, {num => $num, alias => $alias, uri => $uri} if ($uri // '') =~ m{^(cd|dvd|ftp):|openqa[^/]*/assets/repo};
+    }
+    if (@media_repos_to_remove_before_migration) {
+        record_info('remove repos', join("\n", map { "$_->{alias}: $_->{uri}" } @media_repos_to_remove_before_migration));
+        zypper_call('rr ' . join(' ', map { $_->{num} } @media_repos_to_remove_before_migration));
+    }
 
     # Add product increment repo
     if (my $repo_increment = get_var('INCREMENT_REPO')) {
