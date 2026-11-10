@@ -28,6 +28,7 @@ sub run {
 
     record_info('Kernel', $instance->ssh_script_output('uname -r'));
     record_info('Network', $instance->ssh_script_output('ip -o link show'));
+    record_info('Addresses', $instance->ssh_script_output('ip -br addr show'));
     record_info('PCI', $instance->ssh_script_output('for d in /sys/bus/pci/devices/*; do echo "$(basename $d) $(cat $d/vendor) $(cat $d/device) $(basename "$(readlink $d/driver)")"; done'));
 
     # bsc#1276748: eth0 must keep its IPv4 address and route after the first boot
@@ -48,6 +49,8 @@ sub run {
     $instance->ssh_assert_script_run('basename -a $(readlink /sys/class/net/eth0/lower_*/device/driver) | grep -qx ' . $driver);
     # Informational only, modinfo lives in /usr/sbin which is not in the PATH of the SSH user
     record_info("$driver driver", $instance->ssh_script_output("sudo modinfo $driver", proceed_on_failure => 1));
+    # The VF carries no address of its own, it must be up and enslaved to eth0
+    $instance->ssh_assert_script_run('grep -qx up /sys/class/net/eth0/lower_*/operstate');
 }
 
 1;
