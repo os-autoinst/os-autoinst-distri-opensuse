@@ -27,15 +27,17 @@ sub run {
     assert_script_run 'wget --quiet ' . data_url('libaom/ffmpeg-snapshot.tar.bz2');
     assert_script_run 'tar xjf ffmpeg-snapshot.tar.bz2';
     assert_script_run 'cd ffmpeg';
-    # Build only what the AV1 decode below needs; a full ffmpeg build
-    # compiles about 8x more objects.
+    # Build only what the AV1 decode below needs, plus the libaom
+    # encoder wrapper so it still compiles against libaom-devel; a full
+    # ffmpeg build compiles about 8x more objects.
     my @configure = (
         '--prefix="$HOME/ffmpeg_build"', '--bindir="$HOME/bin"',
         '--pkg-config-flags="--static"', '--extra-libs=-lpthread', '--extra-libs=-lm',
         '--disable-everything', '--disable-autodetect', '--disable-network', '--disable-doc',
         '--disable-ffplay', '--disable-ffprobe',
-        '--enable-libaom', '--enable-decoder=libaom_av1', '--enable-demuxer=mov',
-        '--enable-encoder=rawvideo', '--enable-muxer=rawvideo', '--enable-protocol=file');
+        '--enable-libaom', '--enable-decoder=libaom_av1', '--enable-encoder=libaom_av1',
+        '--enable-demuxer=mov', '--enable-encoder=rawvideo', '--enable-muxer=rawvideo',
+        '--enable-protocol=file');
     assert_script_run("./configure @configure", timeout => 600);
     assert_script_run('make -j$(nproc)', timeout => 1200);
     assert_script_run 'make install';
