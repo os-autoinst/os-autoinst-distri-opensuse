@@ -52,7 +52,7 @@
       <li><a href="#startup_type">startup_type</a></li>
       <li><a href="#prepare_swpm">prepare_swpm</a></li>
       <li><a href="#prepare_sapinst_profile">prepare_sapinst_profile</a></li>
-      <li><a href="#prepare_sap_instances_data">prepare_sap_instances_data</a></li>
+      <li><a href="#netweaver_installation_data">netweaver_installation_data</a></li>
       <li><a href="#get_nw_instance_name">get_nw_instance_name</a></li>
       <li><a href="#is_instance_type_supported">is_instance_type_supported</a></li>
       <li><a href="#share_hosts_entry">share_hosts_entry</a></li>
@@ -342,9 +342,9 @@ $self-&gt;SYSTEMCTL_UNITS_RE(qr/some regexp/);</code></pre>
 
 <p><b>sar_location_directory</b> Location of SAR files - this is filled into template</p>
 
-<h2 id="prepare_sap_instances_data">prepare_sap_instances_data</h2>
+<h2 id="netweaver_installation_data">netweaver_installation_data</h2>
 
-<pre><code>$self-&gt;prepare_sap_instances_data();</code></pre>
+<pre><code>$self-&gt;netweaver_installation_data();</code></pre>
 
 <p>Prepares data for installation of all SAP components using openqa parameter &quot;SAP_INSTANCES&quot;. parameter example: SAP_INSTANCES = &quot;ASCS,ERS,PAS,AAS&quot;.</p>
 
