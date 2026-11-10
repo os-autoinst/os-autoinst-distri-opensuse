@@ -46,8 +46,8 @@ sub run {
     $instance->ssh_assert_script_run("lsmod | grep -qw $driver || grep -q '/$driver\\.ko' /lib/modules/\$(uname -r)/modules.builtin");
     # The VF is a lower device of the eth0 netvsc, its name differs between SLE versions (eth1 or enP*)
     $instance->ssh_assert_script_run('basename -a $(readlink /sys/class/net/eth0/lower_*/device/driver) | grep -qx ' . $driver);
-    # Informational only, the aarch64 kernels do not ship the mana driver
-    record_info('mana driver', $instance->ssh_script_run('modinfo mana > /dev/null') == 0 ? 'The mana driver is available' : 'The mana driver is not available') if ($type eq 'any');
+    # Informational only, modinfo lives in /usr/sbin which is not in the PATH of the SSH user
+    record_info("$driver driver", $instance->ssh_script_output("sudo modinfo $driver", proceed_on_failure => 1));
 }
 
 1;
