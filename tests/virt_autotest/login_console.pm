@@ -17,6 +17,7 @@ use utils qw(is_ipxe_boot is_disk_image reconnect_mgmt_console);
 use ipmi_backend_utils;
 use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd double_check_xen_role check_kvm_modules check_host_version);
 use IPC::Run;
+use MIME::Base64 qw(decode_base64);
 
 sub set_ssh_console_timeout_before_use {
     my ($sshd_config_file, $sshd_timeout) = @_;
@@ -285,7 +286,9 @@ sub run {
 # Collect logs when host is in emergency/maintenance mode and ssh is unavailable.
 # Log in as root on the SOL console and show diagnostics on screen so that they are
 # recorded in screenshots and the video even when the worker has no route to the
-# SUT at all, then try to start sshd to additionally upload complete logs.
+# SUT at all, then try to start sshd to upload complete logs. When ssh stays
+# unreachable, the tarball is printed base64-wrapped on the SOL console and
+# recovered into ulogs/ on the worker, which uploads it with the other logs.
 # Returns 1 if ssh is available afterwards, otherwise 0.
 sub collect_emergency_mode_logs {
     my $sut_ip = get_required_var('SUT_IP');
@@ -339,7 +342,53 @@ sub collect_emergency_mode_logs {
     }
 
     enter_cmd('systemctl start sshd.service');
-    return 0 unless (check_port_state($sut_ip, 22, 6, 10));
+    if (!check_port_state($sut_ip, 22, 6, 10)) {
+        # No ssh: build the same tarball on the SOL console and print it
+        # base64-wrapped. With HARDWARE_CONSOLE_LOG=1 the xterm session is
+        # logged to ulogs/hardware-console-log.txt on the worker; recover the
+        # tarball from it and drop it into ulogs/, which the worker uploads
+        # with the other logs at the end of the job. The markers must be
+        # standalone lines, the typed command wraps and contains the same
+        # strings.
+        my $sol_log_dir = '/run/emergency_mode_logs';
+        enter_cmd("mkdir -p $sol_log_dir && journalctl -b --no-pager -o short-precise > $sol_log_dir/journal.log");
+        enter_cmd("systemctl --failed --no-pager > $sol_log_dir/failed_units.log");
+        enter_cmd("cat /proc/cmdline > $sol_log_dir/cmdline.log");
+        enter_cmd("cp /etc/fstab $sol_log_dir/fstab");
+        enter_cmd("(lsblk -f; echo; blkid; echo; findmnt) > $sol_log_dir/storage.log 2>&1");
+        enter_cmd("test -f /run/initramfs/rdsosreport.txt && cp /run/initramfs/rdsosreport.txt $sol_log_dir/ "
+              . "|| echo 'no rdsosreport.txt (systemd emergency mode, not dracut)'");
+        enter_cmd("tar czf /run/emergency_mode_logs.tar.gz -C /run emergency_mode_logs");
+        enter_cmd('echo =====OPENQA-EMERGENCY-LOGS-BEGIN=====; base64 /run/emergency_mode_logs.tar.gz; echo =====OPENQA-EMERGENCY-LOGS-END=====');
+        # Wait for the base64 stream to finish before the job may tear down the console
+        wait_still_screen(30, 180);
+        my $saved = 0;
+        if (-e 'ulogs/hardware-console-log.txt') {
+            for (1 .. 12) {
+                last unless (open my $fh, '<', 'ulogs/hardware-console-log.txt');
+                local $/;
+                my $content = <$fh>;
+                close $fh;
+                if (defined $content && $content =~ /=====OPENQA-EMERGENCY-LOGS-BEGIN=====[^\S\n]*\r?\n(.*?)=====OPENQA-EMERGENCY-LOGS-END=====/s) {
+                    my $base64 = $1;
+                    $base64 =~ s/[^A-Za-z0-9+\/=]//g;
+                    mkdir 'ulogs' unless -d 'ulogs';
+                    if (open my $out, '>', 'ulogs/emergency_mode_logs.tar.gz') {
+                        print $out decode_base64($base64);
+                        close $out;
+                        $saved = 1;
+                    }
+                    last;
+                }
+                sleep 10;
+            }
+        }
+        record_info('Tarball over SOL', 'Port 22 is closed, /run/emergency_mode_logs.tar.gz was transferred base64-wrapped over the SOL console and '
+              . ($saved ? 'saved to ulogs/emergency_mode_logs.tar.gz, which the worker uploads with the other logs'
+                : 'could not be recovered from ulogs/hardware-console-log.txt; extract the base64 block between the standalone OPENQA-EMERGENCY-LOGS marker lines manually'),
+            result => 'fail');
+        return 0;
+    }
 
     # /run is tmpfs and writable even if root filesystem is mounted read-only
     my $log_dir = '/run/emergency_mode_logs';
