@@ -1,16 +1,17 @@
-# Copyright 2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# yast2 apparmor" can manually add profile,
 #          also verify Bug 1172040 - YaST2 apparmor profile creation:
 #          "View profile" does nothing
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#70537, tc#1741266, poo#103341
+# Tags: poo#70537, tc#1741266, poo#103341, poo#209445
 
 use Mojo::Base qw(apparmortest y2_module_consoletest);
 use testapi;
 use utils;
 use serial_terminal qw(select_serial_terminal);
+use package_utils 'install_package';
 
 sub run {
     my ($self) = shift;
@@ -26,7 +27,7 @@ sub run {
     assert_script_run("rm -f $test_profile_bk");
     assert_script_run("rm -f $test_profile_vsftpd");
     assert_script_run("cp /usr/bin/$test_file /usr/bin/$test_file_bk");
-    zypper_call("in vsftpd");
+    install_package('yast2-apparmor vsftpd', trup_reboot => 1);
 
     systemctl("start apparmor");
     systemctl("is-active apparmor");

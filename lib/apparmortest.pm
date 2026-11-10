@@ -1,8 +1,9 @@
-# Copyright 2017-2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Base module for AppArmor test cases
 # Maintainer: QE Security <none@suse.de>
+# Tags: poo#209445
 
 =head1 Apparmor Tests
 
@@ -22,6 +23,7 @@ use x11utils qw(turn_off_gnome_screensaver default_gui_terminal);
 use serial_terminal qw(select_serial_terminal);
 use Utils::Systemd qw(systemctl);
 use x11utils qw(close_gui_terminal);
+use package_utils 'install_package';
 
 use base 'consoletest';
 
@@ -209,7 +211,7 @@ Set up mail server with Postfix and Dovecot:
 =item * 3. Setting Postfix for outgoing mail (SMTP server with Postfix) by: install Postfix by using zypper_call, start Postfix service, set "/etc/postfix/main.cf" file, output the setting for reference, restart Postfix service, output the status for reference
 
 =item * 4. Setting Dovecot for ingoing mail by: set the config files $testfile, restart Dovecot service, output the status for reference
-    
+
 =back
 
 =cut
@@ -656,6 +658,8 @@ sub adminer_database_delete {
 
 # Yast2 Apparmor set up
 sub yast2_apparmor_setup {
+    # Gnome on Tumbleweed no longer has xterm in dependecies
+    install_package("xterm yast2-apparmor", trup_rebot => 1);
     # Start Apparmor in case and check it is active
     systemctl("start apparmor");
     systemctl("is-active apparmor");
