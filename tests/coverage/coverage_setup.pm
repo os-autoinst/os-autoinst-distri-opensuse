@@ -155,6 +155,10 @@ sub run {
     # devel:tools is only needed for coverage-tools and perf. Remove it so
     # YaST-based tests do not stop on its key import dialog.
     script_run('zypper rr devtools') if $repositories{devtools};
+    # Every later instrumented zypper call loads the large debug repo, about
+    # 17s each. Later modules do not need debuginfo.
+    my @debug_repos = grep { /debug/i } keys %repositories;
+    zypper_call("mr -d @debug_repos") if @debug_repos;
 
     # sets up the environment for coverage
     my $log_dir = '/var/coverage/data';
