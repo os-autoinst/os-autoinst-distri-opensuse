@@ -14,6 +14,7 @@ use serial_terminal 'select_serial_terminal';
 use testapi;
 use utils;
 use version_utils;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
@@ -27,7 +28,7 @@ sub run {
     my @pkgs = ("clamav", "clamav-milter", "libclamav12", "libclammspack0", $libfreshclam);
     my $install_list = join(" ", map { "$_=$old_version" } @pkgs);
 
-    zypper_call("in $install_list", timeout => 300);
+    install_package("$install_list", trup_reboot => 1);
 
     # Verify installation
     assert_script_run("rpm -qa | grep -E '(clamav|libclam|libfresh)' | sort");
