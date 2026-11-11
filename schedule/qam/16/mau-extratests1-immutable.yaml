@@ -57,6 +57,6 @@ conditional_schedule:
       x86_64:
         - console/aplay
         - console/wavpack
-        # - console/firewalld poo#210015
+        - console/firewalld
         - console/lshw
         # - console/dpdk poo#210045

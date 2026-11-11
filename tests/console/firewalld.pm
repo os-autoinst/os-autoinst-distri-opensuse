@@ -10,7 +10,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(systemctl zypper_call script_retry);
+use utils qw(systemctl zypper_call script_retry validate_script_output_retry);
 use version_utils qw(is_sle is_leap is_transactional is_sle_micro);
 use transactional qw(trup_call check_reboot_changes);
 use registration;
@@ -35,6 +35,7 @@ sub pre_test {
     script_run('echo "FIREWALLD_ARGS=--debug" >> /etc/sysconfig/firewalld');
     systemctl('enable firewalld');
     systemctl('restart firewalld');
+    validate_script_output_retry('systemctl --no-pager status firewalld', qr/Active: active \(running\)/, delay => 1, retry => 5);
     assert_script_run("firewall-cmd --set-default-zone=public");
 }
 
@@ -401,7 +402,7 @@ sub post_fail_hook {
 
     # Print the whole firewall ruleset so it can be analyzed
     if (uses_iptables) {
-        ssert_script_run("iptables -L --verbose --line-numbers");
+        assert_script_run("iptables -L --verbose --line-numbers");
         assert_script_run("iptables -L -t nat --verbose --line-numbers");
     } else {
         assert_script_run("nft list ruleset");

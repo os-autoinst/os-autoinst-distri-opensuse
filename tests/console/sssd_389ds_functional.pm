@@ -27,7 +27,7 @@ no warnings 'experimental::signatures';
 
 my $conf_dir = "/tmp/sssd_configs";
 
-sub install_dependencies($container_engine) {
+sub install_dependencies ($container_engine) {
     zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16') || is_leap('>=16.0'));
     my $openldap2_client = (is_sle('>=16') || is_leap('>=16.0')) ? 'openldap2_6-client' : 'openldap2-client';
     install_package("sssd sssd-ldap $openldap2_client sshpass $container_engine", trup_reboot => 1);
@@ -153,6 +153,7 @@ sub run ($self) {
         $container_engine = "docker" if is_sle("<15-SP5");
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
+
     # on SLE we need packagehub for sshpass, let's enable it
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle('<16.1');
     # SLE16.1 not yet has a Package Hub workarond
@@ -164,7 +165,11 @@ sub run ($self) {
     my $data_url = sprintf("sssd/398-ds/{%s}", join(',', @artifacts));
     assert_script_run("cd $conf_dir && curl -L --remote-name-all " . data_url($data_url));
 
+    # Preserve original /etc/nsswitch.conf (or note its absence on UsrEtc systems) before modifying it
+    assert_script_run("cp -a /etc/nsswitch.conf /tmp/nsswitch.conf.bak") if (script_run('test -e /etc/nsswitch.conf') == 0);
+
     setup_389ds_container($container_engine);
+
     for my $user_mode ('root', 'sssd') {
         # Skip logic: sssd mode is not supported on SLE versions older than 15-SP6
         if ($user_mode eq 'sssd' && (is_sle('<15-sp6') || is_tumbleweed)) {
@@ -226,6 +231,40 @@ sub user_test {
 sub sudo_user_test {
     assert_script_run("sshpass -p 'open5use' ssh -o StrictHostKeyChecking=no mary\@localhost 'echo open5use | sudo -S -u alice /usr/bin/cat /home/alice/hello > /tmp/readonly'");
     validate_script_output('cat /tmp/readonly', sub { m/file read only by owner alice/ });
+}
+
+sub cleanup {
+    select_serial_terminal;
+    record_info('Cleanup', 'Restoring system configuration after SSSD functional tests');
+    systemctl('stop sssd.service', ignore_failure => 1);
+    systemctl('disable sssd.service', ignore_failure => 1);
+    script_run('pam-config -d --sss');
+    script_run('rm -f /etc/sssd/sssd.conf /etc/sssd/ldapserver.crt /etc/systemd/system/sssd.service.d/override.conf /etc/sudoers.d/notargetpw');
+    script_run("rm -rf /var/lib/sss/db/* /var/lib/sss/mc/* $conf_dir /tmp/sssd /tmp/passwd_change_verified /tmp/sudouser /tmp/mary /tmp/readonly /home/alice");
+    systemctl('daemon-reload', ignore_failure => 1);
+    if (script_run('test -e /tmp/nsswitch.conf.bak') == 0) {
+        script_run('mv -f /tmp/nsswitch.conf.bak /etc/nsswitch.conf');
+    }
+    elsif (script_run('test -e /usr/etc/nsswitch.conf') == 0) {
+        # On UsrEtc systems (e.g. SLE 16+ / MicroOS), removing /etc/nsswitch.conf
+        # restores the default /usr/etc/nsswitch.conf containing 'protocols: files usrfiles'
+        script_run('rm -f /etc/nsswitch.conf');
+    }
+    script_run("sed -i '/ldapserver/d' /etc/hosts");
+    systemctl('enable --now nscd.service', ignore_failure => 1) unless (is_sle('>=16') || is_leap('>=16') || is_tumbleweed);
+    script_run('zypper rr qa_head') if is_sle('>16.0');
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    $self->cleanup;
+    $self->SUPER::post_run_hook;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->cleanup;
+    $self->SUPER::post_fail_hook;
 }
 
 1;
