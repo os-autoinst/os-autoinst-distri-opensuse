@@ -7,6 +7,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use scheduler 'get_test_suite_data';
 
 sub run {
     my ($self) = @_;
@@ -22,6 +23,13 @@ sub run {
     # report progress output can fill the serial buffer and break
     # subsequent serial commands.
     assert_script_run 'funkoverage report /var/coverage/data /var/coverage/report >/tmp/fv_report.log 2>&1', timeout => 600;
+    # Every upload below runs curl. An instrumented curl adds about a second
+    # to each of them, and its coverage is not reported any more.
+    my $targets = get_test_suite_data()->{coverage_targets} // {};
+    if (grep { $_ eq '/usr/bin/curl' } map { ref($_) eq 'ARRAY' ? @$_ : $_ } values %$targets) {
+        record_info('curl shim', 'funkoverage uninstall /usr/bin/curl failed, uploads stay slow', result => 'softfail')
+          if script_run('funkoverage uninstall /usr/bin/curl') != 0;
+    }
     # Raw coverage data is large; only upload it when explicitly requested.
     if (get_var('BINARY_COVERAGE_UPLOAD_DATA')) {
         assert_script_run 'tar -czf /tmp/coverage_data.tar.gz -C /var/coverage data';
