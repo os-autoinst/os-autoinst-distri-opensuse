@@ -57,11 +57,23 @@ sub run {
         filter => '"hana[0]"',
         timeout => 300);
 
-    qesap_ansible_cmd(
-        cmd => 'sudo systemctl is-system-running',
-        provider => $provider_setting,
-        filter => '"hana[0]"',
-        timeout => 300);
+    # Failed units tolerated in 'degraded' state, with the soft failure for each
+    my %known_failed_units = (
+        'aidecheck.service' => 'bsc#1289744 - aidecheck.service failed at boot',
+    );
+    my %ansible_args = (provider => $provider_setting, host => '"hana[0]"', root => 1, timeout => 300);
+
+    my $state = qesap_ansible_script_output(%ansible_args, cmd => 'systemctl is-system-running', failok => 1);
+    record_info('System state', $state);
+    return if $state =~ /^\s*running\s*$/;
+    die "System not running after crash: $state" unless $state =~ /^\s*degraded\s*$/;
+
+    # In case of service failures, check for known cases
+    my @failed_units = map { (split)[0] } grep { /\S/ } split /\n/,
+      qesap_ansible_script_output(%ansible_args, cmd => 'systemctl --failed --no-legend --plain --no-pager');
+    my @unknown_units = grep { !exists $known_failed_units{$_} } @failed_units;
+    die "Failed units after crash: @unknown_units" if @unknown_units;
+    foreach my $reference (@known_failed_units{@failed_units}) { record_soft_failure($reference) }
 }
 
 sub post_fail_hook {
