@@ -1461,6 +1461,7 @@ sub ipaddr2_ssh_internal_cmd(%args) {
     return join(' ',
         'ssh',
         '-E', SSH_LOG,
+        '-o', 'BatchMode=yes',
         '-J', ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip}),
         USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $args{id}),
         "'$args{cmd}'",
