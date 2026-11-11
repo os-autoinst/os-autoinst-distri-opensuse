@@ -29,7 +29,7 @@ sub get_repo_aliases() {
 sub run {
     my $self = shift;
     # If all repos are OK we don't have to do anything
-    return if (script_retry('zypper -n ref', timeout => (is_public_cloud ? 1200 : 300), retry => 3, delay => 30, die => 0) == 0);
+    return if eval { zypper_call('ref', timeout => (is_public_cloud ? 1200 : 300), retry_on_timeout => 2); 1 };
 
     my $behav = get_var('QAM_TESTREPO_FAIL') // "fail";
     # Check all repositories if they are valid
