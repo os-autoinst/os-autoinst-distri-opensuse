@@ -70,7 +70,7 @@ sub _install_python_deps {
     if (is_sle('<16.0')) {
         eval { add_suseconnect_product(get_addon_fullname('pcm')) };
         record_info('pcm', "Could not activate the Public Cloud Module: $@") if $@;
-        zypper_call('--gpg-auto-import-keys ref') unless $@;
+        zypper_call('--gpg-auto-import-keys ref', retry_on_timeout => 1) unless $@;
     }
 
     eval { install_package('python3-pytest', trup_reboot => 1) };
@@ -101,7 +101,7 @@ sub setup {
 
         if (!$self->{skip_phub} && is_sle('<16.0')) {
             add_suseconnect_product(get_addon_fullname('phub'));
-            zypper_call('--gpg-auto-import-keys ref');
+            zypper_call('--gpg-auto-import-keys ref', retry_on_timeout => 1);
         }
 
         if ($self->{language} eq 'python') {

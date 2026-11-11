@@ -807,7 +807,7 @@ sub zypper_enable_install_dvd {
     # If DVD Packages is used we need to (re-)enable the local repos
     # see FATE#325541
     zypper_call('mr -e -l') if (is_sle('15+') and (get_var('ISO_1', '') =~ /SLE-.*-Packages-.*\.iso/ || check_var('FLAVOR', 'Full') || ((get_required_var('FLAVOR') =~ /Migration/) && get_var('MEDIA_UPGRADE', '')) || get_var('ISO', '') =~ /SLE-.*-Full-.*\.iso/));
-    zypper_call 'ref';
+    zypper_call 'ref', retry_on_timeout => 1;
 }
 
 =head2 zypper_ar
@@ -854,7 +854,7 @@ sub zypper_ar {
     if (!$name) {
         zypper_call($cmd_ar);
         zypper_call($cmd_mr) if defined($priority) && is_sle('<12');
-        return zypper_call($cmd_ref);
+        return zypper_call($cmd_ref, retry_on_timeout => 1);
     }
 
     # URI alias
@@ -862,7 +862,7 @@ sub zypper_ar {
     if ($out =~ /Repository.*$name.*not found/i) {
         zypper_call("$cmd_ar $name");
         zypper_call($cmd_mr) if $priority && is_sle('<12');
-        return zypper_call("$cmd_ref --repo $name");
+        return zypper_call("$cmd_ref --repo $name", retry_on_timeout => 1);
     }
 }
 
@@ -3420,7 +3420,7 @@ sub install_extra_packages {
         zypper_call("--gpg-auto-import-keys ar --enable --refresh $_ $repo_name");
         save_screenshot;
     }
-    zypper_call("--gpg-auto-import-keys refresh");
+    zypper_call("--gpg-auto-import-keys refresh", retry_on_timeout => 1);
     save_screenshot;
     my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
     $cmd = $cmd . " $_" foreach (split(/,/, $args{packages}));
