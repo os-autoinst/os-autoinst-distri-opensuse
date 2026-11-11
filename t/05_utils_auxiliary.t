@@ -154,6 +154,83 @@ subtest '[script_retry] simulate with local bash: esclamation mark handling' => 
     }
 };
 
+subtest '[zypper_call] retry_on_timeout' => sub {
+    my $mock_utils = Test::MockModule->new('utils');
+    my (@cmds, @zypper_rets, %other, @infos, @uploads);
+    $mock_utils->redefine(is_serial_terminal => sub { 0 });
+    $mock_utils->redefine(record_info => sub { push @infos, "$_[0]: $_[1]" });
+    $mock_utils->redefine(upload_logs => sub { push @uploads, $_[0] });
+    $mock_utils->redefine(script_output => sub { '' });
+    $mock_utils->redefine(script_run => sub {
+            my ($cmd, $to) = @_;
+            push @cmds, [$cmd, $to];
+            return shift @zypper_rets if $cmd =~ /zypper -n ref/;
+            return $other{probe} // 0 if $cmd =~ /command -v timeout/;
+            return $other{wait120} // 0 if $cmd =~ /timeout 120 sh/;
+            return $other{rpm} // 1 if $cmd =~ /pgrep -x zypp-rpm/;
+            return $other{wait300} // 0 if $cmd =~ /timeout 300 sh/;
+            return 0;
+    });
+    my $reset = sub { (@cmds, @zypper_rets, %other, @infos, @uploads) = () };
+
+    $reset->();
+    @zypper_rets = (0);
+    is zypper_call('ref', timeout => 5), 0, 'default: success';
+    is scalar(@cmds), 1, 'default: no probe and no cleanup';
+    unlike $cmds[0][0], qr/timeout -k/, 'default: zypper is not wrapped';
+    is $cmds[0][1], 5, 'default: script_run timeout unchanged';
+
+    $reset->();
+    @zypper_rets = (124, 0);
+    is zypper_call('ref', timeout => 5, retry_on_timeout => 1), 0, 'AC1: retries after timeout and succeeds';
+    my @z = grep { $_->[0] =~ /zypper -n ref/ } @cmds;
+    is scalar(@z), 2, 'AC1: zypper ran twice';
+    like $z[0][0], qr/^timeout -k 60 5 zypper -n ref/, 'first attempt is wrapped in timeout';
+    is $z[0][1], 95, 'script_run timeout covers timeout + kill grace + margin';
+    like $z[1][0], qr/^ZYPP_LOCK_TIMEOUT=\$\{ZYPP_LOCK_TIMEOUT:-120\} timeout -k 60 5 zypper/, 'AC2: retry sets ZYPP_LOCK_TIMEOUT';
+    ok((grep { $_->[0] =~ /pgrep -x "zypper\|zypp-rpm"/ } @cmds), 'AC2: waited for zypper and zypp-rpm to exit');
+    ok((grep { /Retry 1\/1/ } @infos), 'retry reported');
+
+    $reset->();
+    @zypper_rets = (137, 0);
+    is zypper_call('ref', timeout => 5, retry_on_timeout => 1), 0, '137 (killed by timeout -k) is retried too';
+
+    $reset->();
+    @zypper_rets = (124, 124, 124);
+    throws_ok { zypper_call('ref', timeout => 5, retry_on_timeout => 2) } qr/did not finish in 5 seconds after 3 attempt/, 'AC3: dies when all attempts time out';
+    is_deeply \@uploads, ['/var/log/zypper.log'], 'AC3: zypper.log uploaded';
+    is scalar(grep { $_->[0] =~ /zypper -n ref/ } @cmds), 3, 'AC3: zypper ran retry_on_timeout + 1 times';
+
+    $reset->();
+    @zypper_rets = (124, 0);
+    %other = (wait120 => 124, rpm => 0, wait300 => 0);
+    is zypper_call('ref', timeout => 5, retry_on_timeout => 1), 0, 'AC2: zypp-rpm still running is waited for longer, then retried';
+    ok((grep { /zypp-rpm running/ } @infos), 'long wait reported');
+
+    $reset->();
+    @zypper_rets = (124, 0);
+    %other = (wait120 => 124, rpm => 0, wait300 => 124);
+    throws_ok { zypper_call('ref', timeout => 5, retry_on_timeout => 1) } qr/still running/, 'AC2: dies instead of retrying while zypp-rpm runs';
+    is scalar(grep { $_->[0] =~ /zypper -n ref/ } @cmds), 1, 'no second attempt';
+
+    $reset->();
+    @zypper_rets = (124, 0);
+    %other = (wait120 => 124, rpm => 1);
+    throws_ok { zypper_call('ref', timeout => 5, retry_on_timeout => 1) } qr/still running/, 'dies if zypper does not exit even without zypp-rpm';
+
+    $reset->();
+    @zypper_rets = (0);
+    %other = (probe => 1);
+    is zypper_call('ref', timeout => 5, retry_on_timeout => 1), 0, 'no timeout command: still works';
+    unlike $cmds[-1][0], qr/timeout -k/, 'no timeout command: zypper is not wrapped';
+    ok((grep { /retry_on_timeout ignored/ } @infos), 'no timeout command: reported');
+
+    $reset->();
+    @zypper_rets = (1);
+    throws_ok { zypper_call('ref', timeout => 5, retry_on_timeout => 1) } qr/failed with code 1/, 'other failures are not retried';
+    is scalar(grep { $_->[0] =~ /zypper -n ref/ } @cmds), 1, 'zypper ran once on non-timeout failure';
+};
+
 subtest 'validate_script_output_retry' => sub {
     my $module = Test::MockModule->new('testapi');
 

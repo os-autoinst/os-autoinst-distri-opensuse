@@ -177,6 +177,9 @@ our $OPENQA_HTTP_URL = "http://openqa.suse.de/assets/repo";
 # set flag IN_ZYPPER_CALL in zypper_call and unset when leaving
 our $IN_ZYPPER_CALL = 0;
 
+# seconds between SIGTERM and SIGKILL when zypper_call runs zypper under timeout
+my $ZYPPER_KILL_GRACE = 60;
+
 =head2 save_svirt_pty
 
  save_svirt_pty();
@@ -626,6 +629,12 @@ for example:
  #               to get output without any ANSI characters in zypper before 1.14.1. See boo#1055315.
 
 C<dumb_term> will default to C<is_serial_terminal()>.
+
+C<retry_on_timeout> is the number of extra attempts after zypper timed out, it defaults to C<0> (die on timeout).
+When set, zypper runs under C<timeout -k 60> inside the SUT so the shell prompt is back after a timeout. Before the next
+attempt, C<zypper_call> waits for C<zypper> and C<zypp-rpm> to exit (it never kills a running rpm transaction) and sets
+C<ZYPP_LOCK_TIMEOUT> to 120 seconds unless already set. It dies after the last attempt. Best used for C<ref>, C<ar> and
+other short operations, not for long running commit phases. Ignored if C<timeout> is not available on the SUT.
 =cut
 
 sub zypper_call {
@@ -633,6 +642,7 @@ sub zypper_call {
     my %args = @_;
     my $allow_exit_codes = $args{exitcode} || [0];
     my $timeout = $args{timeout} || 700;
+    my $retry_on_timeout = $args{retry_on_timeout} // 0;
     my $log = $args{log};
     my $var = $args{tmpfs} ? '/var' : '';
     my $dumb_term = $args{dumb_term} // is_serial_terminal;
@@ -649,9 +659,29 @@ sub zypper_call {
                     $0; if ($0 ~ /statistics/ ){ print "EOL"; group++ }; }\'\
                     /var/log/zypper.log
                     ';
+    my $use_timeout = 0;
+    if ($retry_on_timeout > 0) {
+        $use_timeout = script_run('command -v timeout >/dev/null') == 0;
+        record_info('zypper_call', 'timeout command not found, retry_on_timeout ignored') unless $use_timeout;
+    }
+    my $timeout_retries = 0;
     for (1 .. 5) {
-        $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout, check_typing_cmd => $check_typing);
+        my $zypper = "zypper -n $command $printer";
+        my $script_timeout = $timeout;
+        if ($use_timeout) {
+            my $env = $timeout_retries ? 'ZYPP_LOCK_TIMEOUT=${ZYPP_LOCK_TIMEOUT:-120} ' : '';
+            $zypper = "${env}timeout -k $ZYPPER_KILL_GRACE $timeout zypper -n $command $printer";
+            $script_timeout += $ZYPPER_KILL_GRACE + 30;
+        }
+        $ret = script_run("$zypper; ( exit \${PIPESTATUS[0]} )", $script_timeout, check_typing_cmd => $check_typing);
         die "zypper did not finish in $timeout seconds" unless defined($ret);
+        if ($use_timeout && ($ret == 124 || $ret == 137)) {
+            last if $timeout_retries >= $retry_on_timeout;
+            die "zypper or zypp-rpm still running after zypper timed out, cannot retry safely" unless _wait_for_zypper_exit();
+            $timeout_retries++;
+            record_info("Retry $timeout_retries/$retry_on_timeout", "'zypper -n $command' did not finish in $timeout seconds");
+            next;
+        }
         if ($ret == 4) {
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
                 die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
@@ -679,6 +709,11 @@ sub zypper_call {
             next;
         }
         last;
+    }
+
+    if ($use_timeout && ($ret == 124 || $ret == 137)) {
+        upload_logs('/var/log/zypper.log', failok => 1);
+        die "'zypper -n $command' did not finish in $timeout seconds after " . ($timeout_retries + 1) . ' attempt(s)';
     }
 
     # log all install and remove actions for later use by tests/console/zypper_log_packages.pm
@@ -750,6 +785,15 @@ sub zypper_call {
     return $ret;
 }
 
+
+# Wait for a timed out zypper and its zypp-rpm child to exit, never kill them. Returns true if both are gone.
+sub _wait_for_zypper_exit {
+    my $wait = q{sh -c 'while pgrep -x "zypper|zypp-rpm" >/dev/null; do sleep 1; done'};
+    return 1 if script_run("timeout 120 $wait", 150) == 0;
+    return 0 if script_run('pgrep -x zypp-rpm >/dev/null') != 0;
+    record_info('zypp-rpm running', 'rpm transaction still in progress, waiting up to 300 more seconds');
+    return script_run("timeout 300 $wait", 330) == 0;
+}
 
 =head2 zypper_enable_install_dvd
 
