@@ -70,7 +70,7 @@ sub setup_openssl_test {
     install_package('libpulp0 libpulp-tools libpulp-load-default');
 
     if (get_var('INCIDENT_REPO') || get_var('INCREMENT_REPO')) {
-        my $repo_data = parse_incident_repo();
+        my $repo_args = parse_incident_repo();
         return undef unless defined $repo_args;
     } else {
         set_openssl_version();
