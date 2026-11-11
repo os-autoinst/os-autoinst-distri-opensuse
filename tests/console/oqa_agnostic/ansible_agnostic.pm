@@ -41,7 +41,7 @@ sub run {
         trup_call("pkg install @pkgs");
         check_reboot_changes;
     } else {
-        zypper_call "in @pkgs";
+        zypper_call "in @pkgs", retry_on_timeout => 1;
     }
 
     systemctl 'start sshd';
