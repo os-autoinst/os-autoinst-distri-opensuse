@@ -187,8 +187,8 @@ subtest '[qesap_get_deployment_code] from a specific release' => sub {
     set_var('QESAP_INSTALL_VERSION', undef);
     set_var('QESAP_INSTALL_GITHUB_REPO', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/vCORAL\.tar\.gz.*-ovCORAL\.tar\.gz/ } @calls), 'Get release archive from github');
-    ok((any { /tar.*[xvf]+.*vCORAL\.tar\.gz/ } @calls), 'Decompress the release archive');
+    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/vCORAL\.tar\.gz.*-o \/tmp\/vCORAL\.tar\.gz/ } @calls), 'Get release archive from github');
+    ok((any { /tar.*-C \/BRUCE.*-xvf \/tmp\/vCORAL\.tar\.gz --strip-components=1/ } @calls), 'Decompress the release archive');
 };
 
 subtest '[qesap_get_deployment_code] from the latest release' => sub {
@@ -213,8 +213,8 @@ subtest '[qesap_get_deployment_code] from the latest release' => sub {
     set_var('QESAP_INSTALL_VERSION', undef);
     set_var('QESAP_INSTALL_GITHUB_REPO', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/v1.0.0\.tar\.gz.*-ov1.0.0\.tar\.gz/ } @calls), 'Get latest release archive from github');
-    ok((any { /tar.*[xvf]+.*v1.0.0\.tar\.gz/ } @calls), 'Decompress the release archive');
+    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/v1.0.0\.tar\.gz.*-o \/tmp\/v1.0.0\.tar\.gz/ } @calls), 'Get latest release archive from github');
+    ok((any { /tar.*-C \/BRUCE.*-xvf \/tmp\/v1.0.0\.tar\.gz --strip-components=1/ } @calls), 'Decompress the release archive');
 };
 
 subtest '[qesap_get_deployment_code] empties and recreates deployment_dir' => sub {

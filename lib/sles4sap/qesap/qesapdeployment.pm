@@ -438,10 +438,10 @@ sub qesap_get_deployment_code {
             $ver_artifact = 'v' . get_var('QESAP_INSTALL_VERSION') . '.tar.gz';
         }
 
-        my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o$ver_artifact";
+        my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o /tmp/$ver_artifact";
         assert_script_run("set -o pipefail ; $curl_cmd | tee " . $qesap_git_clone_log, quiet => 1);
 
-        my $tar_cmd = "tar xvf $ver_artifact --strip-components=1";
+        my $tar_cmd = "tar -C $paths{deployment_dir} -xvf /tmp/$ver_artifact --strip-components=1";
         assert_script_run($tar_cmd);
     }
     else {
