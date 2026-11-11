@@ -76,7 +76,7 @@ sub set {
         # Fetches SSH key from Workload zone keyvault for accesssing SUTs
         {playbook_filename => 'pb_get-sshkey.yaml', timeout => 90},
         # Validate parameters
-        {playbook_filename => 'playbook_00_validate_parameters.yaml', timeout => 240},
+        {playbook_filename => 'playbook_00_validate_parameters.yaml', timeout => 600},
         # Base operating system configuration
         {playbook_filename => 'playbook_01_os_base_config.yaml'}
     );
