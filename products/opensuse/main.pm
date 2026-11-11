@@ -69,7 +69,7 @@ if ((is_leap("16.0+") || is_agama) && !$has_autologin) {
 
 # Preserve YaST in upgrades originating from openSUSE Leap 42.x or 15.x
 my $origin = get_var('HDD_1', '') . get_var('HDDVERSION', '') . get_var('ORIGINAL_VERSION', '');
-if (is_upgrade && $origin =~ /(?:15|42)\.\d/) {
+if (is_upgrade && $origin =~ /(?:15|42)\.\d/ && !is_leap('16+')) {
     set_var('HAS_YAST', 1) unless defined get_var('HAS_YAST');
 }
 
