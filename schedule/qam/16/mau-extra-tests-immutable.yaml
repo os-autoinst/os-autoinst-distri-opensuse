@@ -1,0 +1,20 @@
+---
+name: mau-extra-tests-immutable
+description: First set of CLI extratests
+  Exclude modules which cannot run in immutable
+  evolution_prepare_servers,mutt
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/openssl_nodejs
+  - console/chrony
+  - console/dnsmasq
+  - console/sshd
+  - console/cron
+  - console/mta
+  - console/oqa_agnostic/sudo_agnostic
+  - console/synce4l_gpsd
+  - network/samba/server
+  - console/networkmanager
