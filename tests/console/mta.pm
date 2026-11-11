@@ -22,7 +22,7 @@ sub run {
         # check if postfix is installed, enabled and running
         assert_script_run 'rpm -q postfix';
         systemctl 'is-enabled postfix';
-        script_retry 'systemctl is-active postfix', retry => 3, delay => 10;
+        script_retry 'systemctl is-active postfix', retry => 3, delay => 10, fail_message => 'Postfix did not become active';
         systemctl 'status postfix';
     } else {
         # Install and start postfix on Public Cloud/SlE 16+/Leap 16+ and Tumbleweed
@@ -33,24 +33,19 @@ sub run {
 
     record_info 'send email', 'send e-mail to a local user and check that it was delivered';
     assert_script_run 'echo "FOOBAR123" | mail root';
-    assert_script_run 'until postqueue -p|grep "Mail queue is empty";do sleep 1;done';
-    assert_script_run 'while postqueue -p|grep "1 Request";do sleep 1;done';
-    assert_script_run 'grep FOOBAR123 /var/mail/root';
+    # mail can return before postfix finishes delivery, so poll the mailbox
+    script_retry 'grep FOOBAR123 /var/mail/root', retry => 30, delay => 1, fail_message => 'Mail to root was not delivered';
 
     record_info 'send bad email', 'send e-mail to a non-existent local user and check that it was bounced';
     assert_script_run 'echo "FOOBAR456" | mail agent_smith';
-    assert_script_run 'until postqueue -p|grep "Mail queue is empty";do sleep 1;done';
-    assert_script_run 'while postqueue -p|grep "1 Request";do sleep 1;done';
-    assert_script_run 'grep "^Subject: Undelivered Mail Returned to Sender" /var/mail/root';
+    script_retry 'grep "^Subject: Undelivered Mail Returned to Sender" /var/mail/root', retry => 30, delay => 1, fail_message => 'Bounce was not delivered';
     assert_script_run 'journalctl -n1000 | grep "unknown user: \"agent_smith\""';
 
     record_info 'send attachement', 'Send mail with attachment';
     assert_script_run 'echo > /var/mail/root';
     assert_script_run 'dd bs=1024 count=10 if=/dev/urandom of=/tmp/foo';
     assert_script_run 'date | mail -a /tmp/foo -s "mail with attachement" root';
-    assert_script_run 'until postqueue -p|grep "Mail queue is empty";do sleep 1;done';
-    assert_script_run 'while postqueue -p|grep "1 Request";do sleep 1;done';
-    assert_script_run 'grep "^Subject: mail with attachement" /var/mail/root';
+    script_retry 'grep "^Subject: mail with attachement" /var/mail/root', retry => 30, delay => 1, fail_message => 'Mail with attachment was not delivered';
     assert_script_run 'echo w1 | mail';
     assert_script_run 'diff foo /tmp/foo';
 
@@ -58,9 +53,7 @@ sub run {
     assert_script_run 'newaliases';
     assert_script_run 'echo > /var/mail/root';
     assert_script_run 'echo "FOOBAR123" | mail nobody';
-    assert_script_run 'until postqueue -p|grep "Mail queue is empty";do sleep 1;done';
-    assert_script_run 'while postqueue -p|grep "1 Request";do sleep 1;done';
-    assert_script_run 'grep FOOBAR123 /var/mail/root';
+    script_retry 'grep FOOBAR123 /var/mail/root', retry => 30, delay => 1, fail_message => 'Mail to alias nobody was not delivered';
 }
 
 1;
