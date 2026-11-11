@@ -116,8 +116,8 @@ subtest '[qesap_get_deployment_code] symlinks' => sub {
 
     set_var('QESAP_DEPLOYMENT_DIR', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /ln.*-s.*aws.*ec2/ } @calls), 'Link AWS to EC2');
-    ok((any { /ln.*-s.*gcp.*gce/ } @calls), 'Link GCP to GCE');
+    ok((any { /ln.*-sfn.*aws.*ec2/ } @calls), 'Link AWS to EC2');
+    ok((any { /ln.*-sfn.*gcp.*gce/ } @calls), 'Link GCP to GCE');
 };
 
 subtest '[qesap_get_deployment_code] from fork' => sub {

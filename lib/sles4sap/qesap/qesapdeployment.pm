@@ -454,8 +454,8 @@ sub qesap_get_deployment_code {
         assert_script_run("set -o pipefail ; $git_clone_cmd  |& tee $qesap_git_clone_log", quiet => 1);
     }
     # Add symlinks for different provider directory naming between OpenQA and qesap-deployment
-    assert_script_run("ln -s " . $paths{terraform_dir} . "/aws " . $paths{terraform_dir} . "/ec2");
-    assert_script_run("ln -s " . $paths{terraform_dir} . "/gcp " . $paths{terraform_dir} . "/gce");
+    assert_script_run("ln -sfn " . $paths{terraform_dir} . "/aws " . $paths{terraform_dir} . "/ec2");
+    assert_script_run("ln -sfn " . $paths{terraform_dir} . "/gcp " . $paths{terraform_dir} . "/gce");
 }
 
 
