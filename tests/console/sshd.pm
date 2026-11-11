@@ -4,7 +4,7 @@
 # Copyright 2012-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: openssh expect netcat-openbsd psmisc shadow coreutils
+# Package: openssh netcat-openbsd psmisc shadow coreutils
 # Summary: Test to verify sshd starts and accepts connections.
 #  We need this test to succeed for followup tests using ssh localhost
 #  This regression test has also an interactive part (in VirtIO console)

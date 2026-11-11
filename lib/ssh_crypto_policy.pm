@@ -13,6 +13,7 @@ use utils;
 use strict;
 use warnings;
 use package_utils 'install_package';
+use version_utils 'is_transactional';
 
 sub new() {
     my ($class, %args) = @_;
@@ -38,7 +39,9 @@ sub create_host_key_algorithm_array() {
 
     # If nmap is not installed, install it
     if (script_run("which nmap")) {
-        install_package("nmap", trup_reboot => 1);
+        # nmap is only in the QA:Head repo on transactional images
+        zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa_head', no_gpg_check => 1) if is_transactional();
+        install_package("nmap", trup_apply => 1);
     }
 
     # Get all the algorithms supported by the server side
