@@ -98,6 +98,26 @@ sub _sanitize_gcp_label {
 Calculate tags to match CloudCustodian needs.
 Return a dictionary.
 
+B<openqa_created_date> is the creation time used by the CloudCustodian
+cleanup policies (C<value_type: age>, C<key: tag:openqa_created_date>).
+The value is in ISO 8601 basic format with an explicit UTC designator,
+e.g. C<20261110T030612Z>:
+
+=over
+
+=item * CloudCustodian parses it with C<dateutil>. A value without a timezone
+is read as the local time of the CloudCustodian host. A value it cannot
+parse is never matched, so the resource is never cleaned up.
+
+=item * The value uses only characters valid in tag values.
+
+=item * The basic format has no C<-> date separators, so YAML 1.1 parsers
+keep it as a string. The extended format (C<2026-11-10T03:06:12Z>) is
+converted to a date and written back with a space, which the tag
+validation of the deployment rejects.
+
+=back
+
 =cut
 
 sub qesap_get_public_cloud_tags {
@@ -115,7 +135,10 @@ sub qesap_get_public_cloud_tags {
         openqa_var_job_id => get_current_job_id(),
         openqa_var_name => $openqa_var_name,
         openqa_var_server => $openqa_var_server,
-        openqa_created_date => gmtime->datetime(),
+        # Read by CloudCustodian 'value_type: age' filters. The trailing 'Z'
+        # is required: a value without a timezone is read as the local time
+        # of the CloudCustodian host. See POD for the format details.
+        openqa_created_date => gmtime->strftime('%Y%m%dT%H%M%SZ'),
     );
     return %tags;
 }
