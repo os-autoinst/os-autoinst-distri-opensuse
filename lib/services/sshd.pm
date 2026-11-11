@@ -187,7 +187,6 @@ sub do_ssh_cleanup {
 
     # Kill $ssh_testman to stop all SSH sessions
     $run->("killall -u $ssh_testman || true");
-    wait_still_screen 3;
 
     record_info("Restart sshd", "Restart sshd.service");
     if ($args{ignore_failure}) {
@@ -210,7 +209,6 @@ sub run_ignoring_failure {
 sub check_function {
     ssh_basic_check();
 
-    wait_still_screen 3;
     systemctl("restart sshd");
 }
 
