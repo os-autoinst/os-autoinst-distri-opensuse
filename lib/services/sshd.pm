@@ -55,7 +55,8 @@ sub prepare_test_data {
     }
 
     # Install software needed for this test module
-    install_package("netcat-openbsd psmisc", trup_apply => 1);
+    my %install_opts = is_sle_micro('<6.0') ? (trup_reboot => 1) : (trup_apply => 1);
+    install_package("netcat-openbsd psmisc", %install_opts);
 
 }
 

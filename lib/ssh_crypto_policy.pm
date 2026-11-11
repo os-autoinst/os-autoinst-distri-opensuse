@@ -13,7 +13,7 @@ use utils;
 use strict;
 use warnings;
 use package_utils 'install_package';
-use version_utils 'is_transactional';
+use version_utils qw(is_sle_micro is_transactional);
 
 sub new() {
     my ($class, %args) = @_;
@@ -41,7 +41,8 @@ sub create_host_key_algorithm_array() {
     if (script_run("which nmap")) {
         # nmap is only in the QA:Head repo on transactional images
         zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa_head', no_gpg_check => 1) if is_transactional();
-        install_package("nmap", trup_apply => 1);
+        my %install_opts = is_sle_micro('<6.0') ? (trup_reboot => 1) : (trup_apply => 1);
+        install_package("nmap", %install_opts);
     }
 
     # Get all the algorithms supported by the server side
