@@ -246,6 +246,11 @@ subtest 'has_yast' => sub {
     set_var('HAS_YAST', '1');
     ok has_yast, "check has_yast with HAS_YAST=1";
 
+    set_var('HAS_YAST', undef);
+    set_var('DISTRI', 'opensuse');
+    set_var('VERSION', '16.0');
+    ok !has_yast, "Leap 16.X doesn't have yast in patterns_base";
+
     set_var('DISTRI', 'sle');
     set_var('VERSION', '15-SP6');
     ok has_yast, "SLE 15-SP6 has yast in patterns_base";
