@@ -26,7 +26,8 @@ sub run {
     $self->{runtime} = $engine;
     reset_container_network_if_needed($runtime);
 
-    my $image = get_var("CONTAINER_IMAGE_TO_TEST", is_opensuse ? "registry.opensuse.org/opensuse/tumbleweed:latest" : "registry.suse.com/bci/bci-base:latest");
+    # The image must have the mount binary
+    my $image = get_var("CONTAINER_IMAGE_TO_TEST", is_opensuse ? "registry.opensuse.org/opensuse/tumbleweed:latest" : "registry.suse.com/bci/bci-base:15.7");
     script_retry("$runtime pull $image", timeout => 300, delay => 120, retry => 3);
 
     record_info('Test', 'Launch a container with privileged mode');
