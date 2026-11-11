@@ -372,6 +372,7 @@ subtest '[ipaddr2_bastion_sshd_override]' => sub {
     is($ret, 0, 'Return 0 on success');
     ok((scalar @calls eq 5), "Exactly 5 calls and get " . (scalar @calls));
     ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
+    ok((none { /-J / } @calls), 'Commands run on the bastion itself');
     ok((any { /cp \/usr\/etc\/ssh\/sshd_config/ } @calls), 'sshd_config seeded from /usr/etc');
     ok((any { /1i Banner none/ } @calls), 'Banner none prepended');
     ok((any { /1i AllowTcpForwarding yes/ } @calls), 'AllowTcpForwarding yes prepended');
@@ -381,6 +382,8 @@ subtest '[ipaddr2_bastion_sshd_override]' => sub {
 };
 
 subtest '[ipaddr2_bastion_sshd_override] missing bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return; });
     throws_ok { ipaddr2_bastion_sshd_override() } qr/bastion_ip/, 'Croak if bastion IP is missing';
 };
 
@@ -394,6 +397,62 @@ subtest '[ipaddr2_bastion_sshd_override] stop at the first failure' => sub {
 
     is($ret, 3, 'Return the exit code of the failing command');
     ok((scalar @calls eq 2), "Stop after the failure: " . (scalar @calls) . ' calls');
+};
+
+subtest '[ipaddr2_bastion_sshd_override] no Azure query for the bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(script_run => sub { return 0; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { die 'ipaddr2_bastion_pubip must not be called'; });
+    is(ipaddr2_bastion_sshd_override(bastion_ip => '1.2.3.4'), 0, 'Return 0 on success');
+};
+
+subtest '[ipaddr2_internal_sshd_override]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+
+    my $ret = ipaddr2_internal_sshd_override(bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($ret, 0, 'Return 0 on success');
+    ok((scalar @calls eq 10), "Exactly 10 calls, 5 per VM, and get " . (scalar @calls));
+    ok((all { /-J .*1\.2\.3\.4/ } @calls), 'All commands go through the bastion');
+    ok((all { /\.41 / } @calls[0 .. 4]), 'First 5 commands target internal VM 1');
+    ok((all { /\.42 / } @calls[5 .. 9]), 'Last 5 commands target internal VM 2');
+    ok((any { /1i Banner none/ } @calls), 'Banner none prepended');
+    ok((any { /1i AllowTcpForwarding yes/ } @calls), 'AllowTcpForwarding yes prepended');
+    like($calls[4], qr/systemctl reload sshd/, 'sshd reloaded last on VM 1');
+    like($calls[9], qr/systemctl reload sshd/, 'sshd reloaded last on VM 2');
+};
+
+subtest '[ipaddr2_internal_sshd_override] missing bastion IP' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return; });
+    throws_ok { ipaddr2_internal_sshd_override() } qr/bastion_ip/, 'Croak if bastion IP is missing';
+};
+
+subtest '[ipaddr2_internal_sshd_override] stop at the first failure' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return (scalar @calls == 3) ? 2 : 0; });
+
+    my $ret = ipaddr2_internal_sshd_override(bastion_ip => '1.2.3.4');
+
+    is($ret, 2, 'Return the exit code of the failing command');
+    ok((scalar @calls eq 3), "Stop after the failure, VM 2 not touched: " . (scalar @calls) . ' calls');
+};
+
+subtest '[ipaddr2_internal_sshd_override] ssh timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; die 'command timed out'; });
+
+    my $ret = ipaddr2_internal_sshd_override(bastion_ip => '1.2.3.4');
+
+    is($ret, 1, 'Timeout reported as failure, not as success');
+    ok((scalar @calls eq 1), 'Stop after the first timeout');
 };
 
 subtest '[ipaddr2_ssh_bastion_script_run]' => sub {
