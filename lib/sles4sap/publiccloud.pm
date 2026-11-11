@@ -186,7 +186,6 @@ sub run_cmd_retry {
         type_string('', terminate_with => 'ETX') if $args{ssh_keepalive};
 
         sleep $delay;
-        record_soft_failure('jsc#TEAM-10485 SSH timeout or failure, retrying');
     }
     return $ret if $proceed_on_failure;
     die('Maximum number of SSH retry attempts exceeded');
@@ -373,7 +372,7 @@ sub is_hana_online {
 
 =item B<quiet> - if set, returns the value without recording info (default: 0)
 
-=back  
+=back
 =cut
 
 sub is_hana_resource_running {
