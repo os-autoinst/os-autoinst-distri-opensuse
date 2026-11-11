@@ -51,6 +51,7 @@ sub run {
         logname => 'qesap_exec_ansible_test.log.txt',
         timeout => 300);
     record_info('ANSIBLE RESULT', "ret0:$ret[0] ret1:$ret[1]");
+    qesap_ansible_softfail(logfile => $ret[1]);
     die "Ansible prevalidate failed: $ret[0]" if $ret[0];
 
     qesap_ansible_cmd(cmd => 'ls -lai /hana/', provider => $provider_setting, filter => 'hana');
