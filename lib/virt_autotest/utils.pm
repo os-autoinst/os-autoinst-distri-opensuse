@@ -74,6 +74,7 @@ our @EXPORT = qw(
   manage_system_service
   check_port_state
   is_registered_sles
+  is_registered_agama
   is_registered_system
   do_system_registration
   check_system_registration
@@ -285,7 +286,27 @@ sub get_expected_host_version {
 # MU incident (:smelt:46973:kernel-azure).
 sub get_expected_host_build {
     return if get_var('AFTER_UPGRADE');
-    return if get_var('VERSION_TO_INSTALL', get_var('VERSION')) ne get_var('VERSION');
+    # For host installed from non-developing version, VERSION is usually reset
+    # in modules setup_upgrade_env.pm or products/sle/main.pm, and it can be
+    # categorized into following two scenarios:
+    # 1. For upgrade scenario, VERSION is usually set to VERSION_UPGRADE_FROM
+    # or VERSION_TO_INSTALL at certain stage which indicates no build number
+    # for the host because it runs non-developing version at these stages.
+    if (get_var('VERSION_UPGRADE_FROM')) {
+        return
+          if (get_var('VERSION_TO_INSTALL', get_required_var('VERSION_UPGRADE_FROM'))
+            eq get_required_var('VERSION'));
+    }
+    # 2. For non-upgrade and non-developing scenario, host only runs version
+    # VERSION_TO_INSTALL which indicates non-developing and no build number.
+    elsif (get_var('REPO_0_TO_INSTALL')) {
+        return
+          if (get_required_var('VERSION_TO_INSTALL')
+            ne get_var('TARGET_DEVELOPING_VERSION', get_required_var('VERSION')));
+    }
+    # Host installed with INST_INSTALL_URL and without AGAMA_FORCE_REGISTER
+    # from agama installer has no build number.
+    return if !is_registered_agama();
     my $build = get_var('BUILD', '');
     return unless $build =~ /^\d+\.\d+$/;
     return $build;
@@ -1451,6 +1472,12 @@ sub is_registered_sles {
     else {
         return 1;
     }
+}
+
+#Detect whether SUT host is installed with agama and registration
+sub is_registered_agama {
+    my $registered = (is_agama and get_var('INST_INSTALL_URL') and !get_var('AGAMA_FORCE_REGISTER')) ? 0 : 1;
+    return $registered;
 }
 
 =head2 is_registered_system
