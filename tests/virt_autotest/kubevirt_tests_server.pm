@@ -131,7 +131,9 @@ sub rke2_server_setup {
     assert_script_run("echo '$rke2_bin_path' >> \$HOME/.bashrc; source \$HOME/.bashrc");
 
     # For network multus backend testing
-    assert_script_run("sed -i '/ExecStart=/s/server\$/server --cni=multus,canal/' /etc/systemd/system/rke2-server.service");
+    # Current rke2 keeps the unit under /usr/local/lib/systemd/system (older builds drop it in /etc), so resolve the real unit file
+    my $rke2_server_unit = script_output('systemctl show -p FragmentPath --value rke2-server.service');
+    assert_script_run("sed -i '/ExecStart=/s/server\$/server --cni=multus,canal/' $rke2_server_unit");
 
     # Setup cnv-bridge containernetworking plugin
     $self->install_cni_plugins();
@@ -837,7 +839,7 @@ sub post_fail_hook {
     select_console 'log-console';
     save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
     save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
-    save_and_upload_systemd_unit_log('rke2-server.service');
+    $self->save_and_upload_systemd_unit_log('rke2-server.service');
 }
 
 1;
