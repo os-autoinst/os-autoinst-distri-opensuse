@@ -65,6 +65,21 @@ In cases of ambiguous responses, they are considered to be in `running` state.</
 
 <p>Calculate tags to match CloudCustodian needs. Return a dictionary.</p>
 
+<p><b>openqa_created_date</b> is the creation time used by the CloudCustodian cleanup policies (<code>value_type: age</code>, <code>key: tag:openqa_created_date</code>). The value is in ISO 8601 basic format with an explicit UTC designator, e.g. <code>20261110T030612Z</code>:</p>
+
+<ul>
+
+<li><p>CloudCustodian parses it with <code>dateutil</code>. A value without a timezone is read as the local time of the CloudCustodian host. A value it cannot parse is never matched, so the resource is never cleaned up.</p>
+
+</li>
+<li><p>The value uses only characters valid in tag values.</p>
+
+</li>
+<li><p>The basic format has no <code>-</code> date separators, so YAML 1.1 parsers keep it as a string. The extended format (<code>2026-11-10T03:06:12Z</code>) is converted to a date and written back with a space, which the tag validation of the deployment rejects.</p>
+
+</li>
+</ul>
+
 
 </body>
 
