@@ -166,7 +166,9 @@ sub check_service_status {
 sub set_cpu_manager_policy {
     my $self = shift;
     # Set static policy for CPU Manager
-    assert_script_run("sed -i '/ExecStart=/s/agent\$/agent --kubelet-arg cpu-manager-policy=static --kubelet-arg kube-reserved=cpu=500m --kubelet-arg system-reserved=cpu=500m/' /etc/systemd/system/rke2-agent.service");
+    # Current rke2 keeps the unit under /usr/local/lib/systemd/system (older builds drop it in /etc), so resolve the real unit file
+    my $rke2_agent_unit = script_output('systemctl show -p FragmentPath --value rke2-agent.service');
+    assert_script_run("sed -i '/ExecStart=/s/agent\$/agent --kubelet-arg cpu-manager-policy=static --kubelet-arg kube-reserved=cpu=500m --kubelet-arg system-reserved=cpu=500m/' $rke2_agent_unit");
     assert_script_run("rm /var/lib/kubelet/cpu_manager_state");
     systemctl("daemon-reload");
 }
@@ -177,7 +179,7 @@ sub post_fail_hook {
     select_console 'log-console';
     save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
     save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
-    save_and_upload_systemd_unit_log('rke2-agent.service');
+    $self->save_and_upload_systemd_unit_log('rke2-agent.service');
 }
 
 1;
