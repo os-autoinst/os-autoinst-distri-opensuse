@@ -27,6 +27,13 @@ sub run {
     type_string $testapi::password;
     send_key 'ret';
 
+    unless (check_screen 'login-1') {
+        # Input the encryption passphrase again
+        assert_screen 'aeon-boot-enter-passphrase';
+        type_string $testapi::password;
+        send_key 'ret';
+    }
+
     # Aeon will boot and show the login screen
     assert_screen 'login-1', 600;
     assert_and_click 'login-1';
