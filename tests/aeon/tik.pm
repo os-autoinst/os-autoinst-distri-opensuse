@@ -21,7 +21,7 @@ sub run {
     send_key 'esc';
 
     # press "Install Now"
-    send_key 'ret';
+    assert_and_click 'tik-welcome-2';
 
     # ignore warning about tpm
     assert_screen 'tik-warning-no-tpm';
