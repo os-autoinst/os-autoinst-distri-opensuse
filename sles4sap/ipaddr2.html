@@ -1143,7 +1143,7 @@
 </dd>
 </dl>
 
-<p>The function does not die for the failure of a single log: each failure is recorded with record_info and the collection goes on with the next log. If the bastion is not reachable, the logs on the internal VMs are skipped and only the logs on the worker are collected. Return 1 if all the logs are collected, 0 otherwise.</p>
+<p>The function does not die for the failure of a single log: each failure is recorded with record_info and the collection goes on with the next log. The remote logs are collected one VM at a time: all the logs of VM 1, then all the logs of VM 2. If a command on a VM times out, or ssh fails with exit code 255 (connection, jump host, login or host key problem), the VM is considered unreachable: the remaining logs of that VM are skipped and the collection goes on with the next VM. Any other failure of a command only affects its own log. If the bastion is not reachable, the logs on the internal VMs are skipped and only the logs on the worker are collected. Return 1 if all the logs are collected, 0 otherwise.</p>
 
 <h2 id="ipaddr2_azure_cli_logs">_ipaddr2_azure_cli_logs</h2>
 
