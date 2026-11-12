@@ -373,7 +373,7 @@ sub deploy_kubevirt_manifests {
 
         # The versioned CDI manifests RPM installs under /usr/share/cdi-<version> and
         # references a quay.io tag upstream never published (its tags are 'v'-prefixed),
-        # so rewrite the operator image to the SUSE build like the kubevirt one
+        # so rewrite every cdi-* image reference to the SUSE builds like the kubevirt one
         die "Unexpected CDI manifests package name: $cdi_manifests_pkg" unless $cdi_manifests_pkg =~ /containerized-data-importer([0-9.]+)-manifests/;
         assert_script_run("cp /usr/share/cdi-$1/manifests/release/cdi-operator.yaml /usr/share/cdi-$1/manifests/release/cdi-cr.yaml .");
         $cdi_operator_manifest = 'cdi-operator.yaml';
@@ -383,7 +383,12 @@ sub deploy_kubevirt_manifests {
         my $cdi_tag = script_output(qq(curl -s -H "Authorization: Bearer $cdi_token" https://registry.suse.com/v2/$cdi_repo/tags/list | jq -r '.tags[]' | grep -E '^$cdi_ver-[0-9.]+\$' | sort -V | tail -1));
         die "No cdi-operator tag found for CDI $cdi_ver in registry.suse.com/$cdi_repo" unless $cdi_tag;
         record_info('cdi-operator image', "registry.suse.com/$cdi_repo:$cdi_tag");
-        assert_script_run(qq(sed -i "s#quay.io/kubevirt/cdi-operator:$cdi_ver#registry.suse.com/$cdi_repo:$cdi_tag#" cdi-operator.yaml));
+        # The manifests carry the non-v quay tag on the operator image: line AND in
+        # the CONTROLLER/IMPORTER/CLONER/OVIRT_POPULATOR/APISERVER/UPLOAD_SERVER/
+        # UPLOAD_PROXY env values; rewrite every cdi-* reference component-wise so
+        # no operand is left pointing at a tag quay never published
+        assert_script_run(qq(sed -E -i "s#quay\\.io/kubevirt/(cdi-[a-z-]+):$cdi_ver#registry.suse.com/suse/sles/$os_version/\\1:$cdi_tag#g" cdi-operator.yaml));
+        assert_script_run("! grep -q \"quay.io/kubevirt/cdi-.*:$cdi_ver\" cdi-operator.yaml");
 
         $operator_manifest = 'kubevirt-operator.yaml';
         $cr_manifest = 'kubevirt-cr.yaml';
