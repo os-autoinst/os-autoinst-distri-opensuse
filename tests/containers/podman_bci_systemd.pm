@@ -22,7 +22,7 @@ sub run {
     record_info("Podman version", script_output("podman version"));
 
     record_info('Test', 'Launch a container with systemd');
-    my $image = is_opensuse ? "registry.opensuse.org/opensuse/bci/bci-init" : "registry.suse.com/bci/bci-init:latest";
+    my $image = is_opensuse ? "registry.opensuse.org/opensuse/bci/bci-init" : "registry.suse.com/bci/bci-init:15.7";
     assert_script_run("podman run -d -p 80:80 --health-cmd='curl http://localhost' --name nginx $image");
 
     record_info('Test', 'Install nginx');
