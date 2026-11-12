@@ -158,7 +158,7 @@ sub ssh_assert_script_run {
 
 =head2 ssh_script_output
 
-    ssh_script_output($script [, $wait, type_command => 1, proceed_on_failure => 1] [,quiet => $quiet] [,ssh_opts => $ssh_opts] [,username => $username])
+    ssh_script_output($script [, $wait, type_command => 1, proceed_on_failure => 1] [,quiet => $quiet] [,ssh_opts => $ssh_opts] [,username => $username] [,apply_graceful_timeout => $apply_graceful_timeout])
 
 Executing script inside SUT with bash -eo and directs stdout (but not stderr!) to the serial console and
 returns the output if the script exits with 0. Otherwise the test is set to failed.
@@ -168,6 +168,7 @@ sub ssh_script_output {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
     my $ssh_cmd = $self->_prepare_ssh_cmd(%args);
+    $self->_wrap_timeout(\%args, \$ssh_cmd);
     delete($args{cmd});
     delete($args{ssh_opts});
     delete($args{username});

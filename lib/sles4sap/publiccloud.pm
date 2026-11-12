@@ -435,13 +435,18 @@ sub wait_hana_node_up {
     while ((time() - $start_time) < $args{timeout}) {
         $out = $instance->ssh_script_output(
             cmd => 'sudo systemctl is-system-running',
-            # timeout must be enough for ssh handshake to not kill the test
-            timeout => 30,
+            # timeout (>15x3) must be enough for ssh handshake to not kill the test
+            timeout => 60,
             ssh_opts => $ssh_opts,
-            proceed_on_failure => 1);
+            proceed_on_failure => 1,
+            apply_graceful_timeout => 1);
         return if ($out =~ m/running/);
         if ($out =~ m/degraded/) {
-            my $failed_service = $instance->ssh_script_output(cmd => 'sudo systemctl --failed', timeout => 600, proceed_on_failure => 1);
+            my $failed_service = $instance->ssh_script_output(
+                cmd => 'sudo systemctl --failed',
+                timeout => 600,
+                proceed_on_failure => 1,
+                apply_graceful_timeout => 1);
             if ($out =~ /degraded/ && $failed_service =~ /guestregister/) {
                 record_soft_failure('bsc#1238152 - Restart guestregister service');
                 $instance->ssh_script_run(cmd => 'sudo systemctl restart guestregister.service', timeout => 600, apply_graceful_timeout => 1);
