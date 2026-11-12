@@ -92,6 +92,34 @@ subtest '[ssh_script_output] strips trailing connection-closed line' => sub {
     unlike($out, qr/Connection to .* closed/, 'strips connection-closed trailer');
 };
 
+subtest '[ssh_script_output] handles apply_graceful_timeout' => sub {
+    my $instance = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my ($seen_cmd, %seen_args);
+    $instance->redefine(script_output => sub {
+            my ($c, %a) = @_;
+            $seen_cmd = $c;
+            %seen_args = %a;
+            return "fake output\n";
+    });
+
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.9', username => 'bob');
+
+    # With apply_graceful_timeout => 1
+    my $timeout = 60;
+    $inst->ssh_script_output(cmd => 'systemctl is-system-running', timeout => $timeout, apply_graceful_timeout => 1);
+    like($seen_cmd, qr/^timeout --foreground -k 10s $timeout /, 'has timeout prefix with apply_graceful_timeout');
+    like($seen_cmd, qr/bob\@10\.0\.0\.9/, 'the instance IP in ssh command');
+    is($seen_args{timeout}, $timeout + 20, "$timeout + 20 passes to script_output");
+    ok(!exists $seen_args{apply_graceful_timeout}, 'apply_graceful_timeout gets deleted');
+
+    # Without apply_graceful_timeout (timeout unchanged)
+    ($seen_cmd, %seen_args) = ();
+    $inst->ssh_script_output(cmd => 'systemctl is-system-running', timeout => $timeout);
+    unlike($seen_cmd, qr/^timeout /, 'no timeout prefix without apply_graceful_timeout');
+    like($seen_cmd, qr/^ssh /, 'command starts with bare ssh');
+    is($seen_args{timeout}, $timeout, "$timeout is not changed");
+};
+
 subtest '[scp] composes scp command and rewrites only remote: paths' => sub {
     # remote: is rewritten to the instance identity (user@public_ip:), while
     # local paths and an explicit user@host are passed through verbatim. -E is
