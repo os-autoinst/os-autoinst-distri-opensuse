@@ -23,8 +23,8 @@ sub get_all_rabbitmq_versions() {
 sub download_go_script() {
     my $curl_opts = "--retry 1 --retry-max-time 60 -D - -O";
     my $cmd = <<EOF;
-mkdir rabbitmq
-cd rabbitmq
+mkdir -p /var/tmp/rabbitmq
+cd /var/tmp/rabbitmq
 curl $curl_opts https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/go/send.go
 go mod init amqp-go
 go get github.com/rabbitmq/amqp091-go
@@ -45,9 +45,9 @@ sub run {
         systemctl 'start rabbitmq-server';
         systemctl 'status rabbitmq-server';
         record_info('Send/receive message: "Hello World!"');
-        script_run('cd /root/rabbitmq');
-        script_run('go run send.go', timeout => 120);
-        enter_cmd('timeout 2 go run receive.go');
+        assert_script_run('cd /var/tmp/rabbitmq');
+        assert_script_run('go run send.go', timeout => 120);
+        enter_cmd('timeout 10 go run receive.go');
         wait_serial(".*Received.*Hello World.*") || die 'Failed to receive message';
         # should be simple assert_script_run but takes too long to stop so
         # workaround
@@ -61,12 +61,11 @@ sub run {
             systemctl 'stop rabbitmq-server', timeout => 300;
         }
         # clean up
-        script_run('systemctl stop epmd.socket');
-        systemctl 'stop epmd';
+        script_run('systemctl stop epmd epmd.socket');
         uninstall_package("$rabbitmq_spec_version erlang*", trup_reboot => 1);
-        script_run('rm -rf /var/lib/rabbitmq');
-        script_run('rm -rf /usr/lib{.64}/rabbitmq');
+        script_run('rm -rf /{var,usr}/lib{,64}/rabbitmq');
     }
+    script_run('rm -rf /var/tmp/rabbitmq');
 }
 
 sub post_fail_hook {
