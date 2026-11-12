@@ -59,7 +59,6 @@ use constant QESAPDEPLOY_PY_DEFAULT_VER => '3.11';
 
 our @EXPORT = qw(
   qesap_upload_logs
-  qesap_get_deployment_code
   qesap_get_roles_code
   qesap_get_inventory
   qesap_get_nodes_number
@@ -403,12 +402,35 @@ sub qesap_upload_logs {
     }
 }
 
+=head3 qesap_get_latest_version
+
+    Queries GitHub for the latest release tag of qe-sap-deployment
+    and returns the parsed version string.
+=cut
+
+sub qesap_get_latest_version {
+    my $official_repo = 'github.com/SUSE/qe-sap-deployment';
+    my $latest_release_url = "https://$official_repo/releases/latest";
+    my $redirect_url = script_output("curl -s -L -o /dev/null -w %{url_effective} $latest_release_url");
+    die "Failed to parse the latest version from $redirect_url" if ($redirect_url !~ /\/tag\/v([0-9.]+)$/);
+    my $version = $1;
+    record_info("Version latest", "Latest QE-SAP-DEPLOYMENT release used: $version");
+    return $version;
+}
+
 =head3 qesap_get_deployment_code
 
     Get the qe-sap-deployment code
+
+=over
+
+=item B<VERSION> - optional release version tag to install (e.g. 'latest', '2.6.15')
+
+=back
 =cut
 
 sub qesap_get_deployment_code {
+    my (%args) = @_;
     my $official_repo = 'github.com/SUSE/qe-sap-deployment';
     my $qesap_git_clone_log = '/tmp/git_clone.txt';
     my %paths = qesap_get_paths();
@@ -434,21 +456,11 @@ sub qesap_get_deployment_code {
     push(@log_files, $qesap_git_clone_log);
 
     # Script from a release
-    if (get_var('QESAP_INSTALL_VERSION')) {
+    if ($args{version}) {
         record_info('WARNING', 'QESAP_INSTALL_GITHUB_REPO will be ignored') if (get_var('QESAP_INSTALL_GITHUB_REPO'));
         record_info('WARNING', 'QESAP_INSTALL_GITHUB_BRANCH will be ignored') if (get_var('QESAP_INSTALL_GITHUB_BRANCH'));
-        my $ver_artifact;
-        if (check_var('QESAP_INSTALL_VERSION', 'latest')) {
-            my $latest_release_url = "https://$official_repo/releases/latest";
-            my $redirect_url = script_output("curl -s -L -o /dev/null -w %{url_effective} $latest_release_url");
-            die "Failed to parse the latest version from $redirect_url" if ($redirect_url !~ /\/tag\/v([0-9.]+)$/);
-            my $version = $1;
-            $ver_artifact = "v$version.tar.gz";
-            record_info("Version latest", "Latest QE-SAP-DEPLOYMENT release used: $version");
-        }
-        else {
-            $ver_artifact = 'v' . get_var('QESAP_INSTALL_VERSION') . '.tar.gz';
-        }
+        $args{version} = qesap_get_latest_version() if ($args{version} eq 'latest');
+        my $ver_artifact = "v$args{version}.tar.gz";
 
         my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o /tmp/$ver_artifact";
         assert_script_run("set -o pipefail ; $curl_cmd | tee " . $qesap_git_clone_log, quiet => 1);
@@ -894,7 +906,7 @@ sub qesap_prepare_env {
     unless ($args{only_configure}) {
         die "Missing mandatory qesap_conf_src from qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
         qesap_create_folder_tree();
-        qesap_get_deployment_code();
+        qesap_get_deployment_code(version => get_var('QESAP_INSTALL_VERSION'));
         qesap_get_roles_code();
         qesap_pip_install();
         # for the moment run it only conditionally

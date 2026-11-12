@@ -79,40 +79,50 @@ subtest '[qesap_get_inventory] lower case' => sub {
     is $inventory_path, '/BRUCE/nemo/inventory.yaml', "inventory_path:$inventory_path is the expected one";
 };
 
-subtest '[qesap_get_deployment_code] from default github' => sub {
+sub create_qesap_prepare_env_deployment_code_mocks {
+    my ($calls) = @_;
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    my @calls;
+    $qesap->redefine(data_url => sub { return '/TORNADO'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(enter_cmd => sub { push @$calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @$calls, $_[0]; });
+    $qesap->redefine(script_run => sub { push @$calls, $_[0]; return 0; });
+    $qesap->redefine(qesap_get_variables => sub { return {}; });
+    $qesap->redefine(qesap_create_folder_tree => sub { return; });
+    $qesap->redefine(qesap_get_roles_code => sub { return; });
+    $qesap->redefine(qesap_pip_install => sub { return; });
+    $qesap->redefine(qesap_galaxy_install => sub { return; });
+    $qesap->redefine(qesap_yaml_replace => sub { return; });
+    $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->redefine(qesap_get_terraform_dir => sub { return '/BRUCE/OCEAN'; });
+    $qesap->redefine(qesap_execute => sub { return (0, 'ALL GOOD'); });
     $qesap->redefine(qesap_get_paths => sub {
-            my %paths;
-            $paths{deployment_dir} = '/BRUCE';
-            $paths{terraform_dir} = '/BRUCE/OCEAN';
-            return (%paths);
+            return (
+                deployment_dir => '/BRUCE',
+                terraform_dir => '/BRUCE/OCEAN',
+                roles_dir => '/BRUCE_ROLES',
+                roles_dir_path => '/BRUCE_ROLES/roles',
+            );
     });
+    return $qesap;
+}
 
-    qesap_get_deployment_code();
+subtest '[qesap_prepare_env] deployment code from default github' => sub {
+    my @calls;
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
+
+    qesap_prepare_env(provider => 'DONALDUCK');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /git.*clone.*github.*com\/SUSE\/qe-sap-deployment.*\/BRUCE/ } @calls), 'Default repo cloned in /BRUCE');
 };
 
-subtest '[qesap_get_deployment_code] symlinks' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+subtest '[qesap_prepare_env] deployment code symlinks' => sub {
     my @calls;
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_paths => sub {
-            my %paths;
-            $paths{deployment_dir} = '/BRUCE';
-            $paths{terraform_dir} = '/BRUCE/OCEAN';
-            return (%paths);
-    });
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
     set_var('QESAP_DEPLOYMENT_DIR', '/DORY');
 
-    qesap_get_deployment_code();
+    qesap_prepare_env(provider => 'DONALDUCK');
 
     set_var('QESAP_DEPLOYMENT_DIR', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -120,22 +130,13 @@ subtest '[qesap_get_deployment_code] symlinks' => sub {
     ok((any { /ln.*-sfn.*gcp.*gce/ } @calls), 'Link GCP to GCE');
 };
 
-subtest '[qesap_get_deployment_code] from fork' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+subtest '[qesap_prepare_env] deployment code from fork' => sub {
     my @calls;
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_paths => sub {
-            my %paths;
-            $paths{deployment_dir} = '/BRUCE';
-            $paths{terraform_dir} = '/BRUCE/OCEAN';
-            return (%paths);
-    });
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
     set_var('QESAP_DEPLOYMENT_DIR', '/DORY');
     set_var('QESAP_INSTALL_GITHUB_REPO', 'WHALE');
 
-    qesap_get_deployment_code();
+    qesap_prepare_env(provider => 'DONALDUCK');
 
     set_var('QESAP_DEPLOYMENT_DIR', undef);
     set_var('QESAP_INSTALL_GITHUB_REPO', undef);
@@ -143,22 +144,13 @@ subtest '[qesap_get_deployment_code] from fork' => sub {
     ok((any { /git.*clone.*https:\/\/WHALE.*/ } @calls), 'Clone from fork WHALE');
 };
 
-subtest '[qesap_get_deployment_code] from branch' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+subtest '[qesap_prepare_env] deployment code from branch' => sub {
     my @calls;
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_paths => sub {
-            my %paths;
-            $paths{deployment_dir} = '/BRUCE';
-            $paths{terraform_dir} = '/BRUCE/OCEAN';
-            return (%paths);
-    });
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
     set_var('QESAP_DEPLOYMENT_DIR', '/DORY');
     set_var('QESAP_INSTALL_GITHUB_BRANCH', 'TED');
 
-    qesap_get_deployment_code();
+    qesap_prepare_env(provider => 'DONALDUCK');
 
     set_var('QESAP_DEPLOYMENT_DIR', undef);
     set_var('QESAP_INSTALL_GITHUB_BRANCH', undef);
@@ -166,23 +158,14 @@ subtest '[qesap_get_deployment_code] from branch' => sub {
     ok((any { /git.*clone.*--branch.*TED/ } @calls), 'Checkout expected branch');
 };
 
-subtest '[qesap_get_deployment_code] from a specific release' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+subtest '[qesap_prepare_env] deployment code from a specific release' => sub {
     my @calls;
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_paths => sub {
-            my %paths;
-            $paths{deployment_dir} = '/BRUCE';
-            $paths{terraform_dir} = '/BRUCE/OCEAN';
-            return (%paths);
-    });
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
     set_var('QESAP_INSTALL_VERSION', 'CORAL');
     # set to test that it is ignored
     set_var('QESAP_INSTALL_GITHUB_REPO', 'WHALE');
 
-    qesap_get_deployment_code();
+    qesap_prepare_env(provider => 'DONALDUCK');
 
     set_var('QESAP_INSTALL_VERSION', undef);
     set_var('QESAP_INSTALL_GITHUB_REPO', undef);
@@ -191,24 +174,15 @@ subtest '[qesap_get_deployment_code] from a specific release' => sub {
     ok((any { /tar.*-C \/BRUCE.*-xvf \/tmp\/vCORAL\.tar\.gz --strip-components=1/ } @calls), 'Decompress the release archive');
 };
 
-subtest '[qesap_get_deployment_code] from the latest release' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+subtest '[qesap_prepare_env] deployment code from the latest release' => sub {
     my @calls;
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
     $qesap->redefine(script_output => sub { return "MYGITHUBREPO/tag/v1.0.0" });
-    $qesap->redefine(qesap_get_paths => sub {
-            my %paths;
-            $paths{deployment_dir} = '/BRUCE';
-            $paths{terraform_dir} = '/BRUCE/OCEAN';
-            return (%paths);
-    });
     set_var('QESAP_INSTALL_VERSION', 'latest');
     # set to test that it is ignored
     set_var('QESAP_INSTALL_GITHUB_REPO', 'WHALE');
 
-    qesap_get_deployment_code();
+    qesap_prepare_env(provider => 'DONALDUCK');
 
     set_var('QESAP_INSTALL_VERSION', undef);
     set_var('QESAP_INSTALL_GITHUB_REPO', undef);
@@ -217,12 +191,20 @@ subtest '[qesap_get_deployment_code] from the latest release' => sub {
     ok((any { /tar.*-C \/BRUCE.*-xvf \/tmp\/v1.0.0\.tar\.gz --strip-components=1/ } @calls), 'Decompress the release archive');
 };
 
-subtest '[qesap_get_deployment_code] empties and recreates deployment_dir' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+subtest '[qesap_prepare_env] deployment code dies when latest tag cannot be parsed' => sub {
     my @calls;
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
+    $qesap->redefine(script_output => sub { return "MYGITHUBREPO/unexpected/url" });
+    set_var('QESAP_INSTALL_VERSION', 'latest');
+
+    throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/Failed to parse the latest version/, 'Dies when latest tag cannot be parsed';
+
+    set_var('QESAP_INSTALL_VERSION', undef);
+};
+
+subtest '[qesap_prepare_env] deployment code empties and recreates deployment_dir' => sub {
+    my @calls;
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
     $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/CUSTOM_DEPLOY_DIR';
@@ -230,7 +212,7 @@ subtest '[qesap_get_deployment_code] empties and recreates deployment_dir' => su
             return (%paths);
     });
 
-    qesap_get_deployment_code();
+    qesap_prepare_env(provider => 'DONALDUCK');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     is $calls[0], 'rm -rf /CUSTOM_DEPLOY_DIR', 'Removes existing deployment_dir first';
@@ -238,59 +220,60 @@ subtest '[qesap_get_deployment_code] empties and recreates deployment_dir' => su
     is $calls[2], 'cd /CUSTOM_DEPLOY_DIR', 'Changes directory into deployment_dir';
 };
 
-subtest '[qesap_get_deployment_code] dies when deployment_dir is missing or empty' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+subtest '[qesap_prepare_env] deployment code dies when deployment_dir is missing or empty' => sub {
+    my @calls;
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
+    $qesap->redefine(qesap_get_file_paths => sub {
+            return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => undef, qesap_conf_trgt => undef, qesap_conf_src => '/src');
+    });
     $qesap->redefine(qesap_get_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => undef);
     });
-    throws_ok { qesap_get_deployment_code() } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is undef';
+    throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is undef';
 
+    $qesap->redefine(qesap_get_file_paths => sub {
+            return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '', qesap_conf_trgt => '/target', qesap_conf_src => '/src');
+    });
     $qesap->redefine(qesap_get_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '');
     });
-    throws_ok { qesap_get_deployment_code() } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is empty string';
+    throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is empty string';
 
+    $qesap->redefine(qesap_get_file_paths => sub {
+            return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '   ', qesap_conf_trgt => '/target', qesap_conf_src => '/src');
+    });
     $qesap->redefine(qesap_get_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '   ');
     });
-    throws_ok { qesap_get_deployment_code() } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is whitespace';
+    throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is whitespace';
 };
 
-subtest '[qesap_get_deployment_code] dies when deployment_dir is root directory' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+subtest '[qesap_prepare_env] deployment code dies when deployment_dir is root directory' => sub {
+    my @calls;
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
     for my $dir ('/', '//', '///', '  ///  ') {
+        $qesap->redefine(qesap_get_file_paths => sub {
+                return (terraform_dir => '/OCEAN', deployment_dir => $dir, qesap_conf_trgt => '/target', qesap_conf_src => '/src');
+        });
         $qesap->redefine(qesap_get_paths => sub {
                 return (terraform_dir => '/OCEAN', deployment_dir => $dir);
         });
-        throws_ok { qesap_get_deployment_code() } qr/cannot be '\/' or '\/root'/, "Dies when deployment_dir is '$dir'";
+        throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/cannot be '\/' or '\/root'/, "Dies when deployment_dir is '$dir'";
     }
 };
 
-subtest '[qesap_get_deployment_code] dies when deployment_dir is /root' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+subtest '[qesap_prepare_env] deployment code dies when deployment_dir is /root' => sub {
+    my @calls;
+    my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
     for my $dir ('/root', '/root/', '/root///', '//root', '///root', '///root///', '  //root//  ') {
+        $qesap->redefine(qesap_get_file_paths => sub {
+                return (terraform_dir => '/root/OCEAN', deployment_dir => $dir, qesap_conf_trgt => '/target', qesap_conf_src => '/src');
+        });
         $qesap->redefine(qesap_get_paths => sub {
                 return (terraform_dir => '/root/OCEAN', deployment_dir => $dir);
         });
-        throws_ok { qesap_get_deployment_code() } qr/cannot be '\/' or '\/root'/, "Dies when deployment_dir is '$dir'";
+        throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/cannot be '\/' or '\/root'/, "Dies when deployment_dir is '$dir'";
     }
-};
-
-subtest '[qesap_get_deployment_code] works without QESAP_CONFIG_FILE' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    my @calls;
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-
-    set_var('QESAP_CONFIG_FILE', undef);
-    set_var('QESAP_DEPLOYMENT_DIR', '/PRODUCER_CACHE/2.6.15/qe-sap-deployment');
-    lives_ok { qesap_get_deployment_code() } 'qesap_get_deployment_code succeeds when QESAP_CONFIG_FILE is undef';
-    set_var('QESAP_CONFIG_FILE', 'MARLIN');
-    set_var('QESAP_DEPLOYMENT_DIR', undef);
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /git.*clone.*\/PRODUCER_CACHE\/2\.6\.15\/qe-sap-deployment/ } @calls), 'Cloned into producer deployment_dir');
 };
 
 subtest '[qesap_get_roles_code] from default github' => sub {
@@ -1042,33 +1025,28 @@ subtest '[qesap_prepare_env] die for missing argument' => sub {
 };
 
 subtest '[qesap_prepare_env] integration test' => sub {
-    # As less mock as possible
+    # As less mock as possible: only mock external functions outside the library
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-
-    $qesap->redefine(qesap_get_file_paths => sub {
-            my %paths;
-            $paths{qesap_conf_src} = '/REEF';
-            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
-            $paths{terraform_dir} = '/SPLASH';
-            $paths{deployment_dir} = '/WAVE';
-            $paths{roles_dir} = '/BRUCE';
-            return (%paths);
-    });
-    $qesap->redefine(qesap_get_variables => sub { return; });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
     my @calls;
     my @retries;
+    $qesap->redefine(data_url => sub { return '/TORNADO'; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
-    $qesap->redefine(script_retry => sub { my ($cmd, %args) = @_; push @retries, $args{retry}; return 0; });
+    $qesap->redefine(script_retry => sub { my ($cmd, %args) = @_; push @calls, $cmd; push @retries, $args{retry}; return 0; });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'DENTIST'; });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(upload_logs => sub { return; });
+    $qesap->redefine(file_content_replace => sub { return; });
 
-    qesap_prepare_env(provider => 'DONALDUCK');
+    my %variables = (SOMETHING => 'TEST');
+    qesap_prepare_env(provider => 'DONALDUCK', openqa_variables => \%variables);
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /3/ } @retries), 'default retry times is 3 for qesap_pip_install and qesap_galaxy_install');
+    ok((any { /git.*clone.*github.*com\/SUSE\/qe-sap-deployment.*\/root\/qe-sap-deployment/ } @calls), 'Clones deployment code');
+    ok((any { /git.*clone.*github.*com\/sap-linuxlab\/community\.sles-for-sap.*\/root\/community.sles-for-sap/ } @calls), 'Clones roles code');
+    ok((any { /qesap\.py.*-c \/root\/qe-sap-deployment\/scripts\/qesap\/MARLIN -b \/root\/qe-sap-deployment configure/ } @calls), 'Runs qesap.py configure');
 };
 
 subtest '[qesap_prepare_env]' => sub {
