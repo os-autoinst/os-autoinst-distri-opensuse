@@ -54,11 +54,9 @@ sub prepare_test_data {
         zypper_call("in psmisc -busybox-psmisc");
     }
 
-    # on Micro, the 'expect' package is in the IBS QA:Head repo
-    zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa_head', no_gpg_check => 1) if is_transactional();
-
     # Install software needed for this test module
-    install_package("netcat-openbsd expect psmisc", trup_reboot => 1);
+    my %install_opts = is_sle_micro('<6.0') ? (trup_reboot => 1) : (trup_apply => 1);
+    install_package("netcat-openbsd psmisc", %install_opts);
 
 }
 
@@ -190,7 +188,6 @@ sub do_ssh_cleanup {
 
     # Kill $ssh_testman to stop all SSH sessions
     $run->("killall -u $ssh_testman || true");
-    wait_still_screen 3;
 
     record_info("Restart sshd", "Restart sshd.service");
     if ($args{ignore_failure}) {
@@ -213,7 +210,6 @@ sub run_ignoring_failure {
 sub check_function {
     ssh_basic_check();
 
-    wait_still_screen 3;
     systemctl("restart sshd");
 }
 
