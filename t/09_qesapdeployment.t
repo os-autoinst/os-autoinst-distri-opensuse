@@ -85,7 +85,7 @@ subtest '[qesap_get_deployment_code] from default github' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{terraform_dir} = '/BRUCE/OCEAN';
@@ -104,7 +104,7 @@ subtest '[qesap_get_deployment_code] symlinks' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{terraform_dir} = '/BRUCE/OCEAN';
@@ -126,7 +126,7 @@ subtest '[qesap_get_deployment_code] from fork' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{terraform_dir} = '/BRUCE/OCEAN';
@@ -149,7 +149,7 @@ subtest '[qesap_get_deployment_code] from branch' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{terraform_dir} = '/BRUCE/OCEAN';
@@ -172,7 +172,7 @@ subtest '[qesap_get_deployment_code] from a specific release' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{terraform_dir} = '/BRUCE/OCEAN';
@@ -198,7 +198,7 @@ subtest '[qesap_get_deployment_code] from the latest release' => sub {
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(script_output => sub { return "MYGITHUBREPO/tag/v1.0.0" });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{terraform_dir} = '/BRUCE/OCEAN';
@@ -223,7 +223,7 @@ subtest '[qesap_get_deployment_code] empties and recreates deployment_dir' => su
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/CUSTOM_DEPLOY_DIR';
             $paths{terraform_dir} = '/CUSTOM_DEPLOY_DIR/OCEAN';
@@ -240,17 +240,17 @@ subtest '[qesap_get_deployment_code] empties and recreates deployment_dir' => su
 
 subtest '[qesap_get_deployment_code] dies when deployment_dir is missing or empty' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => undef);
     });
     throws_ok { qesap_get_deployment_code() } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is undef';
 
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '');
     });
     throws_ok { qesap_get_deployment_code() } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is empty string';
 
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '   ');
     });
     throws_ok { qesap_get_deployment_code() } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is whitespace';
@@ -259,7 +259,7 @@ subtest '[qesap_get_deployment_code] dies when deployment_dir is missing or empt
 subtest '[qesap_get_deployment_code] dies when deployment_dir is root directory' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     for my $dir ('/', '//', '///', '  ///  ') {
-        $qesap->redefine(qesap_get_file_paths => sub {
+        $qesap->redefine(qesap_get_paths => sub {
                 return (terraform_dir => '/OCEAN', deployment_dir => $dir);
         });
         throws_ok { qesap_get_deployment_code() } qr/cannot be '\/' or '\/root'/, "Dies when deployment_dir is '$dir'";
@@ -269,11 +269,28 @@ subtest '[qesap_get_deployment_code] dies when deployment_dir is root directory'
 subtest '[qesap_get_deployment_code] dies when deployment_dir is /root' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     for my $dir ('/root', '/root/', '/root///', '//root', '///root', '///root///', '  //root//  ') {
-        $qesap->redefine(qesap_get_file_paths => sub {
+        $qesap->redefine(qesap_get_paths => sub {
                 return (terraform_dir => '/root/OCEAN', deployment_dir => $dir);
         });
         throws_ok { qesap_get_deployment_code() } qr/cannot be '\/' or '\/root'/, "Dies when deployment_dir is '$dir'";
     }
+};
+
+subtest '[qesap_get_deployment_code] works without QESAP_CONFIG_FILE' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+
+    set_var('QESAP_CONFIG_FILE', undef);
+    set_var('QESAP_DEPLOYMENT_DIR', '/PRODUCER_CACHE/2.6.15/qe-sap-deployment');
+    lives_ok { qesap_get_deployment_code() } 'qesap_get_deployment_code succeeds when QESAP_CONFIG_FILE is undef';
+    set_var('QESAP_CONFIG_FILE', 'MARLIN');
+    set_var('QESAP_DEPLOYMENT_DIR', undef);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /git.*clone.*\/PRODUCER_CACHE\/2\.6\.15\/qe-sap-deployment/ } @calls), 'Cloned into producer deployment_dir');
 };
 
 subtest '[qesap_get_roles_code] from default github' => sub {
@@ -282,7 +299,7 @@ subtest '[qesap_get_roles_code] from default github' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{roles_dir} = '/BRUCE';
             return (%paths);
@@ -300,7 +317,7 @@ subtest '[qesap_get_roles_code] from fork' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{roles_dir} = '/BRUCE';
             return (%paths);
@@ -320,7 +337,7 @@ subtest '[qesap_get_roles_code] from branch' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(qesap_get_paths => sub {
             my %paths;
             $paths{roles_dir} = '/BRUCE';
             return (%paths);
