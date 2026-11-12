@@ -116,8 +116,8 @@ subtest '[qesap_get_deployment_code] symlinks' => sub {
 
     set_var('QESAP_DEPLOYMENT_DIR', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /ln.*-s.*aws.*ec2/ } @calls), 'Link AWS to EC2');
-    ok((any { /ln.*-s.*gcp.*gce/ } @calls), 'Link GCP to GCE');
+    ok((any { /ln.*-sfn.*aws.*ec2/ } @calls), 'Link AWS to EC2');
+    ok((any { /ln.*-sfn.*gcp.*gce/ } @calls), 'Link GCP to GCE');
 };
 
 subtest '[qesap_get_deployment_code] from fork' => sub {
@@ -187,8 +187,8 @@ subtest '[qesap_get_deployment_code] from a specific release' => sub {
     set_var('QESAP_INSTALL_VERSION', undef);
     set_var('QESAP_INSTALL_GITHUB_REPO', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/vCORAL\.tar\.gz.*-ovCORAL\.tar\.gz/ } @calls), 'Get release archive from github');
-    ok((any { /tar.*[xvf]+.*vCORAL\.tar\.gz/ } @calls), 'Decompress the release archive');
+    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/vCORAL\.tar\.gz.*-o \/tmp\/vCORAL\.tar\.gz/ } @calls), 'Get release archive from github');
+    ok((any { /tar.*-C \/BRUCE.*-xvf \/tmp\/vCORAL\.tar\.gz --strip-components=1/ } @calls), 'Decompress the release archive');
 };
 
 subtest '[qesap_get_deployment_code] from the latest release' => sub {
@@ -213,8 +213,67 @@ subtest '[qesap_get_deployment_code] from the latest release' => sub {
     set_var('QESAP_INSTALL_VERSION', undef);
     set_var('QESAP_INSTALL_GITHUB_REPO', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/v1.0.0\.tar\.gz.*-ov1.0.0\.tar\.gz/ } @calls), 'Get latest release archive from github');
-    ok((any { /tar.*[xvf]+.*v1.0.0\.tar\.gz/ } @calls), 'Decompress the release archive');
+    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/v1.0.0\.tar\.gz.*-o \/tmp\/v1.0.0\.tar\.gz/ } @calls), 'Get latest release archive from github');
+    ok((any { /tar.*-C \/BRUCE.*-xvf \/tmp\/v1.0.0\.tar\.gz --strip-components=1/ } @calls), 'Decompress the release archive');
+};
+
+subtest '[qesap_get_deployment_code] empties and recreates deployment_dir' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{deployment_dir} = '/CUSTOM_DEPLOY_DIR';
+            $paths{terraform_dir} = '/CUSTOM_DEPLOY_DIR/OCEAN';
+            return (%paths);
+    });
+
+    qesap_get_deployment_code();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is $calls[0], 'rm -rf /CUSTOM_DEPLOY_DIR', 'Removes existing deployment_dir first';
+    is $calls[1], 'mkdir -p /CUSTOM_DEPLOY_DIR', 'Recreates deployment_dir';
+    is $calls[2], 'cd /CUSTOM_DEPLOY_DIR', 'Changes directory into deployment_dir';
+};
+
+subtest '[qesap_get_deployment_code] dies when deployment_dir is missing or empty' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(qesap_get_file_paths => sub {
+            return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => undef);
+    });
+    throws_ok { qesap_get_deployment_code() } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is undef';
+
+    $qesap->redefine(qesap_get_file_paths => sub {
+            return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '');
+    });
+    throws_ok { qesap_get_deployment_code() } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is empty string';
+
+    $qesap->redefine(qesap_get_file_paths => sub {
+            return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '   ');
+    });
+    throws_ok { qesap_get_deployment_code() } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is whitespace';
+};
+
+subtest '[qesap_get_deployment_code] dies when deployment_dir is root directory' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    for my $dir ('/', '//', '///', '  ///  ') {
+        $qesap->redefine(qesap_get_file_paths => sub {
+                return (terraform_dir => '/OCEAN', deployment_dir => $dir);
+        });
+        throws_ok { qesap_get_deployment_code() } qr/cannot be '\/' or '\/root'/, "Dies when deployment_dir is '$dir'";
+    }
+};
+
+subtest '[qesap_get_deployment_code] dies when deployment_dir is /root' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    for my $dir ('/root', '/root/', '/root///', '//root', '///root', '///root///', '  //root//  ') {
+        $qesap->redefine(qesap_get_file_paths => sub {
+                return (terraform_dir => '/root/OCEAN', deployment_dir => $dir);
+        });
+        throws_ok { qesap_get_deployment_code() } qr/cannot be '\/' or '\/root'/, "Dies when deployment_dir is '$dir'";
+    }
 };
 
 subtest '[qesap_get_roles_code] from default github' => sub {

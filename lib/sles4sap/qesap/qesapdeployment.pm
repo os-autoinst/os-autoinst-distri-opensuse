@@ -401,8 +401,22 @@ sub qesap_get_deployment_code {
     my $qesap_git_clone_log = '/tmp/git_clone.txt';
     my %paths = qesap_get_file_paths();
     die "Missing mandatory terraform_dir from qesap_get_file_paths()" unless $paths{'terraform_dir'};
+    die "Missing mandatory deployment_dir from qesap_get_file_paths()" unless ($paths{'deployment_dir'} && $paths{'deployment_dir'} =~ /\S/);
+
+    # deployment_dir get its value from QESAP_DEPLOYMENT_DIR, can be configured with arbitrary strings.
+    # This guard ensures that a typo or misconfiguration like QESAP_DEPLOYMENT_DIR=/ or /root will die
+    #  before running rm -rf.
+    my $clean_deployment_dir = $paths{deployment_dir};
+    $clean_deployment_dir =~ s/^\s+|\s+$//g;
+    $clean_deployment_dir =~ s{/{2,}}{/}g;
+    $clean_deployment_dir =~ s{/+$}{};
+    $clean_deployment_dir = '/' if $clean_deployment_dir eq '';
+    die "deployment_dir cannot be '/' or '/root': '$paths{deployment_dir}'" if ($clean_deployment_dir eq '/' || $clean_deployment_dir eq '/root');
 
     record_info('QESAP repo', 'Preparing qe-sap-deployment repository');
+
+    assert_script_run("rm -rf $paths{deployment_dir}");
+    assert_script_run("mkdir -p $paths{deployment_dir}");
 
     enter_cmd("cd " . $paths{deployment_dir});
     push(@log_files, $qesap_git_clone_log);
@@ -424,10 +438,10 @@ sub qesap_get_deployment_code {
             $ver_artifact = 'v' . get_var('QESAP_INSTALL_VERSION') . '.tar.gz';
         }
 
-        my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o$ver_artifact";
+        my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o /tmp/$ver_artifact";
         assert_script_run("set -o pipefail ; $curl_cmd | tee " . $qesap_git_clone_log, quiet => 1);
 
-        my $tar_cmd = "tar xvf $ver_artifact --strip-components=1";
+        my $tar_cmd = "tar -C $paths{deployment_dir} -xvf /tmp/$ver_artifact --strip-components=1";
         assert_script_run($tar_cmd);
     }
     else {
@@ -440,8 +454,8 @@ sub qesap_get_deployment_code {
         assert_script_run("set -o pipefail ; $git_clone_cmd  |& tee $qesap_git_clone_log", quiet => 1);
     }
     # Add symlinks for different provider directory naming between OpenQA and qesap-deployment
-    assert_script_run("ln -s " . $paths{terraform_dir} . "/aws " . $paths{terraform_dir} . "/ec2");
-    assert_script_run("ln -s " . $paths{terraform_dir} . "/gcp " . $paths{terraform_dir} . "/gce");
+    assert_script_run("ln -sfn " . $paths{terraform_dir} . "/aws " . $paths{terraform_dir} . "/ec2");
+    assert_script_run("ln -sfn " . $paths{terraform_dir} . "/gcp " . $paths{terraform_dir} . "/gce");
 }
 
 
@@ -1793,7 +1807,7 @@ sub qesap_export_instances {
 =head3 qesap_aws_delete_leftover_tgw_attachments
 
     Delete leftover peering resources for AWS jobs that finished without cleaning up.
-    This only works for resources created by jobs that run on the same openqa server 
+    This only works for resources created by jobs that run on the same openqa server
     that the current job is running on.
 
 =over
