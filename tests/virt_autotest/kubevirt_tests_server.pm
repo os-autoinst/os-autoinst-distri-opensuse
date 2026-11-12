@@ -845,6 +845,17 @@ sub post_fail_hook {
     save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
     save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
     save_and_upload_systemd_unit_log('rke2-server.service');
+
+    # Explain a kubevirt deployment failure from the namespace state. Only run
+    # when the manifests were applied; script_run never dies on a non-zero exit
+    # code, so each capture below is failok, and die_on_timeout is disabled so
+    # a wedged API server cannot kill the hook.
+    my $kubevirt_ns = script_run('kubectl get ns kubevirt', timeout => 120, die_on_timeout => 0);
+    return unless defined $kubevirt_ns && $kubevirt_ns == 0;
+    save_and_upload_log('kubectl -n kubevirt get pods -o wide', '/tmp/kubevirt_pods.log', {screenshot => 0});
+    save_and_upload_log('kubectl -n kubevirt get events --sort-by=.lastTimestamp', '/tmp/kubevirt_events.log', {screenshot => 0});
+    save_and_upload_log('kubectl -n kubevirt describe deploy virt-operator virt-api virt-controller', '/tmp/kubevirt_deployments.log', {screenshot => 0});
+    save_and_upload_log('kubectl -n kubevirt logs deploy/virt-operator --tail=200', '/tmp/kubevirt_virt-operator.log', {screenshot => 0});
 }
 
 1;
