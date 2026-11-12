@@ -1,4 +1,4 @@
 image:
   repository: registry.suse.com/bci/bci-base
   pullPolicy: Always
-  tag: latest
+  tag: "15.7"
