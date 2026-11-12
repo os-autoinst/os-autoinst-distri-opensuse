@@ -2875,6 +2875,11 @@ Collect logs from the ipaddr2 cluster.
 
 The function does not die for the failure of a single log:
 each failure is recorded with record_info and the collection goes on with the next log.
+The remote logs are collected one VM at a time: all the logs of VM 1, then all the logs of VM 2.
+If a command on a VM times out, or ssh fails with exit code 255 (connection, jump host,
+login or host key problem), the VM is considered unreachable:
+the remaining logs of that VM are skipped and the collection goes on with the next VM.
+Any other failure of a command only affects its own log.
 If the bastion is not reachable, the logs on the internal VMs are skipped
 and only the logs on the worker are collected.
 Return 1 if all the logs are collected, 0 otherwise.
@@ -2909,17 +2914,17 @@ sub ipaddr2_logs_collect(%args) {
     my $timeout;
     my $scp_cmd;
 
-    # Iterate over all the logs
-    foreach my $log (ipaddr2_logs_collect_cmds()) {
-        $scp_ret = 0;
+    # Iterate through each remote VM to generate and collect logs.
+    foreach my $id (1 .. 2) {
+        # Iterate over all the logs
+        foreach my $log (ipaddr2_logs_collect_cmds()) {
+            $scp_ret = 0;
 
-        next if ($args{no_supportconfig} && defined $log->{name} && $log->{name} eq 'supportconfig');
+            next if ($args{no_supportconfig} && defined $log->{name} && $log->{name} eq 'supportconfig');
 
-        if (defined $log->{remote_log} && $log->{remote_log} == 1) {
-            next unless $remote_ok;
-            $timeout = $log->{timeout} // 300;
-            # Iterate through each remote VM to generate and collect logs.
-            foreach my $id (1 .. 2) {
+            if (defined $log->{remote_log} && $log->{remote_log} == 1) {
+                next unless $remote_ok;
+                $timeout = $log->{timeout} // 300;
                 $worker_tmp_dir = ipaddr2_get_worker_tmp_for_internal_vm(id => $id);
 
                 # Use script_run with short timeout to detect a stuck terminal
@@ -3005,13 +3010,23 @@ sub ipaddr2_logs_collect(%args) {
                 } else {
                     record_info('Log fail', "Command to generate $remote_file on VM $id failed, rc:" . ($cmd_ret // 'undef'), result => 'fail');
                     $all_ok = 0;
+                    # A timeout (undef) or an ssh failure (255: connection, jump host, login, host key)
+                    # means the next commands on this VM fail the same way: skip its remaining logs
+                    if (!defined $cmd_ret || $cmd_ret == 255) {
+                        record_info('VM skip', "VM $id unreachable, rc:" . ($cmd_ret // 'undef') . ": skip its remaining logs", result => 'fail');
+                        # 'last' exits the loop over the logs: skip the remaining logs of this VM and continue with the next VM
+                        last;
+                    }
                 }
             }
-        } else {
-            # call it without id
-            %log_data = %{$log->{f_log}->()};
-            upload_logs($log_data{file}, failok => 1, timeout => bmwqemu::scale_timeout(UPLOAD_TIMEOUT));
         }
+    }
+    # Logs on the worker, called without id.
+    # Collect them after all the remote commands: they include the ssh logs.
+    foreach my $log (ipaddr2_logs_collect_cmds()) {
+        next if (defined $log->{remote_log} && $log->{remote_log} == 1);
+        %log_data = %{$log->{f_log}->()};
+        upload_logs($log_data{file}, failok => 1, timeout => bmwqemu::scale_timeout(UPLOAD_TIMEOUT));
     }
     $all_ok = 0 unless _ipaddr2_azure_cli_logs();
     return $all_ok;

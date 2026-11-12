@@ -2572,6 +2572,64 @@ subtest '[ipaddr2_logs_collect] one failing log does not stop the others' => sub
     ok((all { $_->[1] } @upload_calls), 'All the uploads use failok');
 };
 
+subtest '[ipaddr2_logs_collect] skip the VM after a timeout or an ssh failure' => sub {
+    # undef: the command on VM 1 is killed by the shell timeout (VM hangs, host key prompt)
+    # 255: ssh fails on VM 1 (no route to host, login not completed)
+    foreach my $vm1_ret (undef, 255) {
+        my $label = $vm1_ret // 'undef';
+        my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+        $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+        my @record_info_calls;
+        $ipaddr2->redefine(record_info => sub { push @record_info_calls, $_[0]; note(join(' ', 'RECORD_INFO -->', @_)); });
+        my @upload_calls;
+        $ipaddr2->redefine(upload_logs => sub { push @upload_calls, $_[0]; return 'up'; });
+        $ipaddr2->redefine(script_run => sub { return 0; });
+        my @version_ids;
+        $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { my (%args) = @_; push @version_ids, $args{id}; return '3.0.0'; });
+        my @ssh_calls;
+        $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+                my (%args) = @_;
+                push @ssh_calls, [$args{id}, $args{cmd}];
+                return $args{id} == 1 ? $vm1_ret : 0;
+        });
+        my $ret;
+
+        lives_ok { $ret = ipaddr2_logs_collect() } "rc:$label No die when a VM is unreachable";
+
+        note("\n  SSH -->  " . join("\n  SSH -->  ", map { "VM$_->[0] $_->[1]" } @ssh_calls));
+        is($ret, 0, "rc:$label Return 0");
+        my @vm1_calls = grep { $_->[0] == 1 } @ssh_calls;
+        is(scalar @vm1_calls, 1, "rc:$label Only one command on VM 1");
+        like($vm1_calls[0][1], qr/cloudregister/, "rc:$label The command on VM 1 is the first log");
+        is((scalar grep { $_->[0] == 2 } @ssh_calls), 4, "rc:$label All the 4 logs generated on VM 2");
+        is_deeply(\@version_ids, [2], "rc:$label supportutils version checked only on VM 2");
+        ok((any { /VM skip/ } @record_info_calls), "rc:$label record_info about the skipped VM");
+        ok((none { /_1\b|_1\./ } @upload_calls), "rc:$label No log of VM 1 uploaded");
+        # 4 logs of VM 2 + 2 ssh logs + az cli logs
+        is(scalar @upload_calls, 7, "rc:$label All the other logs uploaded");
+    }
+};
+
+subtest '[ipaddr2_logs_collect] a failure of the log command does not skip the VM' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(upload_logs => sub { return 'up'; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.0.0'; });
+    my @ssh_calls;
+    # The commands on VM 1 fail with exit code 1, ssh works
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_calls, $args{id};
+            return $args{id} == 1 ? 1 : 0;
+    });
+
+    is(ipaddr2_logs_collect(), 0, 'Return 0');
+    is((scalar grep { $_ == 1 } @ssh_calls), 4, 'All the 4 logs tried on VM 1');
+    is((scalar grep { $_ == 2 } @ssh_calls), 4, 'All the 4 logs generated on VM 2');
+};
+
 subtest '[ipaddr2_logs_collect] supportutils version not available' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
