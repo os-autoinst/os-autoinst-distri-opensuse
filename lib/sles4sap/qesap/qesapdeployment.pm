@@ -562,8 +562,7 @@ sub qesap_execute {
 
     my $verbose = $args{verbose} ? "--verbose" : "";
     $args{cmd_options} //= '';
-    # This is to be added when qe-sap-deployment version is upgraded to include https://github.com/SUSE/qe-sap-deployment/pull/490
-    # $args{cmd_options} .= ' --numbered-logs' if $args{cmd} eq 'ansible';
+    $args{cmd_options} .= ' --numbered-logs' if $args{cmd} eq 'ansible';
     $args{timeout} //= bmwqemu::scale_timeout(90);
 
     my %paths = qesap_get_file_paths();
