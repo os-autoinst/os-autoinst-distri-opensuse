@@ -839,7 +839,7 @@ sub post_fail_hook {
     select_console 'log-console';
     save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
     save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
-    $self->save_and_upload_systemd_unit_log('rke2-server.service');
+    save_and_upload_systemd_unit_log('rke2-server.service');
 }
 
 1;

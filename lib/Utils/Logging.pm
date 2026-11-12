@@ -98,8 +98,8 @@ Saves the journal of the systemd unit C<$unit> to C<journal_$unit.txt> and uploa
 =cut
 
 sub save_and_upload_systemd_unit_log {
-    my ($self, $unit) = @_;
-    $self->save_and_upload_log("journalctl --no-pager -u $unit -o short-precise", "journal_$unit.txt");
+    my ($unit) = @_;
+    save_and_upload_log("journalctl --no-pager -u $unit -o short-precise", "journal_$unit.txt", {});
 }
 
 =head2
