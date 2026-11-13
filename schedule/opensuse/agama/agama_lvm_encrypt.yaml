@@ -10,6 +10,10 @@ conditional_schedule:
     ENCRYPT:
       1:
         - console/validate_encrypt
+  validate_fips:
+    FIPS:
+      1:
+        - fips/fips_setup
 schedule:
   - installation/bootloader_start
   - installation/agama
@@ -19,4 +23,5 @@ schedule:
   - installation/first_boot
   - '{{validate_lvm}}'
   - '{{validate_encrypt}}'
+  - '{{validate_fips}}'
   - shutdown/shutdown
