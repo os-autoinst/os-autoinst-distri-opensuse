@@ -106,11 +106,21 @@ sub run {
         $self->wait_for_pacemaker();
     }
 
-    # wait for DB to start with resources
-    $self->is_hana_online(wait_for_start => 'true');
+    # An angi kill can trigger fencing followed by delayed cluster startup.
+    # Retain three consecutive online checks within a fixed recovery budget.
+    my $hana_online_timeout =
+      ($db_action eq 'kill' && get_var('USE_SAP_HANA_SR_ANGI')) ? 600 : 120;
+    $self->is_hana_online(wait_for_start => 1, timeout => $hana_online_timeout, retry_ssh => 1);
+
+    # Wait for the cluster to report the HANA resource running on this node.
     my $hana_started = time;
-    while (time - $hana_started > $hana_start_timeout) {
-        last if $self->is_hana_resource_running();
+    while (1) {
+        my $resource_running = $self->is_hana_resource_running();
+
+        die("HANA resource did not start within $hana_start_timeout s")
+          if (time - $hana_started > $hana_start_timeout);
+
+        last if $resource_running;
         sleep 30;
     }
 
