@@ -28,6 +28,7 @@ use bugzilla;
 use xfstests_utils;
 use xfstests_ai_analysis;
 use Kernel::nfs qw(start_pnfs_debug stop_pnfs_debug collect_pnfs_debug);
+use Kernel::utils qw(find_kernel_traces);
 use List::Util qw(uniq);
 use lockapi;
 
@@ -521,6 +522,62 @@ sub run {
     }
 }
 
+# Show the kernel traces of a failed subtest, to make it easier to decide if a
+# sporadic failure can be retriggered. Traces that xfstests expects are not
+# reported as unexpected: xfstests already filters the <num>.dmesg file, and a
+# test that expects traces disables the dmesg check (no check_dmesg flag file).
+# A reboot during the test, usually a crash, is always reported.
+sub report_kernel_traces {
+    my ($test, $known) = @_;
+    my ($category, $num) = split(/\//, $test);
+    my $dir = "$INST_DIR/results/$category";
+    my $marker = "run fstests $test at";
+    my $traces;
+
+    if (script_run("test -f $dir/$num.dmesg") == 0) {
+        # The test completed and xfstests did its dmesg check
+        $traces = find_kernel_traces(file => "$dir/$num.dmesg");
+    }
+    elsif (script_run("test -f $dir/check_dmesg") == 0) {
+        # The test was stopped before xfstests did its dmesg check.
+        # Use the same global filter as xfstests _check_dmesg_filter.
+        $traces = find_kernel_traces(
+            since => $marker,
+            ignore => ['BUG: MAX_LOCKDEP_CHAIN_HLOCKS too low', 'BUG: MAX_STACK_TRACE_ENTRIES too low', 'WARNING: Reset corrupted AGFL'],
+            ignore_file => "$dir/dmesg_filter");
+    }
+    else {
+        # The test disables the dmesg check, so its traces are expected
+        my $expected = find_kernel_traces(since => $marker);
+        if (defined $expected) {
+            record_info('Kernel trace', "$test disables the xfstests dmesg check, its kernel traces are expected" . join("\n", @$expected ? (':') : (), @$expected));
+            return;
+        }
+    }
+
+    if (!defined $traces) {
+        # No kernel log since the test start: the SUT rebooted or the log wrapped
+        my $msg = "No kernel log since the start of $test: the SUT rebooted, usually after a crash.";
+        my $kdump = script_output("find $KDUMP_DIR/" . test_name($test) . " -name '*dmesg*' -type f 2>/dev/null | head -n 1", proceed_on_failure => 1);
+        if ($kdump =~ m{^/}) {
+            my $crash = find_kernel_traces(file => $kdump, since => $marker) // find_kernel_traces(file => $kdump);
+            $msg .= "\nKernel traces in the kdump log $kdump:\n" . join("\n", @$crash) if @$crash;
+        }
+        else {
+            $msg .= "\nNo kdump data, look at serial0.txt.";
+        }
+        record_info('Kernel trace', $msg, result => 'fail');
+    }
+    elsif (@$traces) {
+        my $msg = "Unexpected kernel trace in $test:\n" . join("\n", @$traces);
+        $msg .= "\nKnown issue: $known" if $known;
+        record_info('Kernel trace', $msg, result => 'fail');
+    }
+    else {
+        record_info('Kernel trace', "No unexpected kernel trace in $test");
+    }
+}
+
 sub test_flags {
     return {fatal => 0};
 }
@@ -532,6 +589,10 @@ sub post_fail_hook {
     # Skip the generic post_fail_hook if already softfailed
     return if $self->result eq 'softfail';
 
+    if ($self->{targs}) {
+        eval { report_kernel_traces($self->{targs}->{name}, $self->{targs}->{failinfo}) };
+        record_info('Kernel trace', "Kernel trace check failed: $@") if $@;
+    }
     $self->SUPER::post_fail_hook;
 }
 

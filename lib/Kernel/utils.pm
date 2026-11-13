@@ -25,9 +25,14 @@ our @EXPORT_OK = qw(
   start_trace_events
   save_trace
   install_fio_debug_wrapper
+  find_kernel_traces
 );
 
 my $TRACEFS = '/sys/kernel/tracing';
+# Lines that show a kernel call trace, a BUG or an Oops. Similar to the check
+# of xfstests _check_dmesg, but without "WARNING:" lines: a WARNING always
+# prints a call trace too.
+my @KERNEL_TRACE_PATTERNS = ('Call Trace:', 'kernel BUG at', '\\bBUG:', 'Oops:', 'general protection fault', 'UBSAN:');
 
 =head2 is_debugfs_mounted
 
@@ -237,6 +242,41 @@ END
     $script =~ s/\@STRACE\@/$strace/g;
     write_sut_file($wrapper, $script);
     assert_script_run("chmod a+x $wrapper");
+}
+
+=head2 find_kernel_traces
+
+ my $traces = find_kernel_traces([file => $file] [, since => $text]
+     [, ignore => \@regexps] [, ignore_file => $file]);
+
+Find the kernel log lines that show a call trace, a kernel BUG or an Oops.
+The function reads C<dmesg>, or C<file> if you give it.
+
+With C<since>, the function only reads the last line that contains C<$text>
+and the lines after it. If no line contains C<$text>, for example because the
+SUT rebooted, the function returns C<undef>.
+
+C<ignore> is a list of extended regular expressions. The function removes the
+lines that match before it does the check. C<ignore_file> is a file with more
+of these expressions, one for each line. The function uses it only if it exists.
+
+Returns a reference to the list of lines that it found (the list can be empty).
+
+=cut
+
+sub find_kernel_traces {
+    my (%args) = @_;
+    my $log = $args{file} ? "cat $args{file}" : 'dmesg';
+
+    if (my $since = $args{since}) {
+        return undef if script_run("$log | grep -qF '$since'") != 0;
+        $log .= " | tac | sed -ne '0,\\#$since#p' | tac";
+    }
+    $log .= ' | grep -Ev' . join('', map { " -e '$_'" } @{$args{ignore}}) if @{$args{ignore} // []};
+    $log .= " | { if [ -f $args{ignore_file} ]; then grep -Ev -f $args{ignore_file}; else cat; fi; }" if $args{ignore_file};
+    my $patterns = join('', map { " -e '$_'" } @KERNEL_TRACE_PATTERNS);
+    my $out = script_output("$log | grep -E$patterns | tr -cd '\\11\\12\\15\\40-\\176' | head -n 100 || true", proceed_on_failure => 1);
+    return [grep { /\S/ } split(/\n/, $out)];
 }
 
 1;
