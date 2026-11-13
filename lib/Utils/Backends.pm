@@ -65,8 +65,9 @@ sub save_serial_console {
     my $serialconsole = get_var('SERIALCONSOLE', '');
     return if ($serialconsole ne '');
     $serialconsole = get_var('SERIALDEV', 'ttyS1');
-    if ($serialconsole eq 'sshserial') {
-        record_info('Reset SERIALCONSOLE to ttyS1', 'Because SERIALCONSOLE has no value and SERIALDEV is sshserial');
+    # sshserial and virtsshserial are FIFOs of ssh consoles, not serial consoles of the SUT
+    if ($serialconsole =~ /^(?:virt)?sshserial$/) {
+        record_info('Reset SERIALCONSOLE to ttyS1', "Because SERIALCONSOLE has no value and SERIALDEV is $serialconsole");
         $serialconsole = 'ttyS1';
     }
     set_var('SERIALCONSOLE', $serialconsole);
@@ -77,9 +78,20 @@ sub get_serial_console {
     return get_var('SERIALCONSOLE', get_var('SERIALDEV', 'ttyS1'));
 }
 
+=head2 set_sshserial_dev
+
+ set_sshserial_dev([$dev]);
+
+Set C<$serialdev> and C<SERIALDEV> to the serial device of an ssh console.
+C<$dev> is the name of the FIFO in C</dev> that the ssh console reads,
+default is C<sshserial>.
+
+=cut
+
 sub set_sshserial_dev {
+    my ($dev) = @_;
     save_serial_console();
-    $serialdev = 'sshserial';
+    $serialdev = $dev // 'sshserial';
     set_var('SERIALDEV', $serialdev);
     bmwqemu::save_vars();
 }
