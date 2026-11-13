@@ -167,7 +167,8 @@ sub qesap_get_variables {
 =over
 
 =item B<ANSILE_SECTION> - name of the yaml section within the ansible section
-                          usually it is 'create', 'destroy' or 'hana_vars'
+                          usually it is 'create', 'destroy' or 'hana_vars'.
+                          The 'prevalidate' sequence requires apiver >= 4.
 
 =item B<SECTION_CONTENT> - content as a perl hash
 
@@ -189,7 +190,9 @@ sub qesap_ansible_create_section {
     my $yaml_data = $ypp->load_string($raw_file);
 
     die "Missing ansible section in $yaml_config_path" unless $yaml_data->{ansible};
-    if ($yaml_data->{apiver} && (int($yaml_data->{apiver}) >= 4) && (grep { $_ eq $args{ansible_section} } ('create', 'destroy', 'test'))) {
+    die 'The prevalidate sequence requires conf.yaml apiver >= 4'
+      if $args{ansible_section} eq 'prevalidate' && int($yaml_data->{apiver} // 0) < 4;
+    if ($yaml_data->{apiver} && (int($yaml_data->{apiver}) >= 4) && (grep { $_ eq $args{ansible_section} } ('create', 'destroy', 'test', 'prevalidate'))) {
         $yaml_data->{ansible}{sequences}{$args{ansible_section}} = $args{section_content};
     } else {
         $yaml_data->{ansible}{$args{ansible_section}} = $args{section_content};
