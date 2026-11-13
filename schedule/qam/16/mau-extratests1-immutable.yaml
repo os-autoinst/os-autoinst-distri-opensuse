@@ -7,7 +7,7 @@ schedule:
   - console/prepare_test_data
   - console/consoletest_setup
   - console/check_os_release
-  # - console/clamav_upgrade poo#209085
+  - console/clamav_upgrade
   - console/ping
   - console/arping
   - console/wireshark_cli
@@ -57,6 +57,6 @@ conditional_schedule:
       x86_64:
         - console/aplay
         - console/wavpack
-        # - console/firewalld poo#210015
+        - console/firewalld
         - console/lshw
         # - console/dpdk poo#210045
