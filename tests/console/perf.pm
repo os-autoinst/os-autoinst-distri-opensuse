@@ -48,7 +48,7 @@ sub run {
     # test 1
     # Installing and testing options -a -d -p
     install_package('perf', trup_reboot => 1);
-    assert_script_run('perf stat -a -d -p 1 sleep 5');
+    assert_script_run('perf stat -a -d -p 1 sleep 2');
     # test 2
     # Counting with perf stat
     assert_script_run('perf stat dd if=/dev/zero of=demo bs=4k count=10000');
@@ -76,18 +76,20 @@ sub run {
             }
         }
     }
-    script_run('perf record -e probe:tcp_sendmsg -aR sleep 10');
+    # perf record may legitimately collect no samples on an idle system, so
+    # keep it and the report non-fatal; removing the probe is the assertion.
+    script_run('perf record -e probe:tcp_sendmsg -aR sleep 5');
     script_run('timeout 5 perf report -i perf.data');
     assert_script_run('perf probe -d tcp_sendmsg');
     # test5
     # Counting Events ( stat command)
     assert_script_run('perf stat ls');
-    assert_script_run('perf stat -a sleep 5');
+    assert_script_run('perf stat -a sleep 2');
 
     run_perf_stat_grouped();
 
-    assert_script_run("perf stat -e 'syscalls:sys_enter_*' -a sleep 5");
-    assert_script_run("perf stat -e 'block:*' -a sleep 10");
+    assert_script_run("perf stat -e 'syscalls:sys_enter_*' -a sleep 2");
+    assert_script_run("perf stat -e 'block:*' -a sleep 5");
     # test6
     # Listing (list command)
     assert_script_run('timeout 5 perf --no-pager list sw');
