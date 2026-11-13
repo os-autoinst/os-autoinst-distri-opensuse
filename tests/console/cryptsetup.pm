@@ -33,8 +33,13 @@ sub run {
     assert_script_run('dd if=/dev/urandom of=/test.dm bs=1k count=51200');
     wait_still_screen;
 
-    # Use cryptsetup to luksFormat and luksOpen volume
-    assert_script_run("echo -e $cryptpasswd | cryptsetup -q luksFormat /test.dm", timeout => 300);
+    # Use cryptsetup to luksFormat and luksOpen volume.
+    # The default Argon2id parameters (1 GiB, 2 s target) are very slow on
+    # constrained VMs. Lower them on non-FIPS runs; FIPS only allows PBKDF2,
+    # so keep the default there.
+    my $kdf_opts = get_var('FIPS_ENABLED') ? ''
+      : '--pbkdf-memory 65536 --pbkdf-parallel 1 --iter-time 10';
+    assert_script_run("echo -e $cryptpasswd | cryptsetup -q $kdf_opts luksFormat /test.dm", timeout => 300);
     assert_script_run("echo -e $cryptpasswd | cryptsetup -q luksOpen /test.dm dmtest", timeout => 300);
 
     # Format the dmtest and mount it with /test
