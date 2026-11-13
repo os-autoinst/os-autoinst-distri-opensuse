@@ -25,8 +25,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';
 use Utils::Architectures;
-use version_utils 'has_selinux';
-
+use version_utils qw(is_sle has_selinux);
 sub run {
     select_serial_terminal;
 
@@ -44,6 +43,8 @@ sub run {
     assert_script_run 'cd /tmp';
     assert_script_run 'wget ' . data_url('qam/vsftpd.tar.gz');
     assert_script_run 'tar xzfv vsftpd.tar.gz';
+    my $tls_ver = is_sle('>=16.1') ? "--tlsv1.3" : "-1";
+    assert_script_run qq(echo "export TLS_OPT=$tls_ver" > /tmp/vsftpd_test_env);
     if (is_s390x) {
         record_info("bsc#1176813", "vsftpd: security: one_process_model needs a better OS for the anonymous user scenarios");
         assert_script_run 'bash run_s390x.sh |& tee run.log', 300;
