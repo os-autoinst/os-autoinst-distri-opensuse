@@ -12,11 +12,17 @@ use testapi;
 use serial_terminal 'select_text_console';
 use utils 'zypper_call';
 use Utils::Architectures;
+use version_utils 'check_version';
 
 sub run {
     select_text_console;
 
     if (is_aarch64 && check_var('AARCH64_MTE_SUPPORTED', '1')) {
+        my $glibc_version = script_output("rpm -q --qf '%{version}\n' glibc");
+        if (check_version('>=2.44', $glibc_version)) {
+            record_info('TEST SKIPPED', "glibc >= 2.44 removed MTE support.");
+            return;
+        }
         record_info('Testing MTE on aarch64');
         zypper_call 'in gcc';
 
