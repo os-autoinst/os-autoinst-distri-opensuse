@@ -25,6 +25,19 @@ subtest '[zp_azure_deploy]' => sub {
     ok $called eq 6;
 };
 
+subtest '[zp_azure_deploy] VM create soft_timeout' => sub {
+    my $zp = Test::MockModule->new('sles4sap::cloud_zypper_patch', no_auto => 1);
+    $zp->noop(qw(az_version az_group_create az_network_vnet_create az_network_publicip_create));
+    $zp->redefine(zp_azure_resource_group => sub { return 'SPIAGGIA'; });
+    $zp->redefine(get_ssh_private_key_path => sub { return 'OMBRELLONE'; });
+    my %vm_args;
+    $zp->redefine(az_vm_create => sub { %vm_args = @_; return 0; });
+
+    zp_azure_deploy(region => 'SABBIA', os => 'MARE');
+
+    is $vm_args{soft_timeout}, 600, 'az_vm_create is called with soft_timeout';
+};
+
 subtest '[zp_azure_deploy] integration test' => sub {
     my $zp = Test::MockModule->new('sles4sap::cloud_zypper_patch', no_auto => 1);
     $zp->redefine(get_current_job_id => sub { return 'SPIAGGIA'; });
