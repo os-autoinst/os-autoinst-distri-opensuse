@@ -59,7 +59,6 @@ use constant QESAPDEPLOY_PY_DEFAULT_VER => '3.11';
 
 our @EXPORT = qw(
   qesap_upload_logs
-  qesap_get_deployment_code
   qesap_get_roles_code
   qesap_get_inventory
   qesap_get_nodes_number
@@ -100,20 +99,32 @@ our @EXPORT = qw(
 =head2 Methods
 
 
+=head3 qesap_get_paths
+
+    Returns a hash containing directory paths for qe-sap-deployment:
+    deployment_dir, terraform_dir, roles_dir, roles_dir_path.
+    Unlike qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.
+=cut
+
+sub qesap_get_paths {
+    my %paths;
+    $paths{deployment_dir} = get_var('QESAP_DEPLOYMENT_DIR', '/root/qe-sap-deployment');
+    $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
+    $paths{roles_dir} = get_var('QESAP_ROLES_DIR', '/root/community.sles-for-sap');
+    $paths{roles_dir_path} = $paths{roles_dir} . '/roles';
+    return (%paths);
+}
+
 =head3 qesap_get_file_paths
 
     Returns a hash containing file paths for configuration files
 =cut
 
 sub qesap_get_file_paths {
-    my %paths;
+    my %paths = qesap_get_paths();
     $paths{qesap_conf_filename} = get_required_var('QESAP_CONFIG_FILE');
-    $paths{deployment_dir} = get_var('QESAP_DEPLOYMENT_DIR', '/root/qe-sap-deployment');
-    $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
     $paths{qesap_conf_trgt} = $paths{deployment_dir} . '/scripts/qesap/' . $paths{qesap_conf_filename};
     $paths{qesap_conf_src} = data_url('sles4sap/qe_sap_deployment/' . $paths{qesap_conf_filename});
-    $paths{roles_dir} = get_var('QESAP_ROLES_DIR', '/root/community.sles-for-sap');
-    $paths{roles_dir_path} = $paths{roles_dir} . '/roles';
     return (%paths);
 }
 
@@ -123,7 +134,7 @@ sub qesap_get_file_paths {
 =cut
 
 sub qesap_create_folder_tree {
-    my %paths = qesap_get_file_paths();
+    my %paths = qesap_get_paths();
     die 'Missing deployment_dir in paths' unless $paths{deployment_dir};
     assert_script_run("mkdir -p $paths{deployment_dir}", quiet => 1);
     die 'Missing roles_dir in paths' unless $paths{roles_dir};
@@ -315,7 +326,7 @@ sub qesap_pip {
 =cut
 
 sub qesap_pip_install {
-    my %paths = qesap_get_file_paths();
+    my %paths = qesap_get_paths();
     my $pip_install_log = '/tmp/pip_install.txt';
     my $pip_ints_cmd = join(' ', qesap_pip(), 'install --no-color --no-cache-dir',
         '-r', "$paths{deployment_dir}/requirements.txt");
@@ -349,7 +360,7 @@ sub qesap_pip_install {
 =cut
 
 sub qesap_galaxy_install {
-    my %paths = qesap_get_file_paths();
+    my %paths = qesap_get_paths();
     my $galaxy_install_log = '/tmp/galaxy_install.txt';
 
     my $ans_req = "$paths{deployment_dir}/requirements.yml";
@@ -391,17 +402,40 @@ sub qesap_upload_logs {
     }
 }
 
+=head3 qesap_get_latest_version
+
+    Queries GitHub for the latest release tag of qe-sap-deployment
+    and returns the parsed version string.
+=cut
+
+sub qesap_get_latest_version {
+    my $official_repo = 'github.com/SUSE/qe-sap-deployment';
+    my $latest_release_url = "https://$official_repo/releases/latest";
+    my $redirect_url = script_output("curl -s -L -o /dev/null -w %{url_effective} $latest_release_url");
+    die "Failed to parse the latest version from $redirect_url" if ($redirect_url !~ /\/tag\/v([0-9.]+)$/);
+    my $version = $1;
+    record_info("Version latest", "Latest QE-SAP-DEPLOYMENT release used: $version");
+    return $version;
+}
+
 =head3 qesap_get_deployment_code
 
     Get the qe-sap-deployment code
+
+=over
+
+=item B<VERSION> - optional release version tag to install (e.g. 'latest', '2.6.15')
+
+=back
 =cut
 
 sub qesap_get_deployment_code {
+    my (%args) = @_;
     my $official_repo = 'github.com/SUSE/qe-sap-deployment';
     my $qesap_git_clone_log = '/tmp/git_clone.txt';
-    my %paths = qesap_get_file_paths();
-    die "Missing mandatory terraform_dir from qesap_get_file_paths()" unless $paths{'terraform_dir'};
-    die "Missing mandatory deployment_dir from qesap_get_file_paths()" unless ($paths{'deployment_dir'} && $paths{'deployment_dir'} =~ /\S/);
+    my %paths = qesap_get_paths();
+    die "Missing mandatory terraform_dir from qesap_get_paths()" unless $paths{'terraform_dir'};
+    die "Missing mandatory deployment_dir from qesap_get_paths()" unless ($paths{'deployment_dir'} && $paths{'deployment_dir'} =~ /\S/);
 
     # deployment_dir get its value from QESAP_DEPLOYMENT_DIR, can be configured with arbitrary strings.
     # This guard ensures that a typo or misconfiguration like QESAP_DEPLOYMENT_DIR=/ or /root will die
@@ -422,21 +456,11 @@ sub qesap_get_deployment_code {
     push(@log_files, $qesap_git_clone_log);
 
     # Script from a release
-    if (get_var('QESAP_INSTALL_VERSION')) {
+    if ($args{version}) {
         record_info('WARNING', 'QESAP_INSTALL_GITHUB_REPO will be ignored') if (get_var('QESAP_INSTALL_GITHUB_REPO'));
         record_info('WARNING', 'QESAP_INSTALL_GITHUB_BRANCH will be ignored') if (get_var('QESAP_INSTALL_GITHUB_BRANCH'));
-        my $ver_artifact;
-        if (check_var('QESAP_INSTALL_VERSION', 'latest')) {
-            my $latest_release_url = "https://$official_repo/releases/latest";
-            my $redirect_url = script_output("curl -s -L -o /dev/null -w %{url_effective} $latest_release_url");
-            die "Failed to parse the latest version from $redirect_url" if ($redirect_url !~ /\/tag\/v([0-9.]+)$/);
-            my $version = $1;
-            $ver_artifact = "v$version.tar.gz";
-            record_info("Version latest", "Latest QE-SAP-DEPLOYMENT release used: $version");
-        }
-        else {
-            $ver_artifact = 'v' . get_var('QESAP_INSTALL_VERSION') . '.tar.gz';
-        }
+        $args{version} = qesap_get_latest_version() if ($args{version} eq 'latest');
+        my $ver_artifact = "v$args{version}.tar.gz";
 
         my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o /tmp/$ver_artifact";
         assert_script_run("set -o pipefail ; $curl_cmd | tee " . $qesap_git_clone_log, quiet => 1);
@@ -469,7 +493,7 @@ sub qesap_get_deployment_code {
 sub qesap_get_roles_code {
     my $official_repo = 'github.com/sap-linuxlab/community.sles-for-sap';
     my $roles_git_clone_log = '/tmp/git_clone_roles.txt';
-    my %paths = qesap_get_file_paths();
+    my %paths = qesap_get_paths();
 
     record_info('SLES4SAP Roles repo', 'Preparing community.sles-for-sap repository');
 
@@ -835,7 +859,7 @@ sub qesap_get_terraform_dir {
 =cut
 
 sub qesap_ansible_get_roles_dir {
-    my %paths = qesap_get_file_paths();
+    my %paths = qesap_get_paths();
     return $paths{roles_dir_path};
 }
 
@@ -881,7 +905,7 @@ sub qesap_prepare_env {
     unless ($args{only_configure}) {
         die "Missing mandatory qesap_conf_src from qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
         qesap_create_folder_tree();
-        qesap_get_deployment_code();
+        qesap_get_deployment_code(version => get_var('QESAP_INSTALL_VERSION'));
         qesap_get_roles_code();
         qesap_pip_install();
         # for the moment run it only conditionally
