@@ -11,12 +11,13 @@ use Mojo::Base 'y2_installbase';
 use File::Basename;
 use testapi;
 use Utils::Architectures;
-use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout is_pvm);
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout is_pvm is_ipmi);
 use version_utils qw(is_sle is_tumbleweed is_sle_micro is_agama is_transactional);
 use utils qw(is_ipxe_boot is_disk_image reconnect_mgmt_console);
 use ipmi_backend_utils;
 use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd double_check_xen_role check_kvm_modules check_host_version);
 use IPC::Run;
+use MIME::Base64 qw(decode_base64);
 
 sub set_ssh_console_timeout_before_use {
     my ($sshd_config_file, $sshd_timeout) = @_;
@@ -175,10 +176,13 @@ sub login_to_console {
     save_screenshot;
 
     for (my $i = 0; $i <= 4; $i++) {
-        last if (check_screen([qw(linux-login virttest-displaymanager)], 60));
+        last if (check_screen([qw(linux-login virttest-displaymanager emergency-mode)], 60));
         save_screenshot;
         send_key 'ret';
     }
+    # Do not keep pressing 'ret' on maintenance prompt or wait for ssh port that never opens,
+    # post_fail_hook takes care of collecting logs from emergency mode
+    die "Host booted into emergency mode" if (match_has_tag('emergency-mode'));
 
     # Set ssh console timeout for virt tests on ipmi backend machines
     # it will make ssh serial console alive even with long time command
@@ -279,9 +283,170 @@ sub run {
     check_host_health();
 }
 
+# Collect logs when host is in emergency/maintenance mode and ssh is unavailable.
+# Log in as root on the SOL console and show diagnostics on screen so that they are
+# recorded in screenshots and the video even when the worker has no route to the
+# SUT at all, then print the tarball base64-wrapped on the SOL console and
+# recover it into ulogs/ on the worker, which uploads it with the other logs.
+# Only then try to start sshd to upload complete logs: starting it re-arms
+# sulogin and can kill the emergency shell, which would lose the console
+# transfer typed after it. Returns 1 if ssh is available afterwards, otherwise 0.
+sub collect_emergency_mode_logs {
+    my $sut_ip = get_required_var('SUT_IP');
+
+    reset_consoles;
+    select_console 'sol', await_console => 0;
+    save_screenshot;
+    # Check the screen before pressing 'ret': on the maintenance prompt another
+    # empty 'ret' redraws the prompt, it is not a login attempt. The first
+    # frame can be the wrapped one the needle misses (job 22250124), so on a
+    # miss press 'ret' once to redraw the clean prompt and look again. Match
+    # the return value instead of match_has_tag, which would still report the
+    # tag of an earlier match when the screen did not match at all.
+    my $emergency_mode = check_screen('emergency-mode', 5);
+    unless ($emergency_mode) {
+        send_key 'ret';
+        $emergency_mode = check_screen('emergency-mode', 15);
+    }
+    unless ($emergency_mode) {
+        # Without the matched maintenance prompt the password would be typed
+        # as a username and echoed into screenshots and video
+        record_info('No emergency mode match', "Port 22 is not open on $sut_ip and the emergency mode screen was not matched "
+              . 'on the SOL console, no logs collected', result => 'fail');
+        return 0;
+    }
+    record_info('Emergency mode', "Host $sut_ip is in emergency/maintenance mode", result => 'fail');
+
+    # Log in as root on the maintenance prompt; the password is sent only once
+    type_password;
+    send_key 'ret';
+    wait_still_screen(3);
+    # The maintenance prompt stays on screen after a successful login: the
+    # shell prompt below it scrolls the prompt up by one line, still inside
+    # the needle margin, so a plain needle re-check would mistake the
+    # successful login for a failed one and the retry would type the
+    # password into the root shell. Wipe the frame with 'clear' and require
+    # a fresh root shell prompt before typing anything else.
+    enter_cmd('clear');
+    wait_still_screen(3);
+    my $login_screen = check_screen([qw(emergency-mode text-logged-in-root)], 10);
+    if ($login_screen && match_has_tag('emergency-mode')) {
+        record_info('Root login failed', 'Maintenance prompt still shown after entering the root password, no logs collected', result => 'fail');
+        return 0;
+    }
+    unless ($login_screen && match_has_tag('text-logged-in-root')) {
+        record_info('No root shell match', 'No root shell prompt matched on the SOL console after the maintenance login, no logs collected', result => 'fail');
+        return 0;
+    }
+
+    # Show diagnostics on the SOL console; they stay available in screenshots and
+    # the video even if sshd can not be started below
+    enter_cmd('clear; systemctl --failed --no-pager; echo; echo "===== /proc/cmdline ====="; cat /proc/cmdline');
+    wait_still_screen(3);
+    save_screenshot;
+    enter_cmd('clear; journalctl -b -p err --no-pager | tail -n 40');
+    wait_still_screen(3);
+    save_screenshot;
+    # Capture 'systemctl status' for every failed unit (e.g. boot-efi.mount) together
+    # with its journal. Clear the screen before each unit so that one screenshot per
+    # unit shows a full status output.
+    enter_cmd('for u in $(systemctl list-units --failed --no-legend --plain | awk \'{print $1}\'); do '
+          . 'clear; echo "===== systemctl status $u ====="; systemctl status "$u" --no-pager; echo; '
+          . 'echo "===== journalctl -u $u ====="; journalctl -b -u "$u" --no-pager | tail -n 25; echo; sleep 15; done');
+    for (1 .. 12) {
+        save_screenshot;
+        sleep 15;
+    }
+
+    # Build the tarball once in the SOL shell, before sshd is started, so the
+    # same recipe feeds both the ssh upload and the base64 fallback below.
+    # /run is tmpfs and writable even if the root filesystem is mounted read-only
+    my $sol_log_dir = '/run/emergency_mode_logs';
+    enter_cmd("mkdir -p $sol_log_dir && journalctl -b --no-pager -o short-precise > $sol_log_dir/journal.log");
+    enter_cmd("systemctl --failed --no-pager > $sol_log_dir/failed_units.log");
+    enter_cmd("cat /proc/cmdline > $sol_log_dir/cmdline.log");
+    enter_cmd("cp /etc/fstab $sol_log_dir/fstab");
+    enter_cmd("(lsblk -f; echo; blkid; echo; findmnt) > $sol_log_dir/storage.log 2>&1");
+    # rdsosreport.txt only exists in dracut's initramfs emergency shell, not in
+    # systemd emergency mode after switch-root
+    enter_cmd("test -f /run/initramfs/rdsosreport.txt && cp /run/initramfs/rdsosreport.txt $sol_log_dir/ "
+          . "|| echo 'no rdsosreport.txt (systemd emergency mode, not dracut)'");
+    enter_cmd("tar czf /run/emergency_mode_logs.tar.gz -C /run emergency_mode_logs");
+
+    # Print the tarball base64-wrapped on the SOL console BEFORE sshd is
+    # started: starting sshd re-arms sulogin and can drop the console back to
+    # the maintenance prompt, so anything typed after it lands in a password
+    # prompt instead of the log. With HARDWARE_CONSOLE_LOG=1 the xterm session
+    # is logged to ulogs/hardware-console-log.txt on the worker; recover the
+    # tarball from it and drop it into ulogs/, which the worker uploads with
+    # the other logs at the end of the job. The markers must be standalone
+    # lines, the typed command wraps and contains the same strings.
+    enter_cmd('echo =====OPENQA-EMERGENCY-LOGS-BEGIN=====; base64 /run/emergency_mode_logs.tar.gz; echo =====OPENQA-EMERGENCY-LOGS-END=====');
+    # Wait for the base64 stream to finish before the job may tear down the console
+    wait_still_screen(30, 180);
+
+    enter_cmd('systemctl start sshd.service');
+    if (check_port_state($sut_ip, 22, 6, 10)) {
+        # Upload the tarball built above over ssh; /run is tmpfs so it
+        # survives the console switch
+        reset_consoles;
+        select_console 'log-console';
+        upload_logs('/run/emergency_mode_logs.tar.gz', failok => 1);
+        return 1;
+    }
+
+    # No ssh: recover the tarball from the base64 stream that is already in
+    # ulogs/hardware-console-log.txt
+    my $saved = 0;
+    if (-e 'ulogs/hardware-console-log.txt') {
+        for (1 .. 12) {
+            last unless (open my $fh, '<', 'ulogs/hardware-console-log.txt');
+            local $/;
+            my $content = <$fh>;
+            close $fh;
+            if (defined $content && $content =~ /=====OPENQA-EMERGENCY-LOGS-BEGIN=====[^\S\n]*\r?\n(.*?)=====OPENQA-EMERGENCY-LOGS-END=====/s) {
+                my $base64 = $1;
+                $base64 =~ s/[^A-Za-z0-9+\/=]//g;
+                mkdir 'ulogs' unless -d 'ulogs';
+                if (open my $out, '>', 'ulogs/emergency_mode_logs.tar.gz') {
+                    print $out decode_base64($base64);
+                    close $out;
+                    $saved = 1;
+                }
+                last;
+            }
+            sleep 10;
+        }
+    }
+    record_info('Tarball over SOL', 'Port 22 is closed, /run/emergency_mode_logs.tar.gz was transferred base64-wrapped over the SOL console and '
+          . ($saved ? 'saved to ulogs/emergency_mode_logs.tar.gz, which the worker uploads with the other logs'
+            : 'could not be recovered from ulogs/hardware-console-log.txt; extract the base64 block between the standalone OPENQA-EMERGENCY-LOGS marker lines manually'),
+        result => 'fail');
+    return 0;
+}
+
 sub post_fail_hook {
     my ($self) = @_;
-    if (check_var('PERF_KERNEL', '1') || check_var('VIRT_AUTOTEST', '1')) {
+    my $ssh_available = 1;
+    if (is_ipmi) {
+        $ssh_available = check_port_state(get_required_var('SUT_IP'), 22, 3, 10);
+        if (!$ssh_available) {
+            # An exception from the collector (console selection or a command
+            # that times out) must not skip the parent hook: catch it, record
+            # it and keep going so SUPER::post_fail_hook runs in every case
+            my $collected = eval { collect_emergency_mode_logs() };
+            if ($@) {
+                record_info('Emergency mode log collection failed', "collect_emergency_mode_logs died:\n$@", result => 'fail');
+            }
+            else {
+                # The collector starts sshd on the SOL console when it can:
+                # 1 means ssh is available again, 0 that it stays unreachable
+                $ssh_available = $collected;
+            }
+        }
+    }
+    # All further log collection relies on ssh consoles, skip it if ssh can not be recovered
+    if ($ssh_available && (check_var('PERF_KERNEL', '1') || check_var('VIRT_AUTOTEST', '1'))) {
         select_console 'log-console';
         # show efi boot entry
         if (check_var('IPXE_UEFI', '1') or check_var('UEFI', '1')) {
@@ -299,7 +464,26 @@ sub post_fail_hook {
             save_screenshot;
         }
     }
-    $self->SUPER::post_fail_hook;
+    if (!$ssh_available) {
+        # ssh never came back: keep the parent-hook call, but stop its
+        # ssh-dependent steps from retrying the dead connection. NOLOGS is
+        # the flag the parent chain checks before its ssh-based log
+        # collection (get_ip_address, save_upload_y2logs, the
+        # opensusebasetest export, save_system_logs, save_strace_gdb_output),
+        # so propagate it just for this call and restore the previous value
+        my $nologs = get_var('NOLOGS');
+        set_var('NOLOGS', 1);
+        # NOLOGS is not checked by every parent step: the console switch in
+        # get_to_console still tries ssh and dies with 'No route to host'
+        # when the network is gone, which would abort the rest of the hook.
+        # Catch it, record it and keep going
+        eval { $self->SUPER::post_fail_hook };
+        record_info('Parent post_fail_hook incomplete', "SUPER::post_fail_hook died:\n$@", result => 'fail') if $@;
+        set_var('NOLOGS', $nologs);
+    }
+    else {
+        $self->SUPER::post_fail_hook;
+    }
 }
 
 1;
