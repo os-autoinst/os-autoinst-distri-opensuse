@@ -297,11 +297,16 @@ sub collect_emergency_mode_logs {
     select_console 'sol', await_console => 0;
     save_screenshot;
     # Check the screen before pressing 'ret': on the maintenance prompt another
-    # empty 'ret' redraws the prompt, it is not a login attempt. Match the
-    # return value instead of match_has_tag, which would still report the tag
-    # of an earlier match when the screen did not match at all.
+    # empty 'ret' redraws the prompt, it is not a login attempt. The first
+    # frame can be the wrapped one the needle misses (job 22250124), so on a
+    # miss press 'ret' once to redraw the clean prompt and look again. Match
+    # the return value instead of match_has_tag, which would still report the
+    # tag of an earlier match when the screen did not match at all.
     my $emergency_mode = check_screen('emergency-mode', 5);
-    $emergency_mode = check_screen('emergency-mode', 15) unless ($emergency_mode);
+    unless ($emergency_mode) {
+        send_key 'ret';
+        $emergency_mode = check_screen('emergency-mode', 15);
+    }
     unless ($emergency_mode) {
         # Without the matched maintenance prompt the password would be typed
         # as a username and echoed into screenshots and video
