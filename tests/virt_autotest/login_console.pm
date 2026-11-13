@@ -286,10 +286,11 @@ sub run {
 # Collect logs when host is in emergency/maintenance mode and ssh is unavailable.
 # Log in as root on the SOL console and show diagnostics on screen so that they are
 # recorded in screenshots and the video even when the worker has no route to the
-# SUT at all, then try to start sshd to upload complete logs. When ssh stays
-# unreachable, the tarball is printed base64-wrapped on the SOL console and
-# recovered into ulogs/ on the worker, which uploads it with the other logs.
-# Returns 1 if ssh is available afterwards, otherwise 0.
+# SUT at all, then print the tarball base64-wrapped on the SOL console and
+# recover it into ulogs/ on the worker, which uploads it with the other logs.
+# Only then try to start sshd to upload complete logs: starting it re-arms
+# sulogin and can kill the emergency shell, which would lose the console
+# transfer typed after it. Returns 1 if ssh is available afterwards, otherwise 0.
 sub collect_emergency_mode_logs {
     my $sut_ip = get_required_var('SUT_IP');
 
@@ -372,6 +373,18 @@ sub collect_emergency_mode_logs {
           . "|| echo 'no rdsosreport.txt (systemd emergency mode, not dracut)'");
     enter_cmd("tar czf /run/emergency_mode_logs.tar.gz -C /run emergency_mode_logs");
 
+    # Print the tarball base64-wrapped on the SOL console BEFORE sshd is
+    # started: starting sshd re-arms sulogin and can drop the console back to
+    # the maintenance prompt, so anything typed after it lands in a password
+    # prompt instead of the log. With HARDWARE_CONSOLE_LOG=1 the xterm session
+    # is logged to ulogs/hardware-console-log.txt on the worker; recover the
+    # tarball from it and drop it into ulogs/, which the worker uploads with
+    # the other logs at the end of the job. The markers must be standalone
+    # lines, the typed command wraps and contains the same strings.
+    enter_cmd('echo =====OPENQA-EMERGENCY-LOGS-BEGIN=====; base64 /run/emergency_mode_logs.tar.gz; echo =====OPENQA-EMERGENCY-LOGS-END=====');
+    # Wait for the base64 stream to finish before the job may tear down the console
+    wait_still_screen(30, 180);
+
     enter_cmd('systemctl start sshd.service');
     if (check_port_state($sut_ip, 22, 6, 10)) {
         # Upload the tarball built above over ssh; /run is tmpfs so it
@@ -382,15 +395,8 @@ sub collect_emergency_mode_logs {
         return 1;
     }
 
-    # No ssh: print the tarball base64-wrapped on the SOL console. With
-    # HARDWARE_CONSOLE_LOG=1 the xterm session is logged to
-    # ulogs/hardware-console-log.txt on the worker; recover the tarball from
-    # it and drop it into ulogs/, which the worker uploads with the other
-    # logs at the end of the job. The markers must be standalone lines, the
-    # typed command wraps and contains the same strings.
-    enter_cmd('echo =====OPENQA-EMERGENCY-LOGS-BEGIN=====; base64 /run/emergency_mode_logs.tar.gz; echo =====OPENQA-EMERGENCY-LOGS-END=====');
-    # Wait for the base64 stream to finish before the job may tear down the console
-    wait_still_screen(30, 180);
+    # No ssh: recover the tarball from the base64 stream that is already in
+    # ulogs/hardware-console-log.txt
     my $saved = 0;
     if (-e 'ulogs/hardware-console-log.txt') {
         for (1 .. 12) {
@@ -467,7 +473,12 @@ sub post_fail_hook {
         # so propagate it just for this call and restore the previous value
         my $nologs = get_var('NOLOGS');
         set_var('NOLOGS', 1);
-        $self->SUPER::post_fail_hook;
+        # NOLOGS is not checked by every parent step: the console switch in
+        # get_to_console still tries ssh and dies with 'No route to host'
+        # when the network is gone, which would abort the rest of the hook.
+        # Catch it, record it and keep going
+        eval { $self->SUPER::post_fail_hook };
+        record_info('Parent post_fail_hook incomplete', "SUPER::post_fail_hook died:\n$@", result => 'fail') if $@;
         set_var('NOLOGS', $nologs);
     }
     else {
