@@ -66,6 +66,7 @@ our @EXPORT = qw(
   ipaddr2_test_master_vm
   ipaddr2_test_other_vm
   ipaddr2_cloudinit_create
+  ipaddr2_cloudinit_bastion_create
   ipaddr2_logs_cloudinit
   ipaddr2_azure_resource_group
   ipaddr2_network_peering_create
@@ -206,6 +207,43 @@ END
     return $cloud_init_file;
 }
 
+=head2 ipaddr2_cloudinit_bastion_create
+
+    my $cloud_init_file = ipaddr2_cloudinit_bastion_create();
+
+Create the cloud-init profile file for the bastion VM.
+
+The hardened sshd profile of SLE 16 images disables TCP forwarding, which ssh -J
+to the internal VMs needs, and shows a banner on every login.
+The profile adds an sshd drop-in file with "AllowTcpForwarding yes" and "Banner none",
+then reloads sshd. sshd keeps the first value it reads, and the drop-in files load
+in glob order: the name "0-ipaddr2-bastion.conf" sorts before
+"00-complianceascode-hardening.conf", because "-" sorts before "0".
+This is the cloud-init alternative to B<ipaddr2_bastion_sshd_override>.
+Return the path of the profile file on the worker.
+
+=cut
+
+sub ipaddr2_cloudinit_bastion_create {
+    my $cloud_init_content = <<END;
+#cloud-config
+write_files:
+  - path: /etc/ssh/sshd_config.d/0-ipaddr2-bastion.conf
+    owner: root:root
+    permissions: '0600'
+    content: |
+      AllowTcpForwarding yes
+      Banner none
+runcmd:
+  - 'sshd -t && systemctl try-reload-or-restart sshd.service'
+END
+    my $cloud_init_file = '/tmp/cloud-init-bastion.txt';
+    write_sut_file($cloud_init_file, $cloud_init_content);
+    # upload to allow debugging
+    upload_logs($cloud_init_file);
+    return $cloud_init_file;
+}
+
 =head2 ipaddr2_infra_deploy
 
     my $rg = ipaddr2_infra_deploy();
@@ -233,6 +271,11 @@ Create a deployment in Azure designed for this specific test.
 =item B<cloudinit_profile> - filename of the cloud-init profile. Usually this one is the return value of
                       B<ipaddr2_cloudinit_create>.
                       Presence of this optional argument also enable cloud-init features in various deployment stages.
+
+=item B<bastion_cloudinit_profile> - filename of the cloud-init profile for the bastion VM. Usually this one is
+                      the return value of B<ipaddr2_cloudinit_bastion_create>. Optional.
+                      If present, the bastion VM is created with this profile and the deployment waits for
+                      cloud-init to complete on the bastion.
 
 =back
 =cut
@@ -420,6 +463,7 @@ sub ipaddr2_infra_deploy(%args) {
     my %vm_create_bastion_args = %vm_create_generic_args;
     $vm_create_bastion_args{name} = $bastion_vm_name;
     $vm_create_bastion_args{public_ip} = $bastion_pub_ip;
+    $vm_create_bastion_args{custom_data} = $args{bastion_cloudinit_profile} if ($args{bastion_cloudinit_profile});
     az_vm_create(%vm_create_bastion_args);
 
     # Keep this loop separated from the other to hopefully
@@ -480,6 +524,14 @@ sub ipaddr2_infra_deploy(%args) {
             timeout => 1200
         );
         record_info('VM RUNNING', "VM $_ takes $wt seconds to reach the Running state.");
+    }
+
+    # Wait at the end: the bastion cloud-init runs while the LB is configured
+    if ($args{bastion_cloudinit_profile}) {
+        az_vm_wait_cloudinit(
+            resource_group => $rg,
+            name => $bastion_vm_name,
+            username => USER);
     }
 }
 

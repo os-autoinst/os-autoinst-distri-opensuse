@@ -25,6 +25,8 @@ It creates the necessary resources in Azure, which includes:
 Enables or disables the use of cloud-init for SUT setup. Defaults to enabled (1).
 When enabled, cloud-init handles tasks such as image registration,
 installation of nginx and socat, and creation of a basic web page for SUT identification.
+For SLE 16 and later, cloud-init also configures sshd on the bastion VM: it enables
+TCP forwarding and removes the login banner, both set by the image hardening.
 
 =item B<IPADDR2_NGINX_EXTREPO>
 
@@ -79,8 +81,10 @@ QE-SAP <qe-sap@suse.de>
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
+use version_utils qw( is_sle );
 use sles4sap::ipaddr2 qw(
   ipaddr2_cloudinit_create
+  ipaddr2_cloudinit_bastion_create
   ipaddr2_infra_deploy
   ipaddr2_deployment_sanity
   ipaddr2_post_fail_hook
@@ -134,7 +138,12 @@ sub run {
     # If required (by default cloud-init is active), both:
     #   - create on the fly the cloud-init profile
     #   - activate the cloud-init part in the deployment
-    $deployment{cloudinit_profile} = ipaddr2_cloudinit_create(%cloudinit_args) unless (check_var('IPADDR2_CLOUDINIT', 0));
+    unless (check_var('IPADDR2_CLOUDINIT', 0)) {
+        $deployment{cloudinit_profile} = ipaddr2_cloudinit_create(%cloudinit_args);
+        # Deal with ssh banner / tcp forwarding in >=16 images.
+        # With IPADDR2_CLOUDINIT=0, configure.pm does it over ssh.
+        $deployment{bastion_cloudinit_profile} = ipaddr2_cloudinit_bastion_create() if (is_sle('>=16.0'));
+    }
 
     ipaddr2_infra_deploy(%deployment);
 

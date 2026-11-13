@@ -32,6 +32,9 @@ Specifies the public cloud provider. Currently, only AZURE is supported.
 Controls whether this module performs the web server configuration.
 If set to 0 (disabled), this module will install and configure nginx.
 If enabled (default, 1), this step is skipped, assuming cloud-init has already performed it.
+For SLE 16 and later, if set to 0, this module also configures sshd on the bastion VM over ssh:
+it enables TCP forwarding and removes the login banner. If enabled, the bastion
+cloud-init profile does it at deploy time.
 
 =item B<IPADDR2_ROOTLESS>
 
@@ -82,7 +85,8 @@ sub run {
     die "Bastion key accept failed with exit code $ret" if $ret;
 
     # Deal with ssh banner / tcp forwarding in >=16 images: the bastion first, as ssh -J needs it
-    if (is_sle('>=16.0')) {
+    # With cloud-init enabled, the bastion cloud-init profile already did it at deploy time.
+    if (is_sle('>=16.0') && check_var('IPADDR2_CLOUDINIT', 0)) {
         $ret = ipaddr2_bastion_sshd_override(bastion_ip => $bastion_ip);
         die "Bastion sshd override failed with exit code $ret" if $ret;
     }
