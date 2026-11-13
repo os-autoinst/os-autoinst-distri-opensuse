@@ -22,11 +22,11 @@ sub enable_ansible_modules {
         add_suseconnect_product(get_addon_fullname('desktop'));
         add_suseconnect_product(get_addon_fullname('sdk'));
         add_suseconnect_product(get_addon_fullname('phub'));
-        zypper_call '--gpg-auto-import-keys ref';
+        zypper_call '--gpg-auto-import-keys ref', retry_on_timeout => 1;
     }
     if (is_sle('<15-SP4') && main_common::is_updates_tests()) {
         add_suseconnect_product(get_addon_fullname('phub'));
-        zypper_call '--gpg-auto-import-keys ref';
+        zypper_call '--gpg-auto-import-keys ref', retry_on_timeout => 1;
     }
 }
 
@@ -41,7 +41,7 @@ sub run {
         trup_call("pkg install @pkgs");
         check_reboot_changes;
     } else {
-        zypper_call "in @pkgs";
+        zypper_call "in @pkgs", retry_on_timeout => 1;
     }
 
     systemctl 'start sshd';

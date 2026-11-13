@@ -110,7 +110,7 @@ sub add_test_repositories {
     if (get_var("NO_ADD_MAINT_TEST_REPOS")) {
         # If we don't want to add again (and duplicate) repositories that were already added during install,
         # we still need to disable gpg check for all repositories.
-        zypper_call('--gpg-auto-import-keys ref', timeout => 1400, exitcode => [0, 106]);
+        zypper_call('--gpg-auto-import-keys ref', timeout => 1400, exitcode => [0, 106], retry_on_timeout => 1);
     } else {
         for my $var (@repos) {
             add_repo_if_not_present("$var", "TEST_$counter");
@@ -125,7 +125,7 @@ sub add_test_repositories {
         trup_call('-c run zypper -n --gpg-auto-import-keys ref', timeout => 1400);
     } else {
         my $import_key = is_sle('>=16') ? '--gpg-auto-import-keys' : '';
-        zypper_call("$import_key ref", timeout => 1400, exitcode => [0, 106]);
+        zypper_call("$import_key ref", timeout => 1400, exitcode => [0, 106], retry_on_timeout => 1);
     }
 
     # return the count of repos-1 because counter is increased also on last cycle
