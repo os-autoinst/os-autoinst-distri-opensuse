@@ -35,7 +35,7 @@ sub upload_agama_logs {
 }
 
 sub upload_browser_automation_dumps {
-    my ($dest, $sources) = ("/tmp/puppeteer-log.tar.gz", "log/");
+    my ($dest, $sources) = ("/tmp/puppeteer-log.tar.gz", "/root/log/");
     script_run("tar czf $dest $sources");
     upload_logs($dest, failok => 1);
 }
