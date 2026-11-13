@@ -1061,6 +1061,8 @@ Create a virtual machine
 
 =item B<timeout> - timeout of command execution, default 900
 
+=item B<soft_timeout> - optional, see B<soft_timeout> in C<az()>
+
 =item B<tags> - optional string of space separated tags to apply to the VM
 
 =item B<debug> - if not zero add --debug
@@ -1108,7 +1110,9 @@ sub az_vm_create(%args) {
     push @vm_create, '--os-type', $args{os_type} if $args{os_type};
     push @vm_create, '--tags', $args{tags} if $args{tags};
 
-    my $az_out = az(az_args => join(' ', @vm_create), timeout => $args{timeout});
+    my %cmd_args = (az_args => join(' ', @vm_create), timeout => $args{timeout});
+    $cmd_args{soft_timeout} = $args{soft_timeout} if defined $args{soft_timeout};
+    my $az_out = az(%cmd_args);
     return $az_out->{rc};
 }
 
