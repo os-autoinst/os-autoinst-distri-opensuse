@@ -17,9 +17,9 @@ schedule:
 conditional_schedule:
     staging_updates:
         FLAVOR:
-            Immutable-Base-qcow-Updates-Staging:
+            VIRT-Immutable-Base-qcow-Updates-Staging:
                 - transactional/install_updates
-            Immutable-Base-ppc-4096-Updates-Staging:
+            VIRT-Immutable-Base-ppc-4096-Updates-Staging:
                 - transactional/install_updates
     boot_image:
         ARCH:
@@ -58,7 +58,7 @@ conditional_schedule:
                 - microos/disk_boot
             Transactional-Base-qcow:
                 - microos/disk_boot
-            Immutable-Base-qcow-Updates-Staging:
+            VIRT-Immutable-Base-qcow-Updates-Staging:
                 - microos/disk_boot
             Transactional-Base-encrypted:
                 - installation/bootloader_uefi

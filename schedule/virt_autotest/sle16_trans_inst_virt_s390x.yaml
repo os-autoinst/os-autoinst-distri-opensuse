@@ -21,5 +21,7 @@ conditional_schedule:
         FLAVOR:
             Online-Immutable-Updates-Staging:
                 - transactional/install_updates
+            VIRT-Online-Immutable-Updates-Staging:
+                - transactional/install_updates
             Online-Increments:
                 - transactional/install_updates
