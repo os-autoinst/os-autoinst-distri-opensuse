@@ -27,7 +27,7 @@ schedule:
   - console/http_srv
   - console/dns_srv
   - console/apache
-  - console/shibboleth
+  # - console/shibboleth poo#208569
   - console/apache_ssl
   - console/postgresql_server
   - console/orphaned_packages_check
