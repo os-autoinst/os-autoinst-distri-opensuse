@@ -175,16 +175,16 @@ sub post_fail_hook {
         my $log_file = "/tmp/${svc}_log";
         script_run("journalctl -xeu $svc.service >$log_file");
         # Upload only if the file is not empty
-        upload_logs($log_file, failok => 1) if (script_run("[[ -s $log_file ]]"));
+        upload_logs($log_file, failok => 1) unless (script_run("[[ -s $log_file ]]"));
     }
 
     # Log all resources for debugging
-    my @resources = script_output('kubectl api-resources --verbs=list -o name');
+    my @resources = split(/\n/, script_output('kubectl api-resources --verbs=list -o name', proceed_on_failure => 1));
     foreach my $res (@resources) {
         my $log_file = "/tmp/k8s_get_${res}.log";
         script_run("kubectl get $res -A --ignore-not-found >$log_file 2>&1");
         # Upload only if the file is not empty
-        upload_logs($log_file, failok => 1) if (script_run("[[ -s $log_file ]]"));
+        upload_logs($log_file, failok => 1) unless (script_run("[[ -s $log_file ]]"));
     }
 
     # Execute the common part
