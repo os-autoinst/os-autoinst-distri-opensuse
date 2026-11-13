@@ -120,6 +120,44 @@ test_data:
     - iputils
     - systemd
     - wget
+    # Large test prerequisites are installed here, before any binary is
+    # instrumented: a shimmed zypper invocation costs ~30-40 s even when it
+    # has nothing to do. Modules keep their own zypper commands, so the
+    # instrumented path is still exercised; only the already-satisfied
+    # transaction is skipped.
+    - yast2-country                    # yast_lang, yast_timezone
+    - libusbguard1                     # usbguard
+    - usbguard
+    - usbguard-devel
+    - usbguard-tools
+    - usbutils
+    - alsa                             # wavpack
+    - alsa-utils
+    - rsyslog                          # syslog
+    - python3-pytest                   # gpg_agnostic
+    - libgcrypt20-hmac
+    - mkisofs                          # udisks2
+    - lynis                            # lynis_setup
+    - apache2
+    - apache2-utils
+    - ruby4.0                          # ruby
+    - libaom-devel                     # libaom
+    - gcc                              # libaom, gcc, gdb
+    - make
+    - nasm
+    - mariadb                          # mariadb_srv, mariadb_odbc
+    - mariadb-connector-odbc
+    - osinfo-db                        # osinfo_db
+    - libosinfo
+    - bind                             # dns_srv
+    - libgccjit-devel                  # gcc
+    - glibc-devel                      # gdb
+    - nss-pam-ldapd                    # pam_config
+    - expect                           # sqlite3
+    - perl
+    - quota-nfs                        # quota
+    - ksh                              # shells
+    - pam_u2f                          # pam_u2f
   coverage_targets:
     # Not instrumented on purpose: sudo (setuid binaries cannot be shimmed),
     # sshd-session and sshd-auth (shimming them breaks SSH on the serial terminal).
