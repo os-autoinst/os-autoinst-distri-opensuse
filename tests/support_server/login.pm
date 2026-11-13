@@ -18,7 +18,9 @@ sub run {
 
     # we have some tests that waits for dvd boot menu timeout and boot from hdd
     # - the timeout here must cover it
-    $self->wait_boot(bootloader_time => $timeout, textmode => !is_desktop_installed);
+    # the support server may have already booted past GRUB if a preceding
+    # module (e.g. barrier init) blocked for minutes while the VM kept booting
+    $self->wait_boot(bootloader_time => $timeout, textmode => !is_desktop_installed, accept_already_booted => 1);
 
     $self->restore_default_bootloader if is_bootloader_grub2 && $self->{bootloader_overriden};
 
