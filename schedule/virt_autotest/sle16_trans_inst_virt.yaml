@@ -18,7 +18,7 @@ schedule:
 conditional_schedule:
     MU_updates:
         FLAVOR:
-            Online-Immutable-Updates-Staging:
+            VIRT-Online-Immutable-Updates-Staging:
                 - transactional/install_updates
             Online-Increments:
                 - transactional/install_updates
