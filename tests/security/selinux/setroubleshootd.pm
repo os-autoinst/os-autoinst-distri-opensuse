@@ -101,7 +101,7 @@ sub run {
     validate_script_output 'getenforce', sub { m/Enforcing/ };
     # ensure pkg installation, sealert needs the Gtk3 typelib on SLE 16+
     my $packages = 'setroubleshoot-server setroubleshoot';
-    $packages .= ' typelib-1_0-Gtk-3_0' if is_sle('>=16.0');
+    $packages .= ' typelib-1_0-Gtk-3_0' if (is_sle('>=16.0') || is_leap('>=16.0'));
     install_package($packages);
 
     assert_script_run 'rpm -q setroubleshoot-plugins';
