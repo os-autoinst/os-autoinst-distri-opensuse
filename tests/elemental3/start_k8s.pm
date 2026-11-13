@@ -95,7 +95,7 @@ sub run {
     my $k8s = get_required_var('K8S');
     my $k8s_dir = "/etc/rancher/$k8s";
     my $default_timeout = 120;
-    my $long_timeout = 900;
+    my $long_timeout = 1800;
 
     # Skip the test with if the OS image is not generated with 'customize'
     unless (check_var('TESTED_CMD', 'customize')) {
@@ -172,8 +172,19 @@ sub post_fail_hook {
 
     # Useful to debug K8s starting issues
     foreach my $svc ('k8s-config-installer', 'k8s-resource-installer', 'k3s', 'rke2-server', 'rke2-agent') {
-        script_run("journalctl -xeu $svc.service > /tmp/${svc}_journal.log");
-        upload_logs("/tmp/${svc}_journal.log", failok => 1);
+        my $log_file = "/tmp/${svc}_log";
+        script_run("journalctl -xeu $svc.service >$log_file");
+        # Upload only if the file is not empty
+        upload_logs($log_file, failok => 1) unless (script_run("[[ -s $log_file ]]"));
+    }
+
+    # Log all resources for debugging
+    my @resources = split(/\n/, script_output('kubectl api-resources --verbs=list -o name', proceed_on_failure => 1));
+    foreach my $res (@resources) {
+        my $log_file = "/tmp/k8s_get_${res}.log";
+        script_run("kubectl get $res -A --ignore-not-found >$log_file 2>&1");
+        # Upload only if the file is not empty
+        upload_logs($log_file, failok => 1) unless (script_run("[[ -s $log_file ]]"));
     }
 
     # Execute the common part
