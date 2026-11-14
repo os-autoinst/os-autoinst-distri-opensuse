@@ -22,6 +22,10 @@ conditional_schedule:
         VERSION:
             Tumbleweed:
                 - console/opencode
+    grafana:
+        VERSION:
+            Tumbleweed:
+                - console/oqa_agnostic/grafana_agnostic
     steamcmd:
         ARCH:
             x86_64:
@@ -36,6 +40,7 @@ schedule:
     - console/prepare_test_data
     - '{{consoletest_setup}}'
     - console/check_os_release
+    - '{{grafana}}'
     - console/year_2038_detection
     - console/man_pages
     - console/orphaned_packages_check
