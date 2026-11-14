@@ -78,19 +78,21 @@ sub run {
             die('Not Y2038 compatible');
         }
     }
-    systemctl('enable --now chronyd.service');
+    systemctl('enable chronyd.service');
+    systemctl('start chronyd.service');
     record_info('Show NTP sources', script_output('chronyc -n sources -v -a'));
 
     # chronyd needs a moment to notice the clock jump before it can step
     # the clock; poll the clock itself instead of a fixed journal message
-    unless (script_retry('chronyc makestep && date +"%Y-%m-%d" | grep -v 2038', delay => 2, retry => 10, die => 0) == 0) {
+    unless (script_retry('chronyc makestep && date +"%Y-%m-%d" | grep -v 2038', delay => 2, retry => 30, die => 0) == 0) {
         record_info("poo#127343", "Time sync with NTP server failed");
         systemctl('stop chronyd.service');
         # Set time stamp when we start the test
         assert_script_run("timedatectl set-time \"$date\"");
         # Sync time with a public ntp server
         assert_script_run("chronyd -q 'server 0.europe.pool.ntp.org iburst'");
-        systemctl('enable --now chronyd.service');
+        systemctl('enable chronyd.service');
+        systemctl('start chronyd.service');
         record_info('Current time', script_output('date'));
     }
 }
