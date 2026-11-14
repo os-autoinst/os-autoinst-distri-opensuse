@@ -327,7 +327,16 @@ sub install_kubevirt_packages {
     }
 
     # Ensure Config::Tiny module installed
-    assert_script_run('cpan install Config::Tiny <<<yes', timeout => 300) if (script_run('cpan -l <<<yes | grep Config::Tiny') == 1);
+    # Prefer the distro package so the module lands on the system @INC; a bare
+    # 'cpan' install on a clean 16.0 SUT drops it under $HOME/perl5, which is not
+    # in @INC for the later non-interactive perl call that runs the parser
+    if (script_run('rpmquery perl-Config-Tiny')) {
+        # 104 = ZYPPER_EXIT_INF_CAP_NOT_FOUND, i.e. no distro package available
+        my $zret = zypper_call('in perl-Config-Tiny', exitcode => [0, 104]);
+        if ($zret != 0) {
+            assert_script_run('cpan install Config::Tiny <<<yes', timeout => 300) if (script_run('cpan -l <<<yes | grep Config::Tiny') == 1);
+        }
+    }
 
     transactional::exit_trup_shell_and_reboot() if (is_transactional);
 
@@ -707,7 +716,7 @@ EOF
             $go_test = '';
             $skip_test = '';
             $extra_opt = '';
-            $params = script_output("perl $result_dir/$parser_script $result_dir/$test_scope_conf $section");
+            $params = script_output("PERL5LIB=\$HOME/perl5/lib/perl5 perl $result_dir/$parser_script $result_dir/$test_scope_conf $section");
             ($go_test, $skip_test, $extra_opt) = split(',', $params);
             record_info($section, join("\n", $go_test, $skip_test, $extra_opt));
 
