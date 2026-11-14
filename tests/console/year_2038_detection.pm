@@ -62,8 +62,8 @@ sub run {
     # Trigger a reboot to make the date/time change fully effective and
     # generate some last/who entries.
     $self->reboot_system;
-    record_info("time after reboot");
     my $timedatectl = script_output("timedatectl status");
+    record_info("time after reboot", $timedatectl);
     my $utmp_output = script_output('LC_TIME=C.UTF-8 who');
     my $wtmp_output = script_output('last -F');
     if ($utmp_output !~ m/2038/sx || $wtmp_output !~ m/2038/sx) {
@@ -78,25 +78,22 @@ sub run {
             die('Not Y2038 compatible');
         }
     }
+    systemctl('enable chronyd.service');
     systemctl('start chronyd.service');
     record_info('Show NTP sources', script_output('chronyc -n sources -v -a'));
 
-    # We may need to add some workaround due to poo#127343:
-    # wait for chronyd service to check the system clock change;
-    # add some timeout after 'chronyc makestep'
-    script_retry('journalctl -u chronyd | grep -e "System clock wrong" -e "Received KoD RATE"', delay => 60, retry => 3, die => 0);
-    assert_script_run('chronyc makestep');
-    unless (script_retry('date +"%Y-%m-%d" | grep -v 2038', delay => 5, retry => 5, die => 0) == 0) {
+    # chronyd needs a moment to notice the clock jump before it can step
+    # the clock; poll the clock itself instead of a fixed journal message
+    unless (script_retry('chronyc makestep && date +"%Y-%m-%d" | grep -v 2038', delay => 2, retry => 30, die => 0) == 0) {
         record_info("poo#127343", "Time sync with NTP server failed");
         systemctl('stop chronyd.service');
         # Set time stamp when we start the test
         assert_script_run("timedatectl set-time \"$date\"");
         # Sync time with a public ntp server
         assert_script_run("chronyd -q 'server 0.europe.pool.ntp.org iburst'");
+        systemctl('enable chronyd.service');
         systemctl('start chronyd.service');
         record_info('Current time', script_output('date'));
-        # Reboot the system then restore all default configuration
-        $self->reboot_system;
     }
 }
 
