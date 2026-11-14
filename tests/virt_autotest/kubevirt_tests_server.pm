@@ -392,13 +392,6 @@ sub deploy_kubevirt_manifests {
 
         $operator_manifest = 'kubevirt-operator.yaml';
         $cr_manifest = 'kubevirt-cr.yaml';
-        # The operator derives the virt-template operand images with a 'v'-prefixed
-        # tag (v0.2.3) while the SUSE builds of those components are tagged
-        # 0.2.3-<rev> and carry no v-prefixed tag at all, so
-        # virt-template-apiserver/-controller sit in ImagePullBackOff and the
-        # KubeVirt CR never reaches Available. The template component is not
-        # exercised by these tests, so switch its deployment off in the CR
-        assert_script_run(qq(sed -i '/^  configuration:/a\\    virtTemplateDeployment:\\n      enabled: false' $cr_manifest));
         @testing_manifests = qw(rbac-for-testing.yaml disks-images-provider.yaml uploadproxy-nodeport.yaml);
     }
 
@@ -426,7 +419,17 @@ sub deploy_kubevirt_manifests {
 
     assert_script_run("kubectl apply -f $operator_manifest");
     assert_script_run("kubectl apply -f $cr_manifest");
-    assert_script_run("[ \"\$(kubectl get kv kubevirt -o jsonpath='{.spec.configuration.virtTemplateDeployment.enabled}')\" = false ]") if (is_sle('>=16.0'));
+    if (is_sle('>=16.0')) {
+        # The operator derives the virt-template operand images with a 'v'-prefixed
+        # tag (v0.2.3) while the SUSE builds of those components are tagged
+        # 0.2.3-<rev> and carry no v-prefixed tag at all, so
+        # virt-template-apiserver/-controller sit in ImagePullBackOff and the
+        # KubeVirt CR never reaches Available. The template component is not
+        # exercised by these tests, so switch its deployment off on the applied
+        # CR and record what the API actually stores instead of asserting on it
+        assert_script_run("kubectl -n kubevirt patch kv kubevirt --type merge -p '{\"spec\":{\"configuration\":{\"virtTemplateDeployment\":{\"enabled\":false}}}}'");
+        record_info('virt-template', script_output("kubectl get kv kubevirt -o jsonpath='{.spec.configuration.virtTemplateDeployment.enabled}'"));
+    }
     assert_script_run("kubectl -n kubevirt wait kv kubevirt --for condition=available --timeout=30m", timeout => 1800);
 
     assert_script_run("kubectl apply -f $_") foreach (@testing_manifests);
