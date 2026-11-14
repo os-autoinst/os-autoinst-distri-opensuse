@@ -13,11 +13,11 @@ use lockapi;
 use transactional;
 use utils;
 use mmapi;
-use version_utils qw(is_transactional);
+use version_utils qw(is_transactional is_sle);
 use File::Basename;
 use Utils::Systemd;
 use Utils::Backends 'use_ssh_serial_console';
-use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
+use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log tar_and_upload_log);
 use virt_autotest::kubevirt_utils;
 
 our $if_case_fail;
@@ -131,7 +131,9 @@ sub rke2_server_setup {
     assert_script_run("echo '$rke2_bin_path' >> \$HOME/.bashrc; source \$HOME/.bashrc");
 
     # For network multus backend testing
-    assert_script_run("sed -i '/ExecStart=/s/server\$/server --cni=multus,canal/' /etc/systemd/system/rke2-server.service");
+    # Current rke2 keeps the unit under /usr/local/lib/systemd/system (older builds drop it in /etc), so resolve the real unit file
+    my $rke2_server_unit = script_output('systemctl show -p FragmentPath --value rke2-server.service');
+    assert_script_run("sed -i '/ExecStart=/s/server\$/server --cni=multus,canal/' $rke2_server_unit");
 
     # Setup cnv-bridge containernetworking plugin
     $self->install_cni_plugins();
@@ -203,6 +205,8 @@ sub install_kubevirt_packages {
     my $virt_tests_repo;
     my $virt_manifests_pkgs = 'containerized-data-importer-manifests kubevirt-manifests kubevirt-virtctl';
     my $virt_tests_pkg = 'kubevirt-tests';
+    my $kubevirt_ver_pkg = 'kubevirt-manifests';
+    our $cdi_manifests_pkg = 'containerized-data-importer-manifests';
     my $search_manifests;
 
     record_info('Install kubevirt packages', '');
@@ -248,6 +252,28 @@ sub install_kubevirt_packages {
         zypper_call("ar $virt_tests_repo Virt-Tests-Repo") if ($virt_tests_repo);
         zypper_call("--gpg-auto-import-keys ref");
 
+        # SLE 16.x dropped the unversioned kubevirt and CDI packages (bsc#1252126);
+        # the versioned RPMs live in VIRT_TESTS_REPO, so they are only visible here,
+        # after the repo is added and refreshed (and inside the trup shell above on
+        # transactional hosts).
+        if (is_sle('>=16.0')) {
+            my @versioned_tests_pkgs = split(/\n/, script_output("zypper se kubevirt | awk -F'|' '\$2 ~ /kubevirt-?[0-9.]+-tests *\$/ {gsub(/ /, \"\", \$2); print \$2}' | sort -V || true"));
+            if (my $kubevirt_version = get_var('KUBEVIRT_VERSION')) {
+                $virt_tests_pkg = "kubevirt$kubevirt_version-tests";
+            } elsif (grep { $_ eq 'kubevirt1.9-tests' } @versioned_tests_pkgs) {
+                $virt_tests_pkg = 'kubevirt1.9-tests';
+            } elsif (@versioned_tests_pkgs) {
+                $virt_tests_pkg = $versioned_tests_pkgs[-1];
+                record_info('kubevirt-tests fallback', "KUBEVIRT_VERSION is unset and kubevirt1.9-tests is absent; using $virt_tests_pkg");
+            } else {
+                die "No versioned kubevirt tests package (e.g. kubevirt1.9-tests) found via 'zypper se kubevirt'; check VIRT_TESTS_REPO";
+            }
+            my @versioned_cdi_manifests_pkgs = split(/\n/, script_output("zypper se containerized-data-importer | awk -F'|' '\$2 ~ /containerized-data-importer[0-9.]+-manifests *\$/ {gsub(/ /, \"\", \$2); print \$2}' | sort -V || true"));
+            die "No versioned CDI manifests package (e.g. containerized-data-importer1.66-manifests) found via 'zypper se containerized-data-importer'; check VIRT_TESTS_REPO" unless @versioned_cdi_manifests_pkgs;
+            $virt_manifests_pkgs = $cdi_manifests_pkg = $versioned_cdi_manifests_pkgs[-1];
+            $kubevirt_ver_pkg = $virt_tests_pkg;
+        }
+
         if ($virt_manifests_repo) {
             zypper_call("in -f -r Virt-Manifests-Repo $virt_manifests_pkgs");
         } else {
@@ -264,8 +290,20 @@ sub install_kubevirt_packages {
     }
 
     # Install Longhorn dependencies
-    our $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} kubevirt-manifests");
+    our $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} $kubevirt_ver_pkg");
     record_info('Kubevirt test version', $kubevirt_ver);
+    # SLE 16.x has no kubevirt-virtctl package (bsc#1252126); install the virtctl
+    # binary from the upstream release matching the installed tests RPM
+    if (is_sle('>=16.0')) {
+        our $cdi_ver = script_output("rpm -q --qf \%{VERSION} $cdi_manifests_pkg");
+        record_info('CDI version', $cdi_ver);
+        my %virtctl_arch = (x86_64 => 'amd64', aarch64 => 'arm64', s390x => 's390x');
+        my $arch = get_var('ARCH');
+        die "Unsupported ARCH '$arch' for the upstream virtctl release binary (expected x86_64, aarch64 or s390x)" unless $virtctl_arch{$arch};
+        my $virtctl_asset = "virtctl-v$kubevirt_ver-linux-$virtctl_arch{$arch}";
+        assert_script_run("curl -sLO https://github.com/kubevirt/kubevirt/releases/download/v$kubevirt_ver/$virtctl_asset");
+        assert_script_run("install -m 0755 $virtctl_asset /usr/local/bin/virtctl");
+    }
     zypper_call('in jq open-iscsi') if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0"));
 
     # Install required packages perl-CPAN-Changes and ant-junit
@@ -288,9 +326,6 @@ sub install_kubevirt_packages {
         zypper_call('in git ant-junit') if (script_run('rpmquery git ant-junit'));
     }
 
-    # Ensure Config::Tiny module installed
-    assert_script_run('cpan install Config::Tiny <<<yes', timeout => 300) if (script_run('cpan -l <<<yes | grep Config::Tiny') == 1);
-
     transactional::exit_trup_shell_and_reboot() if (is_transactional);
 
     # Enable iscsid service
@@ -303,14 +338,66 @@ sub install_kubevirt_packages {
 sub deploy_kubevirt_manifests {
     my $self = shift;
     our $kubevirt_ver;
+    our $cdi_ver;
+    our $cdi_manifests_pkg;
 
     # Workaround for failure 'MountVolume.SetUp failed for volume "local-storage" : mkdir /mnt/local-storage: read-only file system'
     assert_script_run('mkdir -p /root/tmp && mount -o bind /root/tmp /mnt') if (is_transactional);
+
+    # SLE 16.x dropped the kubevirt-manifests package (bsc#1252126), so take the
+    # manifests from the upstream kubevirt release matching the installed tests RPM
+    my $operator_manifest = '/usr/share/kube-virt/manifests/release/kubevirt-operator.yaml';
+    my $cr_manifest = '/usr/share/kube-virt/manifests/release/kubevirt-cr.yaml';
+    my $cdi_operator_manifest = '/usr/share/cdi/manifests/release/cdi-operator.yaml';
+    my $cdi_cr_manifest = '/usr/share/cdi/manifests/release/cdi-cr.yaml';
+    my @testing_manifests = map { "/usr/share/kube-virt/manifests/testing/$_" } qw(rbac-for-testing.yaml disks-images-provider.yaml uploadproxy-nodeport.yaml);
+    if (is_sle('>=16.0')) {
+        my $release_base = "https://github.com/kubevirt/kubevirt/releases/download/v$kubevirt_ver";
+        assert_script_run("curl -sLO $release_base/kubevirt-operator.yaml");
+        assert_script_run("curl -sLO $release_base/kubevirt-cr.yaml");
+        assert_script_run("curl -sLO $release_base/rbac-for-testing.yaml");
+        assert_script_run("curl -sLO $release_base/disks-images-provider.yaml");
+        assert_script_run("curl -sLO $release_base/uploadproxy-nodeport.yaml");
+
+        # Use the latest virt-operator build from registry.suse.com matching the installed kubevirt version
+        my $os_version = get_var('VERSION');
+        my $repo = "suse/sles/$os_version/virt-operator";
+        my $token = script_output(qq(curl -s "https://scc.suse.com/api/registry/authorize?service=SUSE%20Linux%20Docker%20Registry&scope=repository:$repo:pull" | jq -r .token));
+        my $tag = script_output(qq(curl -s -H "Authorization: Bearer $token" https://registry.suse.com/v2/$repo/tags/list | jq -r '.tags[]' | grep -E '^$kubevirt_ver-[0-9.]+\$' | sort -V | tail -1));
+        die "No virt-operator tag found for kubevirt $kubevirt_ver in registry.suse.com/$repo" unless $tag;
+        record_info('virt-operator image', "registry.suse.com/$repo:$tag");
+        assert_script_run(qq(sed -i "s#quay.io/kubevirt/virt-operator:v$kubevirt_ver#registry.suse.com/$repo:$tag#" kubevirt-operator.yaml));
+
+        # The versioned CDI manifests RPM installs under /usr/share/cdi-<version> and
+        # references a quay.io tag upstream never published (its tags are 'v'-prefixed),
+        # so rewrite every cdi-* image reference to the SUSE builds like the kubevirt one
+        die "Unexpected CDI manifests package name: $cdi_manifests_pkg" unless $cdi_manifests_pkg =~ /containerized-data-importer([0-9.]+)-manifests/;
+        assert_script_run("cp /usr/share/cdi-$1/manifests/release/cdi-operator.yaml /usr/share/cdi-$1/manifests/release/cdi-cr.yaml .");
+        $cdi_operator_manifest = 'cdi-operator.yaml';
+        $cdi_cr_manifest = 'cdi-cr.yaml';
+        my $cdi_repo = "suse/sles/$os_version/cdi-operator";
+        my $cdi_token = script_output(qq(curl -s "https://scc.suse.com/api/registry/authorize?service=SUSE%20Linux%20Docker%20Registry&scope=repository:$cdi_repo:pull" | jq -r .token));
+        my $cdi_tag = script_output(qq(curl -s -H "Authorization: Bearer $cdi_token" https://registry.suse.com/v2/$cdi_repo/tags/list | jq -r '.tags[]' | grep -E '^$cdi_ver-[0-9.]+\$' | sort -V | tail -1));
+        die "No cdi-operator tag found for CDI $cdi_ver in registry.suse.com/$cdi_repo" unless $cdi_tag;
+        record_info('cdi-operator image', "registry.suse.com/$cdi_repo:$cdi_tag");
+        # The manifests carry the non-v quay tag on the operator image: line AND in
+        # the CONTROLLER/IMPORTER/CLONER/OVIRT_POPULATOR/APISERVER/UPLOAD_SERVER/
+        # UPLOAD_PROXY env values; rewrite every cdi-* reference component-wise so
+        # no operand is left pointing at a tag quay never published
+        assert_script_run(qq(sed -E -i "s#quay\\.io/kubevirt/(cdi-[a-z-]+):$cdi_ver#registry.suse.com/suse/sles/$os_version/\\1:$cdi_tag#g" cdi-operator.yaml));
+        assert_script_run("! grep -q \"quay.io/kubevirt/cdi-.*:$cdi_ver\" cdi-operator.yaml");
+
+        $operator_manifest = 'kubevirt-operator.yaml';
+        $cr_manifest = 'kubevirt-cr.yaml';
+        @testing_manifests = qw(rbac-for-testing.yaml disks-images-provider.yaml uploadproxy-nodeport.yaml);
+    }
 
     # Workaround for bsc#1199448
     my $image1 = "quay.io/kubevirt/alpine-ext-kernel-boot-demo:v$kubevirt_ver";
     my $tag1 = "registry:5000/kubevirt/alpine-ext-kernel-boot-demo:devel";
     assert_script_run("curl -JLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/c41969bca710335f7966b1588abca9958a33ff24/pre-pull.sh");
+    # pre-pull.sh greps the operator manifests to derive the images to pre-pull
+    assert_script_run("sed -i -e 's|^KUBEVIRT_OPERATOR=.*|KUBEVIRT_OPERATOR=$operator_manifest|' -e 's|^CDI_OPERATOR=.*|CDI_OPERATOR=$cdi_operator_manifest|' pre-pull.sh") if (is_sle('>=16.0'));
 
     my $pre_pull = script_output('sh pre-pull.sh');
     assert_script_run("curl -JLO https://gitlab.suse.de/virtualization/kubevirt-ci/-/raw/c41969bca710335f7966b1588abca9958a33ff24/node-helper.yaml.in");
@@ -323,17 +410,29 @@ sub deploy_kubevirt_manifests {
 
     # Deploy required kubevirt manifests
     record_info('Deploy kubevirt manifests', '');
-    assert_script_run("kubectl apply -f /usr/share/cdi/manifests/release/cdi-operator.yaml");
-    assert_script_run("kubectl apply -f /usr/share/cdi/manifests/release/cdi-cr.yaml");
+    assert_script_run("kubectl apply -f $cdi_operator_manifest");
+    assert_script_run("kubectl apply -f $cdi_cr_manifest");
     assert_script_run("kubectl -n cdi wait cdis cdi --for condition=available --timeout=30m", timeout => 1800);
 
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-operator.yaml");
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-cr.yaml");
+    assert_script_run("kubectl apply -f $operator_manifest");
+    assert_script_run("kubectl apply -f $cr_manifest");
+    if (is_sle('>=16.0')) {
+        # The operator derives the virt-template operand images with a 'v'-prefixed
+        # tag (v0.2.3) while the SUSE builds of those components are tagged
+        # 0.2.3-<rev> and carry no v-prefixed tag at all, so
+        # virt-template-apiserver/-controller sit in ImagePullBackOff and the
+        # KubeVirt CR never reaches Available. The template component is not
+        # exercised by these tests, so switch its deployment off on the applied
+        # CR and record what the API actually stores instead of asserting on it
+        assert_script_run("kubectl -n kubevirt patch kv kubevirt --type merge -p '{\"spec\":{\"configuration\":{\"virtTemplateDeployment\":{\"enabled\":false}}}}'");
+        # -n kubevirt: without it kubectl looks in default and exits 1 even though
+        # the patch succeeded; proceed_on_failure keeps a future shape change a
+        # log line instead of a dead run
+        record_info('virt-template', script_output("kubectl -n kubevirt get kv kubevirt -o jsonpath='{.spec.configuration.virtTemplateDeployment.enabled}'", proceed_on_failure => 1));
+    }
     assert_script_run("kubectl -n kubevirt wait kv kubevirt --for condition=available --timeout=30m", timeout => 1800);
 
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/rbac-for-testing.yaml");
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/disks-images-provider.yaml");
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/uploadproxy-nodeport.yaml");
+    assert_script_run("kubectl apply -f $_") foreach (@testing_manifests);
 
     if ($kubevirt_ver lt "0.50.0") {
         my $hostname = script_output('hostname');
@@ -526,8 +625,8 @@ EOF
         @kubevirt_tests = @core_tests;
     }
     my $parser_script = 'config_parser.pl';
-    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$test_scope_conf") . " -o $test_scope_conf");
-    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$parser_script") . " -o $parser_script");
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$test_scope_conf") . " -o $result_dir/$test_scope_conf");
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$parser_script") . " -o $result_dir/$parser_script");
 
     my ($ginkgo_focus, $ginkgo_skip, $extra_opt, $specific_test, $ginkgo_v2);
     my ($go_test, $skip_test, $params, $server_ip, $nic_name);
@@ -605,7 +704,7 @@ EOF
             $go_test = '';
             $skip_test = '';
             $extra_opt = '';
-            $params = script_output("perl $parser_script $test_scope_conf $section");
+            $params = script_output("perl $result_dir/$parser_script $result_dir/$test_scope_conf $section");
             ($go_test, $skip_test, $extra_opt) = split(',', $params);
             record_info($section, join("\n", $go_test, $skip_test, $extra_opt));
 
@@ -666,6 +765,11 @@ EOF
             $if_case_fail = 1 if (script_output("tail -1 $test_log") eq 'FAIL');
         }
     }
+
+    # Pack the suite's own evidence (per-section logs and k8s-reporter dumps)
+    # so a failing run explains itself; runs for pass and fail alike, and the
+    # directory check keeps a missing one from dying
+    tar_and_upload_log($result_dir, '/tmp/kubevirt-artifacts.tar.gz') if (script_run("test -d $result_dir") == 0);
 
     $self->generate_test_report($result_dir);
     $self->upload_test_results($result_dir);
@@ -757,6 +861,17 @@ sub post_fail_hook {
     save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
     save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
     save_and_upload_systemd_unit_log('rke2-server.service');
+
+    # Explain a kubevirt deployment failure from the namespace state. Only run
+    # when the manifests were applied; script_run never dies on a non-zero exit
+    # code, so each capture below is failok, and die_on_timeout is disabled so
+    # a wedged API server cannot kill the hook.
+    my $kubevirt_ns = script_run('kubectl get ns kubevirt', timeout => 120, die_on_timeout => 0);
+    return unless defined $kubevirt_ns && $kubevirt_ns == 0;
+    save_and_upload_log('kubectl -n kubevirt get pods -o wide', '/tmp/kubevirt_pods.log', {screenshot => 0});
+    save_and_upload_log('kubectl -n kubevirt get events --sort-by=.lastTimestamp', '/tmp/kubevirt_events.log', {screenshot => 0});
+    save_and_upload_log('kubectl -n kubevirt describe deploy virt-operator virt-api virt-controller', '/tmp/kubevirt_deployments.log', {screenshot => 0});
+    save_and_upload_log('kubectl -n kubevirt logs deploy/virt-operator --tail=200', '/tmp/kubevirt_virt-operator.log', {screenshot => 0});
 }
 
 1;

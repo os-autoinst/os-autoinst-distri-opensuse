@@ -124,7 +124,8 @@ __END
     $self->check_service_status();
     assert_script_run("grep static /var/lib/kubelet/cpu_manager_state");
 
-    my $kubevirt_ver = script_output(qq(ssh root\@$server_ip "rpm -q --qf \%{VERSION} kubevirt-tests"));
+    # SLE 16.x has no unversioned kubevirt-tests package (bsc#1252126), match the versioned name too
+    my $kubevirt_ver = script_output(qq(ssh root\@$server_ip "rpm -qa --qf '%{VERSION}\\n' 'kubevirt*-tests'"));
     # Install Longhorn dependencies
     if (is_transactional) {
         if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0")) {
@@ -165,7 +166,9 @@ sub check_service_status {
 sub set_cpu_manager_policy {
     my $self = shift;
     # Set static policy for CPU Manager
-    assert_script_run("sed -i '/ExecStart=/s/agent\$/agent --kubelet-arg cpu-manager-policy=static --kubelet-arg kube-reserved=cpu=500m --kubelet-arg system-reserved=cpu=500m/' /etc/systemd/system/rke2-agent.service");
+    # Current rke2 keeps the unit under /usr/local/lib/systemd/system (older builds drop it in /etc), so resolve the real unit file
+    my $rke2_agent_unit = script_output('systemctl show -p FragmentPath --value rke2-agent.service');
+    assert_script_run("sed -i '/ExecStart=/s/agent\$/agent --kubelet-arg cpu-manager-policy=static --kubelet-arg kube-reserved=cpu=500m --kubelet-arg system-reserved=cpu=500m/' $rke2_agent_unit");
     assert_script_run("rm /var/lib/kubelet/cpu_manager_state");
     systemctl("daemon-reload");
 }
