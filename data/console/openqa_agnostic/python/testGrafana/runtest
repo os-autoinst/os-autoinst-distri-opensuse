@@ -1,0 +1,53 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: grafana functional and security tests
+# desc: >
+#   Black-box tests for the installed Grafana package over its HTTP API.
+#   Functional coverage: /api/health, admin login, bundled testdata plugin,
+#   datasource query, dashboard lifecycle, file provisioning and restart
+#   persistence, plus basic Viewer RBAC. Security coverage: plugin asset path
+#   traversal (CVE-2021-43798/43813/43815), anonymous and Viewer snapshot
+#   authorization (CVE-2019-15043/2026-33379), SQL expressions file reads
+#   (CVE-2026-33380) and oversized plugin resource requests
+#   (CVE-2026-28383). Requires root to manage grafana-server.
+# steps:
+#   - start grafana-server and wait for a healthy /api/health
+#   - verify admin login, plugin inventory and testdata query
+#   - create, read, search and persist a dashboard
+#   - provision a datasource and a dashboard from files
+#   - verify Viewer read-only access
+#   - run the version-gated CVE regression checks
+#   - GRAFANA_TEST_FORCE_CVE=1 bypasses the version gates for negative
+#     validation against old, vulnerable containers only
+#   - verify the systemd unit, user/data directory, license, TLS ciphers,
+#     SELinux confinement and coredumps (checks learned from Fedora)
+#   - restore provisioning and systemd configuration
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass, version-gated checks may be skipped
+# platform: Tumbleweed, SLE 16+, SLE 15 SP4+
+# tags: console grafana api security cve rbac provisioning
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(grafana_api.py conftest.py test_grafana.py test_grafana_security.py test_grafana_system.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+ensure_command_available curl
+ensure_command_available pytest
+
+rm -f results.xml results.tap
+
+rc=0
+pytest -v --tb=short test_grafana.py test_grafana_security.py test_grafana_system.py --junitxml=results.xml || rc=$?
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc
