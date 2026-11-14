@@ -105,6 +105,7 @@ conditional_schedule:
                 - console/vsftpd
                 - console/year_2038_detection
                 - console/libjpeg_turbo
+                - console/oqa_agnostic/libsoup
                 - console/valkey
                 - '{{velociraptor_tests}}'
                 - console/apache2_php_fpm
