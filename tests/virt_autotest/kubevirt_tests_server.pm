@@ -17,7 +17,7 @@ use version_utils qw(is_transactional is_sle);
 use File::Basename;
 use Utils::Systemd;
 use Utils::Backends 'use_ssh_serial_console';
-use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
+use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log tar_and_upload_log);
 use virt_autotest::kubevirt_utils;
 
 our $if_case_fail;
@@ -765,6 +765,11 @@ EOF
             $if_case_fail = 1 if (script_output("tail -1 $test_log") eq 'FAIL');
         }
     }
+
+    # Pack the suite's own evidence (per-section logs and k8s-reporter dumps)
+    # so a failing run explains itself; runs for pass and fail alike, and the
+    # directory check keeps a missing one from dying
+    tar_and_upload_log($result_dir, '/tmp/kubevirt-artifacts.tar.gz') if (script_run("test -d $result_dir") == 0);
 
     $self->generate_test_report($result_dir);
     $self->upload_test_results($result_dir);
