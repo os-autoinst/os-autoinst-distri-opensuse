@@ -428,7 +428,10 @@ sub deploy_kubevirt_manifests {
         # exercised by these tests, so switch its deployment off on the applied
         # CR and record what the API actually stores instead of asserting on it
         assert_script_run("kubectl -n kubevirt patch kv kubevirt --type merge -p '{\"spec\":{\"configuration\":{\"virtTemplateDeployment\":{\"enabled\":false}}}}'");
-        record_info('virt-template', script_output("kubectl get kv kubevirt -o jsonpath='{.spec.configuration.virtTemplateDeployment.enabled}'"));
+        # -n kubevirt: without it kubectl looks in default and exits 1 even though
+        # the patch succeeded; proceed_on_failure keeps a future shape change a
+        # log line instead of a dead run
+        record_info('virt-template', script_output("kubectl -n kubevirt get kv kubevirt -o jsonpath='{.spec.configuration.virtTemplateDeployment.enabled}'", proceed_on_failure => 1));
     }
     assert_script_run("kubectl -n kubevirt wait kv kubevirt --for condition=available --timeout=30m", timeout => 1800);
 
