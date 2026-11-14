@@ -628,8 +628,8 @@ EOF
         @kubevirt_tests = @core_tests;
     }
     my $parser_script = 'config_parser.pl';
-    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$test_scope_conf") . " -o $test_scope_conf");
-    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$parser_script") . " -o $parser_script");
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$test_scope_conf") . " -o $result_dir/$test_scope_conf");
+    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$parser_script") . " -o $result_dir/$parser_script");
 
     my ($ginkgo_focus, $ginkgo_skip, $extra_opt, $specific_test, $ginkgo_v2);
     my ($go_test, $skip_test, $params, $server_ip, $nic_name);
@@ -707,7 +707,7 @@ EOF
             $go_test = '';
             $skip_test = '';
             $extra_opt = '';
-            $params = script_output("perl $parser_script $test_scope_conf $section");
+            $params = script_output("perl $result_dir/$parser_script $result_dir/$test_scope_conf $section");
             ($go_test, $skip_test, $extra_opt) = split(',', $params);
             record_info($section, join("\n", $go_test, $skip_test, $extra_opt));
 
