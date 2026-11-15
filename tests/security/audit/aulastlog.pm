@@ -13,10 +13,13 @@ use utils;
 use package_utils 'install_package';
 use version_utils 'is_tumbleweed';
 
+# Use a dedicated user: other modules already create shared users such as
+# "suse", so reusing that name breaks in a full schedule.
+my $user = 'aulastlog_user';
+my $pwd = 'Hello-World';
+
 sub run {
     my $audit_log = '/var/log/audit/audit.log';
-    my $user = 'suse';
-    my $pwd = 'Hello-World';
     my $audit_service = 'auditd';
 
     select_console 'root-console';
@@ -30,24 +33,42 @@ sub run {
     # Print the lastlog record for user with specific login only
     assert_script_run('aulastlog -u root');
 
-    # Creat a new user 'suse'
-    install_package("expect", trup_reboot => 1);
-    assert_script_run("useradd -m $user");
+    # Create a dedicated user for this test. Remove leftovers from a failed
+    # previous run first so the module stays repeatable.
+    install_package('expect', trup_reboot => 1);
+    script_run("userdel -r $user");
+    assert_script_run("useradd -d /home/$user -m $user");
     assert_script_run("echo $user:$pwd | chpasswd");
 
-    # Print the lastlog record of user 'suse', this new user has not logged in right now
+    # Print the lastlog record of the new user, who has not logged in yet
     validate_script_output("aulastlog -u $user", sub { m/Never logged in/ });
 
-    # Let user 'suse' login localhost and then log out
+    # Let the user log in to localhost and then log out
     assert_script_run(
         "expect -c 'spawn ssh $user\@localhost; expect \"Password: \"; send \"$pwd\\n\"; expect \"~*\"; send \"exit\\n\"'"
     );
 
-    # Print the lastlog record of user 'suse' again while checking username and timestamp in output
-    validate_script_output("aulastlog -u $user", sub { m/suse.*[0-9]{2}\/[0-9]{2}\/\d+ [0-9]{2}:[0-9]{2}:[0-9]{2}/ });
+    # Print the lastlog record again while checking username and timestamp
+    validate_script_output("aulastlog -u $user", sub { m/$user.*[0-9]{2}\/[0-9]{2}\/\d+ [0-9]{2}:[0-9]{2}:[0-9]{2}/ });
 
-    # Use stdin as the source of audit records while checking username and timestamp in output
-    validate_script_output("cat $audit_log | aulastlog --stdin -u $user", sub { m/suse.*[0-9]{2}\/[0-9]{2}\/\d+ [0-9]{2}:[0-9]{2}:[0-9]{2}/ });
+    # Use stdin as the source of audit records while checking username and timestamp
+    validate_script_output("cat $audit_log | aulastlog --stdin -u $user", sub { m/$user.*[0-9]{2}\/[0-9]{2}\/\d+ [0-9]{2}:[0-9]{2}:[0-9]{2}/ });
+}
+
+sub cleanup {
+    script_run("userdel -r $user", timeout => 60);
+}
+
+sub post_run_hook {
+    my $self = shift;
+    $self->cleanup();
+    $self->SUPER::post_run_hook;
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    $self->cleanup();
+    $self->SUPER::post_fail_hook;
 }
 
 1;
