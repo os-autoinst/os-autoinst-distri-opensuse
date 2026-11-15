@@ -1,0 +1,46 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: xrdp server and xfreerdp client loopback
+# desc: >
+#   Exercises the installed xrdp daemon, xrdp-sesman and the installed
+#   xfreerdp client in one VM over a loopback RDP session with the Xvnc
+#   backend. Covers service startup, an Xvnc session, bad and good
+#   credentials, disconnect/reconnect, a second login, KillDisconnected
+#   cleanup and the optional Xorg backend.
+# steps:
+#   - verify the xrdp package, services, listener and shipped configuration
+#   - create a temporary local user and start xrdp with the Xvnc backend
+#   - connect with xfreerdp and verify the session and its processes
+#   - verify bad credentials create no session
+#   - disconnect, reconnect and verify a second session for the same user
+#   - verify KillDisconnected removes a disconnected session
+#   - restore the original configuration, services and user
+# requires: xrdp, xorg-x11-Xvnc, xterm, freerdp and xvfb-run installed
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass, or a visible skip when a feature is unavailable
+# platform: Tumbleweed, SLE 15 SP4+
+# tags: console xrdp freerdp xfreerdp rdp remote-desktop
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(conftest.py xrdp_helpers.py test_xrdp.py test_xrdp_system.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+ensure_command_available pytest
+
+set +e
+pytest -v --tb=short test_xrdp_system.py test_xrdp.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc
