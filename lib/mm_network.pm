@@ -10,6 +10,7 @@ use testapi;
 use version_utils 'is_opensuse';
 use Utils::Architectures 'is_aarch64';
 use Utils::Systemd qw(systemctl);
+use utils qw(script_retry);
 
 our @EXPORT = qw(configure_hostname get_host_resolv_conf is_networkmanager restart_networking
   configure_static_ip configure_dhcp configure_default_gateway configure_static_dns
@@ -242,14 +243,28 @@ sub setup_static_mm_network {
 sub restart_networking {
     my (%args) = @_;
     my $is_nm = $args{is_nm} // is_networkmanager();
+    my $cdn = is_opensuse ? 'cdn.opensuse.org' : 'updates.suse.com';
 
     if ($is_nm) {
         assert_script_run 'nmcli networking off';
         assert_script_run 'nmcli networking on';
+        sleep 2;
         # Wait until the connections are configured
         my $expected_nm_connectivity = get_var('EXPECTED_NM_CONNECTIVITY', 'full');
-        if ($expected_nm_connectivity ne 'none') {
-            assert_script_run "timeout 90 bash -c \"until nmcli networking connectivity check | tee /dev/stderr | grep -E '$expected_nm_connectivity'; do sleep 10; done\"";
+        if ($expected_nm_connectivity eq 'full') {
+            my $gw_reachable = 0;
+            for my $attempt (1 .. 6) {
+                if (script_run('ping -c 3 -W 6 10.0.2.2') == 0) {
+                    $gw_reachable = 1;
+                    last;
+                }
+                sleep 2;
+            }
+            if (!$gw_reachable) {
+                script_run 'ip -s link show; ip a; ip r; ip neigh show';
+                die 'Multimachine gateway 10.0.2.2 is unreachable';
+            }
+            script_retry("ping -c 3 -w 3 $cdn", delay => 2, retry => 6);
         }
     } else {
         systemctl 'restart network';
