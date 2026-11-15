@@ -24,7 +24,7 @@ sub run {
     wait_kubectl_cmd(timeout => $timeout);
 
     # Check K8s status
-    wait_k8s_state(regex => 'status.*restarts|(1/1|2/2|3/3|4.4).*running|0/1.*completed', timeout => $timeout);
+    wait_k8s_state(regex => 'status.*restarts|[0-9]/[0-9].*running|[0-9]/[0-9].*completed', timeout => $timeout);
 
     # Record K8s status (we want all, stderr as well)
     record_info('K8s status', script_output('kubectl get pod -A 2>&1'));

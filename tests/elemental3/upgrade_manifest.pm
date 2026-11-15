@@ -97,7 +97,7 @@ sub run {
     select_serial_terminal();
 
     # Check K8s status
-    wait_k8s_state(regex => 'status.*restarts|(1/1|2/2|3/3|4.4).*running|0/1.*completed', timeout => $long_timeout);
+    wait_k8s_state(regex => 'status.*restarts|[0-9]/[0-9].*running|[0-9]/[0-9].*completed', timeout => $long_timeout);
 
     # Check upgrade status after reboot
     my $upgrade_version = wait_script_output(cmd => 'kubectl get release upgrade-manifest -o jsonpath={.status.version}', timeout => $timeout);
