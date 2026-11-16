@@ -43,4 +43,125 @@ subtest 'need_unlock_after_bootloader' => sub {
     is(need_unlock_after_bootloader(), 1, 'Common Criteria on s390x forces unlock (returns 1)');
 };
 
+subtest 'parse_zypper_table' => sub {
+    my $table_auto = <<'EOF';
+Loading repository data...
+Reading installed packages...
+
+S | Name   | Summary  | Type
+--+--------+----------+--------
+i | pkg1   | Desc 1   | package
+  | pkg2   | Desc 2   | package
+EOF
+    is_deeply(parse_zypper_table($table_auto), [
+            {s => 'i', name => 'pkg1', summary => 'Desc 1', type => 'package'},
+            {s => '', name => 'pkg2', summary => 'Desc 2', type => 'package'},
+    ], 'auto derive fields from header including empty cells');
+
+    my $table_trailing_empty = <<'EOF';
+S | Name | Summary | Type
+--+------+---------+-----
+i | pkg1 | Desc 1  | 
+EOF
+    is_deeply(parse_zypper_table($table_trailing_empty), [
+            {s => 'i', name => 'pkg1', summary => 'Desc 1', type => ''},
+    ], 'preserves empty cell in last column');
+
+    my $table_spaces_in_header = <<'EOF';
+Column One | Column Two
+-----------+-----------
+val1       | val2
+EOF
+    is_deeply(parse_zypper_table($table_spaces_in_header), [
+            {column_one => 'val1', column_two => 'val2'},
+    ], 'spaces in header columns are replaced with underscores');
+
+    is_deeply(parse_zypper_table('No matches found.'), [], 'no table returns empty array');
+    is_deeply(parse_zypper_table(''), [], 'empty string returns empty array');
+    is_deeply(parse_zypper_table(undef), [], 'undef returns empty array');
+
+    my $header_only = <<'EOF';
+S | Name | Summary | Type
+--+------+---------+-----
+EOF
+    is_deeply(parse_zypper_table($header_only), [], 'header only returns empty array');
+};
+
+subtest 'zypper_search' => sub {
+    my $mock_utils = Test::MockModule->new('utils');
+    my ($mock_ret, $mock_output) = (0, '');
+    $mock_utils->redefine('cmd_run', sub { return ($mock_ret, $mock_output) });
+
+    $mock_output = <<'EOF';
+S | Name           | Summary                    | Type
+--+----------------+----------------------------+--------
+i | kernel-default | The Standard Kernel        | package
+EOF
+    is_deeply(zypper_search('kernel-default'), [
+            {s => 'i', status => 'i', name => 'kernel-default', summary => 'The Standard Kernel', type => 'package'},
+    ], 'zypper_search parses columns dynamically and preserves status alias');
+
+    # Exit code 104 indicates no packages found
+    $mock_ret = 104;
+    $mock_output = "No matching items found.\n";
+    is_deeply(zypper_search('nonexistent'), [], 'exit code 104 returns empty array');
+};
+
+subtest 'zypper_repos' => sub {
+    my $mock_utils = Test::MockModule->new('utils');
+    my $mock_script_output = '';
+    $mock_utils->redefine('script_output', sub { return $mock_script_output });
+
+    $mock_script_output = <<'EOF';
+# | Alias    | Name     | Enabled | GPG Check | Refresh
+--+----------+----------+---------+-----------+--------
+1 | repo-oss | Main OSS | Yes     | (r ) Yes  | Yes
+EOF
+    is_deeply(zypper_repos(), [
+            {
+                '#' => '1',
+                order => '1',
+                alias => 'repo-oss',
+                name => 'Main OSS',
+                enabled => 'Yes',
+                gpg_check => '(r ) Yes',
+                refresh => 'Yes',
+            },
+    ], 'zypper_repos parses columns dynamically and provides order alias');
+};
+
+subtest 'zypper_patches' => sub {
+    my $mock_utils = Test::MockModule->new('utils');
+    my $mock_script_output = '';
+    $mock_utils->redefine('script_output', sub { return $mock_script_output });
+    $mock_utils->redefine('is_sle', sub { 0 });
+
+    my %patch = (
+        repository => 'repo1',
+        name => 'patch1',
+        category => 'security',
+        severity => 'critical',
+        interactive => '---',
+        status => 'Needed',
+        summary => 'Security update 1',
+    );
+
+    $mock_script_output = <<'EOF';
+Repository | Name   | Category | Severity | Interactive | Status | Since | Summary
+-----------+--------+----------+----------+-------------+--------+-------+------------------
+repo1      | patch1 | security | critical | ---         | Needed | 1d    | Security update 1
+EOF
+    is_deeply(zypper_patches(), [{%patch, since => '1d'}], 'layout with Since column');
+
+    $mock_script_output = <<'EOF';
+Repository | Name   | Category | Severity | Interactive | Status | Summary
+-----------+--------+----------+----------+-------------+--------+------------------
+repo1      | patch1 | security | critical | ---         | Needed | Security update 1
+EOF
+    is_deeply(zypper_patches(), [\%patch], 'layout without Since column');
+
+    $mock_script_output = "No updates found.\n";
+    is_deeply(zypper_patches(), [], 'no table in output');
+};
+
 done_testing();
