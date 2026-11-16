@@ -13,7 +13,7 @@ import pytest
 from xrdp_helpers import (SESMAN_INI, TEST_USER, XRDP_INI, established_connections,
                           get_ini_value, kill_user_processes, pids_for, run,
                           session_pids, set_ini_value, start_client, stop_client,
-                          supports_option, wait_until, which)
+                          supports_option, wait_until, which, xorg_pids)
 
 
 @pytest.fixture(autouse=True)
@@ -171,7 +171,7 @@ def test_kill_disconnected(rdp):
         proc = _connect(rdp)
         try:
             _expect_session(rdp, proc)
-            assert wait_until(lambda: pids_for(TEST_USER, 'Xorg'), 30), \
+            assert wait_until(lambda: xorg_pids(TEST_USER), 30), \
                 'Xorg is not running for the test user'
         finally:
             stop_client(proc)
@@ -199,7 +199,7 @@ def test_xorg_backend(rdp):
         proc = _connect(rdp)
         try:
             _expect_session(rdp, proc)
-            assert wait_until(lambda: pids_for(TEST_USER, 'Xorg'), 30), \
+            assert wait_until(lambda: xorg_pids(TEST_USER), 30), \
                 'Xorg is not running for the test user'
         finally:
             stop_client(proc)

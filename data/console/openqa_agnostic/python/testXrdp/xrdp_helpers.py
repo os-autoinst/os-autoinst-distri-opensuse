@@ -134,9 +134,14 @@ def pids_for(user, name):
     return [int(pid) for pid in result.stdout.split()]
 
 
+def xorg_pids(user):
+    # /usr/bin/Xorg execs Xorg.bin, so the process name is Xorg.bin.
+    return pids_for(user, 'Xorg') + pids_for(user, 'Xorg.bin')
+
+
 def session_pids(user):
-    pids = []
-    for name in ('Xvnc', 'Xorg', 'xterm', 'xrdp-chansrv'):
+    pids = xorg_pids(user)
+    for name in ('Xvnc', 'xterm', 'xrdp-chansrv'):
         pids.extend(pids_for(user, name))
     return pids
 
