@@ -173,11 +173,15 @@ def test_kill_disconnected(rdp):
             _expect_session(rdp, proc)
             assert wait_until(lambda: xorg_pids(TEST_USER), 30), \
                 'Xorg is not running for the test user'
+            _expect_connection(rdp, proc, 30)
+            time.sleep(3)
         finally:
             stop_client(proc)
         # sesman.ini enforces a 60 second minimum for DisconnectedTimeLimit.
         assert wait_until(lambda: not session_pids(TEST_USER), 120), \
-            'KillDisconnected=true did not remove the disconnected Xorg session'
+            'KillDisconnected=true did not remove the disconnected Xorg session; remaining: {}'.format(
+                {name: pids_for(TEST_USER, name)
+                    for name in ('Xorg', 'Xorg.bin', 'Xvnc', 'xterm', 'xrdp-chansrv')})
     finally:
         set_ini_value(XRDP_INI, 'Globals', 'autorun', original_autorun or 'Xvnc')
         set_ini_value(SESMAN_INI, 'Sessions', 'KillDisconnected', original_kill or 'false')
@@ -201,6 +205,7 @@ def test_xorg_backend(rdp):
             _expect_session(rdp, proc)
             assert wait_until(lambda: xorg_pids(TEST_USER), 30), \
                 'Xorg is not running for the test user'
+            _expect_connection(rdp, proc, 30)
         finally:
             stop_client(proc)
     finally:
