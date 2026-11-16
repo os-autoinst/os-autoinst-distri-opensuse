@@ -66,8 +66,11 @@ def _run_client(rdp, password=None, extra=None, timeout=40):
 
 
 def _assert_clean_journal(lines, context):
+    # Auth-phase failures are expected from the bad-credentials test; only
+    # session/account PAM errors indicate the X9 regression.
     pam_errors = [line for line in lines
-                  if re.search(r'pam_.*(error|fail)|authentication failure', line, re.I)]
+                  if re.search(r'pam_[^(]*\([^:]+:(session|account)\):'
+                               r'.*(error|fail|denied)', line, re.I)]
     assert not pam_errors, '{}: PAM errors:\n{}'.format(context, '\n'.join(pam_errors))
     crashes = [line for line in lines
                if re.search(r'segfault|general protection|core dumped'
