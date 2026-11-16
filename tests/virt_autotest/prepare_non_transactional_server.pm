@@ -93,10 +93,11 @@ sub prepare_packages {
 sub prepare_bootloader {
     my $self = shift;
 
+    my $systemd_boot = is_systemd_boot;
     # On aarch64, remove serial terminal config to avoid serial issues during host upgrade
     if (is_aarch64()) {
         my $has_serial_terminal = q{grep -Eq '^GRUB_SERIAL_COMMAND=|^GRUB_TERMINAL.*serial' /etc/default/grub || grep -Eq '^terminal.*serial|^[[:space:]]*serial([[:space:]]|$)' /boot/grub2/grub.cfg};
-        if (script_run($has_serial_terminal) == 0) {
+        if (!$systemd_boot and script_run($has_serial_terminal) == 0) {
             set_grub_terminal_and_timeout(terminals => 'console');
             assert_script_run(q{sed -i -r 's/^GRUB_SERIAL_COMMAND=/#GRUB_SERIAL_COMMAND=/g' /etc/default/grub});
             assert_script_run(q{sed -i -r '/^[[:space:]]*serial([[:space:]]|$)/d' /boot/grub2/grub.cfg});
@@ -105,7 +106,9 @@ sub prepare_bootloader {
     }
 
     my $serialconsole = get_serial_console();
-    if (script_run("grep -E \"\\s+linux\\s+/boot/.*console=$serialconsole,115200\" /boot/grub2/grub.cfg") != 0) {
+    if ((!$systemd_boot and script_run("grep -E \"\\s+linux\\s+/boot/.*console=$serialconsole,115200\" /boot/grub2/grub.cfg") != 0)
+        or ($systemd_boot and (script_run("grep \'^console-mode keep\$\' " . find_esp_mount_point . "/loader/loader.conf")
+                or script_run("grep -E \"\\bconsole=$serialconsole,115200\\b\" /etc/kernel/cmdline")))) {
         set_grub_terminal_and_timeout;
         ipmi_backend_utils::add_kernel_options(kernel_opts => "console=tty console=$serialconsole,115200");
         set_var('_NEEDS_REBOOTING', 1);
