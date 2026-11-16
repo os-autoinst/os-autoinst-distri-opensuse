@@ -35,6 +35,8 @@ without rebooting, using C<transactional-update apply>.
 C<trup_reboot> and C<trup_apply> are mutually exclusive.
 C<allow_vendor_change> parameter will add C<--allow-vendor-change> to the
 zypper call.
+C<retry_on_timeout> is passed to C<zypper_call>, see there. It has no effect
+on transactional systems.
 
 B<Warning>: Only use C<trup_apply> for end user applications and server services.
 Do not use it for kernel packages or system libraries that require a reboot,
@@ -64,7 +66,7 @@ sub install_package {
         return if $args{skip_zypper};
         $packages .= ' ' . ($args{zypper_extra} // '');
         my $opts = $args{allow_vendor_change} ? '--allow-vendor-change ' : '';
-        $ret = zypper_call('in -l ' . $opts . $packages, timeout => $args{timeout});
+        $ret = zypper_call('in -l ' . $opts . $packages, timeout => $args{timeout}, retry_on_timeout => $args{retry_on_timeout});
     }
     return $ret;
 }
@@ -148,7 +150,7 @@ sub uninstall_package {
         record_info('uninstall_package', $args{skip_zypper}) if $args{skip_zypper} =~ /\w+/;
         return if $args{skip_zypper};
         $packages .= ' ' . ($args{zypper_extra} // '');
-        $ret = zypper_call('rm ' . $packages, timeout => $args{timeout});
+        $ret = zypper_call('rm ' . $packages, timeout => $args{timeout}, retry_on_timeout => $args{retry_on_timeout});
     }
     return $ret;
 }
