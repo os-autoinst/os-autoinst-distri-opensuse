@@ -43,6 +43,7 @@ schedule:
   - console/arping
   - console/ping
   - console/tracepath
+  - console/traceroute
   - console/openssl_alpn
   - console/cron
   - console/syslog
@@ -55,6 +56,7 @@ schedule:
   - console/gdb
   - console/pkcon
   - console/shells
+  - console/update_alternatives
   - console/valgrind
   - console/zziplib
   - console/dig
@@ -64,6 +66,7 @@ schedule:
   - console/osinfo_db
   - console/gcc
   - console/cryptsetup
+  - console/mdadm
   - console/vsftpd
   - console/fwupd
   - security/audit/auditctl
@@ -82,6 +85,7 @@ schedule:
   - console/libgpiod
   - console/libaom
   - console/btrfs_check
+  - console/validate_partition_table_via_blkid
   - console/snapper_create
   - console/suse_module_tools
   - console/apache
@@ -92,6 +96,7 @@ schedule:
   - console/man_pages
   - console/dns_srv
   - console/textinfo
+  - qemu/info
   - security/pam/pam_u2f
   - console/ca_certificates_mozilla
   - security/pam/pam_basic_function
@@ -104,9 +109,14 @@ schedule:
   - security/openscap/oscap_info
   - security/openscap/oscap_oval_scanning
   - security/selinux/semodule
+  - security/selinux/chcon
+  - fips/openssl/dirmngr_setup
+  - fips/openssl/dirmngr_daemon
   - console/run0
+  - console/systemd_nspawn
   - console/sysstat
   - console/sshd
+  - security/audit/aulast
   - console/tcpdump
   - console/cups
   - console/rpcbind
@@ -115,6 +125,9 @@ schedule:
   - console/rsync
   - coverage/coverage_report
 test_data:
+  disks:
+    - name: vda
+      table_type: gpt
   helper_packages:
     - gzip
     - iputils
@@ -187,6 +200,7 @@ test_data:
       - /usr/bin/wavpack
       - /usr/bin/wvunpack
       - /usr/bin/wvgain
+    alsa-utils: /usr/bin/aplay
     kmod: /usr/bin/kmod
     rpm: /usr/bin/rpm
     sqlite3: /usr/bin/sqlite3
@@ -199,14 +213,29 @@ test_data:
       - /usr/bin/gpgconf
       - /usr/bin/gpg-agent
       - /usr/bin/gpgsm
+      - /usr/bin/gpg-connect-agent
       - /usr/libexec/scdaemon
+    dirmngr:
+      - /usr/bin/dirmngr
+      - /usr/bin/dirmngr-client
     postfix:
       - /usr/sbin/postfix
       - /usr/sbin/postconf
+      - /usr/lib/postfix/bin/master
+      - /usr/lib/postfix/bin/qmgr
+      - /usr/lib/postfix/bin/pickup
+      - /usr/lib/postfix/bin/cleanup
+      - /usr/lib/postfix/bin/bounce
+      - /usr/lib/postfix/bin/local
+      - /usr/lib/postfix/bin/trivial-rewrite
+      - /usr/sbin/postalias
+      - /usr/sbin/postsuper
     quota:
       - /usr/bin/quota
       - /usr/sbin/quotacheck
       - /usr/sbin/quotaon
+      - /usr/sbin/setquota
+      - /usr/sbin/repquota
     iputils:
       - /usr/bin/arping
       - /usr/bin/ping
@@ -266,8 +295,18 @@ test_data:
       - /usr/bin/pidof
       - /usr/bin/vmstat
       - /sbin/sysctl
-    gcc16: /usr/bin/gcc-16
+      - /usr/bin/pkill
+    gcc16:
+      - /usr/bin/gcc-16
+      - /usr/lib64/gcc/x86_64-suse-linux/16/collect2
+    cpp16: /usr/lib64/gcc/x86_64-suse-linux/16/cc1
+    binutils: /usr/bin/ld.bfd
+    mdadm: /usr/sbin/mdadm
     cryptsetup: /usr/sbin/cryptsetup
+    device-mapper: /usr/sbin/dmsetup
+    e2fsprogs:
+      - /usr/sbin/mkfs.ext4
+      - /usr/sbin/mkfs.ext3
     vsftpd: /usr/sbin/vsftpd
     lftp: /usr/bin/lftp
     fwupd: /usr/bin/fwupdmgr
@@ -275,6 +314,8 @@ test_data:
       - /usr/sbin/auditd
       - /usr/sbin/aureport
       - /usr/sbin/ausearch
+      - /usr/bin/aulast
+    audit-rules: /usr/sbin/auditctl
     pciutils: /usr/sbin/lspci
     cpupower: /usr/bin/cpupower
     powertop: /usr/sbin/powertop
@@ -287,6 +328,9 @@ test_data:
       - /usr/bin/lsmem
       - /usr/bin/chrt
       - /usr/bin/mountpoint
+      - /usr/bin/script
+      - /usr/sbin/losetup
+    update-alternatives: /usr/sbin/update-alternatives
     glibc:
       - /usr/bin/getent
       - /usr/bin/iconv
@@ -298,7 +342,9 @@ test_data:
     mariadb-client:
       - /usr/bin/mariadb
       - /usr/bin/mariadb-admin
-    udisks2: /usr/bin/udisksctl
+    udisks2:
+      - /usr/bin/udisksctl
+      - /usr/libexec/udisks2/udisksd
     unixODBC:
       - /usr/bin/isql
       - /usr/bin/odbcinst
@@ -314,6 +360,13 @@ test_data:
     man:
       - /usr/bin/man
       - /usr/bin/manpath
+      - /usr/libexec/man-db/mandb
+    groff:
+      - /usr/bin/groff
+      - /usr/bin/troff
+      - /usr/bin/tbl
+      - /usr/bin/grotty
+    libosinfo: /usr/bin/osinfo-query  # thin launcher; covers libosinfo-1.so
     openscap-utils: /usr/bin/oscap
     snapper:
       - /usr/bin/snapper
@@ -323,8 +376,12 @@ test_data:
       - /usr/sbin/semodule
       - /usr/sbin/setsebool
       - /usr/bin/sestatus
+    selinux-tools: /usr/sbin/sefcontext_compile
+    shadow:
+      - /usr/sbin/useradd
+      - /usr/sbin/chpasswd
     systemd:
-      - /usr/bin/run0  # symlink to systemd-run, pulls in systemd-debuginfo
+      - /usr/bin/systemd-run  # run0 is a symlink to this
       - /usr/bin/bootctl
       - /usr/bin/systemctl
       - /usr/bin/systemd-detect-virt
@@ -333,12 +390,16 @@ test_data:
       - /usr/bin/coredumpctl
       - /usr/bin/timedatectl
       - /usr/bin/localectl
-      - /usr/bin/networkctl
+    systemd-resolved: /usr/bin/resolvectl
+    systemd-container:
+      - /usr/bin/systemd-nspawn
+      - /usr/bin/machinectl
     sysstat:
       - /usr/bin/pidstat
       - /usr/bin/iostat
       - /usr/bin/mpstat
       - /usr/bin/sar
+      - /usr/lib64/sa/sadc
     openssh-server: /usr/sbin/sshd
     tcpdump: /usr/sbin/tcpdump
     apache2-prefork: /usr/sbin/httpd-prefork
@@ -352,7 +413,9 @@ test_data:
       - /usr/bin/lpoptions
       - /usr/bin/lpq
       - /usr/bin/lpstat
-    rpcbind: /usr/sbin/rpcbind
+    rpcbind:
+      - /usr/sbin/rpcbind
+      - /usr/bin/rpcinfo
     nfs-client:
       - /sbin/mount.nfs
       - /usr/sbin/rpc.statd
@@ -380,11 +443,16 @@ test_data:
       - /usr/bin/ssh-keygen
       - /usr/bin/ssh-keyscan
       - /usr/bin/scp
-    iproute2: /sbin/ip
+    iproute2:
+      - /sbin/ip
+      - /usr/sbin/ss
     diffutils: /usr/bin/diff
+    libcap-progs: /usr/bin/getcap
     coreutils:
       - /usr/bin/dd
       - /usr/bin/df
+      - /usr/bin/chcon
+      - /usr/bin/md5sum
     libxml2-tools: /usr/bin/xmllint
     zip: /usr/bin/zip
     gzip: /usr/bin/gzip
