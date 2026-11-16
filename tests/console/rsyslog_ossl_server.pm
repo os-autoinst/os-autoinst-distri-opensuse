@@ -77,7 +77,7 @@ sub run {
     assert_script_run 'chmod 700 /etc/rsyslog-certs';
     assert_script_run 'chmod 600 /etc/rsyslog-certs/*.pem';
     assert_script_run 'rsyslogd -N1';
-    if ($dtls) {
+    if ($dtls && has_selinux) {
         assert_script_run 'semanage port -a -t syslogd_port_t -p udp ' . DTLS_PORT
           . ' || semanage port -m -t syslogd_port_t -p udp ' . DTLS_PORT;
         record_info('selinux port', script_output('semanage port -l | grep -w ' . DTLS_PORT));
