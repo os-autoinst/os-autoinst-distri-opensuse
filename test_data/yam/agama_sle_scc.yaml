@@ -25,16 +25,6 @@ repos:
     uri: https://updates.suse.com/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_source
     enabled: 'No'
     filter: name
-  - name: NVIDIA-GPU-Compute-Toolkit-CUDA-16
-    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:NVIDIA-GPU-Compute-Toolkit-CUDA-16
-    uri: https://developer.download.nvidia.com/compute/cuda/repos/suse16
-    enabled: 'No'
-    filter: name
-  - name: NVIDIA-Graphics-Drivers-%VERSION%
-    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:NVIDIA-Graphics-Drivers-%VERSION%
-    uri: https://download.nvidia.com/suse/sle%VERSION%
-    enabled: 'No'
-    filter: name
 selinux:
   status: enabled
   mode: enforcing
