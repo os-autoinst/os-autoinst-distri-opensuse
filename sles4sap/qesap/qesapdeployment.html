@@ -19,6 +19,7 @@
     <ul>
       <li><a href="#Methods">Methods</a>
         <ul>
+          <li><a href="#qesap_get_paths">qesap_get_paths</a></li>
           <li><a href="#qesap_get_file_paths">qesap_get_file_paths</a></li>
           <li><a href="#qesap_create_folder_tree">qesap_create_folder_tree</a></li>
           <li><a href="#qesap_get_variables">qesap_get_variables</a></li>
@@ -30,6 +31,7 @@
           <li><a href="#qesap_pip_install">qesap_pip_install</a></li>
           <li><a href="#qesap_galaxy_install">qesap_galaxy_install</a></li>
           <li><a href="#qesap_upload_logs">qesap_upload_logs</a></li>
+          <li><a href="#qesap_get_latest_version">qesap_get_latest_version</a></li>
           <li><a href="#qesap_get_deployment_code">qesap_get_deployment_code</a></li>
           <li><a href="#qesap_get_roles_code-Get-the-Ansible-roles-code-from-github.com-sap-linuxlab-community.sles-for-sap">qesap_get_roles_code Get the Ansible roles code from github.com/sap-linuxlab/community.sles-for-sap</a></li>
           <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
@@ -95,6 +97,12 @@ SPDX-License-Identifier: FSFAP</code></pre>
 <pre><code>Package with common methods and default or constant values for qe-sap-deployment</code></pre>
 
 <h2 id="Methods">Methods</h2>
+
+<h3 id="qesap_get_paths">qesap_get_paths</h3>
+
+<pre><code>Returns a hash containing directory paths for qe-sap-deployment:
+deployment_dir, terraform_dir, roles_dir, roles_dir_path.
+Unlike qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.</code></pre>
 
 <h3 id="qesap_get_file_paths">qesap_get_file_paths</h3>
 
@@ -204,9 +212,22 @@ This is about logs generated locally on the jumphost.</code></pre>
 </dd>
 </dl>
 
+<h3 id="qesap_get_latest_version">qesap_get_latest_version</h3>
+
+<pre><code>Queries GitHub for the latest release tag of qe-sap-deployment
+and returns the parsed version string.</code></pre>
+
 <h3 id="qesap_get_deployment_code">qesap_get_deployment_code</h3>
 
 <pre><code>Get the qe-sap-deployment code</code></pre>
+
+<dl>
+
+<dt id="VERSION---optional-release-version-tag-to-install-e.g.-latest-2.6.15"><b>VERSION</b> - optional release version tag to install (e.g. &#39;latest&#39;, &#39;2.6.15&#39;)</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_get_roles_code-Get-the-Ansible-roles-code-from-github.com-sap-linuxlab-community.sles-for-sap">qesap_get_roles_code Get the Ansible roles code from github.com/sap-linuxlab/community.sles-for-sap</h3>
 
