@@ -2894,6 +2894,7 @@ sub load_extra_tests_kernel {
     # keep it on the latest place as it taints kernel
     loadtest "kernel/module_build";
     loadtest "kernel/sysrq_test";
+    loadtest "kernel/cpu_params";
 }
 
 # Scheduling set for validation of specific installation
