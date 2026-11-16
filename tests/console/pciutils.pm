@@ -23,7 +23,8 @@ sub run {
     record_info('pciutis version:', script_output('rpm -q pciutils'));
 
     # Run basic powertop, sysinfo and cpupower tests
-    assert_script_run('powertop -r /tmp/powertop_report');
+    assert_script_run('powertop --time=2 --html=/tmp/powertop_report');
+    assert_script_run('test -s /tmp/powertop_report');
     assert_script_run('cpupower frequency-info');
 }
 
