@@ -31,15 +31,22 @@ sub load_selinux_tests {
     loadtest('security/selinux/semanage_fcontext');
     loadtest('security/selinux/semanage_boolean');
     loadtest('security/selinux/fixfiles');
-    loadtest('security/selinux/print_se_context');
+    # The agnostic selinux_tools test cannot run on SLE 12 (Python 3.4) and on
+    # SL Micro (no python3-pytest in the repositories), keep the old modules there
+    my $old_selinux_tools = is_sle('<15') || is_sle_micro;
+    loadtest('security/selinux/print_se_context') if $old_selinux_tools;
     loadtest('security/selinux/audit2allow');
     loadtest('security/selinux/semodule');
     loadtest('security/selinux/setsebool');
-    loadtest('security/selinux/restorecon');
-    loadtest('security/selinux/chcon');
-    loadtest('security/selinux/chcat');
+    if ($old_selinux_tools) {
+        loadtest('security/selinux/restorecon');
+        loadtest('security/selinux/chcon');
+        loadtest('security/selinux/chcat');
+    } else {
+        loadtest('security/oqa_agnostic/selinux_tools');
+    }
     loadtest('security/selinux/set_get_enforce');
-    loadtest('security/selinux/selinuxexeccon');
+    loadtest('security/selinux/selinuxexeccon') if $old_selinux_tools;
 }
 
 sub load_container_selinux_tests {

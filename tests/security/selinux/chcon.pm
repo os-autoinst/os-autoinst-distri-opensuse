@@ -1,9 +1,9 @@
-# Copyright 2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# chcon" can change file security context
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#66093, tc#1741289
+# Tags: poo#66093, tc#1741289, poo#206877
 
 use Mojo::Base 'selinuxtest';
 use power_action_utils "power_action";

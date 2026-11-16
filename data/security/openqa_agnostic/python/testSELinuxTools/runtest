@@ -1,0 +1,58 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: SELinux tools
+# desc: >
+#   Verifies the SELinux command line tools: ls/id/ps -Z print security
+#   contexts, selinuxexeccon reports a process context, chcon changes a file
+#   type, restorecon labels files from local file context rules and chcat
+#   changes the categories of files and users.
+# steps:
+#   - 1. Skip all tests if SELinux is disabled.
+#   - 2. Check that ls -Z, ls -Zd, id -Z and ps -Z print security contexts.
+#   - 3. Check that selinuxexeccon reports the context for /usr/bin/passwd.
+#   - 4. Change the type of a test file with chcon and verify it.
+#   - 5. Add local file context rules with semanage, label a test tree with
+#        restorecon -Rv and restorecon -Rp and verify the labels.
+#   - 6. List levels with chcat -L.
+#   - 7. Add and remove categories of a test directory and a test file with chcat.
+#   - 8. Remove and add categories of the root user with chcat -l.
+#   - 9. Remove the test tree and the added file context rules, restore the
+#        SELinux login mapping of root.
+# requires: >
+#   SELinux enabled, an MCS policy (targeted or minimum), and the coreutils,
+#   procps, policycoreutils, policycoreutils-python-utils and selinux-tools
+#   packages already installed
+# author: <mmilian@suse.de>
+# maintainer: QE Security <none@suse.de>
+# expected: all SELinux tools change and report the security contexts as expected
+# platform: SLE15SP2+, SLE16+, Tumbleweed
+# tags: security selinux chcon chcat restorecon selinuxexeccon poo#61783 poo#65672 poo#66093 poo#66096 poo#105202 poo#206877
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_selinux_tools.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+for cmd in chcat chcon restorecon semanage selinuxenabled selinuxexeccon; do
+    ensure_command_available "$cmd"
+done
+
+echo "--- Test directory: $PWD ---"
+ls -l
+echo "----------------------------"
+
+set +e
+pytest -v -s test_selinux_tools.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ]; then
+    exit 0
+fi
+exit $rc
