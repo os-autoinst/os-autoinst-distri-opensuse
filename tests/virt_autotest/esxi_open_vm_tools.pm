@@ -234,8 +234,6 @@ sub check_vm_power_state {
     # $expect_vm_state:  $VM_POWER_ON or $VM_POWER_OFF; expected vm power state after taking power action
     my ($vm_id, $vm_ip, $powerops, $powerops_ret, $if_pingable, $expect_vm_state) = @_;
 
-    login_vm_console() if (is_svirt && (grep /$powerops/, ('power.on', 'power.reboot', 'power.reset')));
-
     if ($powerops_ret) {
         wait_for_vm_network($vm_ip, $if_pingable);
     } elsif (!defined $powerops_ret) {
@@ -243,7 +241,10 @@ sub check_vm_power_state {
     } else {
         die "Not the correct VM state for guest $powerops.";
     }
-    die "Failed to $powerops the guest." if (!esxi_vm_power_getstate($vm_id) =~ m/$expect_vm_state/);
+    die "Failed to $powerops the guest." if (esxi_vm_power_getstate($vm_id) !~ m/$expect_vm_state/);
+
+    # Wait for guest network readiness before checking its VNC login screen.
+    login_vm_console() if (is_svirt && (grep /$powerops/, ('power.on', 'power.reboot', 'power.reset')));
 }
 
 sub wait_for_vm_network {
