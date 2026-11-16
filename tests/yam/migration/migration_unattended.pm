@@ -39,6 +39,12 @@ sub run {
     my $migration_tool = is_s390x ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
     record_info("installing DMS", script_output("zypper --gpg-auto-import-keys -n in $migration_tool"));
 
+    # workaround for bsc#1256825
+    if (is_s390x) {
+        record_soft_failure("bsc#1256825 - Migration failed for s390x from SLES15sp7 to SLES16.0 with System not registered");
+        record_info("installing suse-migration-scripts", script_output("zypper --gpg-auto-import-keys -n in suse-migration-scripts"));
+    }
+
     # deactivate unwanted/unsupported extensions before doing migration
     if (get_var('SCC_SUBTRACTIONS')) {
         foreach my $addon (split(',', get_var('SCC_SUBTRACTIONS'))) {
