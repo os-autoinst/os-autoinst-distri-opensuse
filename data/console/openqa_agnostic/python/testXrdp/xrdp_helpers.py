@@ -82,6 +82,13 @@ def supports_option(binary, option):
     return option in (result.stdout or '')
 
 
+def supports_auth_only(binary, major):
+    if supports_option(binary, 'auth-only'):
+        return True
+    # FreeRDP 2.11.7 has +auth-only but does not advertise it in /help.
+    return major >= 2
+
+
 def set_ini_value(path, section, key, value):
     """Set key=value in section, preserving comments and duplicate keys."""
     lines = path.read_text().splitlines()
@@ -170,6 +177,15 @@ def wait_for_port(timeout=30):
         raise AssertionError('xrdp did not start listening on {}:{}'.format(HOST, PORT))
 
 
+def journal_since(since_epoch, units=('xrdp', 'xrdp-sesman')):
+    cmd = ['journalctl', '--no-pager', '-o', 'cat', '--since',
+           '@{:.6f}'.format(since_epoch)]
+    for unit in units:
+        cmd.extend(['-u', unit])
+    result = run(cmd, timeout=30)
+    return result.stdout.splitlines() if result.returncode == 0 else None
+
+
 def established_connections(port=PORT):
     result = run(['ss', '-tn', 'state', 'established'], timeout=10)
     if result.returncode != 0:
@@ -207,22 +223,37 @@ def client_command(binary, major, password, extra=None):
 def start_client(binary, major, password, extra=None):
     argv, stdin_text = client_command(binary, major, password, extra)
     cmd = ['xvfb-run', '-a', '-s', '-screen 0 1024x768x24'] + argv
+    output = tempfile.TemporaryFile()
     proc = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE if stdin_text is not None else subprocess.DEVNULL,
-        stdout=subprocess.PIPE,
+        stdout=output,
         stderr=subprocess.STDOUT,
-        universal_newlines=True,
         start_new_session=True,
     )
+    proc.agnostic_output = output
     if stdin_text is not None:
         try:
-            proc.stdin.write(stdin_text)
+            proc.stdin.write(stdin_text.encode('utf-8'))
             proc.stdin.close()
         except (BrokenPipeError, OSError):
             pass
         proc.stdin = None
     return proc
+
+
+def client_output(proc):
+    stream = getattr(proc, 'agnostic_output', None)
+    if stream is None:
+        return ''
+    try:
+        stream.seek(0)
+        data = stream.read()
+    except (OSError, ValueError):
+        return ''
+    if isinstance(data, bytes):
+        return data.decode('utf-8', errors='replace')
+    return data
 
 
 def stop_client(proc):
@@ -233,10 +264,18 @@ def stop_client(proc):
         except OSError:
             pass
     try:
-        output = proc.communicate(timeout=10)[0]
+        proc.wait(timeout=10)
     except subprocess.TimeoutExpired:
-        output = ''
-    return output or ''
+        pass
+    output = client_output(proc)
+    stream = getattr(proc, 'agnostic_output', None)
+    if stream is not None:
+        try:
+            stream.close()
+        except OSError:
+            pass
+        proc.agnostic_output = None
+    return output
 
 
 class RdpEnv(object):
@@ -249,6 +288,7 @@ class RdpEnv(object):
         self.was_active = False
         self.firewall_added = False
         self.user_created = False
+        self.setup_done = False
 
     def _backup(self, path):
         if path.exists():
@@ -260,7 +300,8 @@ class RdpEnv(object):
             shutil.copy2(str(backup), str(path))
 
     def _open_firewall(self):
-        if not which('firewall-cmd') or run(['systemctl', 'is-active', 'firewalld']).returncode != 0:
+        if (not which('firewall-cmd')
+                or run(['systemctl', 'is-active', 'firewalld']).returncode != 0):
             return
         result = run(['firewall-cmd', '--zone=public', '--add-port={}/tcp'.format(PORT)])
         self.firewall_added = result.returncode == 0
@@ -271,6 +312,7 @@ class RdpEnv(object):
             self.firewall_added = False
 
     def setup(self):
+        self.setup_done = True
         self._backup(XRDP_INI)
         self._backup(SESMAN_INI)
         self.was_active = run(['systemctl', 'is-active', 'xrdp']).returncode == 0
@@ -282,6 +324,9 @@ class RdpEnv(object):
         shutil.rmtree('/home/{}'.format(TEST_USER), ignore_errors=True)
         run_ok(['useradd', '-m', '-s', '/bin/bash', TEST_USER])
         self.user_created = True
+        marker = Path('/home') / TEST_USER / '.xrdp-agnostic-test'
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text('xrdp agnostic test\n')
         run_ok(['chpasswd'], input_text='{}:{}\n'.format(TEST_USER, self.password))
 
         set_ini_value(XRDP_INI, 'Globals', 'autorun', 'Xvnc')
@@ -319,6 +364,9 @@ class RdpEnv(object):
             print('===== end {} ====='.format(path))
 
     def teardown(self):
+        if not self.setup_done:
+            shutil.rmtree(str(self.backup_dir), ignore_errors=True)
+            return
         ignore_errors(kill_user_processes, TEST_USER)
         ignore_errors(run, ['systemctl', 'stop', 'xrdp', 'xrdp-sesman'])
         ignore_errors(self._dump_logs)

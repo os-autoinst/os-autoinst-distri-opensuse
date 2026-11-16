@@ -5,8 +5,8 @@
 
 import pytest
 
-from xrdp_helpers import (CHKPRIV, PORT, XRDP_INI, get_ini_value, port_open,
-                          rpm_version, run, which)
+from xrdp_helpers import (CHKPRIV, PORT, get_ini_value, port_open, rpm_version,
+                          run, which)
 
 
 def test_package_installed(rdp):
@@ -33,12 +33,41 @@ def test_version_reported_by_binary(rdp):
         'xrdp --version does not report the RPM version {}: {}'.format(major_minor, result.stdout)
 
 
+def test_unit_enablement(rdp):
+    for unit in ('xrdp', 'xrdp-sesman'):
+        result = run(['systemctl', 'show', '-p', 'UnitFileState', '--value', unit])
+        assert result.returncode == 0, result.stdout
+        state = result.stdout.strip()
+        assert state, 'no UnitFileState for {}'.format(unit)
+        assert state != 'masked', '{} is masked'.format(unit)
+        print('{} UnitFileState={}'.format(unit, state))
+
+
 def test_xvnc_backend_present(rdp):
-    assert get_ini_value(XRDP_INI, 'Xvnc', 'lib') == 'libvnc.so'
+    # Check the shipped files from the backup, not the test-modified ones.
+    xrdp_ini = rdp.backup_dir / 'xrdp.ini'
+    sesman_ini = rdp.backup_dir / 'sesman.ini'
+    assert xrdp_ini.exists() and sesman_ini.exists()
+    assert get_ini_value(xrdp_ini, 'Xvnc', 'lib') == 'libvnc.so'
+    assert get_ini_value(xrdp_ini, 'Xvnc', 'port') == '-1'
+
+    # duplicate param= keys are valid in sesman.ini; the line parser must
+    # return the first one without requiring configparser semantics
+    in_xvnc = False
+    params = []
+    for line in sesman_ini.read_text().splitlines():
+        stripped = line.strip()
+        if stripped.startswith('[') and stripped.endswith(']'):
+            in_xvnc = stripped[1:-1] == 'Xvnc'
+        elif in_xvnc and stripped.startswith('param='):
+            params.append(stripped.split('=', 1)[1])
+    assert params and params[0] == 'Xvnc', params
+    assert len(params) > 1, 'expected duplicate param= keys in sesman.ini [Xvnc]'
+
+    assert which('Xvnc'), 'the Xvnc binary is not installed'
     listing = run(['rpm', '-ql', 'xrdp']).stdout
     assert any(path.endswith('/libvnc.so') for path in listing.splitlines()), \
         'the xrdp package does not ship libvnc.so'
-    assert which('Xvnc'), 'the Xvnc binary is not installed'
 
 
 def test_xrdp_chkpriv(rdp):
