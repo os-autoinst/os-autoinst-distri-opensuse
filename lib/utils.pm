@@ -124,6 +124,9 @@ our @EXPORT = qw(
   is_ipxe_boot
   is_uefi_boot
   is_usb_boot
+  is_systemd_boot
+  is_esp_system
+  find_esp_mount_point
   remove_efiboot_entry
   empty_usb_disks
   upload_y2logs
@@ -3181,6 +3184,61 @@ that it boots from USB.
 sub is_usb_boot {
     return 1 if get_var('USB_BOOT', '');
     return 0;
+}
+
+=head2 is_systemd_boot
+
+  is_systemd_boot(dst_machine => 'fqdn or ip address')
+
+Detect whether systemd-boot being used on system with 'bootctl status' command.
+This subroutine only has one argument dst_machine which is the host on which
+operations will be performed.
+=cut
+
+sub is_systemd_boot {
+    my %args = @_;
+    $args{dst_machine} //= 'localhost';
+
+    my $cmd = "bootctl status 2>/dev/null | grep -E \"Product.*systemd-boot\"";
+    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+    return (script_run($cmd) == 0 ? 1 : 0);
+}
+
+=head2 is_esp_system
+
+  is_esp_system(dst_machine => 'fqdn or ip address')
+
+Detect whether system has ESP(EFI System Partition). This subroutine only has
+one argument dst_machine which is the host on which operations will be performed.
+=cut
+
+sub is_esp_system {
+    my %args = @_;
+    $args{dst_machine} //= 'localhost';
+
+    my $cmd = "[ -d /sys/firmware/efi ]";
+    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+    return (script_run($cmd) == 0 ? 1 : 0);
+}
+
+=head2 find_esp_mount_point
+
+  find_esp_mount_point()
+
+Find out the physical partition to which ESP(EFI System Partition) is mounted.
+This subroutine only has one argument dst_machine which is the host on which
+operations will be performed.
+=cut
+
+sub find_esp_mount_point {
+    my %args = @_;
+    $args{dst_machine} //= 'localhost';
+
+    croak('System has no ESP(EFI System Partition)') if !is_esp_system(dst_machine => $args{dst_machine});
+
+    my $cmd = "bootctl --print-esp-path";
+    $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
+    return script_output($cmd);
 }
 
 =head2 remove_efiboot_entry
