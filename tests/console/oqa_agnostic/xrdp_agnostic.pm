@@ -50,7 +50,7 @@ sub run {
             domain => 'console',
             run_timeout => 900,
             skip_phub => 1,
-        });
+    });
     $test->setup()->run_test()->parse_results()->cleanup();
 }
 
