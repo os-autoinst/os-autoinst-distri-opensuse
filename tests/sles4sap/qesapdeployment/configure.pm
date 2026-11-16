@@ -29,7 +29,7 @@ Specifies the public cloud provider (e.g., 'AZURE', 'EC2', 'GCE').
 
 =item B<QESAPDEPLOY_TERRAFORM_RUNNER>
 
-The command to run Terraform. Defaults to 'terraform'.
+The command to run Terraform. Defaults to 'tofu'.
 
 =item B<QESAPDEPLOY_CLUSTER_OS_VER>
 
