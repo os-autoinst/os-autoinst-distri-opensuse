@@ -38,6 +38,13 @@ sub run {
     my $ret = systemctl("is-enabled $firewall", ignore_failure => 1);
     disable_and_stop_service($firewall) if (defined($ret) && $ret == 0);
 
+    # hpc-testing compares the node description with "hostname -s". On SLE 12
+    # this resolves the hostname, which fails for the DHCP hostname unless it
+    # is in /etc/hosts.
+    if (is_sle('<15')) {
+        assert_script_run('grep -qw "$(hostname)" /etc/hosts || echo "127.0.0.2 $(hostname)" >> /etc/hosts');
+    }
+
     # create a ssh key if we don't have one
     script_run('[ ! -f /root/.ssh/id_rsa ] && ssh-keygen -b 2048 -t rsa -q -N "" -f /root/.ssh/id_rsa');
 
@@ -71,7 +78,8 @@ sub run {
 
 Prepares the machines for the InfiniBand test suite hpc-testing: adds the
 required repositories, installs the required packages, unloads the
-firewall, creates a SSH key if needed and reboots. On the master, also
+firewall, creates a SSH key if needed and reboots. On SLE 12, also adds the
+hostname to /etc/hosts, so C<hostname -s> works. On the master, also
 fetches hpc-testing itself, either as an RPM (default) or via git, mainly
 useful for debugging.
 
