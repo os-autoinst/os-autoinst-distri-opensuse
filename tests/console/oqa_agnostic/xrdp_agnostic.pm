@@ -14,7 +14,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';
 use version_utils qw(is_tumbleweed is_sle);
-use Utils::Architectures 'is_x86_64';
+use Utils::Architectures qw(is_x86_64 is_aarch64);
 use agnosticTestRunner;
 
 sub run {
@@ -33,8 +33,8 @@ sub run {
     my $freerdp = $has->('freerdp') ? 'freerdp' : 'freerdp2';
     my @required = ('xrdp', 'xorg-x11-Xvnc', 'xterm', $freerdp, 'xvfb-run', 'xorg-x11-server-Xvfb', 'iproute2', 'xauth');
 
-    # The Xorg backend is optional and only meaningful on x86_64.
-    push @required, grep { $has->($_) } qw(xorgxrdp xorg-x11-server) if is_x86_64;
+    # The Xorg backend is optional; the test gates on its presence.
+    push @required, grep { $has->($_) } qw(xorgxrdp xorg-x11-server) if is_x86_64 || is_aarch64;
 
     my @missing = grep { !$has->($_) } @required;
     if (@missing) {
@@ -60,10 +60,14 @@ sub post_fail_hook {
     if (script_run('test -f /home/rdptest/.xrdp-agnostic-test') == 0) {
         script_run('pkill -9 -u rdptest');
         script_run('systemctl stop xrdp xrdp-sesman');
+        script_run('cp -a /tmp/xrdp-agnostic-backup/xrdp.ini /etc/xrdp/xrdp.ini 2>/dev/null');
+        script_run('cp -a /tmp/xrdp-agnostic-backup/sesman.ini /etc/xrdp/sesman.ini 2>/dev/null');
         script_run('userdel -r rdptest');
     }
     upload_logs('/var/log/xrdp.log', failok => 1);
     upload_logs('/var/log/xrdp-sesman.log', failok => 1);
+    upload_logs('/tmp/testXrdp_output.log', failok => 1);
+    $self->SUPER::post_fail_hook;
 }
 
 1;

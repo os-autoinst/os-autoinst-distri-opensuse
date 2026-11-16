@@ -16,12 +16,16 @@ def test_package_installed(rdp):
 
 
 def test_services_active(rdp):
+    # Runtime state after the fixture started the services; the shipped-state
+    # checks are test_package_installed, test_unit_enablement and
+    # test_xvnc_backend_present.
     for unit in ('xrdp', 'xrdp-sesman'):
         result = run(['systemctl', 'is-active', unit])
         assert result.returncode == 0, '{} is not active: {}'.format(unit, result.stdout)
 
 
 def test_listener(rdp):
+    # Runtime state after setup(), not a check of the shipped configuration.
     assert port_open(), 'xrdp is not listening on 127.0.0.1:{}'.format(PORT)
 
 
@@ -34,13 +38,16 @@ def test_version_reported_by_binary(rdp):
 
 
 def test_unit_enablement(rdp):
-    for unit in ('xrdp', 'xrdp-sesman'):
+    assert rdp.unit_states, 'unit states were not recorded before setup'
+    for unit, original in rdp.unit_states.items():
         result = run(['systemctl', 'show', '-p', 'UnitFileState', '--value', unit])
         assert result.returncode == 0, result.stdout
         state = result.stdout.strip()
         assert state, 'no UnitFileState for {}'.format(unit)
         assert state != 'masked', '{} is masked'.format(unit)
-        print('{} UnitFileState={}'.format(unit, state))
+        assert state == original, \
+            '{} enablement changed from {} to {}'.format(unit, original, state)
+        print('{} UnitFileState={} (unchanged)'.format(unit, state))
 
 
 def test_xvnc_backend_present(rdp):

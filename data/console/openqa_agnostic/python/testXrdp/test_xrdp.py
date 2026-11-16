@@ -78,23 +78,27 @@ def _assert_clean_journal(lines, context):
     assert not crashes, '{}: crashes:\n{}'.format(context, '\n'.join(crashes))
 
 
+def _tail(text, lines=10):
+    return '\n'.join((text or '').splitlines()[-lines:])
+
+
 def test_auth_only(rdp):
     # auth-only is a capability probe: xrdp's login-screen auth does not
-    # always reject a bad password at this stage, so only the observable
-    # (exit status and no session) is asserted where it is meaningful.
+    # reject a bad password at this stage on the tested targets, so the
+    # no-session invariant is only asserted after a clean auth-only exit.
     if not supports_auth_only(rdp.freerdp, rdp.major):
         pytest.skip('+auth-only is not available in this FreeRDP version')
     good_rc, good_out = _run_client(rdp, extra=['+auth-only'])
-    assert not session_pids(TEST_USER), 'auth-only with valid credentials created a session'
     if good_rc is None:
         pytest.skip('+auth-only did not terminate against xrdp')
     if good_rc != 0:
         pytest.skip('+auth-only is not supported by this xrdp/client '
-                    'combination: {}'.format(good_out))
+                    'combination:\n{}'.format(_tail(good_out)))
+    assert not session_pids(TEST_USER), 'auth-only with valid credentials created a session'
     bad_rc, bad_out = _run_client(rdp, password='wrong-password', extra=['+auth-only'])
-    assert not session_pids(TEST_USER), 'auth-only with bad credentials created a session'
     if bad_rc is None:
         pytest.skip('+auth-only did not terminate against xrdp with bad credentials')
+    assert not session_pids(TEST_USER), 'auth-only with bad credentials created a session'
     if bad_rc == 0:
         pytest.skip('xrdp does not reject credentials at the auth-only stage')
 

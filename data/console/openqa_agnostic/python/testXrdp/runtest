@@ -9,14 +9,17 @@
 #   credentials, disconnect/reconnect, a second login, KillDisconnected
 #   cleanup and the optional Xorg backend.
 # steps:
-#   - verify the xrdp package, services, listener and shipped configuration
+#   - verify the shipped configuration, unit enablement and runtime services
 #   - create a temporary local user and start xrdp with the Xvnc backend
 #   - connect with xfreerdp and verify the session and its processes
 #   - verify bad credentials create no session
 #   - disconnect, reconnect and verify a second session for the same user
+#   - check the service journal for PAM session errors and crashes
 #   - verify KillDisconnected removes a disconnected session
+#   - dump the xrdp, SELinux and audit logs at teardown
 #   - restore the original configuration, services and user
-# requires: xrdp, xorg-x11-Xvnc, xterm, freerdp and xvfb-run installed
+# requires: xrdp, xorg-x11-Xvnc, xterm, freerdp, xvfb-run, xauth,
+#   iproute2 and xorg-x11-server-Xvfb installed
 # author: <zbalogh@suse.com>
 # maintainer: Zoltan Balogh <zbalogh@suse.com>
 # expected: all tests pass, or a visible skip when a feature is unavailable

@@ -281,13 +281,14 @@ def stop_client(proc):
 class RdpEnv(object):
     def __init__(self):
         self.password = secrets.token_urlsafe(18)
-        self.backup_dir = Path(tempfile.mkdtemp(prefix='xrdp-agnostic-'))
+        self.backup_dir = Path('/tmp/xrdp-agnostic-backup')
         self.freerdp = freerdp_binary()
         self.major = freerdp_major(self.freerdp) if self.freerdp else 0
         self.xrdp_version = rpm_version('xrdp') or ''
         self.was_active = False
         self.firewall_added = False
         self.user_created = False
+        self.unit_states = {}
         self.setup_done = False
 
     def _backup(self, path):
@@ -313,8 +314,13 @@ class RdpEnv(object):
 
     def setup(self):
         self.setup_done = True
+        shutil.rmtree(str(self.backup_dir), ignore_errors=True)
+        self.backup_dir.mkdir(mode=0o700, parents=True)
         self._backup(XRDP_INI)
         self._backup(SESMAN_INI)
+        for unit in ('xrdp', 'xrdp-sesman'):
+            result = run(['systemctl', 'show', '-p', 'UnitFileState', '--value', unit])
+            self.unit_states[unit] = result.stdout.strip()
         self.was_active = run(['systemctl', 'is-active', 'xrdp']).returncode == 0
 
         # Start from the shipped config, not from a pre-existing instance.
@@ -362,6 +368,25 @@ class RdpEnv(object):
             print('===== {} (last 120 lines) ====='.format(path))
             print('\n'.join(lines[-120:]))
             print('===== end {} ====='.format(path))
+
+        commands = [
+            ['getenforce'],
+            ['sestatus'],
+            ['ausearch', '-m', 'avc', '-ts', 'recent'],
+            ['ls', '-lZ', '/usr/sbin/xrdp-chansrv', '/usr/bin/xauth', '/usr/bin/Xvnc'],
+            ['rpm', '-V', 'xrdp', 'xauth', 'xorg-x11-Xvnc'],
+        ]
+        for cmd in commands:
+            try:
+                result = run(cmd, timeout=30)
+            except (OSError, subprocess.TimeoutExpired):
+                continue
+            lines = result.stdout.splitlines()[-120:]
+            if not lines:
+                continue
+            print('===== {} ====='.format(' '.join(cmd)))
+            print('\n'.join(lines))
+            print('===== end {} ====='.format(' '.join(cmd)))
 
     def teardown(self):
         if not self.setup_done:
