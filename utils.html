@@ -279,6 +279,8 @@ remain: boolean
 
 <p><code>dumb_term</code> will default to <code>is_serial_terminal()</code>.</p>
 
+<p><code>retry_on_timeout</code> is the number of extra attempts after zypper timed out, it defaults to <code>0</code> (die on timeout). When set, zypper runs under <code>timeout -k 60</code> inside the SUT so the shell prompt is back after a timeout. Before the next attempt, <code>zypper_call</code> waits for <code>zypper</code> and <code>zypp-rpm</code> to exit (it never kills a running rpm transaction) and sets <code>ZYPP_LOCK_TIMEOUT</code> to 120 seconds unless already set. It dies after the last attempt. Best used for <code>ref</code>, <code>ar</code> and other short operations, not for long running commit phases. Ignored if <code>timeout</code> is not available on the SUT.</p>
+
 <h2 id="zypper_enable_install_dvd">zypper_enable_install_dvd</h2>
 
 <pre><code>zypper_enable_install_dvd();</code></pre>
