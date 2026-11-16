@@ -25,7 +25,7 @@ sub run {
     }
 
     my $freerdp = script_run('zypper -n info freerdp', quiet => 1) == 0 ? 'freerdp' : 'freerdp2';
-    my @required = ('xrdp', 'xorg-x11-Xvnc', 'xterm', $freerdp, 'xvfb-run', 'xorg-x11-server-Xvfb', 'iproute2');
+    my @required = ('xrdp', 'xorg-x11-Xvnc', 'xterm', $freerdp, 'xvfb-run', 'xorg-x11-server-Xvfb', 'iproute2', 'xauth');
 
     # The Xorg backend is optional and only meaningful on x86_64.
     if (is_x86_64) {

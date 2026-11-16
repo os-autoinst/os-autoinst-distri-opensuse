@@ -11,7 +11,7 @@ from xrdp_helpers import RdpEnv, which
 def _check_prerequisites(env):
     missing = []
     for command in ('xrdp', 'xrdp-sesman', 'useradd', 'chpasswd', 'pkill',
-                    'systemctl', 'rpm', 'ss', 'Xvnc', 'xterm', 'xvfb-run'):
+                    'systemctl', 'rpm', 'ss', 'Xvnc', 'xterm', 'xvfb-run', 'xauth'):
         if not which(command):
             missing.append(command)
     if not env.freerdp:
