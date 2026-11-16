@@ -17,6 +17,7 @@ use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
 use publiccloud::utils qw(install_in_venv create_script_file get_python_exec);
+use sles4sap::qesap::qesapdeployment qw(qesap_cache_releases);
 
 my $python_exec = get_python_exec();
 
@@ -124,6 +125,12 @@ EOT
 
     # Remove persistent net rules, necessary to boot the x86_64 image in the aarch64 test runs
     assert_script_run('rm /etc/udev/rules.d/70-persistent-net.rules');
+
+    # Optionally bake qe-sap-deployment release versions into the local disk cache,
+    # so that downstream jobs requesting these versions can reuse them without
+    # re-downloading.
+    my @qesap_vers = grep { length } split /,/, get_var('PUBLIC_CLOUD_QESAP_VERS', '');
+    qesap_cache_releases(@qesap_vers) if (@qesap_vers);
 
     # Add marker file for PC tools image
     assert_script_run("echo -e 'PC tools image\\nHDD: $PUBLISH_HDD_1' > /root/pc_tools_image.txt");
