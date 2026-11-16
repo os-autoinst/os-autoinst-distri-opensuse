@@ -7,7 +7,7 @@
 # Summary: New tests for the braille translation library
 # Maintainer: QE Core <qe-core@suse.com>
 
-use Mojo::Base 'x11test';
+use Mojo::Base 'consoletest';
 use serial_terminal qw(select_serial_terminal);
 use testapi;
 use version_utils;
