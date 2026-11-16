@@ -304,9 +304,24 @@ class RdpEnv(object):
         run_ok(['systemctl', 'start', 'xrdp-sesman', 'xrdp'], timeout=90)
         wait_for_port(30)
 
+    def _dump_logs(self):
+        paths = [Path('/var/log/xrdp.log'), Path('/var/log/xrdp-sesman.log')]
+        home = Path('/home') / TEST_USER
+        paths.extend(sorted(home.glob('.xorgxrdp.*.log')))
+        paths.append(home / '.xsession-errors')
+        for path in paths:
+            try:
+                lines = path.read_text(errors='replace').splitlines()
+            except (OSError, UnicodeError):
+                continue
+            print('===== {} (last 120 lines) ====='.format(path))
+            print('\n'.join(lines[-120:]))
+            print('===== end {} ====='.format(path))
+
     def teardown(self):
         ignore_errors(kill_user_processes, TEST_USER)
         ignore_errors(run, ['systemctl', 'stop', 'xrdp', 'xrdp-sesman'])
+        ignore_errors(self._dump_logs)
         ignore_errors(self._restore, XRDP_INI)
         ignore_errors(self._restore, SESMAN_INI)
         if self.was_active:
