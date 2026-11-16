@@ -66,7 +66,6 @@ schedule:
     - console/rsync
     - console/shells
     - console/oqa_agnostic/sudo_agnostic
-    - console/oqa_agnostic/xrdp_agnostic
     - console/dstat
     - console/pciutils
     - console/mdadm
