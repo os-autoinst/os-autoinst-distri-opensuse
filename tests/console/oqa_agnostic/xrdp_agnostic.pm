@@ -58,16 +58,19 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
+    # On a run_timeout pytest still owns the serial terminal; interrupt it
+    # before any command that must run on the console.
+    type_string("\cc");
+    script_run('pkill -f "pytest.*test_xrdp"');
+    script_run('pkill -f xvfb-run');
+    script_run('pkill -f xfreerdp');
+    script_run('pkill -f "Xvfb.*1024x768x24"');
     # Only undo state this test created; never touch a pre-existing rdptest.
     if (script_run('test -f /home/rdptest/.xrdp-agnostic-test') == 0) {
-        # On a run_timeout pytest still owns the serial terminal; interrupt it
-        # before running any cleanup command there.
-        type_string("\cc");
-        script_run('pkill -f "pytest.*test_xrdp"');
         script_run('pkill -9 -u rdptest');
         script_run('systemctl stop xrdp xrdp-sesman');
-        script_run('cp -a /tmp/xrdp-agnostic-backup/xrdp.ini /etc/xrdp/xrdp.ini 2>/dev/null');
-        script_run('cp -a /tmp/xrdp-agnostic-backup/sesman.ini /etc/xrdp/sesman.ini 2>/dev/null');
+        script_run('cp -a /var/lib/xrdp-agnostic-backup/xrdp.ini /etc/xrdp/xrdp.ini 2>/dev/null');
+        script_run('cp -a /var/lib/xrdp-agnostic-backup/sesman.ini /etc/xrdp/sesman.ini 2>/dev/null');
         script_run('userdel -r rdptest');
         script_run('systemctl start xrdp-sesman xrdp', timeout => 90) if $self->{xrdp_was_active};
     }

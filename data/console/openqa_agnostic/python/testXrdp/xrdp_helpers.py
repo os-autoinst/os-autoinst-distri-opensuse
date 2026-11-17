@@ -10,6 +10,7 @@ import secrets
 import shutil
 import signal
 import socket
+import stat
 import subprocess
 import tempfile
 import time
@@ -17,6 +18,7 @@ from pathlib import Path
 
 XRDP_INI = Path('/etc/xrdp/xrdp.ini')
 SESMAN_INI = Path('/etc/xrdp/sesman.ini')
+SESMAN_LOG = Path('/var/log/xrdp-sesman.log')
 CHKPRIV = Path('/usr/share/xrdp/xrdp-chkpriv')
 TEST_USER = 'rdptest'
 HOST = '127.0.0.1'
@@ -170,6 +172,23 @@ def wait_for_port(timeout=30):
         raise AssertionError('xrdp did not start listening on {}:{}'.format(HOST, PORT))
 
 
+def file_size(path):
+    try:
+        return path.stat().st_size
+    except OSError:
+        return 0
+
+
+def read_from(path, offset):
+    try:
+        with open(str(path), 'rb') as handle:
+            handle.seek(offset)
+            data = handle.read()
+    except OSError:
+        return []
+    return data.decode('utf-8', errors='replace').splitlines()
+
+
 def journal_since(since_epoch, units=('xrdp', 'xrdp-sesman')):
     cmd = ['journalctl', '--no-pager', '-o', 'cat', '--since',
            '@{:.6f}'.format(since_epoch)]
@@ -293,7 +312,7 @@ def stop_client(proc):
 class RdpEnv(object):
     def __init__(self):
         self.password = secrets.token_urlsafe(18)
-        self.backup_dir = Path('/tmp/xrdp-agnostic-backup')
+        self.backup_dir = Path('/var/lib/xrdp-agnostic-backup')
         self.freerdp = freerdp_binary()
         self.major = freerdp_major(self.freerdp) if self.freerdp else 0
         self.xrdp_version = rpm_version('xrdp') or ''
@@ -301,6 +320,22 @@ class RdpEnv(object):
         self.was_active = False
         self.user_created = False
         self.setup_done = False
+
+    def _prepare_backup_dir(self):
+        path = self.backup_dir
+        if path.is_symlink():
+            path.unlink()
+        if path.exists():
+            info = path.stat()
+            if not stat.S_ISDIR(info.st_mode) or info.st_uid != 0:
+                raise AssertionError('{} is not a root-owned directory'.format(path))
+            self._restore(XRDP_INI)
+            self._restore(SESMAN_INI)
+            shutil.rmtree(str(path))
+        path.mkdir(mode=0o700, parents=True)
+        info = path.stat()
+        if not stat.S_ISDIR(info.st_mode) or info.st_uid != 0:
+            raise AssertionError('{} is not a root-owned directory'.format(path))
 
     def _backup(self, path):
         if path.exists():
@@ -313,12 +348,7 @@ class RdpEnv(object):
 
     def setup(self):
         self.setup_done = True
-        if self.backup_dir.exists():
-            # An interrupted earlier run left its backup of the shipped files.
-            self._restore(XRDP_INI)
-            self._restore(SESMAN_INI)
-            shutil.rmtree(str(self.backup_dir), ignore_errors=True)
-        self.backup_dir.mkdir(mode=0o700, parents=True)
+        self._prepare_backup_dir()
         self._backup(XRDP_INI)
         self._backup(SESMAN_INI)
         self.was_active = run(['systemctl', 'is-active', 'xrdp']).returncode == 0
@@ -380,12 +410,22 @@ class RdpEnv(object):
                 result = run(cmd, timeout=30)
             except (OSError, subprocess.TimeoutExpired):
                 continue
-            lines = result.stdout.splitlines()[-120:]
+            out_lines = result.stdout.splitlines()
+            lines = out_lines[-120:]
             if not lines:
                 continue
             print('===== {} ====='.format(' '.join(cmd)))
             print('\n'.join(lines))
             print('===== end {} ====='.format(' '.join(cmd)))
+            if cmd[0] == 'ausearch':
+                permissive = [line for line in out_lines
+                              if 'avc:  denied' in line
+                              and 'permissive=1' in line
+                              and 'xrdp' in line]
+                if permissive:
+                    print('WARNING: permissive xrdp SELinux AVCs observed:')
+                    print('\n'.join(permissive))
+                    print('WARNING: end permissive xrdp SELinux AVCs')
 
     def teardown(self):
         if not self.setup_done:

@@ -10,11 +10,12 @@ from pathlib import Path
 
 import pytest
 
-from xrdp_helpers import (SESMAN_INI, TEST_USER, XRDP_INI, client_output,
-                          coredump_since, get_ini_value, journal_kernel_since,
-                          journal_since, kill_user_processes, pids_for, run,
-                          session_pids, set_ini_value, start_client, stop_client,
-                          wait_until, which, xorg_pids, xrdp_tcp_connections)
+from xrdp_helpers import (SESMAN_INI, SESMAN_LOG, TEST_USER, XRDP_INI,
+                          client_output, coredump_since, file_size, get_ini_value,
+                          journal_kernel_since, journal_since, kill_user_processes,
+                          pids_for, read_from, run, session_pids, set_ini_value,
+                          start_client, stop_client, wait_until, which, xorg_pids,
+                          xrdp_tcp_connections)
 
 
 @pytest.fixture(autouse=True)
@@ -113,20 +114,31 @@ def test_reconnect_after_disconnect(rdp):
         'the session disappeared after the client disconnected'
     assert run(['systemctl', 'is-active', 'xrdp-sesman']).returncode == 0
 
+    offset = file_size(SESMAN_LOG)
     proc = _connect(rdp)
     try:
         deadline = time.time() + 30
+        new_lines = []
+        create_index = None
         while time.time() < deadline:
             if proc.poll() is not None:
                 pytest.fail('client exited before reconnecting (rc={}):\n{}'.format(
                     proc.returncode, client_output(proc)))
-            if pids_for(TEST_USER, 'Xvnc') == xvnc_before:
+            new_lines = read_from(SESMAN_LOG, offset)
+            for index, line in enumerate(new_lines):
+                if 'create a session' in line:
+                    create_index = index
+                    break
+            if create_index is not None:
                 break
             time.sleep(1)
-        else:
-            pytest.fail('reconnect did not reuse the existing Xvnc session; '
-                        'before={} now={}'.format(
-                            xvnc_before, pids_for(TEST_USER, 'Xvnc')))
+        if create_index is None:
+            pytest.fail('reconnect did not log a new session request; '
+                        'client output:\n{}'.format(client_output(proc)))
+        started = [line for line in new_lines[create_index + 1:]
+                   if 'Starting X server' in line]
+        assert not started, ('reconnect started a new X server instead of '
+                             'reattaching:\n{}'.format('\n'.join(started)))
         time.sleep(3)
         assert proc.poll() is None, 'client exited after reconnecting'
         assert pids_for(TEST_USER, 'Xvnc') == xvnc_before, \
