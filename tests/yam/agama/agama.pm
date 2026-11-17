@@ -50,15 +50,20 @@ sub run {
 
     select_console 'install-shell';
     record_info("node cmd", $node_cmd);
-    my $ret = script_run($node_cmd, timeout => 2400);
-
+    my $ret = (script_run($node_cmd, timeout => 2400) // 1) == 0;
+    my $has_tap = (script_run("[[ -s /tmp/$tap ]]") // 1) == 0;
+    my $has_spec = (script_run("[[ -s /tmp/$spec ]]") // 1) == 0;
     # see https://github.com/os-autoinst/openQA/blob/master/lib/OpenQA/Parser/Format/TAP.pm#L36
-    assert_script_run("sed -i 's/TAP version 13/$tap ../' /tmp/$tap");
-    parse_extra_log(TAP => "/tmp/$tap");
-    upload_logs("/tmp/$spec", failok => 1);
-    my $content = script_output("cat /tmp/$spec /tmp/$tap");
+    if ($has_tap && $has_spec) {
+        assert_script_run("sed -i 's/TAP version 13/$tap ../' /tmp/$tap");
+        parse_extra_log(TAP => "/tmp/$tap");
+        upload_logs("/tmp/$spec", failok => 1);
+    } else {
+        record_info("File error", "Missing or empty files $tap, $spec", result => 'fail');
+    }
+    my $content = script_output("cat /tmp/$spec /tmp/$tap", proceed_on_failure => 1);
     diag($content);
-    croak("command \n'$node_cmd'\n failed") unless $ret == 0;
+    croak("command \n'$node_cmd'\n failed") unless ($ret && $has_tap && $has_spec);
 
     $self->upload_agama_logs();
 
