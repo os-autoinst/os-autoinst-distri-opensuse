@@ -33,6 +33,7 @@
           <li><a href="#qesap_upload_logs">qesap_upload_logs</a></li>
           <li><a href="#qesap_get_latest_version">qesap_get_latest_version</a></li>
           <li><a href="#qesap_get_deployment_code">qesap_get_deployment_code</a></li>
+          <li><a href="#qesap_cache_releases">qesap_cache_releases</a></li>
           <li><a href="#qesap_get_roles_code-Get-the-Ansible-roles-code-from-github.com-sap-linuxlab-community.sles-for-sap">qesap_get_roles_code Get the Ansible roles code from github.com/sap-linuxlab/community.sles-for-sap</a></li>
           <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
           <li><a href="#qesap_execute">qesap_execute</a></li>
@@ -103,6 +104,14 @@ SPDX-License-Identifier: FSFAP</code></pre>
 <pre><code>Returns a hash containing directory paths for qe-sap-deployment:
 deployment_dir, terraform_dir, roles_dir, roles_dir_path.
 Unlike qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.</code></pre>
+
+<dl>
+
+<dt id="DEPLOYMENT_DIR---optional-override-for-deployment_dir-and-the-default-derived-terraform_dir-.-When-omitted-the-openQA-variables-are-used-as-before"><b>DEPLOYMENT_DIR</b> - optional override for deployment_dir (and the default derived terraform_dir). When omitted, the openQA variables are used as before.</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_get_file_paths">qesap_get_file_paths</h3>
 
@@ -227,7 +236,27 @@ and returns the parsed version string.</code></pre>
 <dd>
 
 </dd>
+<dt id="DEPLOYMENT_DIR---optional-target-directory-for-the-code.-When-omitted-the-openQA-variable-QESAP_DEPLOYMENT_DIR-is-used-as-before"><b>DEPLOYMENT_DIR</b> - optional target directory for the code. When omitted, the openQA variable QESAP_DEPLOYMENT_DIR is used as before.</dt>
+<dd>
+
+</dd>
 </dl>
+
+<h3 id="qesap_cache_releases">qesap_cache_releases</h3>
+
+<pre><code>Bakes a list of qe-sap-deployment release versions into the local disk cache
+under QESAP_CACHE_ROOT, so that downstream jobs can reuse them without
+re-downloading. Each version is stored under QESAP_CACHE_ROOT/&lt;ver&gt;/qe-sap-deployment.
+
+Only explicit numeric release versions are supported; &#39;latest&#39; is rejected.
+
+=over
+
+=item B&lt;VERSIONS&gt; - list of explicit numeric release version strings (e.g. &#39;2.6.15&#39;).
+
+=back
+
+Dies if any version is not a numeric release version, or on any download failure.</code></pre>
 
 <h3 id="qesap_get_roles_code-Get-the-Ansible-roles-code-from-github.com-sap-linuxlab-community.sles-for-sap">qesap_get_roles_code Get the Ansible roles code from github.com/sap-linuxlab/community.sles-for-sap</h3>
 
