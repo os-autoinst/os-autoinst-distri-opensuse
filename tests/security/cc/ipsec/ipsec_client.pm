@@ -14,11 +14,15 @@ use audit_test;
 use Utils::Architectures;
 use lockapi;
 use network_utils 'iface';
+use package_utils 'install_package';
 use security::cc_ipsec;
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
+
+    # With strongSwan older than 6.0, the strongswan package also provides the 'ipsec' starter
+    install_package('strongswan iputils audit make', trup_reboot => 1);
 
     my ($server_ip, $client_ip) = ipsec_peer_ips();
 

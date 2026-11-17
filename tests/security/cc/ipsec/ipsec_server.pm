@@ -15,11 +15,14 @@ use Utils::Architectures;
 use lockapi;
 use mmapi 'get_children';
 use network_utils 'iface';
+use package_utils 'install_package';
 use security::cc_ipsec;
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
+
+    install_package('strongswan iputils make', trup_reboot => 1);
 
     my ($server_ip, $client_ip) = ipsec_peer_ips();
 
