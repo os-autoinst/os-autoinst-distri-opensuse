@@ -1388,6 +1388,23 @@ subtest '[get_hana_site_names] values from settings' => sub {
     ok(($res[1] eq 'ZhengHe'), "Value for the secondary site is from setting");
 };
 
+subtest '[is_ha_enabled]' => sub {
+    foreach my $value ('0', 'false', 'False', 'FALSE') {
+        set_var('HA_CLUSTER', $value);
+        ok((is_ha_enabled() == 0), "HA_CLUSTER=$value is cluster disabled");
+    }
+    foreach my $value ('1', 'true', 'True', 'yes') {
+        set_var('HA_CLUSTER', $value);
+        ok((is_ha_enabled() == 1), "HA_CLUSTER=$value is cluster enabled");
+    }
+    set_var('HA_CLUSTER', undef);
+};
+
+subtest '[is_ha_enabled] HA_CLUSTER is required' => sub {
+    set_var('HA_CLUSTER', undef);
+    dies_ok { is_ha_enabled() } 'Die if HA_CLUSTER is not defined';
+};
+
 subtest '[wait_for_zypper] zypper unlocked at first try' => sub {
     my $self = sles4sap::publiccloud->new();
     my $pc_instance = Test::MockModule->new('publiccloud::instance');
