@@ -18,6 +18,7 @@ use Utils::Architectures qw(is_x86_64 is_aarch64);
 use agnosticTestRunner;
 
 sub run {
+    my ($self) = @_;
     select_serial_terminal;
     if (!is_tumbleweed() && !is_sle()) {
         record_info('SKIP', 'xrdp is only tested on Tumbleweed and SLE');
