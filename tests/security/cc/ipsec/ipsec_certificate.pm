@@ -75,30 +75,20 @@ sub run {
                 $self->result('fail');
             }
             else {
-                if ($case_name eq 'rsa768') {
-                    $result = 'softfail';
-                    $record_message = "$case_name pass, as EAL4 document says, it needs more analysis";
-
-                }
-                # When the ipsec up succeed, we need to check if the connection is created
-                # Retries up to 10 times, waiting 3 seconds between each attempt
-                eval {
-                    script_retry("ping -c 1 -W 2 $server_ip", retry => 10, delay => 10);
-                };
-                # $@ captures the exception if script_retry fails after all attempts
-                if ($@) {
+                $record_message .= ', versions older than 15-SP6 accept 768 bit RSA keys' if $case_name eq 'rsa768';
+                # When the ipsec up succeed, we need to check if the connection works
+                my $ret = script_retry("ping -c 1 -W 2 $server_ip", retry => 10, delay => 10, die => 0);
+                if (!defined($ret) || $ret != 0) {
                     $result = 'fail';
                     $record_message = "The $case_name test result is expected, but the connection does NOT work after retries";
                     $self->result('fail');
-
-                    # Optional: Log the actual error thrown by script_retry
-                    record_info('Ping Fail', "Ping retry exhausted: $@");
                 }
             }
         }
         else {
             $result = 'fail';
-            $record_message = "$case_name test result needs some analysis";
+            $record_message = "The $case_name test result is unknown, see the output";
+            $self->result('fail');
         }
 
         record_info($record_message, $output, result => $result);
