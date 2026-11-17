@@ -96,4 +96,107 @@ subtest '[add_ipsec_mm_ip]' => sub {
     is $infos[-1], 'arping', 'but it is recorded';
 };
 
+# Output of 'ipsec up' from real jobs, shortened
+my $up_ok = <<'EOS';
+selected proposal: IKE:AES_GCM_12_128/PRF_HMAC_SHA2_256/MODP_2048
+installing new virtual IP 192.168.250.1
+IKE_SA ikev2suse[1] established between 192.168.100.2[client]...192.168.100.1[server]
+selected proposal: ESP:AES_CBC_128/HMAC_SHA2_512_256/NO_EXT_SEQ
+CHILD_SA ikev2suse{1} established with SPIs ca713048_i c8282f74_o and TS 192.168.250.1/32 === 192.168.100.1/32
+connection 'ikev2suse' established successfully
+EOS
+my $up_no_child = <<'EOS';
+selected proposal: IKE:AES_GCM_12_128/PRF_HMAC_SHA2_256/MODP_2048
+installing new virtual IP 192.168.250.1
+IKE_SA ikev2suse[1] established between 192.168.100.2[client]...192.168.100.1[server]
+received NO_PROPOSAL_CHOSEN notify, no CHILD_SA built
+failed to establish CHILD_SA, keeping IKE_SA
+establishing connection 'ikev2suse' failed
+EOS
+my $status_ok = "ikev2suse{1}:  AES_CBC_128/HMAC_SHA2_512_256, 252 bytes_i (3 pkts, 0s ago), 252 bytes_o (3 pkts, 0s ago)\n";
+
+sub mock_case {
+    my (%args) = @_;
+    my $mock = Test::MockModule->new('security::cc_ipsec');
+    my %calls = (cmds => [], infos => []);
+    $mock->redefine(is_s390x => sub { 0 });
+    $mock->redefine(script_run => sub { push @{$calls{cmds}}, $_[0]; 0 });
+    $mock->redefine(assert_script_run => sub { push @{$calls{cmds}}, $_[0]; 0 });
+    $mock->redefine(wait_ipsec_conn => sub { push @{$calls{cmds}}, "wait $_[0]"; $args{conn_loaded} // 1 });
+    $mock->redefine(script_retry => sub { push @{$calls{cmds}}, $_[0]; $args{retry} // 0 });
+    $mock->redefine(record_info => sub { push @{$calls{infos}}, {title => $_[0], text => $_[1], @_[2 .. $#_]} });
+    $mock->redefine(script_output => sub {
+            my ($cmd) = @_;
+            push @{$calls{cmds}}, $cmd;
+            return $args{up} if $cmd =~ /^ipsec up/;
+            return $args{status} // '' if $cmd =~ /^ipsec statusall/;
+            return 3 if $cmd =~ /grep -cF/;
+            die "unexpected command: $cmd";
+    });
+    return ($mock, \%calls);
+}
+
+my %esp_case = (
+    name => 'ESP: aes128-sha512-modp2048!',
+    conf => {keyexchange => 'ikev2', ike => 'aes256ctr-sha256-modp2048', esp => 'aes128-sha512-modp2048!'},
+    expect => 'pass',
+    proposal => qr{ESP:AES_CBC_128/HMAC_SHA2_512_256/},
+);
+
+subtest '[run_ipsec_case] pass' => sub {
+    my ($mock, $calls) = mock_case(up => $up_ok, status => $status_ok);
+    is run_ipsec_case(%esp_case), 1, 'expected result';
+    ok((grep { $_ eq q{sed -i 's/^\(\s*esp=\).*/\1aes128-sha512-modp2048!/' /etc/ipsec.conf} } @{$calls->{cmds}}), 'esp set with single quotes');
+    ok((grep { /^ping -c 3 -W 2 -I 192\.168\.250\.1 192\.168\.100\.1$/ } @{$calls->{cmds}}), 'ping from the virtual IP to the server');
+    is $calls->{infos}[-1]{result}, 'ok', 'recorded as ok';
+};
+
+subtest '[run_ipsec_case] IKE_SA without CHILD_SA is not a pass' => sub {
+    my ($mock, $calls) = mock_case(up => $up_no_child, status => $status_ok);
+    is run_ipsec_case(%esp_case), 0, 'the old false positive is detected';
+    like $calls->{infos}[-1]{text}, qr/not established/, 'reason recorded';
+    is $calls->{infos}[-1]{result}, 'fail', 'recorded as fail';
+};
+
+subtest '[run_ipsec_case] unexpected proposal' => sub {
+    my ($mock, $calls) = mock_case(up => $up_ok =~ s{AES_CBC_128/HMAC_SHA2_512_256}{AES_GCM_16_256}r, status => $status_ok);
+    is run_ipsec_case(%esp_case), 0, 'wrong ESP proposal';
+    like $calls->{infos}[-1]{text}, qr/unexpected proposal/, 'reason recorded';
+};
+
+subtest '[run_ipsec_case] no traffic through the CHILD_SA' => sub {
+    my ($mock, $calls) = mock_case(up => $up_ok, status => $status_ok =~ s/252 bytes_i/0 bytes_i/r);
+    is run_ipsec_case(%esp_case), 0, 'zero bytes in';
+    my ($mock2) = mock_case(up => $up_ok, status => $status_ok, retry => 1);
+    is run_ipsec_case(%esp_case), 0, 'no ping replies';
+};
+
+subtest '[run_ipsec_case] a stuck case is a failure, not a die' => sub {
+    my ($mock, $calls) = mock_case(up => $up_ok, status => $status_ok, conn_loaded => 0);
+    is run_ipsec_case(%esp_case), 0, 'charon did not load the connection';
+    like $calls->{infos}[-1]{text}, qr/did not load the connection/, 'reason recorded';
+    ok(!(grep { /^ipsec up/ } @{$calls->{cmds}}), 'no ipsec up without the connection');
+    is $calls->{cmds}[-1], 'ipsec stop', 'strongSwan is stopped for the next case';
+};
+
+subtest '[run_ipsec_case] fail' => sub {
+    my %case = (%esp_case, expect => 'fail', reason => qr/no CHILD_SA built/);
+    my ($mock, $calls) = mock_case(up => $up_no_child);
+    is run_ipsec_case(%case), 1, 'failed with the expected reason';
+    ($mock, $calls) = mock_case(up => $up_ok, status => $status_ok);
+    is run_ipsec_case(%case), 0, 'an established connection is not a fail';
+    ($mock, $calls) = mock_case(up => "parsed IKE_SA_INIT response 0 [ N(NO_PROP) ]\n");
+    is run_ipsec_case(%case), 0, 'a different failure reason is not accepted';
+};
+
+subtest '[run_ipsec_case] invalid' => sub {
+    my %case = (name => 'ESP: aes192-aes192gmac-modp2048!', conf => {esp => 'aes192-aes192gmac-modp2048!'}, expect => 'invalid');
+    my ($mock, $calls) = mock_case(up => "no config named 'ikev2suse'\n");
+    is run_ipsec_case(%case), 1, 'rejected proposal';
+    ok(!(grep { /^wait / } @{$calls->{cmds}}), 'does not wait for a connection that cannot load');
+    ($mock, $calls) = mock_case(up => "no config named 'ikev2suse'\n", retry => 1);
+    is run_ipsec_case(%case), 0, 'no rejection message in the journal';
+    dies_ok { run_ipsec_case(%case, expect => 'maybe') } 'unknown expected result';
+};
+
 done_testing;

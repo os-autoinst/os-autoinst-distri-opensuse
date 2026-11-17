@@ -4,85 +4,62 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run EAL4 'ipsec ciphers' case
+#          Make sure that the allowed ESP and IKE algorithms establish a
+#          connection with the expected proposal, and that ESP proposals
+#          which mix classic and AEAD algorithms are rejected.
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#110980, poo#201363
 
 use Mojo::Base 'consoletest';
 use testapi;
-use utils;
 use lockapi;
-use Data::Dumper;
-use Utils::Architectures 'is_s390x';
 use security::cc_ipsec;
+
+# The ESP cases use an IKE proposal without '!', thus strongSwan adds its
+# default proposals and the IKE_SA is always established. The IKE cases do
+# the same for ESP.
+my %esp_cases = (
+    'aes128-sha512-modp2048!' => qr{ESP:AES_CBC_128/HMAC_SHA2_512_256/},
+    'aes192-aes192gmac-modp2048!' => undef,
+    'aes192gmac-modp2048!' => qr{ESP:NULL_AES_GMAC_192/},
+    'prfsha1-aes256-aes192gmac-modp2048!' => undef,
+    'prfsha1-aes256-sha256-modp2048!' => qr{ESP:AES_CBC_256/HMAC_SHA2_256_128/},
+);
+my %ike_cases = (
+    'aes256ctr-sha256-modp2048!' => qr{IKE:AES_CTR_256/HMAC_SHA2_256_128/PRF_HMAC_SHA2_256/MODP_2048},
+    'aes128ctr-sha256-modp6144!' => qr{IKE:AES_CTR_128/HMAC_SHA2_256_128/PRF_HMAC_SHA2_256/MODP_6144},
+    'aes128gcm12-sha256-modp2048!' => qr{IKE:AES_GCM_12_128/PRF_HMAC_SHA2_256/MODP_2048},
+    'aes256ccm8-sha256-modp3072!' => qr{IKE:AES_CCM_8_256/PRF_HMAC_SHA2_256/MODP_3072},
+);
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    assert_script_run('export SYSTEMD_PAGER=""');
-    assert_script_run('cd /usr/local/eal4/ipsec/IPSEC_basic_eval');
+    my @cases;
+    foreach my $esp (sort keys %esp_cases) {
+        my $proposal = $esp_cases{$esp};
+        push @cases, {
+            name => "ESP: $esp",
+            conf => {keyexchange => 'ikev2', ike => 'aes256ctr-sha256-modp2048', esp => $esp},
+            # A proposal that mixes classic and AEAD algorithms is invalid
+            $proposal ? (expect => 'pass', proposal => $proposal) : (expect => 'invalid'),
+        };
+    }
+    foreach my $ike (sort keys %ike_cases) {
+        push @cases, {
+            name => "IKE: $ike",
+            conf => {keyexchange => 'ikev2', ike => $ike, esp => 'aes128-sha512-modp2048'},
+            expect => 'pass',
+            proposal => $ike_cases{$ike},
+        };
+    }
 
-    mutex_wait('READY_FOR_IPSEC_CIPHERS');
-
-    # Each case starts charon and brings up a connection, the default timeout is too short
-    my $timeout = is_s390x ? 600 : 180;
-
-    # Test esp
-    my $esp_output = script_output('bash test_basic_ipsec_eval_esp.bash', $timeout);
-
-    # Test ike
-    my $ike_output = script_output('bash test_basic_ipsec_eval_ike.bash', $timeout);
+    foreach my $case (@cases) {
+        $self->result('fail') unless run_ipsec_case(%$case);
+    }
 
     mutex_create('IPSEC_CLIENT_DONE');
-
-    my @results = (split(/\n/, "$esp_output\n$ike_output"));
-    my $expect_failures = {
-        'aes192-aes192gmac-modp2048!' => 1,
-        'prfsha1-aes256-aes192gmac-modp2048!' => 1
-    };
-
-    my @known_fail_case;
-
-    foreach my $line (@results) {
-
-        # The output of test script such as:
-        # ESP: aes128-sha512-modp2048! - Okay
-        # ESP: aes192-aes192gmac-modp2048! - Error 1
-        if ($line =~ /^(ESP:|IKE:)\s+(\S+)\s+-\s+(.*)/) {
-            my $case = $2;
-            my $result = $3;
-            diag "Test case $case result is $result";
-            if ($result eq 'Okay') {
-                record_info($case, "$line");
-                next;
-            }
-            if ($expect_failures->{$case}) {
-                push @known_fail_case, $case;
-                next;
-            }
-            record_info($case, "$line", result => 'fail');
-            $self->result('fail');
-        }
-    }
-
-    my $count_known_failures = @known_fail_case;
-    diag(Dumper(\@known_fail_case));
-
-    if ($count_known_failures > 0) {
-
-        # Analyse the journal log to check if the failures are expected
-        my $num = script_output('journalctl -b | grep "classic and combined-mode (AEAD) encryption algorithms can\'t be contained in the same ESP proposal"| wc -l');
-        if ($num == $count_known_failures) {
-            record_info($_, "$_ failed as expected") for @known_fail_case;
-        }
-        else {
-            record_info($_, "$_ failed as unexpected, need some analysis", result => 'fail') for @known_fail_case;
-            $self->result('fail');
-        }
-    }
-    # Upload log files
-    upload_logs('ccc-ipsec-eval-esp.log');
-    upload_logs('ccc-ipsec-eval-ike.log');
 }
 
 sub post_fail_hook {

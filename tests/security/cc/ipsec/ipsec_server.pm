@@ -34,25 +34,23 @@ sub run {
     # Install IPSec configuration
     assert_script_run('make install');
 
+    # Accept also the proposals of the client cases, so that each case is
+    # decided where it should be. For example the weak ESP case must reach the
+    # CHILD_SA negotiation, thus the server must accept its IKE proposal.
+    my $conf = '/etc/swanctl/conf.d/ikev2suse.conf';
+    my $ike_proposals = ',aes256ctr-sha256-modp2048,aes128ctr-sha256-modp6144,aes256ccm8-prfsha256-modp3072';
+    my $esp_proposals = ',aes128-sha512-modp2048,aes192gmac-modp2048,aes256-sha256-modp2048';
+    assert_script_run("sed -i '/ proposals = / s/\$/$ike_proposals/' $conf");
+    assert_script_run("sed -i '/ esp_proposals = / s/\$/$esp_proposals/' $conf");
+    script_run("cat $conf");
+
     # Start StrongSWAN
     assert_script_run('systemctl start strongswan');
 
     mutex_create('IPSEC_SERVER_READY');
 
+    # The client creates this mutex after the ipsec_ciphers cases
     my $children = get_children();
-
-    mutex_wait('WEAK_IPSEC_CIPHERS_DONE', (keys %$children)[0]);
-
-    # Change the configure file for testing ipsec ciphers
-    my $new_algorithms = ',aes256ctr-sha256-modp2048,aes128ctr-sha256-modp6144,aes256ccm8-prfsha256-modp3072';
-    assert_script_run("sed -i '/ proposals = / s/\$/$new_algorithms/' /etc/swanctl/conf.d/ikev2suse.conf");
-    script_run('cat /etc/swanctl/conf.d/ikev2suse.conf');
-
-    # Restart the strongswan service. Tell the client only after the restart,
-    # because the ipsec_ciphers cases need the new proposals.
-    assert_script_run('systemctl restart strongswan');
-    mutex_create('READY_FOR_IPSEC_CIPHERS');
-
     mutex_wait('IPSEC_CLIENT_DONE', (keys %$children)[0]);
 
     # Stop StrongSWAN

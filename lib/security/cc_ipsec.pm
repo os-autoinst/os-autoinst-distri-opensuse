@@ -22,6 +22,8 @@ our @EXPORT = qw(
   add_ipsec_mm_ip
   wait_ipsec_conn
   upload_ipsec_diagnostics
+  check_ipsec_traffic
+  run_ipsec_case
 );
 our @EXPORT_OK = qw(ipsec_ip_pair_for_job_id);
 
@@ -36,6 +38,13 @@ use constant NET_FIRST => 110;
 use constant NET_COUNT => 140;
 # Host pairs .1/.2, .3/.4, ..., .251/.252
 use constant PAIRS_PER_NET => 126;
+
+# Address of the server in the ipip tunnel, see ipsec_setup_tunnel_server.sh
+use constant SERVER_TUNNEL_IP => '192.168.100.1';
+# Connection name in /etc/ipsec.conf of the client (TOE)
+use constant CLIENT_CONN => 'ikev2suse';
+# Logged when an ESP proposal mixes classic and AEAD algorithms
+use constant AEAD_MIX_ERROR => 'classic and combined-mode (AEAD) encryption algorithms';
 
 =head1 SYNOPSIS
 
@@ -115,17 +124,19 @@ sub add_ipsec_mm_ip {
 
 =head2 wait_ipsec_conn
 
-    wait_ipsec_conn($conn_name);
+    wait_ipsec_conn($conn_name [, retry => 30] [, die => 1]);
 
 Wait until charon is up and has loaded the connection C<$conn_name>.
 C<ipsec start> and C<ipsec restart> return before this occurs.
+With C<die =E<gt> 0>, return 1 if the connection is loaded, else 0.
 
 =cut
 
 sub wait_ipsec_conn {
-    my ($conn) = @_;
+    my ($conn, %args) = @_;
     # No 'grep -q': it can stop reading early and make the pipe fail with pipefail
-    script_retry("ipsec statusall | grep '^ *$conn:'", retry => 30, delay => 2, timeout => 10);
+    my $ret = script_retry("ipsec statusall | grep '^ *$conn:'", retry => $args{retry} // 30, delay => 2, timeout => 10, die => $args{die} // 1);
+    return defined($ret) && $ret == 0 ? 1 : 0;
 }
 
 =head2 upload_ipsec_diagnostics
@@ -152,6 +163,119 @@ sub upload_ipsec_diagnostics {
         };
         record_info('diagnostics', "Cannot collect $name: $@") if $@;
     }
+}
+
+=head2 check_ipsec_traffic
+
+    my ($ok, $message) = check_ipsec_traffic($conn, $virtual_ip);
+
+Send ping requests from the virtual IP of the client to the server address in
+the ipip tunnel. Only the CHILD_SA of C<$conn> protects this traffic.
+Then make sure that the CHILD_SA counted bytes in both directions.
+
+Do not ping the virtual IP itself: it is an address of the client, thus the
+ping works also without an SA.
+
+=cut
+
+sub check_ipsec_traffic {
+    my ($conn, $vip) = @_;
+    return (0, 'The server did not assign a virtual IP') unless $vip;
+    my $ret = script_retry("ping -c 3 -W 2 -I $vip " . SERVER_TUNNEL_IP, retry => 3, delay => 5, die => 0);
+    return (0, "No ping replies from " . SERVER_TUNNEL_IP . " with source $vip") if !defined($ret) || $ret != 0;
+    my $status = script_output("ipsec statusall $conn", proceed_on_failure => 1);
+    my ($bytes_in, $bytes_out) = $status =~ /\Q$conn\E\{\d+\}:.*?\b(\d+) bytes_i\b.*?\b(\d+) bytes_o\b/;
+    return (0, "The CHILD_SA did not count the traffic\n\n$status") unless $bytes_in && $bytes_out;
+    return (1, "The CHILD_SA protected the traffic: $bytes_in bytes in, $bytes_out bytes out");
+}
+
+=head2 run_ipsec_case
+
+    my $ok = run_ipsec_case(
+        name => 'ESP: aes128-sha512-modp2048!',
+        conf => {keyexchange => 'ikev2', ike => 'aes256ctr-sha256-modp2048', esp => 'aes128-sha512-modp2048!'},
+        expect => 'pass',
+        proposal => qr{ESP:AES_CBC_128/HMAC_SHA2_512_256/},
+    );
+
+Set the keys in C<conf> in the C<ikev2suse> connection of /etc/ipsec.conf,
+start strongSwan, bring up the connection and compare the result with
+C<expect>:
+
+=over
+
+=item * C<pass>: the IKE_SA and the CHILD_SA are established, the selected
+proposal matches the regex C<proposal> and the CHILD_SA protects traffic.
+
+=item * C<fail>: the connection is not established and the output of
+C<ipsec up> matches the regex C<reason>.
+
+=item * C<invalid>: strongSwan rejects the proposal because it mixes classic
+and AEAD algorithms, thus it does not load the connection.
+
+=back
+
+Record the result and the output of C<ipsec up>, then stop strongSwan.
+Return 1 if the result is as expected, else 0.
+
+=cut
+
+sub run_ipsec_case {
+    my (%args) = @_;
+    my $conn = CLIENT_CONN;
+    my $expect = $args{expect};
+    my $timeout = $args{timeout} // (is_s390x ? 300 : 90);
+    die "Unknown expected result '$expect'\n" unless $expect =~ /^(pass|fail|invalid)$/;
+
+    # Clean up after a previous case
+    script_run('ipsec stop');
+    foreach my $key (sort keys %{$args{conf}}) {
+        # Single quotes: the values can contain '!'
+        assert_script_run("sed -i 's/^\\(\\s*$key=\\).*/\\1$args{conf}->{$key}/' /etc/ipsec.conf");
+    }
+
+    my $count_aead_errors = "journalctl -b --no-pager -o cat | grep -cF '" . AEAD_MIX_ERROR . "'";
+    my $aead_errors = $expect eq 'invalid' ? script_output("$count_aead_errors || true") : 0;
+
+    # A problem in one case must not stop the next cases, thus do not die
+    my ($ok, $message);
+    if ((script_run('ipsec start') // 1) != 0) {
+        $message = "'ipsec start' failed";
+    }
+    elsif ($expect eq 'invalid') {
+        my $ret = script_retry("test \$($count_aead_errors) -gt $aead_errors", retry => 15, delay => 2, die => 0);
+        my $up = script_output("ipsec up $conn 2>&1", timeout => $timeout, proceed_on_failure => 1);
+        $ok = defined($ret) && $ret == 0 && $up =~ /no config named '$conn'/;
+        $message = $ok ? 'strongSwan rejected the proposal as expected' : 'strongSwan did not reject the proposal';
+        $message .= "\n\n$up";
+    }
+    elsif (!wait_ipsec_conn($conn, retry => 15, die => 0)) {
+        $message = "charon did not load the connection $conn";
+    }
+    else {
+        my $up = script_output("ipsec up $conn 2>&1", timeout => $timeout, proceed_on_failure => 1);
+        my $established = $up =~ /CHILD_SA \Q$conn\E\{\d+\} established/ && $up =~ /connection '$conn' established successfully/;
+        if ($expect eq 'fail') {
+            $ok = !$established && $up =~ $args{reason};
+            $message = $ok ? 'The connection failed as expected' : 'The connection did not fail with the expected reason';
+        }
+        elsif (!$established) {
+            $message = 'The connection was not established';
+        }
+        elsif ($up !~ /selected proposal: $args{proposal}/) {
+            $message = 'An unexpected proposal was selected';
+        }
+        else {
+            my ($vip) = $up =~ /installing new virtual IP (\S+)/;
+            ($ok, $message) = check_ipsec_traffic($conn, $vip);
+        }
+        $message .= "\n\n$up";
+        script_run("ipsec down $conn", timeout => $timeout);
+    }
+    script_run('ipsec stop');
+
+    record_info($args{name}, $message, result => $ok ? 'ok' : 'fail');
+    return $ok ? 1 : 0;
 }
 
 1;
