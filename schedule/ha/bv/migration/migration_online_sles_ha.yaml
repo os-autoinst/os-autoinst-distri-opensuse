@@ -10,7 +10,6 @@ vars:
   FULL_UPDATE: '1'
   HDDVERSION: '%ORIGIN_SYSTEM_VERSION%'
   INSTALLONLY: '1'
-  MAX_JOB_TIME: '14400'
   MIGRATION_METHOD: 'zypper'
   ONLINE_MIGRATION: '1'
   ORIGINAL_TARGET_VERSION: '%VERSION%'
@@ -18,7 +17,6 @@ vars:
   QEMU_VIRTIO_RNG: '0'
   SCC_REGISTER: 'installation'
   SCC_PROXY_URL: '%SCC_URL%'
-  TIMEOUT_SCALE: '2'
   UPGRADE_TARGET_VERSION: '%VERSION%'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1, UEFI_PFLASH_VARS

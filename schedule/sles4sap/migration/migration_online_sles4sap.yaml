@@ -10,7 +10,6 @@ vars:
   INSTANCE_ID: '00'
   INSTANCE_SID: QAD
   INSTANCE_TYPE: ASCS
-  MAX_JOB_TIME: '14400'
   MIGRATION_METHOD: zypper
   ONLINE_MIGRATION: '1'
   # disable virtio-rng-pci device to prevent device naming changes
