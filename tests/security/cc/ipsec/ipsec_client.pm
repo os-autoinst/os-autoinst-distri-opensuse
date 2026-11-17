@@ -1,29 +1,29 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run CC 'ipsec' client case
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#101226
+# Tags: poo#101226, poo#201363
 
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use audit_test;
-use eal4_test;
 use Utils::Architectures;
 use lockapi;
 use network_utils 'iface';
+use security::cc_ipsec;
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    # We don't run setup_multimachine in s390x, but we need to know the server and client's
-    # ip address, so we add a known ip to NETDEV.
-    my $netdev = iface;
-    assert_script_run("ip addr add $eal4_test::client_ip/24 dev $netdev") if (is_s390x);
+    my ($server_ip, $client_ip) = ipsec_peer_ips();
+
+    # We don't run setup_multimachine in s390x, so we add the address ourselves
+    add_ipsec_mm_ip($client_ip, iface) if is_s390x;
 
     assert_script_run("cd $audit_test::test_dir/ipsec_configuration/toe");
     mutex_wait('IPSEC_SERVER_READY');
@@ -31,7 +31,7 @@ sub run {
     # Setup the ipip tunnel to the IPSec gateway and test it
     # 192.168.100.1 is configured in the server by ipsec_setup_tunnel_server.sh
     # We need to check if it's accessible to find the network issue easily.
-    assert_script_run("./ipsec_setup_tunnel_toe.sh start $eal4_test::client_ip $eal4_test::server_ip");
+    assert_script_run("./ipsec_setup_tunnel_toe.sh start $client_ip $server_ip");
     script_retry('ping -W1 -c1 192.168.100.1', retry => 10, delay => 10);
 
     # Install IPSec configuration

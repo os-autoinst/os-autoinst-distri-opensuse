@@ -1,35 +1,35 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run CC 'ipsec' server case
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#101226
+# Tags: poo#101226, poo#201363
 
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use audit_test;
-use eal4_test;
 use Utils::Architectures;
 use lockapi;
 use mmapi 'get_children';
 use network_utils 'iface';
+use security::cc_ipsec;
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    # We don't run setup_multimachine in s390x, but we need to know the server and client's
-    # ip address, so we add a known ip to NETDEV.
-    my $netdev = iface;
-    assert_script_run("ip addr add $eal4_test::server_ip/24 dev $netdev") if (is_s390x);
+    my ($server_ip, $client_ip) = ipsec_peer_ips();
+
+    # We don't run setup_multimachine in s390x, so we add the address ourselves
+    add_ipsec_mm_ip($server_ip, iface) if is_s390x;
 
     assert_script_run("cd $audit_test::test_dir/ipsec_configuration/server");
 
     # Create ipip tunnel to the TOE system
-    assert_script_run("./ipsec_setup_tunnel_server.sh start $eal4_test::server_ip $eal4_test::client_ip");
+    assert_script_run("./ipsec_setup_tunnel_server.sh start $server_ip $client_ip");
 
     # Install IPSec configuration
     assert_script_run('make install');

@@ -18,8 +18,6 @@ use utils;
 our @EXPORT = qw(
   $code_dir
   @white_list_for_dbus
-  $server_ip
-  $client_ip
 );
 
 our $code_dir = '/usr/local/eal4';
@@ -42,8 +40,5 @@ our @static_dbus_whitelist = (
     'org.opensuse.Network.Nanny',
     'org.opensuse.Snapper'
 );
-
-our $server_ip = get_var('SERVER_IP', '10.0.2.101');
-our $client_ip = get_var('CLIENT_IP', '10.0.2.102');
 
 1;
