@@ -75,7 +75,7 @@ C&lt;apply_graceful_timeout&gt; - in case waiting longer than timeout normally s
 
 <h2 id="ssh_script_output">ssh_script_output</h2>
 
-<pre><code>ssh_script_output($script [, $wait, type_command =&gt; 1, proceed_on_failure =&gt; 1] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+<pre><code>ssh_script_output($script [, $wait, type_command =&gt; 1, proceed_on_failure =&gt; 1] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username] [,apply_graceful_timeout =&gt; $apply_graceful_timeout])</code></pre>
 
 <p>Executing script inside SUT with bash -eo and directs stdout (but not stderr!) to the serial console and returns the output if the script exits with 0. Otherwise the test is set to failed.</p>
 
