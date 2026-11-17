@@ -38,7 +38,7 @@ sub run {
 
     check_kernel_taint($self, 1);
 
-    validate_script_output("journalctl -b --grep='Total of $max_cpus'", sub { m/Total of $max_cpus processors activated/ });
+    validate_script_output("journalctl -b | grep -w 'Total of $max_cpus'", sub { m/Total of $max_cpus processors activated/ });
     remove_grub_cmdline_settings("maxcpus=$max_cpus");
     grub_mkconfig;
 }
