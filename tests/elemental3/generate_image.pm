@@ -145,6 +145,13 @@ sub customize_cmd {
         '%RELEASE_MANIFEST_URI%' => "$args{manifest_uri}",
         '%K8S%' => "$args{k8s}"
     );
+    if ($args{template} =~ m/default/) {
+        file_content_replace(
+            "$args{config_dir}/kubernetes/helm/values/elemental-lifecycle-manager.yaml",
+            '--sed-modifier' => 'g',
+            '%LCM_REGISTRY%' => get_var('LCM_REGISTRY', 'registry.suse.com/elemental/elemental-lifecycle-manager')
+        );
+    }
 
     if ($args{template} =~ m/recovery/) {
         # NOTE: some variables can be empty/undef, so double-quotes are expected here!
