@@ -97,7 +97,7 @@ sub run {
     # Needed to have ansible state propagated in post_fail_hook
     $self->import_context($run_args);
 
-    my $ha_enabled = get_required_var('HA_CLUSTER') =~ /false|0/i ? 0 : 1;
+    my $ha_enabled = is_ha_enabled();
     select_serial_terminal;
 
     # Record packages list before deploying ansible if needed

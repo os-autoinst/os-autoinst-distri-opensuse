@@ -68,6 +68,7 @@ our @EXPORT = qw(
   get_online_string
   saphanasr_showAttr_version
   get_hana_site_names
+  is_ha_enabled
   wait_for_cluster
   wait_for_zypper
   check_zypper_ref
@@ -1347,6 +1348,21 @@ sub azure_fencing_agents_playbook_args {
 
 sub get_hana_site_names {
     return (get_var('HANA_PRIMARY_SITE', 'site_a'), get_var('HANA_SECONDARY_SITE', 'site_b'));
+}
+
+=head2 is_ha_enabled
+
+    Return 1 if the deployment has the HA cluster enabled, 0 otherwise.
+    The information comes from the job setting HA_CLUSTER: any value
+    matching 'false' or '0' means that the cluster is disabled.
+    HA_CLUSTER is required: the default is set by the qesap_configure test module.
+    Main reason to have it behind a function is to read the setting
+    in the same way in all the test modules.
+
+=cut
+
+sub is_ha_enabled {
+    return get_required_var('HA_CLUSTER') =~ /false|0/i ? 0 : 1;
 }
 
 =head2 create_hana_vars_section

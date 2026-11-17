@@ -40,6 +40,11 @@ Used to determine if native fencing is needed.
 
 Check if 'msi' is used for Azure fencing.
 
+=item B<HA_CLUSTER>
+
+The native fencing permissions for MSI are only configured when the HA cluster is enabled.
+A deployment without cluster has no fence agent, so it does not get the managed identity.
+
 =item B<PUBLIC_CLOUD_PROVIDER>
 
 CSP provider name (used for CSP-specific validation).
@@ -77,6 +82,9 @@ sub run {
     # otherwise select_serial_terminal() will be failed
     select_host_console();
     select_serial_terminal();
+
+    # Without a cluster nothing uses the managed identity, so the VM is not changed for it.
+    my $ha_enabled = is_ha_enabled();
 
     my $instances = create_instance_data(provider => $provider);
     foreach my $instance (@$instances) {
@@ -126,7 +134,7 @@ sub run {
         die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
           if ((is_azure() || is_gce()) && ($expected_hostname ne $real_hostname));
 
-        if (get_var('FENCING_MECHANISM') eq 'native' && is_azure() && check_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi')) {
+        if (get_var('FENCING_MECHANISM') eq 'native' && is_azure() && check_var('AZURE_FENCE_AGENT_CONFIGURATION', 'msi') && $ha_enabled) {
             qesap_az_setup_native_fencing_permissions(
                 vm_name => $instance->instance_id,
                 resource_group => qesap_az_get_resource_group());
