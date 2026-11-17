@@ -41,8 +41,10 @@ sub run {
     my $pkexec_package = is_sle('<15-SP5') ? "polkit" : "pkexec";
     install_package("git expect libcap-devel psmisc cryptsetup $pkexec_package vsftpd audit audit-audispd-plugins wget iputils curl netcat-openbsd", trup_continue => 1, trup_reboot => 1);
 
-    # Workaround for restarting audit service
-    assert_script_run('sed -i \'/\[Unit\]/aStartLimitIntervalSec=0\' /usr/lib/systemd/system/auditd.service');
+    # Workaround for restarting audit service. Use a drop-in, because /usr
+    # is read-only on transactional systems.
+    assert_script_run('mkdir -p /etc/systemd/system/auditd.service.d');
+    assert_script_run('printf "[Unit]\nStartLimitIntervalSec=0\n" > /etc/systemd/system/auditd.service.d/10-start-limit.conf');
     assert_script_run('systemctl daemon-reload');
 
     # Modify audit rules
