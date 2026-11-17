@@ -60,10 +60,19 @@ sub run {
     }
 
     mutex_create('IPSEC_CLIENT_DONE');
+    $self->{client_done} = 1;
+}
+
+sub test_flags {
+    # The next client modules need the tunnel and the IPsec configuration
+    # of this module, thus do not roll back to the last milestone on failure
+    return {no_rollback => 1};
 }
 
 sub post_fail_hook {
     my ($self) = @_;
+    # The server waits for this mutex, do not leave it waiting until the job times out
+    eval { mutex_create('IPSEC_CLIENT_DONE') } unless $self->{client_done};
     $self->SUPER::post_fail_hook;
     upload_ipsec_diagnostics();
 }

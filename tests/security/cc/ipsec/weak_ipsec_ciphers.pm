@@ -38,6 +38,12 @@ sub run {
     }
 }
 
+sub test_flags {
+    # The next client modules need the tunnel and the IPsec configuration
+    # of this module, thus do not roll back to the last milestone on failure
+    return {no_rollback => 1};
+}
+
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
