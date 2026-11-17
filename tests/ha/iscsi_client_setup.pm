@@ -181,14 +181,21 @@ sub run {
     my $persistence = script_output("iscsiadm -m node -T '$node_name' -o show | grep 'node.startup' || echo 'not found'");
     die 'iSCSI session persistence is not configured!' unless $persistence =~ /node.startup = automatic/;
 
-    # Check iSCSI devices are there or fail if missing. Check more than once, as serial terminal
-    # could run commands faster than SUT is able to access the devices
-    # script_retry() will try for retry*delay times, so in order to try up to $default_timeout, calculate
-    # retry value by dividing $default_timeout by the number of retries, but keep old 50s value as the minimum
+    # Check iSCSI devices are there or fail if missing. Check more than once, as
+    # serial terminal could run commands faster than SUT is able to access the
+    # devices, and the server can take too long to setup the targets.
+    #
+    # Timeout needs to be minimum 50s but can be extended.
     my $delay = 10;
     my $retry = int($default_timeout / 10);
     $retry = 5 if ($retry < 5);
-    script_retry('ls /dev/disk/by-path/ip-*', timeout => $default_timeout, retry => $retry, delay => $delay, fail_message => 'No iSCSI devices!');
+    for (1 .. $retry) {
+        last unless script_run('ls /dev/disk/by-path/ip-*', timeout => $retry * $delay);
+        systemctl('restart iscsid');
+        systemctl('restart iscsi');
+        sleep $delay;
+    }
+    assert_script_run('ls /dev/disk/by-path/ip-*', timeout => $retry * $delay);    # This is here to force the test to die if there is no device.
 
     # Blacklist iSCSI devices in multipath. Otherwise HA tests cannot use them directly
     if (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i)) {
