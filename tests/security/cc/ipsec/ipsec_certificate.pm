@@ -101,4 +101,10 @@ sub run {
     assert_script_run("ip addr del $ip/24 dev " . iface) if is_s390x;
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_ipsec_diagnostics();
+}
+
 1;

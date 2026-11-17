@@ -21,6 +21,7 @@ our @EXPORT = qw(
   ipsec_peer_ips
   add_ipsec_mm_ip
   wait_ipsec_conn
+  upload_ipsec_diagnostics
 );
 our @EXPORT_OK = qw(ipsec_ip_pair_for_job_id);
 
@@ -125,6 +126,32 @@ sub wait_ipsec_conn {
     my ($conn) = @_;
     # No 'grep -q': it can stop reading early and make the pipe fail with pipefail
     script_retry("ipsec statusall | grep '^ *$conn:'", retry => 30, delay => 2, timeout => 10);
+}
+
+=head2 upload_ipsec_diagnostics
+
+    upload_ipsec_diagnostics();
+
+Collect the IPsec, xfrm and network state, and the strongSwan logs. Upload
+them. Use this in post_fail_hook, it does not die.
+
+=cut
+
+sub upload_ipsec_diagnostics {
+    my %cmds = (
+        'ipsec-statusall' => 'ipsec statusall',
+        'ip-xfrm' => 'ip -s xfrm state; ip -s xfrm policy',
+        'ip-net' => 'ip -s addr; ip route show table all; ip neigh; ip tunnel show',
+        'strongswan-journal' => "journalctl -b --no-pager -n 20000 -u 'strongswan*'; journalctl -b --no-pager -n 20000 -t charon -t ipsec_starter",
+    );
+    foreach my $name (sort keys %cmds) {
+        my $file = "/tmp/$name.txt";
+        eval {
+            script_run("($cmds{$name}) > $file 2>&1", timeout => 90);
+            upload_logs($file, failok => 1);
+        };
+        record_info('diagnostics', "Cannot collect $name: $@") if $@;
+    }
 }
 
 1;

@@ -13,6 +13,7 @@ use utils;
 use lockapi;
 use Data::Dumper;
 use Utils::Architectures 'is_s390x';
+use security::cc_ipsec;
 
 sub run {
     my ($self) = @_;
@@ -82,6 +83,12 @@ sub run {
     # Upload log files
     upload_logs('ccc-ipsec-eval-esp.log');
     upload_logs('ccc-ipsec-eval-ike.log');
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_ipsec_diagnostics();
 }
 
 1;

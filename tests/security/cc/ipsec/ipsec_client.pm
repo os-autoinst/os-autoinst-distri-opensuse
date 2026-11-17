@@ -64,4 +64,10 @@ sub run {
     assert_script_run('ipsec stop');
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_ipsec_diagnostics();
+}
+
 1;
