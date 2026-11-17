@@ -32,7 +32,8 @@ sub setup {
     record_info "docker-compose version", $version;
 
     # docker-compose tests needs to be patched upstream to support SELinux
-    configure_docker(selinux => 0, tls => 1);
+    # and v5.7.1 made it a mess to test with TLS.
+    configure_docker(selinux => 0, tls => 0);
 
     # Some tests need this file
     run_command "mkdir /root/.docker || true";
