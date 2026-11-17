@@ -42,6 +42,7 @@
       <li><a href="#create_ansible_playbook_list">create_ansible_playbook_list</a></li>
       <li><a href="#azure_fencing_agents_playbook_args">azure_fencing_agents_playbook_args</a></li>
       <li><a href="#get_hana_site_names">get_hana_site_names</a></li>
+      <li><a href="#is_ha_enabled">is_ha_enabled</a></li>
       <li><a href="#create_hana_vars_section">create_hana_vars_section</a></li>
       <li><a href="#display_full_status">display_full_status</a></li>
       <li><a href="#list_cluster_nodes">list_cluster_nodes</a></li>
@@ -500,6 +501,15 @@ and later in the test when calling `hdbnsutil -sr_register`.
 This function mostly read the information from job settings
 HANA_PRIMARY_SITE and HANA_SECONDARY_SITE, so main reason to have
 it behind a function is to have coherent defaults.</code></pre>
+
+<h2 id="is_ha_enabled">is_ha_enabled</h2>
+
+<pre><code>Return 1 if the deployment has the HA cluster enabled, 0 otherwise.
+The information comes from the job setting HA_CLUSTER: any value
+matching &#39;false&#39; or &#39;0&#39; means that the cluster is disabled.
+HA_CLUSTER is required: the default is set by the qesap_configure test module.
+Main reason to have it behind a function is to read the setting
+in the same way in all the test modules.</code></pre>
 
 <h2 id="create_hana_vars_section">create_hana_vars_section</h2>
 
