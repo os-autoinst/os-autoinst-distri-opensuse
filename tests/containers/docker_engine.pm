@@ -30,6 +30,11 @@ sub setup {
 
     configure_docker(selinux => 1, tls => 0);
 
+    # The docker package ships docker-af-vsock-deny.cil but doesn't load it.
+    # Apply workaround from https://bugzilla.opensuse.org/show_bug.cgi?id=1278193#c10
+    my $vsock_cil = "/usr/share/docker/selinux/docker-af-vsock-deny.cil";
+    run_command "semodule -i $vsock_cil" if (!is_sle("<16") && script_run("test -f $vsock_cil") == 0);
+
     # https://docs.docker.com/build/building/multi-platform/
     run_command "docker run --privileged --rm tonistiigi/binfmt --install all" unless is_sle("<16");
 
