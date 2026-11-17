@@ -11,6 +11,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_text_console';
 use utils;
+use package_utils 'install_package';
 use registration 'add_suseconnect_product';
 use audit_test;
 use version_utils qw(is_sle is_tumbleweed);
@@ -27,17 +28,18 @@ sub run {
     unless (check_var('FLAVOR', 'Full-QR')) {
         if (script_run('which SUSEConnect') != 0) {
             record_soft_failure('bsc#1193782 - SUSEConnect is not installed when system role is common criteria');
-            zypper_call('in SUSEConnect');
+            install_package('SUSEConnect', trup_reboot => 1);
         }
 
         add_suseconnect_product('sle-module-legacy');
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product('sle-module-development-tools');
     }
-    zypper_call('in -t pattern devel_basis');
+    install_package('-t pattern devel_basis');
 
+    # On transactional systems, add the packages to the same snapshot as the pattern, then reboot once
     my $pkexec_package = is_sle('<15-SP5') ? "polkit" : "pkexec";
-    zypper_call("in git expect libcap-devel psmisc cryptsetup $pkexec_package vsftpd audit audit-audispd-plugins wget iputils curl netcat-openbsd");
+    install_package("git expect libcap-devel psmisc cryptsetup $pkexec_package vsftpd audit audit-audispd-plugins wget iputils curl netcat-openbsd", trup_continue => 1, trup_reboot => 1);
 
     # Workaround for restarting audit service
     assert_script_run('sed -i \'/\[Unit\]/aStartLimitIntervalSec=0\' /usr/lib/systemd/system/auditd.service');

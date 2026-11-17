@@ -11,6 +11,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use eal4_test;
+use package_utils 'install_package';
 use serial_terminal 'select_serial_terminal';
 
 sub run {
@@ -18,7 +19,7 @@ sub run {
 
     select_serial_terminal;
 
-    zypper_call('in wget gcc make curl');
+    install_package('wget gcc make curl', trup_reboot => 1);
 
     my $code_path = get_required_var('CODE_PATH');
     my ($file_name) = $code_path =~ m|/([^/]+)\.tar$|;
