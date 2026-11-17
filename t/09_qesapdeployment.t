@@ -276,6 +276,40 @@ subtest '[qesap_prepare_env] deployment code dies when deployment_dir is /root' 
     }
 };
 
+subtest '[qesap_cache_releases] bakes each version into the cache' => sub {
+    my @calls;
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    # Respect the deployment_dir override passed by qesap_cache_releases
+    $qesap->redefine(qesap_get_paths => sub {
+            my (%args) = @_;
+            my $deploy = $args{deployment_dir} // '/BRUCE';
+            return (
+                deployment_dir => $deploy,
+                terraform_dir => $deploy . '/terraform',
+                roles_dir => '/BRUCE_ROLES',
+                roles_dir_path => '/BRUCE_ROLES/roles',
+            );
+    });
+
+    qesap_cache_releases('2.6.15', '2.7.0');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/v2\.6\.15\.tar\.gz.*-o \/tmp\/v2\.6\.15\.tar\.gz/ } @calls), 'Get release archive for 2.6.15');
+    ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/v2\.7\.0\.tar\.gz.*-o \/tmp\/v2\.7\.0\.tar\.gz/ } @calls), 'Get release archive for 2.7.0');
+    ok((any { /^rm -rf \/root\/qesap_cache\/2\.6\.15\/qe-sap-deployment$/ } @calls), 'First version baked under its cache folder');
+    ok((any { /^rm -rf \/root\/qesap_cache\/2\.7\.0\/qe-sap-deployment$/ } @calls), 'Second version baked under its cache folder');
+};
+
+subtest '[qesap_cache_releases] rejects latest and non-numeric versions' => sub {
+    throws_ok { qesap_cache_releases('latest') } qr/not a valid numeric release version/, 'Dies on latest';
+    throws_ok { qesap_cache_releases('main') } qr/not a valid numeric release version/, 'Dies on branch name';
+    throws_ok { qesap_cache_releases('v2.6.15') } qr/not a valid numeric release version/, 'Dies on version with v prefix';
+};
+
 subtest '[qesap_get_roles_code] from default github' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;

@@ -56,8 +56,10 @@ use constant QESAPDEPLOY_PREFIX => 'qesapdep';
 
 use constant QESAPDEPLOY_VENV => '/tmp/exec_venv';
 use constant QESAPDEPLOY_PY_DEFAULT_VER => '3.11';
+use constant QESAP_CACHE_ROOT => '/root/qesap_cache';
 
 our @EXPORT = qw(
+  qesap_cache_releases
   qesap_upload_logs
   qesap_get_roles_code
   qesap_get_inventory
@@ -104,12 +106,20 @@ our @EXPORT = qw(
     Returns a hash containing directory paths for qe-sap-deployment:
     deployment_dir, terraform_dir, roles_dir, roles_dir_path.
     Unlike qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.
+
+=over
+
+=item B<DEPLOYMENT_DIR> - optional override for deployment_dir (and the default
+derived terraform_dir). When omitted, the openQA variables are used as before.
+
+=back
 =cut
 
 sub qesap_get_paths {
+    my (%args) = @_;
     my %paths;
-    $paths{deployment_dir} = get_var('QESAP_DEPLOYMENT_DIR', '/root/qe-sap-deployment');
-    $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
+    $paths{deployment_dir} = $args{deployment_dir} // get_var('QESAP_DEPLOYMENT_DIR', '/root/qe-sap-deployment');
+    $paths{terraform_dir} = $args{terraform_dir} // get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
     $paths{roles_dir} = get_var('QESAP_ROLES_DIR', '/root/community.sles-for-sap');
     $paths{roles_dir_path} = $paths{roles_dir} . '/roles';
     return (%paths);
@@ -426,6 +436,9 @@ sub qesap_get_latest_version {
 
 =item B<VERSION> - optional release version tag to install (e.g. 'latest', '2.6.15')
 
+=item B<DEPLOYMENT_DIR> - optional target directory for the code. When omitted,
+the openQA variable QESAP_DEPLOYMENT_DIR is used as before.
+
 =back
 =cut
 
@@ -433,7 +446,7 @@ sub qesap_get_deployment_code {
     my (%args) = @_;
     my $official_repo = 'github.com/SUSE/qe-sap-deployment';
     my $qesap_git_clone_log = '/tmp/git_clone.txt';
-    my %paths = qesap_get_paths();
+    my %paths = qesap_get_paths(deployment_dir => $args{deployment_dir});
     die "Missing mandatory terraform_dir from qesap_get_paths()" unless $paths{'terraform_dir'};
     die "Missing mandatory deployment_dir from qesap_get_paths()" unless ($paths{'deployment_dir'} && $paths{'deployment_dir'} =~ /\S/);
 
@@ -480,6 +493,35 @@ sub qesap_get_deployment_code {
     # Add symlinks for different provider directory naming between OpenQA and qesap-deployment
     assert_script_run("ln -sfn " . $paths{terraform_dir} . "/aws " . $paths{terraform_dir} . "/ec2");
     assert_script_run("ln -sfn " . $paths{terraform_dir} . "/gcp " . $paths{terraform_dir} . "/gce");
+}
+
+=head3 qesap_cache_releases
+
+    Bakes a list of qe-sap-deployment release versions into the local disk cache
+    under QESAP_CACHE_ROOT, so that downstream jobs can reuse them without
+    re-downloading. Each version is stored under QESAP_CACHE_ROOT/<ver>/qe-sap-deployment.
+
+    Only explicit numeric release versions are supported; 'latest' is rejected.
+
+    =over
+
+    =item B<VERSIONS> - list of explicit numeric release version strings (e.g. '2.6.15').
+
+    =back
+
+    Dies if any version is not a numeric release version, or on any download failure.
+=cut
+
+sub qesap_cache_releases {
+    my (@versions) = @_;
+    foreach my $version (@versions) {
+        die "qesap_cache_releases: '$version' is not a valid numeric release version" unless $version =~ /^\d+\.\d+(\.\d+)?$/;
+        record_info('QESAP cache', "Baking qe-sap-deployment $version into cache");
+        qesap_get_deployment_code(
+            version => $version,
+            deployment_dir => QESAP_CACHE_ROOT . "/$version/qe-sap-deployment",
+        );
+    }
 }
 
 

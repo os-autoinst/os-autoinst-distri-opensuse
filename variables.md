@@ -62,7 +62,7 @@ HDDSIZEGB(_*) | integer | | Size of the disk, others can be added like this: `HD
 HELM_CHART | string | | Helm chart under test. See `main_containers.pm` for supported chart types |
 HELM_CONFIG | string | | Additional configuration file for helm |
 HELM_LOGIN | string | Comma-separated list of login information if required for a registry, e.g. `registry.suse.de:username:password,registry.suse.de:geekotest:notsecret`
-HELM_FULL_REGISTRY_PATH | string | Full path to the registry images used by the helm chart. e.g. `my.registry.com/myteam/secret_project`. Only necessary when using non-publicly available container images. | 
+HELM_FULL_REGISTRY_PATH | string | Full path to the registry images used by the helm chart. e.g. `my.registry.com/myteam/secret_project`. Only necessary when using non-publicly available container images. |
 HOSTNAME | string | | Hostname of the SUT
 COREDUMP_IGNORE_ERRORS | boolean | | Don't quit test if coredump files are seen
 COREDUMP_WITH_BACKTRACE | boolean | | Get a backtrace when analyzing coredumps
@@ -93,7 +93,7 @@ EXTRABOOTPARAMS_LINE_OFFSET | integer | | Line offset for `linux` line in grub w
 EXTRABOOTPARAMS_DELETE_CHARACTERS | string | | Characters to delete from boot prompt.
 EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET | string | | If specified, go back with the cursor until this needle is matched to delete characters from there. Needs EXTRABOOTPARAMS_BOOT_LOCAL and should be combined with EXTRABOOTPARAMS_DELETE_CHARACTERS.
 EXTRATEST | boolean | false | Enables execution of extra tests, see `load_extra_tests`
-FDE_ENROLLMENT | string | | Type of authentication to use when configuring FDE during installation, current values are `TPM2`, `TPM2 and PIN`, `Only Password` and `FIDO2`. 
+FDE_ENROLLMENT | string | | Type of authentication to use when configuring FDE during installation, current values are `TPM2`, `TPM2 and PIN`, `Only Password` and `FIDO2`.
 FIREWALL_BACKEND | strings | | Firewall backend (iptables or nftables)
 FIRST_BOOT_CONFIG | string | combustion+ignition | The method used for initial configuration of MicroOS images. Possible values are: `combustion`, `ignition`, `combustion+ignition` and `wizard`. For ignition/combustion, the job needs to have a matching HDD attached.
 FLAVOR | string | | Defines flavor of the product under test, e.g. `staging-.-DVD`, `Krypton`, `Argon`, `Gnome-Live`, `DVD`, `Rescue-CD`, etc.
@@ -201,7 +201,7 @@ NVIDIA_EXPECTED_GPU_REGEX | string | '' | Define which GPU should the test expec
 NVIDIA_FIRST_RELEASE | boolean | false | Install NVIDIA driver directly from maintenance update repository for kernel tests.
 NVIDIA_REPO | string | '' | Define the external repo for NVIDIA driver.
 OCI_RUNTIME | string | '' | Define the OCI runtime to use in container tests, if set.
-OPENSHIFT_CONFIG_REPO | string | '' | Git repo of the OpenShift configuration and packages needed by tests/containers/openshift_setup.pm. 
+OPENSHIFT_CONFIG_REPO | string | '' | Git repo of the OpenShift configuration and packages needed by tests/containers/openshift_setup.pm.
 OPT_KERNEL_PARAMS | string | Specify optional kernel command line parameters on bootloader settings page of the installer.
 PHUB_READY | boolean | true | Indicates PackageHub is available, it may be not ready in early development phase[Before Beta].
 PERF_KERNEL | boolean | false | Enables kernel performance testing.
@@ -363,7 +363,7 @@ PUBLIC_CLOUD_EC2_NITRO_ENCLAVE | boolean | false | Enable the AWS Nitro Enclave 
 PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED | boolean | true | Internal variable written by the code and readed by the code . Should NOT be set manually
 PUBLIC_CLOUD_FORCE_REGISTRATION | boolean | false | If set, tests/publiccloud/registration.pm will register cloud guest
 PUBLIC_CLOUD_GCE_STACK_TYPE | string | IPV4_ONLY | Network stack type, possible values: IPV4_IPV6 or IPV4_ONLY
-PUBLIC_CLOUD_GCE_NIC_TYPE | string | "" | Network Interface Card type, possible values: GVNIC, VIRTIO_NET, IDPF, MRDMA or IRDMA 
+PUBLIC_CLOUD_GCE_NIC_TYPE | string | "" | Network Interface Card type, possible values: GVNIC, VIRTIO_NET, IDPF, MRDMA or IRDMA
 PUBLIC_CLOUD_GOOGLE_ACCOUNT | string | "" | GCE only, used to specify the account id.
 PUBLIC_CLOUD_GOOGLE_PROJECT_ID | string | "" | GCP only, used to specify the project id.
 PUBLIC_CLOUD_GOOGLE_NAMESPACE | string | "" | Special override for GCP only. Overrides the Public Cloud Namespace name that will be used to compose the full credentials URL together with `PUBLIC_CLOUD_CREDENTIALS_URL`.
@@ -398,6 +398,7 @@ PUBLIC_CLOUD_NVIDIA | boolean | 0 | If enabled, nvidia module would be scheduled
 PUBLIC_CLOUD_PREPARE_TOOLS | boolean | false | Activate prepare_tools test module by setting this variable.
 PUBLIC_CLOUD_PROVIDER | string | "" | The type of the CSP (e.g. AZURE, EC2, GCE).
 PUBLIC_CLOUD_QAM | boolean | false |  1 : to identify jobs running to test "Maintenance" updates; 0 : for jobs testing "Latest" (in development). Used to control all behavioral implications which this brings.
+PUBLIC_CLOUD_QESAP_VERS | string | | Comma-separated list of qe-sap-deployment release versions to bake into the publiccloud_tools image local disk cache (see QESAP_CACHE_ROOT). Used only when building the PC tools image; empty means no caching.
 PUBLIC_CLOUD_REBOOT_TIMEOUT | integer | 600 | Number of seconds we wait for instance to reboot.
 PUBLIC_CLOUD_REDOWNLOAD_MU | boolean | false | Debug variable used to redownload the maintenance repositories (as they might be downloaded by parent test)
 PUBLIC_CLOUD_REGION | string | "" | The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1-b). In `upload-img` for Azure Arm64 images, multiple comma-separated regions are supported (see `lib/publiccloud/azure.pm`)
@@ -405,7 +406,7 @@ PUBLIC_CLOUD_ALTERNATE_REGIONS | string | "" | Comma-separated list of fallback 
 PUBLIC_CLOUD_REGISTRATION_TESTS | boolean | false | If set, only the registration tests are added to the job.
 PUBLIC_CLOUD_RESOURCE_GROUP | string | "qesaposd" | Allows to specify resource group name on SLES4SAP PC tests.
 PUBLIC_CLOUD_RESOURCE_NAME | string | "openqa-vm" | The name we use when creating our VM.
-PUBLIC_CLOUD_ROOT_DISK_SIZE | int |  | Set size of system disk in GiB for public cloud instance. Default size is 30 for Azure and 20 for GCE and EC2 
+PUBLIC_CLOUD_ROOT_DISK_SIZE | int |  | Set size of system disk in GiB for public cloud instance. Default size is 30 for Azure and 20 for GCE and EC2
 PUBLIC_CLOUD_SCC_ENDPOINT | string | "registercloudguest" | Name of binary which will be used to register image . Except default value only possible value is "SUSEConnect" anything else will lead to test failure!
 PUBLIC_CLOUD_SKIP_MU | boolean | false | Run tests without downloading/applying maintenance updates.
 PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added to the job.
