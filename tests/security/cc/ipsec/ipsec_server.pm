@@ -43,15 +43,15 @@ sub run {
 
     mutex_wait('WEAK_IPSEC_CIPHERS_DONE', (keys %$children)[0]);
 
-    mutex_create('READY_FOR_IPSEC_CIPHERS');
-
     # Change the configure file for testing ipsec ciphers
     my $new_algorithms = ',aes256ctr-sha256-modp2048,aes128ctr-sha256-modp6144,aes256ccm8-prfsha256-modp3072';
     assert_script_run("sed -i '/ proposals = / s/\$/$new_algorithms/' /etc/swanctl/conf.d/ikev2suse.conf");
     script_run('cat /etc/swanctl/conf.d/ikev2suse.conf');
 
-    # Restart the strongswan service
+    # Restart the strongswan service. Tell the client only after the restart,
+    # because the ipsec_ciphers cases need the new proposals.
     assert_script_run('systemctl restart strongswan');
+    mutex_create('READY_FOR_IPSEC_CIPHERS');
 
     mutex_wait('IPSEC_CLIENT_DONE', (keys %$children)[0]);
 

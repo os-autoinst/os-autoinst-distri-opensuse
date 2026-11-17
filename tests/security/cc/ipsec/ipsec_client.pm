@@ -41,12 +41,8 @@ sub run {
     assert_script_run('ipsec start');
     assert_script_run('stime=$(date +\'%H:%M:%S\')');
 
-    # ipsec start can take some time to start charon daemon,
-    # so we wait until we get some status output
-    my $inc = 0;
-    while (scalar(split(/\n/, script_output('ipsec statusall', proceed_on_failure => 1)) <= 5) && $inc < 10) {
-        sleep(++$inc);
-    }
+    # ipsec start returns before charon has loaded the connection
+    wait_ipsec_conn('ikev2suse');
 
     assert_script_run('ipsec up ikev2suse', timeout => is_s390x ? 300 : 90);
 

@@ -11,6 +11,7 @@ package security::cc_ipsec;
 use strict;
 use warnings;
 use testapi;
+use utils 'script_retry';
 use Utils::Architectures 'is_s390x';
 use mmapi qw(get_current_job_id get_parents);
 
@@ -19,6 +20,7 @@ use base 'Exporter';
 our @EXPORT = qw(
   ipsec_peer_ips
   add_ipsec_mm_ip
+  wait_ipsec_conn
 );
 our @EXPORT_OK = qw(ipsec_ip_pair_for_job_id);
 
@@ -108,6 +110,21 @@ sub add_ipsec_mm_ip {
     die "IP $ip is already in use on the shared network, maybe by an other job\n" if defined($ret) && $ret == 1;
     record_info('arping', "Duplicate address detection for $ip did not complete (exit code: " . ($ret // 'timeout') . ')') if !defined($ret) || $ret != 0;
     assert_script_run("ip addr add $ip/24 dev $netdev");
+}
+
+=head2 wait_ipsec_conn
+
+    wait_ipsec_conn($conn_name);
+
+Wait until charon is up and has loaded the connection C<$conn_name>.
+C<ipsec start> and C<ipsec restart> return before this occurs.
+
+=cut
+
+sub wait_ipsec_conn {
+    my ($conn) = @_;
+    # No 'grep -q': it can stop reading early and make the pipe fail with pipefail
+    script_retry("ipsec statusall | grep '^ *$conn:'", retry => 30, delay => 2, timeout => 10);
 }
 
 1;

@@ -48,11 +48,14 @@ sub run {
 
         if ($role eq 'server') {
             assert_script_run("sh prepare-ipsec-test.sh $case_name $server_ip $client_ip server");
+            # 'ipsec restart' in the script returns before charon has loaded the connection
+            wait_ipsec_conn($case_name);
             mutex_create("server_ready_$tmp_case_name");
             mutex_wait("client_done_$tmp_case_name", $child);
             next;
         }
         assert_script_run("sh prepare-ipsec-test.sh $case_name $client_ip $server_ip client");
+        wait_ipsec_conn($case_name);
         mutex_wait("server_ready_$tmp_case_name");
         my $output = script_output("ipsec up $case_name", is_s390x ? 300 : 120);
 
