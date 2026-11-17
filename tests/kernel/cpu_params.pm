@@ -20,11 +20,11 @@ sub run {
     my $self = shift;
 
     select_serial_terminal;
-    my $num_proc = get_cpu_count();
-    my $max_cpus = get_var('MAXCPUS', 4);
 
-    die "Invalid MAXCPUS ($max_cpus): must be between 1 and " . ($num_proc - 1)
-      if ($max_cpus < 1 || $max_cpus >= $num_proc);
+    my $num_proc = get_cpu_count();
+    my $max_cpus = get_var('MAXCPUS', int($num_proc / 2));
+
+    $max_cpus = $num_proc == 1 || $max_cpus < 1 ? 1 : $max_cpus >= $num_proc ? int($num_proc / 2) : $max_cpus;
 
     # Test for maxcpus Kernel command line argument
     # The value provided in maxcpus kernel parameter is only applicable for the duration of kernel bootup
