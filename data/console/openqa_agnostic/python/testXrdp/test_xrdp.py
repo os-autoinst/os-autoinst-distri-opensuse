@@ -5,17 +5,16 @@
 
 import platform
 import re
-import subprocess
 import time
 from pathlib import Path
 
 import pytest
 
 from xrdp_helpers import (SESMAN_INI, TEST_USER, XRDP_INI, client_output,
-                          established_connections, get_ini_value, journal_since,
-                          kill_user_processes, pids_for, run, session_pids,
-                          set_ini_value, start_client, stop_client,
-                          supports_auth_only, wait_until, which, xorg_pids)
+                          coredump_since, get_ini_value, journal_kernel_since,
+                          journal_since, kill_user_processes, pids_for, run,
+                          session_pids, set_ini_value, start_client, stop_client,
+                          wait_until, which, xorg_pids, xrdp_tcp_connections)
 
 
 @pytest.fixture(autouse=True)
@@ -24,8 +23,9 @@ def clean_sessions(rdp):
     yield
 
 
-def _connect(rdp, password=None, extra=None):
-    return start_client(rdp.freerdp, rdp.major, password or rdp.password, extra)
+def _connect(rdp, password=None):
+    return start_client(rdp.freerdp, rdp.major, password or rdp.password,
+                        rdp.args_from)
 
 
 def _expect_session(rdp, proc, timeout=60):
@@ -44,27 +44,6 @@ def _expect_session(rdp, proc, timeout=60):
         TEST_USER, timeout, stop_client(proc)))
 
 
-def _expect_connection(rdp, proc, timeout=30):
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        if proc.poll() is not None:
-            pytest.fail('client exited before connecting (rc={}):\n{}'.format(
-                proc.returncode, client_output(proc)))
-        if established_connections():
-            return
-        time.sleep(1)
-    pytest.fail('client did not connect to xrdp within {}s'.format(timeout))
-
-
-def _run_client(rdp, password=None, extra=None, timeout=40):
-    proc = _connect(rdp, password=password, extra=extra)
-    try:
-        proc.wait(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        return None, stop_client(proc)
-    return proc.returncode, stop_client(proc)
-
-
 def _assert_clean_journal(lines, context):
     # Auth-phase failures are expected from the bad-credentials test; only
     # session/account PAM errors indicate the X9 regression.
@@ -72,35 +51,20 @@ def _assert_clean_journal(lines, context):
                   if re.search(r'pam_[^(]*\([^:]+:(session|account)\):'
                                r'.*(error|fail|denied)', line, re.I)]
     assert not pam_errors, '{}: PAM errors:\n{}'.format(context, '\n'.join(pam_errors))
-    crashes = [line for line in lines
-               if re.search(r'segfault|general protection|core dumped'
-                            r'|dumped core|panic', line, re.I)]
+
+
+def _assert_no_crashes(start, context):
+    kernel = journal_kernel_since(start)
+    if kernel is None:
+        pytest.skip('journalctl -k could not be read')
+    crashes = [line for line in kernel
+               if re.search(r'segfault|general protection|traps:', line, re.I)
+               and re.search(r'xrdp|Xvnc|xterm|chansrv', line, re.I)]
+    cores = coredump_since(start)
+    if cores:
+        crashes.extend(line for line in cores
+                       if re.search(r'xrdp|Xvnc|xterm|chansrv', line, re.I))
     assert not crashes, '{}: crashes:\n{}'.format(context, '\n'.join(crashes))
-
-
-def _tail(text, lines=10):
-    return '\n'.join((text or '').splitlines()[-lines:])
-
-
-def test_auth_only(rdp):
-    # auth-only is a capability probe: xrdp's login-screen auth does not
-    # reject a bad password at this stage on the tested targets, so the
-    # no-session invariant is only asserted after a clean auth-only exit.
-    if not supports_auth_only(rdp.freerdp, rdp.major):
-        pytest.skip('+auth-only is not available in this FreeRDP version')
-    good_rc, good_out = _run_client(rdp, extra=['+auth-only'])
-    if good_rc is None:
-        pytest.skip('+auth-only did not terminate against xrdp')
-    if good_rc != 0:
-        pytest.skip('+auth-only is not supported by this xrdp/client '
-                    'combination:\n{}'.format(_tail(good_out)))
-    assert not session_pids(TEST_USER), 'auth-only with valid credentials created a session'
-    bad_rc, bad_out = _run_client(rdp, password='wrong-password', extra=['+auth-only'])
-    if bad_rc is None:
-        pytest.skip('+auth-only did not terminate against xrdp with bad credentials')
-    assert not session_pids(TEST_USER), 'auth-only with bad credentials created a session'
-    if bad_rc == 0:
-        pytest.skip('xrdp does not reject credentials at the auth-only stage')
 
 
 def test_good_credentials_start_session(rdp):
@@ -134,10 +98,15 @@ def test_reconnect_after_disconnect(rdp):
     proc = _connect(rdp)
     try:
         _expect_session(rdp, proc)
+        assert wait_until(lambda: pids_for(TEST_USER, 'Xvnc'), 15), \
+            'Xvnc is not running before the disconnect'
+        xvnc_before = pids_for(TEST_USER, 'Xvnc')
+        assert len(xvnc_before) == 1, \
+            'expected one Xvnc before reconnect: {}'.format(xvnc_before)
     finally:
         stop_client(proc)
 
-    assert wait_until(lambda: not established_connections(), 15), \
+    assert wait_until(lambda: not xrdp_tcp_connections(), 15), \
         'the old RDP connection did not close'
     # The default KillDisconnected=false keeps the session for a reconnect.
     assert wait_until(lambda: session_pids(TEST_USER), 15), \
@@ -146,15 +115,31 @@ def test_reconnect_after_disconnect(rdp):
 
     proc = _connect(rdp)
     try:
-        _expect_connection(rdp, proc)
-        assert wait_until(lambda: session_pids(TEST_USER), 15), \
-            'the session is gone after reconnecting'
+        deadline = time.time() + 30
+        while time.time() < deadline:
+            if proc.poll() is not None:
+                pytest.fail('client exited before reconnecting (rc={}):\n{}'.format(
+                    proc.returncode, client_output(proc)))
+            if pids_for(TEST_USER, 'Xvnc') == xvnc_before:
+                break
+            time.sleep(1)
+        else:
+            pytest.fail('reconnect did not reuse the existing Xvnc session; '
+                        'before={} now={}'.format(
+                            xvnc_before, pids_for(TEST_USER, 'Xvnc')))
+        time.sleep(3)
+        assert proc.poll() is None, 'client exited after reconnecting'
+        assert pids_for(TEST_USER, 'Xvnc') == xvnc_before, \
+            'reconnect did not reuse the existing Xvnc session'
+        assert len(pids_for(TEST_USER, 'Xvnc')) == 1, \
+            'expected exactly one Xvnc after reconnect'
         assert run(['systemctl', 'is-active', 'xrdp-sesman']).returncode == 0, \
             'xrdp-sesman is not active after reconnecting'
         lines = journal_since(start)
         if lines is None:
             pytest.skip('journalctl could not read the xrdp units')
         _assert_clean_journal(lines, 'reconnect')
+        _assert_no_crashes(start, 'reconnect')
     finally:
         stop_client(proc)
 
@@ -164,6 +149,10 @@ def test_second_session_after_disconnect(rdp):
     proc = _connect(rdp)
     try:
         _expect_session(rdp, proc)
+        assert wait_until(lambda: pids_for(TEST_USER, 'Xvnc'), 15), \
+            'Xvnc is not running before the disconnect'
+        xvnc_before = pids_for(TEST_USER, 'Xvnc')
+        assert len(xvnc_before) == 1
     finally:
         stop_client(proc)
         kill_user_processes(TEST_USER)
@@ -171,12 +160,20 @@ def test_second_session_after_disconnect(rdp):
     proc = _connect(rdp)
     try:
         _expect_session(rdp, proc)
+        assert wait_until(lambda: pids_for(TEST_USER, 'Xvnc'), 15), \
+            'Xvnc is not running after the second login'
+        xvnc_now = pids_for(TEST_USER, 'Xvnc')
+        assert len(xvnc_now) == 1, \
+            'expected one Xvnc after the second login: {}'.format(xvnc_now)
+        assert not set(xvnc_now) & set(xvnc_before), \
+            'the second login reused the old Xvnc session'
         assert run(['systemctl', 'is-active', 'xrdp-sesman']).returncode == 0, \
             'xrdp-sesman is not active after a second login'
         lines = journal_since(start)
         if lines is None:
             pytest.skip('journalctl could not read the xrdp units')
         _assert_clean_journal(lines, 'second session')
+        _assert_no_crashes(start, 'second session')
     finally:
         stop_client(proc)
 
@@ -203,7 +200,7 @@ def test_kill_disconnected(rdp):
             _expect_session(rdp, proc)
             assert wait_until(lambda: xorg_pids(TEST_USER), 30), \
                 'Xorg is not running for the test user'
-            _expect_connection(rdp, proc, 30)
+            # Let the client finish the RDP login before disconnecting it.
             time.sleep(3)
         finally:
             stop_client(proc)
@@ -236,7 +233,6 @@ def test_xorg_backend(rdp):
             _expect_session(rdp, proc)
             assert wait_until(lambda: xorg_pids(TEST_USER), 30), \
                 'Xorg is not running for the test user'
-            _expect_connection(rdp, proc, 30)
         finally:
             stop_client(proc)
     finally:

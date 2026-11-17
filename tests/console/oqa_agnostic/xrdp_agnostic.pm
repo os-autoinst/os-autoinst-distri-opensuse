@@ -43,6 +43,7 @@ sub run {
     }
 
     install_package(join(' ', @required), trup_continue => 1, trup_reboot => 1);
+    $self->{xrdp_was_active} = script_run('systemctl is-active xrdp') == 0;
 
     my $test = agnosticTestRunner->new({
             language => 'python',
@@ -58,11 +59,16 @@ sub post_fail_hook {
     my ($self) = @_;
     # Only undo state this test created; never touch a pre-existing rdptest.
     if (script_run('test -f /home/rdptest/.xrdp-agnostic-test') == 0) {
+        # On a run_timeout pytest still owns the serial terminal; interrupt it
+        # before running any cleanup command there.
+        type_string("\cc");
+        script_run('pkill -f "pytest.*test_xrdp"');
         script_run('pkill -9 -u rdptest');
         script_run('systemctl stop xrdp xrdp-sesman');
         script_run('cp -a /tmp/xrdp-agnostic-backup/xrdp.ini /etc/xrdp/xrdp.ini 2>/dev/null');
         script_run('cp -a /tmp/xrdp-agnostic-backup/sesman.ini /etc/xrdp/sesman.ini 2>/dev/null');
         script_run('userdel -r rdptest');
+        script_run('systemctl start xrdp-sesman xrdp', timeout => 90) if $self->{xrdp_was_active};
     }
     upload_logs('/var/log/xrdp.log', failok => 1);
     upload_logs('/var/log/xrdp-sesman.log', failok => 1);

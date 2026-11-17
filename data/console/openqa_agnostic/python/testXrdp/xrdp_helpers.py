@@ -82,13 +82,6 @@ def supports_option(binary, option):
     return option in (result.stdout or '')
 
 
-def supports_auth_only(binary, major):
-    if supports_option(binary, 'auth-only'):
-        return True
-    # FreeRDP 2.11.7 has +auth-only but does not advertise it in /help.
-    return major >= 2
-
-
 def set_ini_value(path, section, key, value):
     """Set key=value in section, preserving comments and duplicate keys."""
     lines = path.read_text().splitlines()
@@ -186,12 +179,32 @@ def journal_since(since_epoch, units=('xrdp', 'xrdp-sesman')):
     return result.stdout.splitlines() if result.returncode == 0 else None
 
 
-def established_connections(port=PORT):
-    result = run(['ss', '-tn', 'state', 'established'], timeout=10)
+def xrdp_tcp_connections(port=PORT):
+    """Established TCP sockets to the xrdp port.
+
+    This proves the TCP handshake only; it does not prove that the RDP
+    session or login exchange completed.
+    """
+    result = run(['ss', '-Htn', 'state', 'established',
+                  '( sport = :{} )'.format(port)], timeout=10)
     if result.returncode != 0:
         return []
-    needle = ':{}'.format(port)
-    return [line for line in result.stdout.splitlines() if needle in line]
+    return [line for line in result.stdout.splitlines() if line.strip()]
+
+
+def journal_kernel_since(since_epoch):
+    cmd = ['journalctl', '-k', '--no-pager', '-o', 'cat', '--since',
+           '@{:.6f}'.format(since_epoch)]
+    result = run(cmd, timeout=30)
+    return result.stdout.splitlines() if result.returncode == 0 else None
+
+
+def coredump_since(since_epoch):
+    if not which('coredumpctl'):
+        return None
+    when = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(since_epoch))
+    result = run(['coredumpctl', '--no-pager', 'list', '--since', when], timeout=30)
+    return result.stdout.splitlines() if result.returncode == 0 else None
 
 
 def kill_user_processes(user):
@@ -199,13 +212,12 @@ def kill_user_processes(user):
     wait_until(lambda: not session_pids(user), 20)
 
 
-def client_command(binary, major, password, extra=None):
+def client_command(binary, major, password, args_from=False):
     """Return (argv, stdin_text) for one client invocation.
 
     FreeRDP 3 reads the whole command line from stdin, which keeps the
     password out of argv and ps. FreeRDP 2 has no equivalent.
     """
-    extra = extra or []
     base = [
         '/v:{}:{}'.format(HOST, PORT),
         '/u:{}'.format(TEST_USER),
@@ -214,14 +226,14 @@ def client_command(binary, major, password, extra=None):
         '/timeout:20000',
         '/log-level:WARN',
     ]
-    args = base[0:2] + ['/p:{}'.format(password)] + base[2:] + extra
-    if major >= 3 and supports_option(binary, 'args-from'):
+    args = base[0:2] + ['/p:{}'.format(password)] + base[2:]
+    if major >= 3 and args_from:
         return [binary, '/args-from:stdin'], '\n'.join(args) + '\n'
     return [binary] + args, None
 
 
-def start_client(binary, major, password, extra=None):
-    argv, stdin_text = client_command(binary, major, password, extra)
+def start_client(binary, major, password, args_from=False):
+    argv, stdin_text = client_command(binary, major, password, args_from)
     cmd = ['xvfb-run', '-a', '-s', '-screen 0 1024x768x24'] + argv
     output = tempfile.TemporaryFile()
     proc = subprocess.Popen(
@@ -285,10 +297,9 @@ class RdpEnv(object):
         self.freerdp = freerdp_binary()
         self.major = freerdp_major(self.freerdp) if self.freerdp else 0
         self.xrdp_version = rpm_version('xrdp') or ''
+        self.args_from = supports_option(self.freerdp, 'args-from') if self.freerdp else False
         self.was_active = False
-        self.firewall_added = False
         self.user_created = False
-        self.unit_states = {}
         self.setup_done = False
 
     def _backup(self, path):
@@ -300,27 +311,16 @@ class RdpEnv(object):
         if backup.exists():
             shutil.copy2(str(backup), str(path))
 
-    def _open_firewall(self):
-        if (not which('firewall-cmd')
-                or run(['systemctl', 'is-active', 'firewalld']).returncode != 0):
-            return
-        result = run(['firewall-cmd', '--zone=public', '--add-port={}/tcp'.format(PORT)])
-        self.firewall_added = result.returncode == 0
-
-    def _close_firewall(self):
-        if self.firewall_added:
-            run(['firewall-cmd', '--zone=public', '--remove-port={}/tcp'.format(PORT)])
-            self.firewall_added = False
-
     def setup(self):
         self.setup_done = True
-        shutil.rmtree(str(self.backup_dir), ignore_errors=True)
+        if self.backup_dir.exists():
+            # An interrupted earlier run left its backup of the shipped files.
+            self._restore(XRDP_INI)
+            self._restore(SESMAN_INI)
+            shutil.rmtree(str(self.backup_dir), ignore_errors=True)
         self.backup_dir.mkdir(mode=0o700, parents=True)
         self._backup(XRDP_INI)
         self._backup(SESMAN_INI)
-        for unit in ('xrdp', 'xrdp-sesman'):
-            result = run(['systemctl', 'show', '-p', 'UnitFileState', '--value', unit])
-            self.unit_states[unit] = result.stdout.strip()
         self.was_active = run(['systemctl', 'is-active', 'xrdp']).returncode == 0
 
         # Start from the shipped config, not from a pre-existing instance.
@@ -346,7 +346,6 @@ class RdpEnv(object):
         session_script.chmod(0o755)
         ignore_errors(shutil.chown, str(session_script), user=TEST_USER)
 
-        self._open_firewall()
         run_ok(['systemctl', 'start', 'xrdp-sesman', 'xrdp'], timeout=90)
         wait_for_port(30)
 
@@ -372,7 +371,7 @@ class RdpEnv(object):
         commands = [
             ['getenforce'],
             ['sestatus'],
-            ['ausearch', '-m', 'avc', '-ts', 'recent'],
+            ['ausearch', '-m', 'avc', '-ts', 'boot'],
             ['ls', '-lZ', '/usr/sbin/xrdp-chansrv', '/usr/bin/xauth', '/usr/bin/Xvnc'],
             ['rpm', '-V', 'xrdp', 'xauth', 'xorg-x11-Xvnc'],
         ]
@@ -390,7 +389,7 @@ class RdpEnv(object):
 
     def teardown(self):
         if not self.setup_done:
-            shutil.rmtree(str(self.backup_dir), ignore_errors=True)
+            # Leave an interrupted run's backup for setup() to recover.
             return
         ignore_errors(kill_user_processes, TEST_USER)
         ignore_errors(run, ['systemctl', 'stop', 'xrdp', 'xrdp-sesman'])
@@ -399,7 +398,6 @@ class RdpEnv(object):
         ignore_errors(self._restore, SESMAN_INI)
         if self.was_active:
             ignore_errors(run, ['systemctl', 'start', 'xrdp-sesman', 'xrdp'])
-        ignore_errors(self._close_firewall)
         if self.user_created:
             ignore_errors(run, ['userdel', '-r', TEST_USER])
         shutil.rmtree(str(self.backup_dir), ignore_errors=True)

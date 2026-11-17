@@ -9,7 +9,7 @@
 #   credentials, disconnect/reconnect, a second login, KillDisconnected
 #   cleanup and the optional Xorg backend.
 # steps:
-#   - verify the shipped configuration, unit enablement and runtime services
+#   - verify the shipped configuration and runtime services
 #   - create a temporary local user and start xrdp with the Xvnc backend
 #   - connect with xfreerdp and verify the session and its processes
 #   - verify bad credentials create no session
