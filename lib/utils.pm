@@ -1039,8 +1039,20 @@ sub parse_zypper_table {
     my ($table) = @_;
     return [] unless defined $table;
 
+    my @lines = split /\n/, $table;
+
+    # Use the line above the "--+---" separator as the header. Lines before
+    # the header (e.g. "[|]" progress spinners) can also contain "|".
+    my $start = 0;
+    for my $i (1 .. $#lines) {
+        if ($lines[$i] =~ /^\s*-+(?:\+-+)+\s*$/) {
+            $start = $i - 1;
+            last;
+        }
+    }
+
     my @rows;
-    for my $line (split /\n/, $table) {
+    for my $line (@lines[$start .. $#lines]) {
         next unless $line =~ /\|/;
         $line =~ s/^\s*(.*?)\s*$/$1/;
         push @rows, [split /\s*\|\s*/, $line, -1];

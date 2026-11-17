@@ -85,6 +85,19 @@ S | Name | Summary | Type
 --+------+---------+-----
 EOF
     is_deeply(parse_zypper_table($header_only), [], 'header only returns empty array');
+
+    my $table_progress = <<'EOF';
+Building repository 'kernel-update-0' cache ----------[\]Building repository 'kernel-update-0' cache ----------[|]Building repository 'kernel-update-0' cache ......[done]
+Loading repository data...
+Reading installed packages...
+
+S | Name                                 | Type    | Version | Arch   | Repository
+--+--------------------------------------+---------+---------+--------+----------------
+  | kgraft-patch-4_12_14-122_275-default | package | 19-2.1  | x86_64 | kernel-update-0
+EOF
+    is_deeply(parse_zypper_table($table_progress), [
+            {s => '', name => 'kgraft-patch-4_12_14-122_275-default', type => 'package', version => '19-2.1', arch => 'x86_64', repository => 'kernel-update-0'},
+    ], 'progress lines with "|" before the header are ignored');
 };
 
 subtest 'zypper_search' => sub {
