@@ -1,3 +1,6 @@
+image:
+  repository: %LCM_REGISTRY%
+
 extraVolumes:
 - name: registry-ca
   secret:
