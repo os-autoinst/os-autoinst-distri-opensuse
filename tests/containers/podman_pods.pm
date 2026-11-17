@@ -127,6 +127,9 @@ sub post_run_hook {
 
 sub post_fail_hook {
     my ($self) = @_;
+    # A workload container that died right after start is otherwise invisible, see poo#210402
+    record_info('podman ps -a', script_output('podman ps -a 2>&1', proceed_on_failure => 1));
+    record_info('podman logs', script_output('podman logs testing-pod-container 2>&1 | tail -n 50', proceed_on_failure => 1));
     $self->cleanup();
 }
 
