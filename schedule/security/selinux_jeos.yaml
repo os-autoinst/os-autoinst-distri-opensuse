@@ -17,12 +17,8 @@ schedule:
     - security/selinux/semanage_fcontext
     - security/selinux/semanage_boolean
     - security/selinux/fixfiles
-    - security/selinux/print_se_context
     - security/selinux/audit2allow
     - security/selinux/semodule
     - security/selinux/setsebool
-    - security/selinux/restorecon
-    - security/selinux/chcon
-    - security/selinux/chcat
+    - security/oqa_agnostic/selinux_tools
     - security/selinux/set_get_enforce
-    - security/selinux/selinuxexeccon

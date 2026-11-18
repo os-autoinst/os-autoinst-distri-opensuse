@@ -1,10 +1,10 @@
-# Copyright 2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test '# selinuxexeccon' command works,
 #          report process context for command from the current context
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#105202, tc#1769801
+# Tags: poo#105202, tc#1769801, poo#206877
 
 use Mojo::Base 'opensusebasetest';
 use testapi;

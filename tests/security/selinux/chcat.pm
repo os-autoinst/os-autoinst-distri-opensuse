@@ -1,11 +1,11 @@
-# Copyright 2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# chcat" can change file SELinux security category
 #          NOTE: Since we only focus on minimum policy and this cmd is
 #                for "mls", so this case only do some basic testings.
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#66096, tc#1745369
+# Tags: poo#66096, tc#1745369, poo#206877
 
 use Mojo::Base 'selinuxtest';
 use power_action_utils "power_action";

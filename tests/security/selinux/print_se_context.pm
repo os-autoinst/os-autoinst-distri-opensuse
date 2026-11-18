@@ -1,10 +1,10 @@
-# Copyright 2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# ls/id/ps -Z" prints any security context of each
 #          file/dir/user/process.
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#61783, tc#1741282
+# Tags: poo#61783, tc#1741282, poo#206877
 
 use Mojo::Base 'opensusebasetest';
 use testapi;

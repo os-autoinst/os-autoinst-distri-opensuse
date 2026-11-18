@@ -12,15 +12,13 @@ schedule:
     - security/selinux/semanage_fcontext
     - security/selinux/semanage_boolean
     - security/selinux/fixfiles
-    - security/selinux/print_se_context
+    - '{{selinux_print_se_context}}'
     - security/selinux/audit2allow
     - security/selinux/semodule
     - security/selinux/setsebool
-    - security/selinux/restorecon
-    - security/selinux/chcon
-    - security/selinux/chcat
+    - '{{selinux_tools}}'
     - security/selinux/set_get_enforce
-    - security/selinux/selinuxexeccon
+    - '{{selinux_execcon}}'
     - security/selinux/setroubleshootd
     - '{{alp_shutdown}}'
 conditional_schedule:
@@ -66,3 +64,44 @@ conditional_schedule:
             sle-micro:
                 - console/journal_check
                 - shutdown/shutdown
+    # SL Micro repositories do not provide python3-pytest and SLE 12 ships
+    # Python 3.4, which the agnostic selinux_tools test does not support, so
+    # SL Micro and SLE 12-SP5 keep the old modules. On SLE 12-SP5 the
+    # selinux_tools module is also scheduled (DISTRI sle), but it skips itself.
+    selinux_print_se_context:
+        DISTRI:
+            sle-micro:
+                - security/selinux/print_se_context
+            alp:
+                - security/selinux/print_se_context
+        VERSION:
+            12-SP5:
+                - security/selinux/print_se_context
+    selinux_tools:
+        DISTRI:
+            sle:
+                - security/oqa_agnostic/selinux_tools
+            opensuse:
+                - security/oqa_agnostic/selinux_tools
+            sle-micro:
+                - security/selinux/restorecon
+                - security/selinux/chcon
+                - security/selinux/chcat
+            alp:
+                - security/selinux/restorecon
+                - security/selinux/chcon
+                - security/selinux/chcat
+        VERSION:
+            12-SP5:
+                - security/selinux/restorecon
+                - security/selinux/chcon
+                - security/selinux/chcat
+    selinux_execcon:
+        DISTRI:
+            sle-micro:
+                - security/selinux/selinuxexeccon
+            alp:
+                - security/selinux/selinuxexeccon
+        VERSION:
+            12-SP5:
+                - security/selinux/selinuxexeccon

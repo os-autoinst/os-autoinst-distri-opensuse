@@ -1,9 +1,9 @@
-# Copyright 2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# restorecon" to do file system labeling
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#65672, tc#1741291
+# Tags: poo#65672, tc#1741291, poo#206877
 
 use Mojo::Base 'selinuxtest';
 use power_action_utils "power_action";
