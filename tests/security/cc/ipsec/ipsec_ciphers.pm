@@ -39,7 +39,8 @@ sub run {
     # In FIPS mode the kernel disables rfc4543(gcm(aes)), that is AES-GMAC for
     # ESP. The server selects the proposal, cannot install the SA and answers
     # NO_PROPOSAL_CHOSEN. ipsec_server checks in its journal that this is the
-    # reason.
+    # reason. Whether the CC security target claims AES-GMAC in FIPS mode is
+    # an open question, see poo#210543.
     my $fips = script_output('cat /proc/sys/crypto/fips_enabled', proceed_on_failure => 1) =~ /^\s*1\s*$/;
 
     my @cases;
