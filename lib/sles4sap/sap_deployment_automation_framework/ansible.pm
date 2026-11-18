@@ -21,6 +21,7 @@ use sles4sap::sap_deployment_automation_framework::naming_conventions;
 our @EXPORT = qw(
   sdaf_execute_playbook
   sdaf_register_byos
+  ansible_execute_command
 );
 
 
