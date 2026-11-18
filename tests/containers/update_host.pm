@@ -9,6 +9,7 @@
 # without any warranty.
 
 # Summary: Update host system
+# This is the only module that updates the container host. The host is configured by containers/host_configuration
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'consoletest';
@@ -30,7 +31,7 @@ sub run {
     select_serial_terminal;
     record_info('uname', script_output('uname -a'));
     record_info('os-release', script_output('cat /etc/os-release'));
-    my $update_timeout = 1200;
+    my $update_timeout = 2400;    # aarch64 takes sometimes 20-30 minutes for completion
 
     my ($version, $sp, $host_distri) = get_os_release;
     if ($host_distri =~ /sles|opensuse/) {
@@ -56,7 +57,7 @@ sub run {
     power_action('reboot', textmode => 1);
     # For some reason, we need to wait for some time in RES8 before waiting for boot
     sleep 60 if ($host_distri eq 'rhel');
-    $self->wait_boot();
+    $self->wait_boot(bootloader_time => 300);
     select_serial_terminal;
     record_info('uname', script_output('uname -a'));
     record_info('relaese', script_output('cat /etc/os-release'));
