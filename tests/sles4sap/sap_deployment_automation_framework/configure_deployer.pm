@@ -58,7 +58,7 @@ sub run {
     }
     die 'Registration cleanup attempts failed' if $cleanup_rc;
 
-    my $register_rc = script_run('sudo registercloudguest --force-new');
+    my $register_rc = script_run('sudo registercloudguest --force-new', timeout => 180);
     collect_guestregister_logs();
     die 'Registration attempts failed. Check logs for details' if $register_rc;
     record_info('Reg OK', 'Registration repaired');
