@@ -107,7 +107,7 @@ sub run {
     }
 
     # wait for DB to start with resources
-    $self->is_hana_online(wait_for_start => 'true');
+    $self->is_hana_online(wait_for_start => 'true', timeout => 300);
     my $hana_started = time;
     while (time - $hana_started > $hana_start_timeout) {
         last if $self->is_hana_resource_running();

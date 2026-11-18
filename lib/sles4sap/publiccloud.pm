@@ -331,7 +331,7 @@ sub get_hana_topology {
 }
 
 =head2 is_hana_online
-    is_hana_online([timeout => 120, wait_for_start => 'false']);
+    is_hana_online([timeout => 300, wait_for_start => 'false']);
 
     Check if hana DB is online.
 
@@ -339,7 +339,7 @@ sub get_hana_topology {
 
 =item B<wait_for_start> - Define 'wait_for_start' to wait for DB to start.
 
-=item B<timeout> - timeout for the wait of the online state
+=item B<timeout> - timeout for the wait of the online state (default: 300)
 
 =back
 =cut
@@ -347,7 +347,7 @@ sub get_hana_topology {
 sub is_hana_online {
     my ($self, %args) = @_;
     $args{wait_for_start} //= 0;
-    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my $start_time = time;
     my $consecutive_passes = 0;
     my $db_status;
