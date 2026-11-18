@@ -36,14 +36,29 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
+    # In FIPS mode the kernel disables rfc4543(gcm(aes)), that is AES-GMAC for
+    # ESP. The server selects the proposal, cannot install the SA and answers
+    # NO_PROPOSAL_CHOSEN.
+    my $fips = script_output('cat /proc/sys/crypto/fips_enabled', proceed_on_failure => 1) =~ /^\s*1\s*$/;
+
     my @cases;
     foreach my $esp (sort keys %esp_cases) {
         my $proposal = $esp_cases{$esp};
+        my %expect;
+        if (!$proposal) {
+            # A proposal that mixes classic and AEAD algorithms is invalid
+            %expect = (expect => 'invalid');
+        }
+        elsif ($fips && $esp =~ /gmac/) {
+            %expect = (expect => 'fail', reason => qr/received NO_PROPOSAL_CHOSEN notify, no CHILD_SA built/);
+        }
+        else {
+            %expect = (expect => 'pass', proposal => $proposal);
+        }
         push @cases, {
             name => "ESP: $esp",
             conf => {keyexchange => 'ikev2', ike => 'aes256ctr-sha256-modp2048', esp => $esp},
-            # A proposal that mixes classic and AEAD algorithms is invalid
-            $proposal ? (expect => 'pass', proposal => $proposal) : (expect => 'invalid'),
+            %expect,
         };
     }
     foreach my $ike (sort keys %ike_cases) {
