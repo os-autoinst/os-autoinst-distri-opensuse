@@ -154,6 +154,8 @@ sub upload_ipsec_diagnostics {
         'ip-xfrm' => 'ip -s xfrm state; ip -s xfrm policy',
         'ip-net' => 'ip -s addr; ip route show table all; ip neigh; ip tunnel show',
         'strongswan-journal' => "journalctl -b --no-pager -n 20000 -u 'strongswan*'; journalctl -b --no-pager -n 20000 -t charon -t ipsec_starter",
+        # The kernel refuses algorithms that FIPS mode does not allow, strongSwan reports NO_PROPOSAL_CHOSEN then
+        'kernel-crypto' => "dmesg | grep -E 'alg:|xfrm'",
     );
     foreach my $name (sort keys %cmds) {
         my $file = "/tmp/$name.txt";

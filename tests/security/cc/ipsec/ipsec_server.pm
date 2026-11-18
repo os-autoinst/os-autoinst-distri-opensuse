@@ -56,6 +56,10 @@ sub run {
     my $children = get_children();
     mutex_wait('IPSEC_CLIENT_DONE', (keys %$children)[0]);
 
+    # Only the server logs show why it rejected a client case, upload them
+    # also when all the cases pass
+    upload_ipsec_diagnostics();
+
     # Stop StrongSWAN
     assert_script_run('systemctl stop strongswan');
 
