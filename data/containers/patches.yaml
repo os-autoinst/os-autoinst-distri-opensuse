@@ -114,6 +114,7 @@ moby:
     max: "29.7.0"
   53661:
     min: "29.7.0"
+    max: "29.9.0"
 
 netavark:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
