@@ -13,3 +13,5 @@ docs/**/*.html
 __pycache__/
 .tidyall.d/
 .claude/settings.local.json
+data/wsl/*.iso
+data/wsl/*.raw
