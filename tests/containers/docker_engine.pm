@@ -116,6 +116,7 @@ sub run {
         "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
         "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeoutCancel",
         "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
+        "github.com/moby/moby/v2/integration/service::TestRestoreEncryptedOverlayRulesOnFirewalldReload",
     );
     # Cross-platform builds only work on 15-SP6+
     push @xfails, (
