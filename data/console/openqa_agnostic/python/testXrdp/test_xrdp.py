@@ -119,27 +119,34 @@ def test_reconnect_after_disconnect(rdp):
     try:
         deadline = time.time() + 30
         new_lines = []
-        create_index = None
+        reconnect_index = None
         while time.time() < deadline:
             if proc.poll() is not None:
                 pytest.fail('client exited before reconnecting (rc={}):\n{}'.format(
                     proc.returncode, client_output(proc)))
+            # "++ reconnected session" is logged by both xrdp 0.9 and 0.10
+            # when the client reattaches to an existing session.
             new_lines = read_from(SESMAN_LOG, offset)
             for index, line in enumerate(new_lines):
-                if 'create a session' in line:
-                    create_index = index
+                if '++ reconnected session' in line:
+                    reconnect_index = index
                     break
-            if create_index is not None:
+            if reconnect_index is not None:
                 break
             time.sleep(1)
-        if create_index is None:
-            pytest.fail('reconnect did not log a new session request; '
+        if reconnect_index is None:
+            pytest.fail('reconnect did not reattach to the existing session; '
                         'client output:\n{}'.format(client_output(proc)))
-        started = [line for line in new_lines[create_index + 1:]
-                   if 'Starting X server' in line]
+        time.sleep(3)
+        # Re-read after the settle sleep: a new X server is logged a fraction
+        # of a second after the session request, and the wording differs
+        # between xrdp 0.9 and 0.10.
+        new_lines = read_from(SESMAN_LOG, offset)
+        started = [line for line in new_lines[reconnect_index + 1:]
+                   if re.search(r'Starting X server|starting (Xvnc|Xorg) session',
+                                line)]
         assert not started, ('reconnect started a new X server instead of '
                              'reattaching:\n{}'.format('\n'.join(started)))
-        time.sleep(3)
         assert proc.poll() is None, 'client exited after reconnecting'
         assert pids_for(TEST_USER, 'Xvnc') == xvnc_before, \
             'reconnect did not reuse the existing Xvnc session'
