@@ -67,6 +67,12 @@ sub run {
     assert_script_run('./ipsec_setup_tunnel_server.sh stop');
 }
 
+sub test_flags {
+    # The client waits for IPSEC_SERVER_READY and cannot do anything without the
+    # server. Stop the job on failure, then openQA cancels the client at once.
+    return {fatal => 1};
+}
+
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
