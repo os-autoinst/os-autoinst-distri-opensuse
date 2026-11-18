@@ -1634,6 +1634,7 @@ sub virsh_migrate_manual_postcopy {
     enter_cmd("sleep 120 && $_command[0]");
     save_screenshot;
     select_console("root-ssh-virt");
+    $testapi::serialdev = "virtsshserial";
     enter_cmd("clear");
     $_ret = script_run("(set -x;unset migrate_postcopy;export migrate_postcopy=1; for i in `seq 87000`;do $_command[1];migrate_postcopy=\$?; if [ \$migrate_postcopy -eq 0 ];then set +x;break;fi; done; if [ \$migrate_postcopy -eq 0 ];then echo -e \"Migrate Postcopy Succeeded! \\n\";else command-not-found;fi)", timeout => 300);
     wait_still_screen(30);
