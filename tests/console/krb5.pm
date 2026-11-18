@@ -28,7 +28,8 @@ sub logout_and_verify_shell_availability {
     if (is_aarch64) {
         select_console 'root-console';
         systemctl 'restart serial-getty@hvc0.service';
-        reset_consoles;
+        # reset only the restarted serial console, keep logged in VT consoles (user-console)
+        console('root-virtio-terminal')->reset;
         select_serial_terminal;
     }
 }
@@ -45,6 +46,8 @@ sub run {
     #backup VM current status/setup:
     script_run 'cp /etc/hosts /etc/hosts-bkp';
     script_run 'cp /etc/hostname /etc/hostname-bkp';
+    script_run 'cp /etc/krb5.conf /etc/krb5.conf-bkp';
+    script_run 'test -f /etc/krb5.keytab && cp /etc/krb5.keytab /etc/krb5.keytab-bkp';
     script_run 'hostname > /tmp/hostname';
 
     #setup FQDN hostname to successfully create krb5 server:
@@ -124,11 +127,15 @@ sub run {
     script_run 'rm -f /var/lib/kerberos/krb5kdc/principal*';
     script_run 'mv /etc/hosts-bkp /etc/hosts';
     script_run 'mv /etc/hostname-bkp /etc/hostname';
+    script_run 'mv /etc/krb5.conf-bkp /etc/krb5.conf';
+    # drop the host principals added by setup-kerberos-server, they break later AD joins (adcli)
+    script_run 'rm -f /etc/krb5.keytab; test -f /etc/krb5.keytab-bkp && mv /etc/krb5.keytab-bkp /etc/krb5.keytab';
     script_run 'rm /tmp/krb5';
     script_run 'hostname `cat /tmp/hostname`';
     script_run 'rm /tmp/hostname';
     assert_script_run 'rckadmind stop';
     systemctl 'stop kadmind krb5kdc';
+    script_run 'userdel -r tester';
 
     #confirm hostname returned:
     validate_script_output "hostname", sub { /susetest/ };
