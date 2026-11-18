@@ -190,7 +190,7 @@ sub run {
     my $retry = int($default_timeout / 10);
     $retry = 5 if ($retry < 5);
     for (1 .. $retry) {
-        last unless script_run('ls /dev/disk/by-path/ip-*', timeout => $retry * $delay);
+        last unless script_retry('ls /dev/disk/by-path/ip-*', timeout => $default_timeout, retry => $retry, delay => $delay, die => 0, fail_message => 'No iSCSI devices!');
         systemctl('restart iscsid');
         systemctl('restart iscsi');
         sleep $delay;
