@@ -6,6 +6,12 @@
 # Summary: SLE 16 Common Criteria automated installation
 # Maintainer: QE Security <none@suse.de>
 #
+# Supported architectures:
+#   - x86_64 (BIOS and UEFI)
+#   - aarch64
+#   - ppc64le (QEMU pseries, for example MACHINE=ppc64le-p10-virtio)
+#   - s390x (zKVM, see below)
+#
 # Settings:
 #
 # DESKTOP - textmode
@@ -24,7 +30,7 @@
 #   line of the grub entry
 #   editor to reach the linux line, default: 4
 # PUBLISH_HDD_1 - name of the qcow2 image to save after the installation
-# PUBLISH_PFLASH_VARS - for UEFI.
+# PUBLISH_PFLASH_VARS - UEFI only.
 #
 # s390x zKVM only. There is no grub menu, the kernel command line selects the
 # CC installer, and the installer uses the serial console:
@@ -44,9 +50,9 @@
 
 use Mojo::Base 'installbasetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal 'select_text_console';
 use utils qw(is_uefi_boot save_svirt_pty);
-use Utils::Architectures qw(is_aarch64 is_s390x);
+use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x);
 use power_action_utils 'assert_shutdown_and_restore_system';
 use security::sle16cc qw(
   fill_screen
@@ -85,12 +91,15 @@ sub add_tty_console_to_grub_entry {
     send_key 'ctrl-x';
 }
 
-# The BIOS menu has the extra first entry "Boot from Hard Disk", the UEFI menu
-# has not. Therefore the CC entry is the 3rd entry on BIOS and the 2nd on UEFI.
+# The BIOS menu has the extra first entry "Boot from Hard Disk", the UEFI and
+# the ppc64le menus have not. Therefore the CC entry is the 3rd entry on BIOS
+# and the 2nd on UEFI and ppc64le. On ppc64le the grub menu is on the serial
+# console (hvc0), and the installer uses the same console, so no kernel
+# parameter is changed.
 # The next screen check fails, if a wrong entry is selected.
 sub select_cc_grub_entry {
     assert_screen 'sle16-cc-grub-menu', 60;
-    send_key 'down' for 1 .. (is_uefi_boot() ? 1 : 2);
+    send_key 'down' for 1 .. ((is_uefi_boot() || is_ppc64le()) ? 1 : 2);
     if (is_aarch64()) {
         record_info('aarch64 boot', 'Adding the tty0 console to the kernel command line');
         add_tty_console_to_grub_entry();
@@ -178,7 +187,7 @@ sub check_os_release {
 sub run {
     my $password = get_var('DEFAULT_PASSWORD', $testapi::password);
     # The installer sets this password for root. The serial terminal login
-    # (select_serial_terminal) and the later modules type $testapi::password.
+    # (select_text_console) and the later modules type $testapi::password.
     $testapi::password = $password;
     my $user = get_var('USERNAME', $testapi::username);
 
@@ -193,8 +202,10 @@ sub run {
         unlock_and_login_cc_system($user, $password);
     }
 
-    # The first user cannot write to the serial device, so run the check as root
-    select_serial_terminal;
+    # The first user cannot write to the serial device, so run the check as root.
+    # On ppc64le (OFW) the root virtio terminal (hvc1) has no getty, so
+    # select_text_console selects the VGA root console there.
+    select_text_console;
     assert_script_run("id $user");
     check_os_release();
     # The system stays running, poweroff is called in the schedule
