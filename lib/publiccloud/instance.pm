@@ -65,7 +65,16 @@ sub retry_ssh_command {
 sub _prepare_ssh_cmd {
     my ($self, %args) = @_;
     die('No command defined') unless ($args{cmd});
-    $args{ssh_opts} //= $self->ssh_opts();
+    if (defined $args{ssh_opts}) {
+        # Only append if the base opts aren't already included
+        my $base_opts = $self->ssh_opts();
+        if (index($args{ssh_opts}, $base_opts) == -1) {
+            $args{ssh_opts} = "$base_opts $args{ssh_opts}";
+        }
+    } else {
+        $args{ssh_opts} = $self->ssh_opts();
+    }
+
     $args{username} //= $self->username();
 
     my $cmd = $args{cmd};
