@@ -65,6 +65,12 @@ sub run_tests {
         }
     }
     push @xfails, (
+        # This fails for remote on podman v6.2.0 because we don't ship libcontainers-common
+        # with the storage driver set in storage.conf
+        # https://github.com/podman-container-tools/podman/issues/30280
+        "012-manifest.bats::podman manifest add --artifact-subject",
+    ) if ($remote && version->parse(numeric_version($version)) >= version->parse("6.2.0"));
+    push @xfails, (
         # This test is racy on ppc64le:
         "090-events.bats::events - died event contains OOMKilled attribute",
     ) if (version->parse(numeric_version($version)) >= version->parse("6.0.0"));
