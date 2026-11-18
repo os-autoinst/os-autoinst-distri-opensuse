@@ -18,6 +18,10 @@ use agnosticTestRunner;
 
 # ansible comes from different modules per product (poo#181136, poo#177528)
 sub enable_ansible_modules {
+    if (is_sle('=15-SP7')) {
+        add_suseconnect_product(get_addon_fullname('sysm'));
+        zypper_call '--gpg-auto-import-keys ref', retry_on_timeout => 1;
+    }
     if (is_sle('<15-SP6') && !main_common::is_updates_tests()) {
         add_suseconnect_product(get_addon_fullname('desktop'));
         add_suseconnect_product(get_addon_fullname('sdk'));
