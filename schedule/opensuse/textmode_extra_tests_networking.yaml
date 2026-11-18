@@ -2,6 +2,10 @@ name:           textmode_extra_tests_networking
 description:    >
     Extra CLI tests for network related things
 conditional_schedule:
+    glib_networking:
+        VERSION:
+            Tumbleweed:
+                - console/oqa_agnostic/glib_networking
     yast2_lan_device_settings:
         ARCH:
             aarch64:
@@ -51,6 +55,7 @@ schedule:
     - console/openvswitch
     - console/ovn
     - console/sshd
+    - '{{glib_networking}}'
     - console/mta
     - '{{yast2_lan_device_settings}}'
     - console/check_default_network_manager
