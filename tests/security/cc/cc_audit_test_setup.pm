@@ -35,11 +35,13 @@ sub run {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product('sle-module-development-tools');
     }
-    install_package('-t pattern devel_basis');
+    # install_package does not pass its default timeout to trup_call, which has a
+    # default of 180 seconds only. The pattern and the list are big.
+    install_package('-t pattern devel_basis', timeout => 900);
 
     # On transactional systems, add the packages to the same snapshot as the pattern, then reboot once
     my $pkexec_package = is_sle('<15-SP5') ? "polkit" : "pkexec";
-    install_package("git expect libcap-devel psmisc cryptsetup $pkexec_package vsftpd audit audit-audispd-plugins wget iputils curl netcat-openbsd", trup_continue => 1, trup_reboot => 1);
+    install_package("git expect libcap-devel psmisc cryptsetup $pkexec_package vsftpd audit audit-audispd-plugins wget iputils curl netcat-openbsd", trup_continue => 1, trup_reboot => 1, timeout => 900);
 
     # Workaround for restarting audit service. Use a drop-in, because /usr
     # is read-only on transactional systems.
