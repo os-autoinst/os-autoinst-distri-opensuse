@@ -83,7 +83,6 @@ schedule:
   - console/systemd_resolved
   - console/check_default_network_manager
   - console/libgpiod
-  - console/libaom
   - console/btrfs_check
   - console/validate_partition_table_via_blkid
   - console/snapper_create
@@ -154,10 +153,7 @@ test_data:
     - apache2
     - apache2-utils
     - ruby4.0                          # ruby
-    - libaom-devel                     # libaom
-    - gcc                              # libaom, gcc, gdb
-    - make
-    - nasm
+    - gcc                              # gcc, gdb
     - mariadb                          # mariadb_srv, mariadb_odbc
     - mariadb-connector-odbc
     - osinfo-db                        # osinfo_db
