@@ -13,6 +13,7 @@ use registration;
 use testapi;
 use utils qw(ssh_fully_patch_system);
 use publiccloud::utils;
+use publiccloud::zypper qw(pc_wait_quit);
 use publiccloud::ssh_interactive qw(select_host_console);
 use version_utils qw(is_sle_micro is_sle);
 use qam qw(get_test_repos);
@@ -95,6 +96,8 @@ sub check_any_updates {
 # (TEST_N, ToTest_N, or the alias from a .repo file).
 sub check_updates_from_test_repos {
     my ($instance) = @_;
+
+    pc_wait_quit($instance);
 
     # Path of each repo under test, without the host part (transfer_repos replaces the host with a local dir)
     my @paths = grep { m{/} } map { s{^\s*(?:https?://.*?/ibs/)?|/*\s*$}{}gr } get_test_repos();
