@@ -36,7 +36,16 @@ sub run {
                 select_console 'x11', await_console => 0;
                 last;
             }
-            assert_screen_change { assert_and_click('updates_click-install', timeout => 90); };
+            if (check_screen([qw(updates_click-install updates_issue)], timeout => 90)) {
+                if (match_has_tag 'updates_issue') {
+                    # Click the 'See Technical Details' button to get more information
+                    assert_and_click('updates_issue');
+                    wait_still_screen;
+                    save_screenshot;
+                    die 'Update issue';
+                }
+            }
+            assert_screen_change { assert_and_click('updates_click-install', timeout => 90) };
             assert_screen [qw(updates_click-install pkit_installing_state)];
             # Discover needs an additional confirmation
             if (match_has_tag 'updates_click-install') {
