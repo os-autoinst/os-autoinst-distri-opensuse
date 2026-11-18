@@ -1,10 +1,11 @@
 local arch = '{{ARCH}}';
 local version = '{{VERSION}}';
+local is_immutable = '{{IMMUTABLE}}' == '1';
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
-    registrationCode: '{{SCC_REGCODE}}'
-  },
+    registrationCode: '{{SCC_REGCODE}}',
+    } + (if is_immutable then { mode: 'immutable' } else {}),
   bootloader: {
     stopOnBootMenu: true,
   },
