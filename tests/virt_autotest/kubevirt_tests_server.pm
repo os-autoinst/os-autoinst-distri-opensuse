@@ -327,8 +327,24 @@ sub deploy_kubevirt_manifests {
     assert_script_run("kubectl apply -f /usr/share/cdi/manifests/release/cdi-cr.yaml");
     assert_script_run("kubectl -n cdi wait cdis cdi --for condition=available --timeout=30m", timeout => 1800);
 
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-operator.yaml");
-    assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-cr.yaml");
+    if (is_sle('>=16.0')) {
+        # Use the latest virt-operator build from registry.suse.com matching the installed kubevirt version
+        my $os_version = get_var('VERSION');
+        my $repo = "suse/sles/$os_version/virt-operator";
+        my $ver = (split('-', $kubevirt_ver))[0];
+        my $token = script_output(qq(curl -s "https://scc.suse.com/api/registry/authorize?service=SUSE%20Linux%20Docker%20Registry&scope=repository:$repo:pull" | jq -r .token));
+        my $tag = script_output(qq(curl -s -H "Authorization: Bearer $token" https://registry.suse.com/v2/$repo/tags/list | jq -r '.tags[]' | grep -E '^$ver-[0-9.]+\$' | sort -V | tail -1));
+        die "No virt-operator tag found for kubevirt $ver in registry.suse.com/$repo" unless $tag;
+        record_info('Latest tag version from ', "registry.suse.com/$repo:$tag");
+        assert_script_run("curl -sLO https://github.com/kubevirt/kubevirt/releases/download/v$kubevirt_ver/kubevirt-operator.yaml");
+        assert_script_run("curl -sLO https://github.com/kubevirt/kubevirt/releases/download/v$kubevirt_ver/kubevirt-cr.yaml");
+        assert_script_run(qq(sed -i "s#quay.io/kubevirt/virt-operator:v$kubevirt_ver#registry.suse.com/$repo:$tag#" kubevirt-operator.yaml));
+        assert_script_run("kubectl apply -f kubevirt-operator.yaml");
+        assert_script_run("kubectl apply -f kubevirt-cr.yaml");
+    } else {
+        assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-operator.yaml");
+        assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-cr.yaml");
+    }
     assert_script_run("kubectl -n kubevirt wait kv kubevirt --for condition=available --timeout=30m", timeout => 1800);
 
     assert_script_run("kubectl apply -f /usr/share/kube-virt/manifests/testing/rbac-for-testing.yaml");
