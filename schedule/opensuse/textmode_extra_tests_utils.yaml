@@ -26,6 +26,11 @@ conditional_schedule:
         VERSION:
             Tumbleweed:
                 - console/oqa_agnostic/grafana_agnostic
+    tumbleweed_agnostic:
+        VERSION:
+            Tumbleweed:
+                - console/oqa_agnostic/console_font_agnostic
+                - console/oqa_agnostic/evolution_data_server
     steamcmd:
         ARCH:
             x86_64:
@@ -100,4 +105,5 @@ schedule:
     - console/journalctl
     - console/tar
     - console/sevenzip
+    - '{{tumbleweed_agnostic}}'
     - '{{opencode}}'

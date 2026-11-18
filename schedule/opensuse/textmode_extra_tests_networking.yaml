@@ -28,6 +28,11 @@ conditional_schedule:
                 - console/velociraptor_client_event_collect
             ppc64le:
                 - console/velociraptor_client_event_collect
+    tumbleweed_agnostic:
+        VERSION:
+            Tumbleweed:
+                - console/oqa_agnostic/glib_networking
+                - console/oqa_agnostic/libsoup
     consoletest_setup:
         AGAMA:
             +undefined:
@@ -67,3 +72,4 @@ schedule:
     - console/sssd_389ds_functional
     - console/oqa_agnostic/salt_agnostic
     - console/oqa_agnostic/ansible_agnostic
+    - '{{tumbleweed_agnostic}}'
