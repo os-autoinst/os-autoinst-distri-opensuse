@@ -2,6 +2,10 @@ name:           textmode_extra_tests_utils
 description:    >
     Extra CLI tests for network related things
 conditional_schedule:
+    evolution_data_server:
+        VERSION:
+            Tumbleweed:
+                - console/oqa_agnostic/evolution_data_server
     lshw:
         ARCH:
             x86_64:
@@ -105,4 +109,5 @@ schedule:
     - console/journalctl
     - console/tar
     - console/sevenzip
+    - '{{evolution_data_server}}'
     - '{{opencode}}'
