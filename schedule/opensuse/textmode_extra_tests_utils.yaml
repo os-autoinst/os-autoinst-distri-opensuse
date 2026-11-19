@@ -22,6 +22,10 @@ conditional_schedule:
         VERSION:
             Tumbleweed:
                 - console/opencode
+    console_font:
+        VERSION:
+            Tumbleweed:
+                - console/oqa_agnostic/console_font_agnostic
     grafana:
         VERSION:
             Tumbleweed:
@@ -74,6 +78,7 @@ schedule:
     - console/vhostmd
     - console/rpcbind
     - console/timezone
+    - '{{console_font}}'
     - console/procps
     - '{{lshw}}'
     - console/suse_module_tools
