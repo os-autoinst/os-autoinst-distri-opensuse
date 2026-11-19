@@ -30,11 +30,6 @@ repos:
     uri: http://developer.download.nvidia.com/compute/cuda/repos/suse16/
     enabled: 'No'
     filter: name
-  - name: NVIDIA-Graphics-Drivers-%VERSION%
-    alias: SUSE_Linux_Enterprise_Server_for_SAP_applications_%VERSION%_%ARCH%:NVIDIA-Graphics-Drivers-%VERSION%
-    uri: http://download.nvidia.com/suse/sle16
-    enabled: 'No'
-    filter: name
 selinux:
   status: enabled
   mode: enforcing
