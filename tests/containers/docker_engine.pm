@@ -28,7 +28,7 @@ sub setup {
 
     record_info "dockerd go version", script_output("go version -m \$(command -v dockerd)");
 
-    configure_docker(selinux => 1, tls => 0);
+    configure_docker(selinux => 1, tls => 0, insecure_registries => ["127.0.0.1:5000"]);
 
     # The docker package ships docker-af-vsock-deny.cil but doesn't load it.
     # Apply workaround from https://bugzilla.opensuse.org/show_bug.cgi?id=1278193#c10
