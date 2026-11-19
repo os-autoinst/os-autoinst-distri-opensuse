@@ -14,11 +14,15 @@ use audit_test;
 use Utils::Architectures;
 use lockapi;
 use network_utils 'iface';
+use package_utils 'install_package';
 use security::cc_ipsec;
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
+
+    # With strongSwan older than 6.0, the strongswan package also provides the 'ipsec' starter
+    install_package('strongswan iputils audit make', trup_reboot => 1);
 
     my ($server_ip, $client_ip) = ipsec_peer_ips();
 
@@ -39,29 +43,39 @@ sub run {
 
     # Test the IPSec connection
     assert_script_run('ipsec start');
-    assert_script_run('stime=$(date +\'%H:%M:%S\')');
+    # validate_script_output runs the command in a new shell, thus keep the time in Perl
+    my $stime = script_output("date +'%H:%M:%S'");
 
     # ipsec start returns before charon has loaded the connection
     wait_ipsec_conn('ikev2suse');
 
-    assert_script_run('ipsec up ikev2suse', timeout => is_s390x ? 300 : 90);
+    my $up = script_output('ipsec up ikev2suse 2>&1', timeout => is_s390x ? 300 : 90);
 
-    # Test the IPSec connection
-    assert_script_run('ping -W1 -c1 192.168.250.1');
+    # Test that the CHILD_SA protects the traffic
+    my ($vip) = $up =~ /installing new virtual IP (\S+)/;
+    my ($ok, $message) = check_ipsec_traffic('ikev2suse', $vip);
+    record_info('IPsec traffic', $message, result => $ok ? 'ok' : 'fail');
+    die "The IPsec connection does not work\n" unless $ok;
 
-    # Search for AUDIT SPD/SAD add records
-    assert_script_run('ausearch -ts $stime | grep --color -e \'MAC_IPSEC_EVENT\' -e \'SPD-add\' -e \'SAD-add\'');
+    # The kernel must audit both the new security policies and the new SAs
+    validate_script_output("ausearch -m MAC_IPSEC_EVENT -ts $stime", sub { m/op=SPD-add/ && m/op=SAD-add/ });
 
-    assert_script_run('stime=$(date +\'%H:%M:%S\')');
+    $stime = script_output("date +'%H:%M:%S'");
 
     my $timeout = is_s390x() ? 180 : 90;
     assert_script_run('ipsec down ikev2suse', $timeout);
 
-    # Search for AUDIT SPD/SAD delete records
-    assert_script_run('ausearch -ts $stime | grep --color -e \'MAC_IPSEC_EVENT\' -e \'SPD-delete\' -e \'SAD-delete\'');
+    # The kernel must audit the deletion of the security policies and SAs
+    validate_script_output("ausearch -m MAC_IPSEC_EVENT -ts $stime", sub { m/op=SPD-delete/ && m/op=SAD-delete/ });
 
     # Stop the IPSec service
     assert_script_run('ipsec stop');
+}
+
+sub test_flags {
+    # The next client modules need the tunnel and the IPsec configuration
+    # of this module, thus do not roll back to the last milestone on failure
+    return {no_rollback => 1};
 }
 
 sub post_fail_hook {
