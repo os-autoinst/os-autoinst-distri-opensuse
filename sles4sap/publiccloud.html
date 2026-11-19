@@ -19,7 +19,7 @@
       <li><a href="#get_promoted_hostname-get_promoted_hostname">get_promoted_hostname() get_promoted_hostname();</a></li>
       <li><a href="#deployment_cleanup">deployment_cleanup</a></li>
       <li><a href="#get_hana_topology-Parses-command-output-returns-hash-of-hashes-containing-values-for-each-host">get_hana_topology Parses command output, returns hash of hashes containing values for each host.</a></li>
-      <li><a href="#is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</a></li>
+      <li><a href="#is_hana_online-is_hana_online-timeout-300-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 300, wait_for_start =&gt; &#39;false&#39;]);</a></li>
       <li><a href="#is_hana_resource_running-is_hana_resource_running-quiet-0">is_hana_resource_running is_hana_resource_running([quiet =&gt; 0]);</a></li>
       <li><a href="#wait_hana_node_up-wait_hana_node_up-my_instance-timeout-900-ssh_keepalive-1">wait_hana_node_up wait_hana_node_up($my_instance, [timeout =&gt; 900, ssh_keepalive =&gt; 1]);</a></li>
       <li><a href="#stop_hana-stop_hana-timeout-timeout-method-method">stop_hana stop_hana([timeout =&gt; $timeout, method =&gt; $method]);</a></li>
@@ -158,7 +158,7 @@ Return 0 if no internal error.</code></pre>
 
 <h2 id="get_hana_topology-Parses-command-output-returns-hash-of-hashes-containing-values-for-each-host">get_hana_topology Parses command output, returns hash of hashes containing values for each host.</h2>
 
-<h2 id="is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</h2>
+<h2 id="is_hana_online-is_hana_online-timeout-300-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 300, wait_for_start =&gt; &#39;false&#39;]);</h2>
 
 <pre><code>Check if hana DB is online.</code></pre>
 
@@ -168,7 +168,7 @@ Return 0 if no internal error.</code></pre>
 <dd>
 
 </dd>
-<dt id="timeout---timeout-for-the-wait-of-the-online-state"><b>timeout</b> - timeout for the wait of the online state</dt>
+<dt id="timeout---timeout-for-the-wait-of-the-online-state-default:-300"><b>timeout</b> - timeout for the wait of the online state (default: 300)</dt>
 <dd>
 
 </dd>
