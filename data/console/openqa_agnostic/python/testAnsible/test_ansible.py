@@ -166,6 +166,9 @@ def test_vault_roundtrip():
     out('cat ./ranom_content.txt | ansible-vault encrypt_string --vault-password-file ./ranom_password.txt --stdin-name random_content | tee -a ./encrypted_content.yaml')
     # ansible-core 2.22 masks decrypted vault values in output, so read the
     # value back from a file instead of the redacted debug output.
-    out('ansible localhost --vault-password-file ./ranom_password.txt -e "@./encrypted_content.yaml" -m copy -a "content={{ random_content }} dest=/tmp/ansible_vault_roundtrip.txt"')
-    with open('/tmp/ansible_vault_roundtrip.txt') as roundtrip:
-        assert content in roundtrip.read()
+    dest = os.path.join(COLLECTION, 'vault_roundtrip.txt')
+    args = f'{{"content": "{{{{ random_content }}}}", "dest": "{dest}", "mode": "0600"}}'
+    out(f'ansible localhost --vault-password-file ./ranom_password.txt '
+        f'-e "@./encrypted_content.yaml" -m copy -a \'{args}\'')
+    with open(dest) as roundtrip:
+        assert roundtrip.read().rstrip('\n') == content
