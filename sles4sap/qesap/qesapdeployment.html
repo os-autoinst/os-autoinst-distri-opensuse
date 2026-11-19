@@ -19,15 +19,16 @@
     <ul>
       <li><a href="#Methods">Methods</a>
         <ul>
-          <li><a href="#qesap_get_paths">qesap_get_paths</a></li>
-          <li><a href="#qesap_get_file_paths">qesap_get_file_paths</a></li>
-          <li><a href="#qesap_create_folder_tree">qesap_create_folder_tree</a></li>
-          <li><a href="#qesap_get_variables">qesap_get_variables</a></li>
+          <li><a href="#qesap_is_valid_version">_qesap_is_valid_version</a></li>
+          <li><a href="#qesap_get_paths">_qesap_get_paths</a></li>
+          <li><a href="#qesap_get_file_paths">_qesap_get_file_paths</a></li>
+          <li><a href="#qesap_create_folder_tree">_qesap_create_folder_tree</a></li>
+          <li><a href="#qesap_get_variables">_qesap_get_variables</a></li>
           <li><a href="#qesap_ansible_create_section">qesap_ansible_create_section</a></li>
-          <li><a href="#qesap_venv_cmd_exec">qesap_venv_cmd_exec</a></li>
+          <li><a href="#qesap_venv_cmd_exec">_qesap_venv_cmd_exec</a></li>
           <li><a href="#check_bsc1258357">_check_bsc1258357</a></li>
-          <li><a href="#qesap_py">qesap_py</a></li>
-          <li><a href="#qesap_pip">qesap_pip</a></li>
+          <li><a href="#qesap_py">_qesap_py</a></li>
+          <li><a href="#qesap_pip">_qesap_pip</a></li>
           <li><a href="#qesap_pip_install">qesap_pip_install</a></li>
           <li><a href="#qesap_galaxy_install">qesap_galaxy_install</a></li>
           <li><a href="#qesap_upload_logs">qesap_upload_logs</a></li>
@@ -99,11 +100,15 @@ SPDX-License-Identifier: FSFAP</code></pre>
 
 <h2 id="Methods">Methods</h2>
 
-<h3 id="qesap_get_paths">qesap_get_paths</h3>
+<h3 id="qesap_is_valid_version">_qesap_is_valid_version</h3>
+
+<pre><code>Validate string against qe-sap-deployment version format</code></pre>
+
+<h3 id="qesap_get_paths">_qesap_get_paths</h3>
 
 <pre><code>Returns a hash containing directory paths for qe-sap-deployment:
 deployment_dir, terraform_dir, roles_dir, roles_dir_path.
-Unlike qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.</code></pre>
+Unlike _qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.</code></pre>
 
 <dl>
 
@@ -113,15 +118,15 @@ Unlike qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.</code></
 </dd>
 </dl>
 
-<h3 id="qesap_get_file_paths">qesap_get_file_paths</h3>
+<h3 id="qesap_get_file_paths">_qesap_get_file_paths</h3>
 
 <pre><code>Returns a hash containing file paths for configuration files</code></pre>
 
-<h3 id="qesap_create_folder_tree">qesap_create_folder_tree</h3>
+<h3 id="qesap_create_folder_tree">_qesap_create_folder_tree</h3>
 
 <pre><code>Create all needed folders</code></pre>
 
-<h3 id="qesap_get_variables">qesap_get_variables</h3>
+<h3 id="qesap_get_variables">_qesap_get_variables</h3>
 
 <pre><code>Scans yaml configuration for &#39;%OPENQA_VARIABLE%&#39; placeholders and
 searches for values in OpenQA defined variables.
@@ -149,7 +154,7 @@ Example:
 </dd>
 </dl>
 
-<h3 id="qesap_venv_cmd_exec">qesap_venv_cmd_exec</h3>
+<h3 id="qesap_venv_cmd_exec">_qesap_venv_cmd_exec</h3>
 
 <pre><code>Run a command within the Python virtualenv
 created by qesap_pip_install.
@@ -185,11 +190,11 @@ Timeout error is 124 (the one reported by timeout command line utility).</code><
 
 <pre><code>Check system for bsc#1258357 and report findings, then fail the test.</code></pre>
 
-<h3 id="qesap_py">qesap_py</h3>
+<h3 id="qesap_py">_qesap_py</h3>
 
 <pre><code>Return string of the python to use</code></pre>
 
-<h3 id="qesap_pip">qesap_pip</h3>
+<h3 id="qesap_pip">_qesap_pip</h3>
 
 <pre><code>Return string of the pip to use</code></pre>
 
