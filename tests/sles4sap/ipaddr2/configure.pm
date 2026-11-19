@@ -32,6 +32,9 @@ Specifies the public cloud provider. Currently, only AZURE is supported.
 Controls whether this module performs the web server configuration.
 If set to 0 (disabled), this module will install and configure nginx.
 If enabled (default, 1), this step is skipped, assuming cloud-init has already performed it.
+For SLE 16 and later, if set to 0, this module also configures sshd over ssh on
+the bastion VM and the two internal VMs: it enables TCP forwarding and removes
+the login banner. If enabled, the cloud-init profiles do it at deploy time.
 
 =item B<IPADDR2_ROOTLESS>
 
@@ -82,7 +85,8 @@ sub run {
     die "Bastion key accept failed with exit code $ret" if $ret;
 
     # Deal with ssh banner / tcp forwarding in >=16 images: the bastion first, as ssh -J needs it
-    if (is_sle('>=16.0')) {
+    # With cloud-init enabled, the bastion cloud-init profile already did it at deploy time.
+    if (is_sle('>=16.0') && check_var('IPADDR2_CLOUDINIT', 0)) {
         $ret = ipaddr2_bastion_sshd_override(bastion_ip => $bastion_ip);
         die "Bastion sshd override failed with exit code $ret" if $ret;
     }
@@ -93,8 +97,9 @@ sub run {
     $ret = ipaddr2_internal_key_accept(%int_key_args);
     die "Internal key accept failed with exit code $ret" if $ret;
 
-    # Same on the internal VMs, reachable now through the bastion: crm init/join ssh between them
-    if (is_sle('>=16.0')) {
+    # Same on the internal VMs, reachable now through the bastion: crm init/join ssh between them.
+    # With cloud-init enabled, the internal VMs cloud-init profile already did it at deploy time.
+    if (is_sle('>=16.0') && check_var('IPADDR2_CLOUDINIT', 0)) {
         $ret = ipaddr2_internal_sshd_override(bastion_ip => $bastion_ip);
         die "Internal VMs sshd override failed with exit code $ret" if $ret;
     }
