@@ -144,11 +144,13 @@ sub run {
     while (@_pkgs) { push @pkg_chunks, [splice(@_pkgs, 0, 20)] }
     for my $chunk (@pkg_chunks) {
         my $cmd = '--gpg-auto-import-keys in ' . join(' ', @{$chunk});
-        my $ret = zypper_call($cmd, exitcode => [0, 8, 106]);
+        # A chunk can pull well over 1 GiB of debuginfo/debugsource. A slow
+        # or mirror-hopping download exceeds the 700 s zypper default.
+        my $ret = zypper_call($cmd, exitcode => [0, 8, 106], timeout => 1800);
         if ($ret != 0) {
             record_info('Retry', "zypper returned $ret, retrying after ref");
             zypper_call('--gpg-auto-import-keys ref', exitcode => [0, 106]);
-            zypper_call($cmd);
+            zypper_call($cmd, timeout => 1800);
         }
     }
 

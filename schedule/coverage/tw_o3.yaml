@@ -122,6 +122,8 @@ schedule:
   - console/postgresql_server
   - console/git
   - console/rsync
+  - coverage/grafana_setup
+  - console/oqa_agnostic/grafana_agnostic
   - coverage/coverage_report
 test_data:
   disks:
@@ -453,3 +455,4 @@ test_data:
     zip: /usr/bin/zip
     gzip: /usr/bin/gzip
     NetworkManager: /usr/bin/nmcli
+    grafana: /usr/libexec/grafana/grafana

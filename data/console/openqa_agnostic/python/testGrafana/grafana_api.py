@@ -81,7 +81,7 @@ def service_restart():
         raise RuntimeError('could not restart %s: %s' % (SERVICE, result.stderr))
 
 
-def wait_healthy(timeout=180):
+def wait_healthy(timeout=600):
     deadline = time.time() + timeout
     last = ''
     while time.time() < deadline:
