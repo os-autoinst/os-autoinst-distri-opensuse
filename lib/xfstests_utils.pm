@@ -601,7 +601,17 @@ sub recover_after_crash {
     else {
         prepare_system_shutdown;
         reset_consoles if check_var('DESKTOP', 'textmode');
-        check_var('VIRTIO_CONSOLE', '1') ? power_action('reboot') : send_key 'alt-sysrq-b';
+        if (check_var('VIRTIO_CONSOLE', '1')) {
+            power_action('reboot');
+        }
+        else {
+            # Sync all file systems before the hard reboot. This keeps the logs
+            # that copy_all_log wrote before the crash. The sync is asynchronous,
+            # thus wait some seconds before the reboot.
+            send_key 'alt-sysrq-s';
+            sleep 5;
+            send_key 'alt-sysrq-b';
+        }
         reconnect_mgmt_console if is_pvm;
         check_var('DESKTOP', 'textmode') ? $self->wait_boot_textmode : $self->wait_boot;
         select_serial_terminal();
