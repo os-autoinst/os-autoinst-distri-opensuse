@@ -57,7 +57,7 @@ our @EXPORT = qw(
 
 =item B<SECRET> - value for the aws_secret_access_key
 
-=item B<CONF_TRGT> - qesap_conf_trgt value in the output of qesap_get_file_paths
+=item B<CONF_TRGT> - qesap_conf_trgt value in the output of _qesap_get_file_paths
 
 =back
 =cut

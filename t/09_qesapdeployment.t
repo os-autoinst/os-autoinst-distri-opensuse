@@ -32,9 +32,9 @@ sub create_qesap_prepare_env_mocks_with_calls {
     my ($qesap, $called_functions) = @_;
 
     # then mock functions with some more complex return value
-    $called_functions->{qesap_get_file_paths} = 0;
-    $qesap->redefine(qesap_get_file_paths => sub {
-            $called_functions->{qesap_get_file_paths} = 1;
+    $called_functions->{_qesap_get_file_paths} = 0;
+    $qesap->redefine(_qesap_get_file_paths => sub {
+            $called_functions->{_qesap_get_file_paths} = 1;
             my %paths;
             $paths{qesap_conf_src} = '/REEF';
             $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
@@ -53,7 +53,7 @@ sub create_qesap_prepare_env_mocks_with_calls {
 
 subtest '[qesap_get_inventory] upper case' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{terraform_dir} = '/BRUCE';
             return (%paths);
@@ -67,7 +67,7 @@ subtest '[qesap_get_inventory] upper case' => sub {
 
 subtest '[qesap_get_inventory] lower case' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{terraform_dir} = '/BRUCE';
             return (%paths);
@@ -87,8 +87,8 @@ sub create_qesap_prepare_env_deployment_code_mocks {
     $qesap->redefine(enter_cmd => sub { push @$calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @$calls, $_[0]; });
     $qesap->redefine(script_run => sub { push @$calls, $_[0]; return 0; });
-    $qesap->redefine(qesap_get_variables => sub { return {}; });
-    $qesap->redefine(qesap_create_folder_tree => sub { return; });
+    $qesap->redefine(_qesap_get_variables => sub { return {}; });
+    $qesap->redefine(_qesap_create_folder_tree => sub { return; });
     $qesap->redefine(qesap_get_roles_code => sub { return; });
     $qesap->redefine(qesap_pip_install => sub { return; });
     $qesap->redefine(qesap_galaxy_install => sub { return; });
@@ -96,7 +96,7 @@ sub create_qesap_prepare_env_deployment_code_mocks {
     $qesap->redefine(qesap_upload_logs => sub { return; });
     $qesap->redefine(qesap_get_terraform_dir => sub { return '/BRUCE/OCEAN'; });
     $qesap->redefine(qesap_execute => sub { return (0, 'ALL GOOD'); });
-    $qesap->redefine(qesap_get_paths => sub {
+    $qesap->redefine(_qesap_get_paths => sub {
             return (
                 deployment_dir => '/BRUCE',
                 terraform_dir => '/BRUCE/OCEAN',
@@ -205,7 +205,7 @@ subtest '[qesap_prepare_env] deployment code dies when latest tag cannot be pars
 subtest '[qesap_prepare_env] deployment code empties and recreates deployment_dir' => sub {
     my @calls;
     my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
-    $qesap->redefine(qesap_get_paths => sub {
+    $qesap->redefine(_qesap_get_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/CUSTOM_DEPLOY_DIR';
             $paths{terraform_dir} = '/CUSTOM_DEPLOY_DIR/OCEAN';
@@ -223,26 +223,26 @@ subtest '[qesap_prepare_env] deployment code empties and recreates deployment_di
 subtest '[qesap_prepare_env] deployment code dies when deployment_dir is missing or empty' => sub {
     my @calls;
     my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => undef, qesap_conf_trgt => undef, qesap_conf_src => '/src');
     });
-    $qesap->redefine(qesap_get_paths => sub {
+    $qesap->redefine(_qesap_get_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => undef);
     });
     throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is undef';
 
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '', qesap_conf_trgt => '/target', qesap_conf_src => '/src');
     });
-    $qesap->redefine(qesap_get_paths => sub {
+    $qesap->redefine(_qesap_get_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '');
     });
     throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is empty string';
 
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '   ', qesap_conf_trgt => '/target', qesap_conf_src => '/src');
     });
-    $qesap->redefine(qesap_get_paths => sub {
+    $qesap->redefine(_qesap_get_paths => sub {
             return (terraform_dir => '/BRUCE/OCEAN', deployment_dir => '   ');
     });
     throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/Missing mandatory deployment_dir/, 'Dies when deployment_dir is whitespace';
@@ -252,10 +252,10 @@ subtest '[qesap_prepare_env] deployment code dies when deployment_dir is root di
     my @calls;
     my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
     for my $dir ('/', '//', '///', '  ///  ') {
-        $qesap->redefine(qesap_get_file_paths => sub {
+        $qesap->redefine(_qesap_get_file_paths => sub {
                 return (terraform_dir => '/OCEAN', deployment_dir => $dir, qesap_conf_trgt => '/target', qesap_conf_src => '/src');
         });
-        $qesap->redefine(qesap_get_paths => sub {
+        $qesap->redefine(_qesap_get_paths => sub {
                 return (terraform_dir => '/OCEAN', deployment_dir => $dir);
         });
         throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/cannot be '\/' or '\/root'/, "Dies when deployment_dir is '$dir'";
@@ -266,10 +266,10 @@ subtest '[qesap_prepare_env] deployment code dies when deployment_dir is /root' 
     my @calls;
     my $qesap = create_qesap_prepare_env_deployment_code_mocks(\@calls);
     for my $dir ('/root', '/root/', '/root///', '//root', '///root', '///root///', '  //root//  ') {
-        $qesap->redefine(qesap_get_file_paths => sub {
+        $qesap->redefine(_qesap_get_file_paths => sub {
                 return (terraform_dir => '/root/OCEAN', deployment_dir => $dir, qesap_conf_trgt => '/target', qesap_conf_src => '/src');
         });
-        $qesap->redefine(qesap_get_paths => sub {
+        $qesap->redefine(_qesap_get_paths => sub {
                 return (terraform_dir => '/root/OCEAN', deployment_dir => $dir);
         });
         throws_ok { qesap_prepare_env(provider => 'DONALDUCK') } qr/cannot be '\/' or '\/root'/, "Dies when deployment_dir is '$dir'";
@@ -284,7 +284,7 @@ subtest '[qesap_cache_releases] bakes each version into the cache' => sub {
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     # Respect the deployment_dir override passed by qesap_cache_releases
-    $qesap->redefine(qesap_get_paths => sub {
+    $qesap->redefine(_qesap_get_paths => sub {
             my (%args) = @_;
             my $deploy = $args{deployment_dir} // '/BRUCE';
             return (
@@ -316,7 +316,7 @@ subtest '[qesap_get_roles_code] from default github' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_paths => sub {
+    $qesap->redefine(_qesap_get_paths => sub {
             my %paths;
             $paths{roles_dir} = '/BRUCE';
             return (%paths);
@@ -334,7 +334,7 @@ subtest '[qesap_get_roles_code] from fork' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_paths => sub {
+    $qesap->redefine(_qesap_get_paths => sub {
             my %paths;
             $paths{roles_dir} = '/BRUCE';
             return (%paths);
@@ -354,7 +354,7 @@ subtest '[qesap_get_roles_code] from branch' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(qesap_get_paths => sub {
+    $qesap->redefine(_qesap_get_paths => sub {
             my %paths;
             $paths{roles_dir} = '/BRUCE';
             return (%paths);
@@ -368,8 +368,8 @@ subtest '[qesap_get_roles_code] from branch' => sub {
     ok((any { /git.*clone.*--branch.*TED/ } @calls), 'Checkout expected branch');
 };
 
-subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
-    # Call qesap_execute without to mock qesap_venv_cmd_exec
+subtest '[qesap_execute] simple call integrate _qesap_venv_cmd_exec' => sub {
+    # Call qesap_execute without to mock _qesap_venv_cmd_exec
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @logs = ();
@@ -378,7 +378,7 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
 
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
@@ -387,7 +387,7 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res; });
     $qesap->redefine(script_retry => sub { push @calls, $_[0]; return $expected_res; });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
-    # needed within the qesap_venv_cmd_exec as activating the vevn
+    # needed within the _qesap_venv_cmd_exec as activating the vevn
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0] });
 
     my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET');
@@ -416,11 +416,11 @@ subtest '[qesap_execute] simplest call' => sub {
     my $cmd = 'GILL';
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(qesap_venv_cmd_exec => sub {
+    $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
             return $expected_res; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
@@ -442,7 +442,7 @@ subtest '[qesap_execute] invalid timeout' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
@@ -468,12 +468,12 @@ subtest '[qesap_execute] cmd_options' => sub {
     my $expected_log_name = 'qesap_exec_' . $cmd . '__tankgang.log.txt';
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(qesap_venv_cmd_exec => sub {
+    $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
             return $expected_res;
     });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
@@ -495,12 +495,12 @@ subtest '[qesap_execute] failure' => sub {
     my $expected_res = 1;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(qesap_venv_cmd_exec => sub {
+    $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
             return $expected_res;
     });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
@@ -522,12 +522,12 @@ subtest '[qesap_execute] check_logs' => sub {
     my $expected_res = 1;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(qesap_venv_cmd_exec => sub {
+    $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
             return $expected_res;
     });
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
@@ -856,7 +856,7 @@ subtest '[qesap_cluster_logs]' => sub {
     $qesap->redefine(qesap_save_y2logs => sub { return 0; });
     # needed within qesap_host_is_reachable (private function)
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_venv_cmd_exec => sub {
+    $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @ansible_calls, $args{cmd};
             return 0; });
@@ -897,7 +897,7 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     $qesap->redefine(qesap_save_y2logs => sub { return 0; });
     # needed within qesap_host_is_reachable (private function)
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_venv_cmd_exec => sub {
+    $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @ansible_calls, $args{cmd};
             return 0; });
@@ -924,7 +924,7 @@ subtest '[qesap_cluster_logs] skips collection when host unreachable' => sub {
     $qesap->redefine(script_run => sub { return 0; });
 
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_venv_cmd_exec => sub { return 1; });
+    $qesap->redefine(_qesap_venv_cmd_exec => sub { return 1; });
 
     $qesap->redefine(qesap_cluster_log_cmds => sub { $cluster_collected = 1; return (); });
     $qesap->redefine(qesap_upload_crm_report => sub { $crm_report_called = 1; return 0; });
@@ -1002,7 +1002,7 @@ subtest '[qesap_supportconfig_logs]' => sub {
     $qesap->redefine(upload_logs => sub { $upload_log_called = 1; return 0; });
     # needed within qesap_host_is_reachable (private function)
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_venv_cmd_exec => sub {
+    $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
             return 0; });
@@ -1085,9 +1085,9 @@ subtest '[qesap_prepare_env] integration test' => sub {
 
 subtest '[qesap_prepare_env]' => sub {
     my %called_functions;
-    my @mock_func = qw(qesap_get_variables
+    my @mock_func = qw(_qesap_get_variables
       qesap_yaml_replace
-      qesap_create_folder_tree
+      _qesap_create_folder_tree
       qesap_get_deployment_code
       qesap_get_roles_code
       qesap_pip_install
@@ -1103,7 +1103,7 @@ subtest '[qesap_prepare_env]' => sub {
     qesap_prepare_env(provider => 'DONALDUCK');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    foreach (qw(qesap_get_file_paths qesap_get_terraform_dir qesap_execute)) {
+    foreach (qw(_qesap_get_file_paths qesap_get_terraform_dir qesap_execute)) {
         my $fn = $_;
         ok $called_functions{$fn} eq 1, "$fn called by qesap_prepare_env";
     }
@@ -1115,9 +1115,9 @@ subtest '[qesap_prepare_env]' => sub {
 
 subtest '[qesap_prepare_env] openqa_variables' => sub {
     my %called_functions;
-    my @mock_func = qw(qesap_get_variables
+    my @mock_func = qw(_qesap_get_variables
       qesap_yaml_replace
-      qesap_create_folder_tree
+      _qesap_create_folder_tree
       qesap_get_deployment_code
       qesap_get_roles_code
       qesap_pip_install
@@ -1134,14 +1134,14 @@ subtest '[qesap_prepare_env] openqa_variables' => sub {
     qesap_prepare_env(openqa_variables => \%variables, provider => 'DONALDUCK');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok $called_functions{qesap_get_variables} eq 0, "qesap_get_variables not called by qesap_prepare_env when using openqa_variables";
+    ok $called_functions{_qesap_get_variables} eq 0, "_qesap_get_variables not called by qesap_prepare_env when using openqa_variables";
 };
 
 subtest '[qesap_prepare_env] only_configure' => sub {
     my %called_functions;
-    my @mock_func = qw(qesap_get_variables
+    my @mock_func = qw(_qesap_get_variables
       qesap_yaml_replace
-      qesap_create_folder_tree
+      _qesap_create_folder_tree
       qesap_get_deployment_code
       qesap_get_roles_code
       qesap_pip_install
@@ -1156,7 +1156,7 @@ subtest '[qesap_prepare_env] only_configure' => sub {
     qesap_prepare_env(provider => 'DONALDUCK', only_configure => 1);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     # Check that a specific subset of function is not executed in only_configure mode
-    foreach (qw(qesap_create_folder_tree qesap_get_deployment_code qesap_get_roles_code qesap_pip_install qesap_galaxy_install)) {
+    foreach (qw(_qesap_create_folder_tree qesap_get_deployment_code qesap_get_roles_code qesap_pip_install qesap_galaxy_install)) {
         my $fn = $_;
         ok $called_functions{$fn} eq 0, "$fn not called by qesap_prepare_env in only_configure mode";
     }
@@ -1164,7 +1164,7 @@ subtest '[qesap_prepare_env] only_configure' => sub {
 
 subtest '[qesap_prepare_env] qesap_yaml_replace' => sub {
     my %called_functions;
-    my @mock_func = qw(qesap_get_variables);
+    my @mock_func = qw(_qesap_get_variables);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
     create_qesap_prepare_env_mocks_with_calls($qesap, \%called_functions);
     my @calls;
@@ -1180,9 +1180,9 @@ subtest '[qesap_prepare_env] qesap_yaml_replace' => sub {
     ok $called_functions{file_content_replace} eq 1, "file_content_replace called by qesap_yaml_replace";
 };
 
-subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths default' => sub {
+subtest '[qesap_prepare_env] _qesap_create_folder_tree/_qesap_get_file_paths default' => sub {
     my %called_functions;
-    my @mock_func = qw(qesap_get_variables
+    my @mock_func = qw(_qesap_get_variables
       qesap_yaml_replace
       qesap_get_deployment_code
       qesap_get_roles_code
@@ -1205,9 +1205,9 @@ subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths defau
     ok((any { qr/curl.*\/TORNADO -o \/root\/qe-sap-deployment\/scripts\/qesap\/MARLIN/ } @calls), 'Default location for the openQA conf.yaml templates');
 };
 
-subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths user specified deployment_dir' => sub {
+subtest '[qesap_prepare_env] _qesap_create_folder_tree/_qesap_get_file_paths user specified deployment_dir' => sub {
     my %called_functions;
-    my @mock_func = qw(qesap_get_variables
+    my @mock_func = qw(_qesap_get_variables
       qesap_yaml_replace
       qesap_get_deployment_code
       qesap_get_roles_code
@@ -1233,7 +1233,7 @@ subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths user 
 
 sub create_qesap_prepare_env_mocks() {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    $qesap->redefine(qesap_get_file_paths => sub {
+    $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{qesap_conf_src} = '/REEF';
             $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
@@ -1248,12 +1248,12 @@ sub create_qesap_prepare_env_mocks() {
             return (\%data);
     });
 
-    $qesap->redefine(qesap_create_folder_tree => sub { return; });
+    $qesap->redefine(_qesap_create_folder_tree => sub { return; });
     $qesap->redefine(qesap_get_deployment_code => sub { return; });
     $qesap->redefine(qesap_get_roles_code => sub { return; });
     $qesap->redefine(qesap_pip_install => sub { return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_get_variables => sub { return; });
+    $qesap->redefine(_qesap_get_variables => sub { return; });
     $qesap->redefine(qesap_yaml_replace => sub { return; });
     $qesap->redefine(qesap_execute => sub { return; });
     $qesap->redefine(script_run => sub { return 1; });

@@ -101,11 +101,21 @@ our @EXPORT = qw(
 =head2 Methods
 
 
-=head3 qesap_get_paths
+=head3 _qesap_is_valid_version
+
+    Validate string against qe-sap-deployment version format
+=cut
+
+sub _qesap_is_valid_version {
+    my ($version) = @_;
+    return $version =~ /^\d+\.\d+(\.\d+)?$/;
+}
+
+=head3 _qesap_get_paths
 
     Returns a hash containing directory paths for qe-sap-deployment:
     deployment_dir, terraform_dir, roles_dir, roles_dir_path.
-    Unlike qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.
+    Unlike _qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.
 
 =over
 
@@ -115,52 +125,52 @@ derived terraform_dir). When omitted, the openQA variables are used as before.
 =back
 =cut
 
-sub qesap_get_paths {
+sub _qesap_get_paths {
     my (%args) = @_;
     my %paths;
     $paths{deployment_dir} = $args{deployment_dir} // get_var('QESAP_DEPLOYMENT_DIR', '/root/qe-sap-deployment');
-    $paths{terraform_dir} = $args{terraform_dir} // get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
+    $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
     $paths{roles_dir} = get_var('QESAP_ROLES_DIR', '/root/community.sles-for-sap');
     $paths{roles_dir_path} = $paths{roles_dir} . '/roles';
     return (%paths);
 }
 
-=head3 qesap_get_file_paths
+=head3 _qesap_get_file_paths
 
     Returns a hash containing file paths for configuration files
 =cut
 
-sub qesap_get_file_paths {
-    my %paths = qesap_get_paths();
+sub _qesap_get_file_paths {
+    my %paths = _qesap_get_paths();
     $paths{qesap_conf_filename} = get_required_var('QESAP_CONFIG_FILE');
     $paths{qesap_conf_trgt} = $paths{deployment_dir} . '/scripts/qesap/' . $paths{qesap_conf_filename};
     $paths{qesap_conf_src} = data_url('sles4sap/qe_sap_deployment/' . $paths{qesap_conf_filename});
     return (%paths);
 }
 
-=head3 qesap_create_folder_tree
+=head3 _qesap_create_folder_tree
 
     Create all needed folders
 =cut
 
-sub qesap_create_folder_tree {
-    my %paths = qesap_get_paths();
+sub _qesap_create_folder_tree {
+    my %paths = _qesap_get_paths();
     die 'Missing deployment_dir in paths' unless $paths{deployment_dir};
     assert_script_run("mkdir -p $paths{deployment_dir}", quiet => 1);
     die 'Missing roles_dir in paths' unless $paths{roles_dir};
     assert_script_run("mkdir -p $paths{roles_dir}", quiet => 1);
 }
 
-=head3 qesap_get_variables
+=head3 _qesap_get_variables
 
     Scans yaml configuration for '%OPENQA_VARIABLE%' placeholders and
     searches for values in OpenQA defined variables.
     Returns hash with openqa variable key/value pairs.
 =cut
 
-sub qesap_get_variables {
-    my %paths = qesap_get_file_paths();
-    die "Missing mandatory qesap_conf_src from qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
+sub _qesap_get_variables {
+    my %paths = _qesap_get_file_paths();
+    die "Missing mandatory qesap_conf_src from _qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
     my $yaml_file = $paths{'qesap_conf_src'};
     my %variables;
     my $cmd = join(' ',
@@ -200,7 +210,7 @@ sub qesap_ansible_create_section {
     foreach (qw(ansible_section section_content)) {
         croak "Missing mandatory $_ argument" unless $args{$_}; }
 
-    my %paths = qesap_get_file_paths();
+    my %paths = _qesap_get_file_paths();
     my $yaml_config_path = $paths{qesap_conf_trgt};
     assert_script_run("test -e $yaml_config_path",
         fail_message => "Yaml config file '$yaml_config_path' does not exist.");
@@ -226,7 +236,7 @@ sub qesap_ansible_create_section {
     return;
 }
 
-=head3 qesap_venv_cmd_exec
+=head3 _qesap_venv_cmd_exec
 
     Run a command within the Python virtualenv
     created by qesap_pip_install.
@@ -250,7 +260,7 @@ bigger than one, also print that number of lines from the output after the comma
 =back
 =cut
 
-sub qesap_venv_cmd_exec {
+sub _qesap_venv_cmd_exec {
     my (%args) = @_;
     croak 'Missing mandatory cmd argument' unless $args{cmd};
     $args{timeout} //= bmwqemu::scale_timeout(90);
@@ -273,7 +283,7 @@ sub qesap_venv_cmd_exec {
 
     my $ret = script_run('source ' . QESAPDEPLOY_VENV . '/bin/activate');
     if ($ret) {
-        record_info('qesap_venv_cmd_exec error', "source .venv ret:$ret");
+        record_info('_qesap_venv_cmd_exec error', "source .venv ret:$ret");
         return $ret;
     }
     $ret = script_retry($cmd, timeout => $args{timeout}, retry => $retry, die => 0);
@@ -309,21 +319,21 @@ sub _check_bsc1258357 {
     die $errmsg;
 }
 
-=head3 qesap_py
+=head3 _qesap_py
 
   Return string of the python to use
 =cut
 
-sub qesap_py {
+sub _qesap_py {
     return 'python' . get_var('QESAP_PYTHON_VERSION', QESAPDEPLOY_PY_DEFAULT_VER);
 }
 
-=head3 qesap_pip
+=head3 _qesap_pip
 
   Return string of the pip to use
 =cut
 
-sub qesap_pip {
+sub _qesap_pip {
     return 'pip' . get_var('QESAP_PIP_VERSION', QESAPDEPLOY_PY_DEFAULT_VER);
 }
 
@@ -336,22 +346,22 @@ sub qesap_pip {
 =cut
 
 sub qesap_pip_install {
-    my %paths = qesap_get_paths();
+    my %paths = _qesap_get_paths();
     my $pip_install_log = '/tmp/pip_install.txt';
-    my $pip_ints_cmd = join(' ', qesap_pip(), 'install --no-color --no-cache-dir',
+    my $pip_ints_cmd = join(' ', _qesap_pip(), 'install --no-color --no-cache-dir',
         '-r', "$paths{deployment_dir}/requirements.txt");
 
     # Create a Python virtualenv
-    assert_script_run(join(' ', qesap_py(), '-m venv', QESAPDEPLOY_VENV));
+    assert_script_run(join(' ', _qesap_py(), '-m venv', QESAPDEPLOY_VENV));
 
     # Configure pip in it, ignore the return value
     # and does not provide any timeout as it should be
     # instantaneous
-    qesap_venv_cmd_exec(cmd => qesap_pip() . ' config --site set global.progress_bar off');
+    _qesap_venv_cmd_exec(cmd => _qesap_pip() . ' config --site set global.progress_bar off');
 
     push(@log_files, $pip_install_log);
     record_info('QESAP repo', 'Installing all qe-sap-deployment python requirements');
-    my $ret = qesap_venv_cmd_exec(
+    my $ret = _qesap_venv_cmd_exec(
         cmd => $pip_ints_cmd,
         timeout => 720,
         retry => 3,
@@ -370,7 +380,7 @@ sub qesap_pip_install {
 =cut
 
 sub qesap_galaxy_install {
-    my %paths = qesap_get_paths();
+    my %paths = _qesap_get_paths();
     my $galaxy_install_log = '/tmp/galaxy_install.txt';
 
     my $ans_req = "$paths{deployment_dir}/requirements.yml";
@@ -379,7 +389,7 @@ sub qesap_galaxy_install {
         '-r', $ans_req);
 
     push(@log_files, $galaxy_install_log);
-    my $ret = qesap_venv_cmd_exec(
+    my $ret = _qesap_venv_cmd_exec(
         cmd => $ans_galaxy_cmd,
         timeout => 720,
         retry => 3,
@@ -446,9 +456,9 @@ sub qesap_get_deployment_code {
     my (%args) = @_;
     my $official_repo = 'github.com/SUSE/qe-sap-deployment';
     my $qesap_git_clone_log = '/tmp/git_clone.txt';
-    my %paths = qesap_get_paths(deployment_dir => $args{deployment_dir});
-    die "Missing mandatory terraform_dir from qesap_get_paths()" unless $paths{'terraform_dir'};
-    die "Missing mandatory deployment_dir from qesap_get_paths()" unless ($paths{'deployment_dir'} && $paths{'deployment_dir'} =~ /\S/);
+    my %paths = _qesap_get_paths(deployment_dir => $args{deployment_dir});
+    die "Missing mandatory terraform_dir from _qesap_get_paths()" unless $paths{'terraform_dir'};
+    die "Missing mandatory deployment_dir from _qesap_get_paths()" unless ($paths{'deployment_dir'} && $paths{'deployment_dir'} =~ /\S/);
 
     # deployment_dir get its value from QESAP_DEPLOYMENT_DIR, can be configured with arbitrary strings.
     # This guard ensures that a typo or misconfiguration like QESAP_DEPLOYMENT_DIR=/ or /root will die
@@ -515,7 +525,7 @@ sub qesap_get_deployment_code {
 sub qesap_cache_releases {
     my (@versions) = @_;
     foreach my $version (@versions) {
-        die "qesap_cache_releases: '$version' is not a valid numeric release version" unless $version =~ /^\d+\.\d+(\.\d+)?$/;
+        die "qesap_cache_releases: '$version' is not a valid numeric release version" unless _qesap_is_valid_version($version);
         record_info('QESAP cache', "Baking qe-sap-deployment $version into cache");
         qesap_get_deployment_code(
             version => $version,
@@ -535,7 +545,7 @@ sub qesap_cache_releases {
 sub qesap_get_roles_code {
     my $official_repo = 'github.com/sap-linuxlab/community.sles-for-sap';
     my $roles_git_clone_log = '/tmp/git_clone_roles.txt';
-    my %paths = qesap_get_paths();
+    my %paths = _qesap_get_paths();
 
     record_info('SLES4SAP Roles repo', 'Preparing community.sles-for-sap repository');
 
@@ -578,7 +588,7 @@ sub qesap_yaml_replace {
     my (%args) = @_;
     my $variables = $args{openqa_variables};
     my %replaced_variables = ();
-    my %paths = qesap_get_file_paths();
+    my %paths = _qesap_get_file_paths();
     push(@log_files, $paths{qesap_conf_trgt});
 
     for my $variable (keys %{$variables}) {
@@ -631,10 +641,10 @@ sub qesap_execute {
     $args{cmd_options} .= ' --numbered-logs' if $args{cmd} eq 'ansible';
     $args{timeout} //= bmwqemu::scale_timeout(90);
 
-    my %paths = qesap_get_file_paths();
+    my %paths = _qesap_get_file_paths();
     my $exec_log = '/tmp/' . ($args{cmd} eq 'ansible' ? '00-ansible-' : '') . $args{logname};
 
-    my $qesap_cmd = join(' ', qesap_py(), $paths{deployment_dir} . '/scripts/qesap/qesap.py',
+    my $qesap_cmd = join(' ', _qesap_py(), $paths{deployment_dir} . '/scripts/qesap/qesap.py',
         $verbose,
         '-c', $paths{qesap_conf_trgt},
         '-b', $paths{deployment_dir},
@@ -644,7 +654,7 @@ sub qesap_execute {
     push(@log_files, $exec_log);
     record_info("QESAP exec $args{cmd}", "Executing: \n$qesap_cmd \n\nlog to $exec_log");
 
-    my $exec_rc = qesap_venv_cmd_exec(
+    my $exec_rc = _qesap_venv_cmd_exec(
         cmd => $qesap_cmd,
         timeout => $args{timeout},
         log_file => $exec_log,
@@ -817,7 +827,7 @@ sub qesap_file_find_strings {
 sub qesap_get_inventory {
     my (%args) = @_;
     croak "Missing mandatory argument 'provider'" unless $args{provider};
-    my %paths = qesap_get_file_paths();
+    my %paths = _qesap_get_file_paths();
     return join('/', qesap_get_terraform_dir(provider => $args{provider}), 'inventory.yaml');
 }
 
@@ -890,7 +900,7 @@ sub qesap_get_nodes_names {
 sub qesap_get_terraform_dir {
     my (%args) = @_;
     croak "Missing mandatory argument 'provider'" unless $args{provider};
-    my %paths = qesap_get_file_paths();
+    my %paths = _qesap_get_file_paths();
     return join('/', $paths{terraform_dir}, lc $args{provider});
 }
 
@@ -901,7 +911,7 @@ sub qesap_get_terraform_dir {
 =cut
 
 sub qesap_ansible_get_roles_dir {
-    my %paths = qesap_get_paths();
+    my %paths = _qesap_get_paths();
     return $paths{roles_dir_path};
 }
 
@@ -937,16 +947,16 @@ sub qesap_prepare_env {
     croak "Missing mandatory argument 'provider'" unless $args{provider};
     croak "Missing mandatory argument 'region' when 'provider' is EC2" if (($args{provider} eq 'EC2') && !$args{region});
 
-    my $variables = $args{openqa_variables} ? $args{openqa_variables} : qesap_get_variables();
+    my $variables = $args{openqa_variables} ? $args{openqa_variables} : _qesap_get_variables();
     my $provider_folder = lc $args{provider};
-    my %paths = qesap_get_file_paths();
-    die "Missing mandatory deployment_dir from qesap_get_file_paths()" unless $paths{'deployment_dir'};
-    die "Missing mandatory qesap_conf_trgt from qesap_get_file_paths()" unless $paths{'qesap_conf_trgt'};
+    my %paths = _qesap_get_file_paths();
+    die "Missing mandatory deployment_dir from _qesap_get_file_paths()" unless $paths{'deployment_dir'};
+    die "Missing mandatory qesap_conf_trgt from _qesap_get_file_paths()" unless $paths{'qesap_conf_trgt'};
 
     # Option to skip straight to configuration
     unless ($args{only_configure}) {
-        die "Missing mandatory qesap_conf_src from qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
-        qesap_create_folder_tree();
+        die "Missing mandatory qesap_conf_src from _qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
+        _qesap_create_folder_tree();
         qesap_get_deployment_code(version => get_var('QESAP_INSTALL_VERSION'));
         qesap_get_roles_code();
         qesap_pip_install();
@@ -1095,7 +1105,7 @@ sub qesap_ansible_cmd {
         "'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") :
       $ansible_cmd;
 
-    my $ret = qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout});
+    my $ret = _qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout});
 
     die "cmd: $ansible_cmd ret: $ret" if ($ret && !$args{failok});
 }
@@ -1170,7 +1180,7 @@ sub qesap_ansible_script_output_file {
         '-e', "out_file='$args{file}'", '-e', "remote_path='$args{remote_path}'");
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
 
-    my $ret = qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd),
+    my $ret = _qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd),
         timeout => $args{timeout});
     die "ret: $ret" if ($ret && !$args{failok});
 
@@ -1309,7 +1319,7 @@ sub qesap_ansible_fetch_file {
         '-e', "file='$args{file}'");
     push @ansible_fetch_cmd, ('-e', "failok=yes") if ($args{failok});
 
-    my $ret = qesap_venv_cmd_exec(
+    my $ret = _qesap_venv_cmd_exec(
         cmd => join(' ', @ansible_fetch_cmd),
         timeout => $args{timeout});
     die "ret: $ret" if ($ret && !$args{failok});
@@ -1718,7 +1728,7 @@ sub qesap_host_is_reachable {
         '-u', $args{user},
         '-m', 'ping');
 
-    my $ret = qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout}, retry => $args{retry});
+    my $ret = _qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout}, retry => $args{retry});
     record_info('Reachability', "Host $args{host} " . ($ret ? 'unreachable' : 'reachable'));
     return $ret == 0 ? 1 : 0;
 }
