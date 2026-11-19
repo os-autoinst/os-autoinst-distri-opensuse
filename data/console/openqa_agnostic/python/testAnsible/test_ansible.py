@@ -164,5 +164,8 @@ def test_vault_roundtrip():
     open(os.path.join(COLLECTION, 'ranom_content.txt'), 'w').write(content + '\n')
     out('echo "---" > ./encrypted_content.yaml')
     out('cat ./ranom_content.txt | ansible-vault encrypt_string --vault-password-file ./ranom_password.txt --stdin-name random_content | tee -a ./encrypted_content.yaml')
-    decrypted = out('ansible localhost --vault-password-file ./ranom_password.txt -e "@./encrypted_content.yaml" -m debug -a var=random_content')
-    assert content in decrypted
+    # ansible-core 2.22 masks decrypted vault values in output, so read the
+    # value back from a file instead of the redacted debug output.
+    out('ansible localhost --vault-password-file ./ranom_password.txt -e "@./encrypted_content.yaml" -m copy -a "content={{ random_content }} dest=/tmp/ansible_vault_roundtrip.txt"')
+    with open('/tmp/ansible_vault_roundtrip.txt') as roundtrip:
+        assert content in roundtrip.read()
