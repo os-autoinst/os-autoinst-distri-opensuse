@@ -1,0 +1,9 @@
+name: xrdp_agnostic_verification_phub
+description: >
+  Standalone run of the openQA-agnostic xrdp/xfreerdp loopback test on
+  SLE with PackageHub registered.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/add_phub_extension
+  - console/oqa_agnostic/xrdp_agnostic

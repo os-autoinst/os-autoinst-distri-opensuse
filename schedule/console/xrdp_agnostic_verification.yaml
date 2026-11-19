@@ -1,0 +1,10 @@
+name: xrdp_agnostic_verification
+description: >
+  Standalone run of the openQA-agnostic xrdp/xfreerdp loopback
+  session test. It starts the installed xrdp and connects to it
+  with the installed xfreerdp over localhost.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - console/oqa_agnostic/xrdp_agnostic
