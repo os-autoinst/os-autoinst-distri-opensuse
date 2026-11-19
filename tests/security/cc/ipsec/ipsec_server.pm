@@ -60,14 +60,6 @@ sub run {
     # also when all the cases pass
     upload_ipsec_diagnostics();
 
-    # In FIPS mode the client expects the ESP AES-GMAC case to fail, because the
-    # kernel disables rfc4543(gcm(aes)). Make sure that this is the reason, and
-    # not proposals that do not match.
-    if (script_output('cat /proc/sys/crypto/fips_enabled', proceed_on_failure => 1) =~ /^\s*1\s*$/) {
-        validate_script_output("journalctl -b --no-pager -u strongswan | grep -A3 'selected proposal: ESP:NULL_AES_GMAC_192' || true",
-            sub { m/selected proposal: ESP:NULL_AES_GMAC_192/ && m/Requested AEAD algorithm not found/ });
-    }
-
     # Stop StrongSWAN
     assert_script_run('systemctl stop strongswan');
 

@@ -28,6 +28,7 @@ conditional_schedule:
             server:
                 - security/cc/ipsec/ipsec_server
                 - security/cc/ipsec/ipsec_certificate
+                - security/cc/ipsec/ipsec_gmac_check
             client:
                 - security/cc/ipsec/ipsec_client
                 - security/cc/ipsec/weak_ipsec_ciphers

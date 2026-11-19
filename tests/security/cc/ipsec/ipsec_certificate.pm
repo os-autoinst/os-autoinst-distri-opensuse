@@ -101,6 +101,12 @@ sub run {
     assert_script_run("ip addr del $ip/24 dev " . iface) if is_s390x;
 }
 
+sub test_flags {
+    # On the server, ipsec_gmac_check reads the journal of this boot after this
+    # module, thus do not roll back to the last milestone on failure
+    return {no_rollback => 1};
+}
+
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
