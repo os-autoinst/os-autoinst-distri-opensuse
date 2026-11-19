@@ -32,6 +32,10 @@ conditional_schedule:
                 - console/velociraptor_client_event_collect
             ppc64le:
                 - console/velociraptor_client_event_collect
+    libsoup:
+        VERSION:
+            Tumbleweed:
+                - console/oqa_agnostic/libsoup
     consoletest_setup:
         AGAMA:
             +undefined:
@@ -66,6 +70,7 @@ schedule:
     - console/firewalld
     - console/nftables
     - console/wpa_supplicant
+    - '{{libsoup}}'
     - console/systemd_resolved
     - console/vsftpd
     - '{{velociraptor_tests}}'
