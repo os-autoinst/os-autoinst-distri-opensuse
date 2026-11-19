@@ -199,4 +199,28 @@ subtest '[run_ipsec_case] invalid' => sub {
     dies_ok { run_ipsec_case(%case, expect => 'maybe') } 'unknown expected result';
 };
 
+subtest '[gmac_refused_by_kernel]' => sub {
+    my $refused = <<'EOS';
+selected proposal: ESP:AES_CBC_128/HMAC_SHA2_512_256/NO_EXT_SEQ
+CHILD_SA ikev2ios{3} established with SPIs c1d3a819_i c6b92e72_o
+selected proposal: ESP:NULL_AES_GMAC_192/NO_EXT_SEQ
+received netlink error: Requested AEAD algorithm not found (38)
+unable to add SAD entry with SPI c15fb0d0 (FAILED)
+selected proposal: ESP:AES_CBC_256/HMAC_SHA2_256_128/NO_EXT_SEQ
+EOS
+    ok gmac_refused_by_kernel($refused), 'GMAC selected, then the kernel error';
+    my $extra = $refused =~ s/(GMAC_192\/NO_EXT_SEQ\n)/$1 . "some other charon line\n" x 8/er;
+    ok gmac_refused_by_kernel($extra), 'other log lines between the two do not matter';
+    my $mismatch = <<'EOS';
+selected proposal: ESP:AES_CBC_128/HMAC_SHA2_512_256/NO_EXT_SEQ
+no acceptable proposal found
+selected proposal: ESP:AES_CBC_256/HMAC_SHA2_256_128/NO_EXT_SEQ
+EOS
+    ok !gmac_refused_by_kernel($mismatch), 'server proposals that do not match are not a kernel refusal';
+    ok !gmac_refused_by_kernel("selected proposal: ESP:NULL_AES_GMAC_192/NO_EXT_SEQ\nselected proposal: ESP:AES_CBC_256/HMAC_SHA2_256_128/NO_EXT_SEQ\nreceived netlink error: Requested AEAD algorithm not found (38)\n"), 'the kernel error must follow the GMAC selection';
+    ok !gmac_refused_by_kernel("received netlink error: Requested AEAD algorithm not found (38)\n"), 'kernel error without a GMAC selection';
+    ok !gmac_refused_by_kernel(''), 'empty log';
+    ok !gmac_refused_by_kernel(undef), 'no log';
+};
+
 done_testing;

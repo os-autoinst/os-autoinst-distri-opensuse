@@ -24,6 +24,7 @@ our @EXPORT = qw(
   upload_ipsec_diagnostics
   check_ipsec_traffic
   run_ipsec_case
+  gmac_refused_by_kernel
 );
 our @EXPORT_OK = qw(ipsec_ip_pair_for_job_id);
 
@@ -278,6 +279,28 @@ sub run_ipsec_case {
 
     record_info($args{name}, $message, result => $ok ? 'ok' : 'fail');
     return $ok ? 1 : 0;
+}
+
+=head2 gmac_refused_by_kernel
+
+    my $refused = gmac_refused_by_kernel($server_log);
+
+C<$server_log> holds the charon log of the server. Return 1 if the server
+selected the ESP AES-GMAC proposal and the next ESP selection or kernel
+error in the log is "Requested AEAD algorithm not found", that is the
+kernel refused the algorithm. Other log lines between the two do not
+matter. Return 0 in all other cases, for example when the server rejected
+the proposal because its proposals did not match.
+
+=cut
+
+sub gmac_refused_by_kernel {
+    my ($log) = @_;
+    my @lines = grep { /selected proposal: ESP:|Requested AEAD algorithm not found/ } split(/\n/, $log // '');
+    foreach my $i (0 .. $#lines - 1) {
+        return 1 if $lines[$i] =~ m{selected proposal: ESP:NULL_AES_GMAC_192/} && $lines[$i + 1] =~ /Requested AEAD algorithm not found/;
+    }
+    return 0;
 }
 
 1;
