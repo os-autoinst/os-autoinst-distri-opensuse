@@ -74,11 +74,16 @@ sub run {
 }
 
 sub post_fail_hook {
-    my ($self) = shift;
     # This test module does not have the fatal flag.
     # In case of failure, the next test_ module is executed too.
-    # Deployment destroy is delegated to the destroy test module
-    $self->SUPER::post_fail_hook;
+    # Do not call SUPER::post_fail_hook: for PUBLIC_CLOUD_SLES4SAP it
+    # destroys the deployment, and the next test_ modules fail.
+    # Only collect the logs. The destroy test module (always_run)
+    # destroys the deployment.
+    # Stop a command that can still run on the serial terminal.
+    type_string('', terminate_with => 'ETX');
+    qesap_cluster_logs();
+    qesap_upload_logs();
 }
 
 1;
