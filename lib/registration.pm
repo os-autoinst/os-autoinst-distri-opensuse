@@ -205,6 +205,7 @@ sub add_suseconnect_product {
     my $major_version = substr($version, 0, 2);
     $version = $major_version if $name eq 'sle-module-containers' && is_sle('<15');
     record_info('SCC product', "Activating product $name");
+    install_digicert_root_ca();
 
     my $try_cnt = 0;
     while ($try_cnt++ <= $retry) {
@@ -267,6 +268,7 @@ SUSEConnect --url with SMT/RMT server.
 =cut
 
 sub register_product {
+    install_digicert_root_ca();
     if (get_var('SMT_URL')) {
         assert_script_run("SUSEConnect  $debug_flag --url " . get_var('SMT_URL') . ' ' . uc(get_var('SLE_PRODUCT')) . '/' . scc_version(get_var('HDDVERSION')) . '/' . get_var('ARCH'), 200);
     } else {
@@ -1071,13 +1073,14 @@ Install the "DigiCert TLS RSA4096 Root G5" root CA into the SUT trust store.
 updates.suse.com is served with a chain ending in that root, which is missing
 from the CA bundle of older SLE releases (zypper/curl error 60 "self signed
 certificate in certificate chain"). The file is checked against its known
-SHA256 fingerprint. Does nothing for transactional systems.
+SHA256 fingerprint. Does nothing for transactional systems or if already installed.
 
 =cut
 
 sub install_digicert_root_ca {
     return if is_transactional;
     my $anchor = '/etc/pki/trust/anchors/DigiCert_TLS_RSA4096_Root_G5.pem';
+    return if script_run("test -f $anchor") == 0;
     my $fingerprint = '37:1A:00:DC:05:33:B3:72:1A:7E:EB:40:E8:41:9E:70:79:9D:2B:0A:0F:2C:1D:80:69:31:65:F7:CE:C4:AD:75';
     assert_script_run('curl -fsS ' . data_url('registration/DigiCert_TLS_RSA4096_Root_G5.pem') . " -o $anchor");
     assert_script_run("openssl x509 -in $anchor -noout -fingerprint -sha256 | grep -qix 'sha256 Fingerprint=$fingerprint'");

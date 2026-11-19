@@ -51,6 +51,7 @@ sub run {
 
     # Register the modules after media migration, so it can do regession
     if (get_var('MEDIA_UPGRADE') && get_var('DO_REGISTRY')) {
+        install_digicert_root_ca();
         assert_script_run "SUSEConnect -r " . get_var('SCC_REGCODE') . " --url " . get_var('SCC_URL');
         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
             add_suseconnect_product(get_addon_fullname('base'), undef, undef, undef, 300, 1);
@@ -128,6 +129,7 @@ sub run {
     if (get_var('FLAVOR', '') =~ /container-host/i && !get_var('BETA') && script_run(qq|grep -qE "^url:.*proxy" $scc_file 2> /dev/null|) == 0) {
         assert_script_run('SUSEConnect -d');
         assert_script_run("rm -f $scc_file");
+        install_digicert_root_ca();
         assert_script_run(sprintf('SUSEConnect -r %s', get_required_var('SCC_REGCODE')));
     }
 

@@ -69,6 +69,7 @@ sub command_register {
     my $zypper_done = qr/Run.*to list these programs|^ZYPPER-DONE/m;
     my $registered = qr/Registered*/mi;
 
+    registration::install_digicert_root_ca();
     if (!$addon) {
         my $reg_code = get_required_var("SCC_REGCODE");
         $version =~ s/\-SP/./;
