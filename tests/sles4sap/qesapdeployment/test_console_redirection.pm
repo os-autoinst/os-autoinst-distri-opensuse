@@ -36,7 +36,6 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::console_redirection;
-use sles4sap::publiccloud;
 use YAML::PP;
 
 sub run {
@@ -61,18 +60,16 @@ sub run {
     die "Redirection is still active" if check_serial_redirection();
 }
 
+# In case of failure, the next test_ module is executed too.
+sub test_flags {
+    return {fatal => 0};
+}
+
 sub post_fail_hook {
     disconnect_target_from_serial();
-    # This test module does not have the fatal flag.
-    # In case of failure, the next test_ module is executed too.
-    # Do not call SUPER::post_fail_hook: for PUBLIC_CLOUD_SLES4SAP it
-    # destroys the deployment, and the next test_ modules fail.
     # Only collect the logs. The destroy test module (always_run)
     # destroys the deployment.
-    # Stop a command that can still run on the serial terminal.
-    type_string('', terminate_with => 'ETX');
-    qesap_cluster_logs();
-    qesap_upload_logs();
+    qesap_post_fail_logs();
 }
 
 1;

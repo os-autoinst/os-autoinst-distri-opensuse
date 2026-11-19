@@ -39,7 +39,6 @@ QE-SAP <qe-sap@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use sles4sap::publiccloud;
 use sles4sap::qesap::qesapdeployment;
 
 sub run {
@@ -64,17 +63,15 @@ sub run {
     qesap_ansible_cmd(cmd => $_->[0], provider => $provider_setting, timeout => $_->[1]) for @remote_cmd;
 }
 
+# In case of failure, the next test_ module is executed too.
+sub test_flags {
+    return {fatal => 0};
+}
+
 sub post_fail_hook {
-    # This test module does not have the fatal flag.
-    # In case of failure, the next test_ module is executed too.
-    # Do not call SUPER::post_fail_hook: for PUBLIC_CLOUD_SLES4SAP it
-    # destroys the deployment, and the next test_ modules fail.
     # Only collect the logs. The destroy test module (always_run)
     # destroys the deployment.
-    # Stop a command that can still run on the serial terminal.
-    type_string('', terminate_with => 'ETX');
-    qesap_cluster_logs();
-    qesap_upload_logs();
+    qesap_post_fail_logs();
 }
 
 1;

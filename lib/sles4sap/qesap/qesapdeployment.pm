@@ -81,6 +81,7 @@ our @EXPORT = qw(
   qesap_remote_hana_public_ips
   qesap_wait_for_ssh
   qesap_cluster_logs
+  qesap_post_fail_logs
   qesap_upload_crm_report
   qesap_supportconfig_logs
   qesap_save_y2logs
@@ -1852,6 +1853,30 @@ sub qesap_cluster_logs {
         push(@log_files, $_) foreach (@diagnostic_logs);
         qesap_upload_logs();
     }
+}
+
+=head3 qesap_post_fail_logs
+
+    Common failure-time log collection for the qesap deployment test modules.
+
+    It stops a command that can still own the serial terminal, collects the
+    logs of the cluster nodes and uploads every log collected so far.
+    It does not destroy the deployment: the 'destroy' test module
+    (always_run) does that.
+
+=over
+
+=item B<FAILOK> - forwarded to qesap_upload_logs, default 0
+
+=back
+=cut
+
+sub qesap_post_fail_logs {
+    my (%args) = @_;
+    # A timed out command can still own the serial terminal: press Ctrl-C.
+    type_string('', terminate_with => 'ETX');
+    qesap_cluster_logs();
+    qesap_upload_logs(failok => $args{failok} // 0);
 }
 
 =head3 qesap_save_y2logs
