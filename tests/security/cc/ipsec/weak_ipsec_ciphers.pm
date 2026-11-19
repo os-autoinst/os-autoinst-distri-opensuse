@@ -1,17 +1,18 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run EAL4 'Weak IPsec ciphers' case
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#101226
+# Tags: poo#101226, poo#201363
 
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use lockapi;
 use Utils::Architectures;
+use security::cc_ipsec;
 
 sub run {
     my ($self) = @_;
@@ -65,6 +66,12 @@ sub run {
 
     # Upload log file
     upload_logs($log_file);
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_ipsec_diagnostics();
 }
 
 1;

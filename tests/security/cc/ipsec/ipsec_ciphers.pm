@@ -1,17 +1,19 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run EAL4 'ipsec ciphers' case
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#110980
+# Tags: poo#110980, poo#201363
 
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use lockapi;
 use Data::Dumper;
+use Utils::Architectures 'is_s390x';
+use security::cc_ipsec;
 
 sub run {
     my ($self) = @_;
@@ -22,11 +24,14 @@ sub run {
 
     mutex_wait('READY_FOR_IPSEC_CIPHERS');
 
+    # Each case starts charon and brings up a connection, the default timeout is too short
+    my $timeout = is_s390x ? 600 : 180;
+
     # Test esp
-    my $esp_output = script_output('bash test_basic_ipsec_eval_esp.bash');
+    my $esp_output = script_output('bash test_basic_ipsec_eval_esp.bash', $timeout);
 
     # Test ike
-    my $ike_output = script_output('bash test_basic_ipsec_eval_ike.bash');
+    my $ike_output = script_output('bash test_basic_ipsec_eval_ike.bash', $timeout);
 
     mutex_create('IPSEC_CLIENT_DONE');
 
@@ -78,6 +83,12 @@ sub run {
     # Upload log files
     upload_logs('ccc-ipsec-eval-esp.log');
     upload_logs('ccc-ipsec-eval-ike.log');
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_ipsec_diagnostics();
 }
 
 1;

@@ -1,20 +1,21 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run CC 'ipsec certificate' case
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#110734
+# Tags: poo#110734, poo#201363
 
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
-use eal4_test;
 use Utils::Architectures;
 use lockapi;
 use version_utils 'is_sle';
 use mmapi qw(wait_for_children get_children);
+use network_utils 'iface';
+use security::cc_ipsec;
 
 my $test_cases = {
     example => 'pass',
@@ -36,6 +37,7 @@ sub run {
     assert_script_run('cd /usr/local/eal4/ipsec/certificates');
 
     my $role = get_var('HOSTNAME');
+    my ($server_ip, $client_ip) = ipsec_peer_ips();
     my $children = get_children();
     my $child = (keys %$children)[0];
 
@@ -45,12 +47,15 @@ sub run {
         $case_name =~ s/_/-/g;
 
         if ($role eq 'server') {
-            assert_script_run("sh prepare-ipsec-test.sh $case_name $eal4_test::server_ip $eal4_test::client_ip server");
+            assert_script_run("sh prepare-ipsec-test.sh $case_name $server_ip $client_ip server");
+            # 'ipsec restart' in the script returns before charon has loaded the connection
+            wait_ipsec_conn($case_name);
             mutex_create("server_ready_$tmp_case_name");
             mutex_wait("client_done_$tmp_case_name", $child);
             next;
         }
-        assert_script_run("sh prepare-ipsec-test.sh $case_name $eal4_test::client_ip $eal4_test::server_ip client");
+        assert_script_run("sh prepare-ipsec-test.sh $case_name $client_ip $server_ip client");
+        wait_ipsec_conn($case_name);
         mutex_wait("server_ready_$tmp_case_name");
         my $output = script_output("ipsec up $case_name", is_s390x ? 300 : 120);
 
@@ -70,30 +75,20 @@ sub run {
                 $self->result('fail');
             }
             else {
-                if ($case_name eq 'rsa768') {
-                    $result = 'softfail';
-                    $record_message = "$case_name pass, as EAL4 document says, it needs more analysis";
-
-                }
-                # When the ipsec up succeed, we need to check if the connection is created
-                # Retries up to 10 times, waiting 3 seconds between each attempt
-                eval {
-                    script_retry("ping -c 1 -W 2 $eal4_test::server_ip", retry => 10, delay => 10);
-                };
-                # $@ captures the exception if script_retry fails after all attempts
-                if ($@) {
+                $record_message .= ', versions older than 15-SP6 accept 768 bit RSA keys' if $case_name eq 'rsa768';
+                # When the ipsec up succeed, we need to check if the connection works
+                my $ret = script_retry("ping -c 1 -W 2 $server_ip", retry => 10, delay => 10, die => 0);
+                if (!defined($ret) || $ret != 0) {
                     $result = 'fail';
                     $record_message = "The $case_name test result is expected, but the connection does NOT work after retries";
                     $self->result('fail');
-
-                    # Optional: Log the actual error thrown by script_retry
-                    record_info('Ping Fail', "Ping retry exhausted: $@");
                 }
             }
         }
         else {
             $result = 'fail';
-            $record_message = "$case_name test result needs some analysis";
+            $record_message = "The $case_name test result is unknown, see the output";
+            $self->result('fail');
         }
 
         record_info($record_message, $output, result => $result);
@@ -101,11 +96,15 @@ sub run {
     }
     wait_for_children() if ($role eq 'server');
 
-    my $netdev = 'eth0';
-    my $ip = $role eq 'server' ? $eal4_test::server_ip : $eal4_test::client_ip;
+    # Delete the ip that ipsec_server or ipsec_client added on s390x
+    my $ip = $role eq 'server' ? $server_ip : $client_ip;
+    assert_script_run("ip addr del $ip/24 dev " . iface) if is_s390x;
+}
 
-    # Delete the ip that we added if arch is s390x
-    assert_script_run("ip addr del $ip/24 dev $netdev") if (is_s390x);
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_ipsec_diagnostics();
 }
 
 1;
