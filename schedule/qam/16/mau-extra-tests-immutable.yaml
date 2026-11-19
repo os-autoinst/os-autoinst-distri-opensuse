@@ -8,7 +8,8 @@ schedule:
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
-  - console/openssl_nodejs
+  # https://progress.opensuse.org/issues/210582
+  # - console/openssl_nodejs
   - console/chrony
   - console/dnsmasq
   - console/sshd
