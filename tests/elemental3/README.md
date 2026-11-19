@@ -25,6 +25,7 @@ The test modules in this directory likely cover scenarios such as:
 *   Deploying and managing system extensions.
 *   Verifying the state of a Kubernetes cluster managed by or related to Elemental.
 *   Testing specific `elemental3` sub-commands.
+*   Building an OS image from the default configuration of `elemental3 init` (`init_image.pm`).
 
 ## Prerequisites
 
