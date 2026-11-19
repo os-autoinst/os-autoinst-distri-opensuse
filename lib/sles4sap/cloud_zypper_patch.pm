@@ -105,7 +105,10 @@ sub zp_azure_deploy {
         vnet => $vnet,
         snet => $subnet,
         ssh_pubkey => get_ssh_private_key_path() . '.pub',
-        public_ip => $pub_ip);
+        public_ip => $pub_ip,
+        # A normal run takes about 80-140 s. Stop the command on the SUT
+        # if it hangs, so that the shell is usable for the cleanup.
+        soft_timeout => 600);
 }
 
 =head2 zp_azure_destroy

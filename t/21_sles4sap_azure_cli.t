@@ -618,6 +618,29 @@ subtest '[az_vm_create]' => sub {
     ok((any { /az vm create/ } @calls), 'Correct composition of the main command');
 };
 
+subtest '[az_vm_create] soft_timeout' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    my %run_args;
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, shift; %run_args = @_; return 0; });
+    $azcli->redefine(script_output => sub {
+            return 'out.json' if grep /az\.json/, $_[0];
+            return 'err.log' if grep /az\.err/, $_[0];
+            return '';
+    });
+
+    az_vm_create(resource_group => 'Arlecchino', name => 'Truffaldino', image => 'Mirandolina');
+    ok((none { /timeout -k/ } @calls), 'No timeout command without soft_timeout');
+    is $run_args{timeout}, 900, 'script_run uses the default timeout';
+
+    @calls = ();
+    az_vm_create(resource_group => 'Arlecchino', name => 'Truffaldino', image => 'Mirandolina', soft_timeout => 42);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /^timeout -k 10 42 az vm create/ } @calls), 'timeout command before az');
+    is $run_args{timeout}, 62, 'script_run waits longer than the timeout command';
+};
+
 subtest '[az_vm_create] with public IP' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
