@@ -19,6 +19,9 @@
       <li><a href="#add_ipsec_mm_ip">add_ipsec_mm_ip</a></li>
       <li><a href="#wait_ipsec_conn">wait_ipsec_conn</a></li>
       <li><a href="#upload_ipsec_diagnostics">upload_ipsec_diagnostics</a></li>
+      <li><a href="#check_ipsec_traffic">check_ipsec_traffic</a></li>
+      <li><a href="#run_ipsec_case">run_ipsec_case</a></li>
+      <li><a href="#gmac_refused_by_kernel">gmac_refused_by_kernel</a></li>
     </ul>
   </li>
 </ul><h1>lib/security/cc_ipsec.pm</h1>
@@ -49,15 +52,55 @@
 
 <h2 id="wait_ipsec_conn">wait_ipsec_conn</h2>
 
-<pre><code>wait_ipsec_conn($conn_name);</code></pre>
+<pre><code>wait_ipsec_conn($conn_name [, retry =&gt; 30] [, die =&gt; 1]);</code></pre>
 
-<p>Wait until charon is up and has loaded the connection <code>$conn_name</code>. <code>ipsec start</code> and <code>ipsec restart</code> return before this occurs.</p>
+<p>Wait until charon is up and has loaded the connection <code>$conn_name</code>. <code>ipsec start</code> and <code>ipsec restart</code> return before this occurs. With <code>die =&gt; 0</code>, return 1 if the connection is loaded, else 0.</p>
 
 <h2 id="upload_ipsec_diagnostics">upload_ipsec_diagnostics</h2>
 
 <pre><code>upload_ipsec_diagnostics();</code></pre>
 
 <p>Collect the IPsec, xfrm and network state, and the strongSwan logs. Upload them. Use this in post_fail_hook, it does not die.</p>
+
+<h2 id="check_ipsec_traffic">check_ipsec_traffic</h2>
+
+<pre><code>my ($ok, $message) = check_ipsec_traffic($conn, $virtual_ip);</code></pre>
+
+<p>Send ping requests from the virtual IP of the client to the server address in the ipip tunnel. Only the CHILD_SA of <code>$conn</code> protects this traffic. Then make sure that the CHILD_SA counted bytes in both directions.</p>
+
+<p>Do not ping the virtual IP itself: it is an address of the client, thus the ping works also without an SA.</p>
+
+<h2 id="run_ipsec_case">run_ipsec_case</h2>
+
+<pre><code>my $ok = run_ipsec_case(
+    name =&gt; &#39;ESP: aes128-sha512-modp2048!&#39;,
+    conf =&gt; {keyexchange =&gt; &#39;ikev2&#39;, ike =&gt; &#39;aes256ctr-sha256-modp2048&#39;, esp =&gt; &#39;aes128-sha512-modp2048!&#39;},
+    expect =&gt; &#39;pass&#39;,
+    proposal =&gt; qr{ESP:AES_CBC_128/HMAC_SHA2_512_256/},
+);</code></pre>
+
+<p>Set the keys in <code>conf</code> in the <code>ikev2suse</code> connection of /etc/ipsec.conf, start strongSwan, bring up the connection and compare the result with <code>expect</code>:</p>
+
+<ul>
+
+<li><p><code>pass</code>: the IKE_SA and the CHILD_SA are established, the selected proposal matches the regex <code>proposal</code> and the CHILD_SA protects traffic.</p>
+
+</li>
+<li><p><code>fail</code>: the connection is not established and the output of <code>ipsec up</code> matches the regex <code>reason</code>.</p>
+
+</li>
+<li><p><code>invalid</code>: strongSwan rejects the proposal because it mixes classic and AEAD algorithms, thus it does not load the connection.</p>
+
+</li>
+</ul>
+
+<p>Record the result and the output of <code>ipsec up</code>, then stop strongSwan. Return 1 if the result is as expected, else 0.</p>
+
+<h2 id="gmac_refused_by_kernel">gmac_refused_by_kernel</h2>
+
+<pre><code>my $refused = gmac_refused_by_kernel($server_log);</code></pre>
+
+<p><code>$server_log</code> holds the charon log of the server. Return 1 if the server selected the ESP AES-GMAC proposal and the next ESP selection or kernel error in the log is &quot;Requested AEAD algorithm not found&quot;, that is the kernel refused the algorithm. Other log lines between the two do not matter. Return 0 in all other cases, for example when the server rejected the proposal because its proposals did not match.</p>
 
 
 </body>
