@@ -923,12 +923,12 @@ sub get_bootloader {
     return $bootloader if $bootloader;
 
     return 'wsl' if is_wsl;
-    return 'grub2' if is_sle || is_leap || is_sle_micro;
     return 'grub2' if !check_var('UEFI', 1);
+    # https://jira.suse.com/browse/PED-10703, BLS support in sle16.2 + UEFI
+    return 'grub2' if is_sle('<16.2') || is_leap('<16.2') || is_sle_micro;
     return 'grub2' if (get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
     return 'grub2' if is_community_jeos;
     return 'grub2' if is_slowroll;
-    return 'systemd-boot' if is_microos;
     return 'systemd-boot';
 }
 
