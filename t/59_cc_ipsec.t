@@ -211,6 +211,10 @@ EOS
     ok gmac_refused_by_kernel($refused), 'GMAC selected, then the kernel error';
     my $extra = $refused =~ s/(GMAC_192\/NO_EXT_SEQ\n)/$1 . "some other charon line\n" x 8/er;
     ok gmac_refused_by_kernel($extra), 'other log lines between the two do not matter';
+    my $no_extack = $refused =~ s/Requested AEAD algorithm not found \(38\)/Function not implemented (38)/r;
+    ok gmac_refused_by_kernel($no_extack), 'kernel without netlink extended ACK (SLE 15 SP4, SP5)';
+    my $other_errno = $refused =~ s/Requested AEAD algorithm not found \(38\)/No such file or directory (2)/r;
+    ok !gmac_refused_by_kernel($other_errno), 'other netlink errors are not an AEAD refusal';
     my $mismatch = <<'EOS';
 selected proposal: ESP:AES_CBC_128/HMAC_SHA2_512_256/NO_EXT_SEQ
 no acceptable proposal found

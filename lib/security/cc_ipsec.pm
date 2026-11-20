@@ -46,6 +46,11 @@ use constant SERVER_TUNNEL_IP => '192.168.100.1';
 use constant CLIENT_CONN => 'ikev2suse';
 # Logged when an ESP proposal mixes classic and AEAD algorithms
 use constant AEAD_MIX_ERROR => 'classic and combined-mode (AEAD) encryption algorithms';
+# Logged when the kernel does not have the AEAD algorithm of an SA. xfrm
+# returns ENOSYS (38) in both cases. Kernels with netlink extended ACK in xfrm
+# (SLE 15 SP6 and later) also give a message, older kernels (SLE 15 SP4 and
+# SP5) only give the errno.
+my $aead_refused_re = qr/received netlink error: (?:Requested AEAD algorithm not found|Function not implemented) \(38\)/;
 
 =head1 SYNOPSIS
 
@@ -287,18 +292,20 @@ sub run_ipsec_case {
 
 C<$server_log> holds the charon log of the server. Return 1 if the server
 selected the ESP AES-GMAC proposal and the next ESP selection or kernel
-error in the log is "Requested AEAD algorithm not found", that is the
-kernel refused the algorithm. Other log lines between the two do not
-matter. Return 0 in all other cases, for example when the server rejected
-the proposal because its proposals did not match.
+error in the log is the netlink error ENOSYS (38), that is the kernel
+refused the algorithm. Newer kernels log it as "Requested AEAD algorithm
+not found (38)", older kernels as "Function not implemented (38)". Other
+log lines between the two do not matter. Return 0 in all other cases, for
+example when the server rejected the proposal because its proposals did not
+match.
 
 =cut
 
 sub gmac_refused_by_kernel {
     my ($log) = @_;
-    my @lines = grep { /selected proposal: ESP:|Requested AEAD algorithm not found/ } split(/\n/, $log // '');
+    my @lines = grep { /selected proposal: ESP:|$aead_refused_re/ } split(/\n/, $log // '');
     foreach my $i (0 .. $#lines - 1) {
-        return 1 if $lines[$i] =~ m{selected proposal: ESP:NULL_AES_GMAC_192/} && $lines[$i + 1] =~ /Requested AEAD algorithm not found/;
+        return 1 if $lines[$i] =~ m{selected proposal: ESP:NULL_AES_GMAC_192/} && $lines[$i + 1] =~ $aead_refused_re;
     }
     return 0;
 }
