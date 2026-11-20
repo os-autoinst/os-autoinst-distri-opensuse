@@ -100,7 +100,7 @@
 
 <pre><code>my $refused = gmac_refused_by_kernel($server_log);</code></pre>
 
-<p><code>$server_log</code> holds the charon log of the server. Return 1 if the server selected the ESP AES-GMAC proposal and the next ESP selection or kernel error in the log is &quot;Requested AEAD algorithm not found&quot;, that is the kernel refused the algorithm. Other log lines between the two do not matter. Return 0 in all other cases, for example when the server rejected the proposal because its proposals did not match.</p>
+<p><code>$server_log</code> holds the charon log of the server. Return 1 if the server selected the ESP AES-GMAC proposal and the next ESP selection or kernel error in the log is the netlink error ENOSYS (38), that is the kernel refused the algorithm. Newer kernels log it as &quot;Requested AEAD algorithm not found (38)&quot;, older kernels as &quot;Function not implemented (38)&quot;. Other log lines between the two do not matter. Return 0 in all other cases, for example when the server rejected the proposal because its proposals did not match.</p>
 
 
 </body>
