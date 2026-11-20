@@ -325,10 +325,12 @@ sub run {
         $variables{REPOS} = join(',', get_test_repos());
     }
 
+    my $install_version = qesap_resolve_install_version();
     qesap_prepare_env(
         openqa_variables => \%variables,
         provider => get_required_var('PUBLIC_CLOUD_PROVIDER'),
-        region => $provider->provider_client->region);
+        region => $provider->provider_client->region,
+        qesap_release => $install_version);
 }
 
 sub test_flags {
