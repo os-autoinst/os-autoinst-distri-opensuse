@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
 """Packaging and system-integration checks learned from Fedora's Grafana tests.
 
 Fedora's tmt/beakerlib suite covers the TLS cipher policy, SELinux

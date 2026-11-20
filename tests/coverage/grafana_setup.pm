@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Prepare grafana-server for binary coverage measurement
-# Maintainer: QE Security <none@suse.de>
+# Maintainer: Zoltan Balogh <zbalogh@suse.com>
 
 use Mojo::Base 'opensusebasetest';
 use testapi;

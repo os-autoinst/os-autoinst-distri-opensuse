@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
 """Regression checks for Grafana CVEs that are observable over the API.
 
 Checks that depend on a fixed version are version-gated: a skip is reported

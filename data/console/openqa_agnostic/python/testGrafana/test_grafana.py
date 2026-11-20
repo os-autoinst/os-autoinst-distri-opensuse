@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
 """Functional and API tests for the installed Grafana package.
 
 Mirrors the useful part of Grafana's own ``@acceptance`` smoke suite without

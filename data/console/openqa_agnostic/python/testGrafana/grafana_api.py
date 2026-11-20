@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
 """Shared helpers for the openQA-agnostic Grafana tests.
 
 The functions only use the Python standard library so the test runs on a
