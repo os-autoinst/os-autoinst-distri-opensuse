@@ -43,7 +43,8 @@ sub install_xfstests_from_repo {
     elsif (is_tumbleweed) {
         zypper_ar('http://download.opensuse.org/tumbleweed/repo/oss/', name => 'repo-oss');
         zypper_ar('http://download.opensuse.org/tumbleweed/repo/non-oss/', name => 'repo-non-oss');
-        zypper_ar('http://download.opensuse.org/repositories/home:/yosun:/branches:/filesystems/openSUSE_Tumbleweed/', name => 'xfstests-repo', priority => 90, no_gpg_check => 1);
+        my $repo_url = get_var('XFSTESTS_REPO', 'http://download.opensuse.org/repositories/home:/yosun:/branches:/filesystems/openSUSE_Tumbleweed/');
+        zypper_ar($repo_url, name => 'xfstests-repo', priority => 90, no_gpg_check => 1);
     }
     elsif (is_sle_micro('>=6.0')) {
         my $repo_url = get_var('XFSTESTS_REPO', 'http://download.suse.de/ibs/home:/yosun:/branches:/QA:/Head/SUSE_ALP_Products_Marble_6.0_standard/');
