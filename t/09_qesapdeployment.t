@@ -595,7 +595,7 @@ subtest '[qesap_terraform_conditional_retry] retry after fail with expected erro
             my @results = (pop @return_list, 0);
             return @results; });
     # Simulate qesap_execute always having 'AERIS' in the log
-    $qesap->redefine(qesap_file_find_strings => sub { return 1; });
+    $qesap->redefine(_qesap_file_find_strings => sub { return 1; });
     #    $qesap->redefine(get_required_var => sub { return ''; });
 
     my @res = qesap_terraform_conditional_retry(
@@ -631,7 +631,7 @@ subtest '[qesap_terraform_conditional_retry] retry with destroy terraform' => su
             my @results = (pop @return_list, 0);
             return @results; });
 
-    $qesap->redefine(qesap_file_find_strings => sub { return 1; });
+    $qesap->redefine(_qesap_file_find_strings => sub { return 1; });
 
     my @res = qesap_terraform_conditional_retry(
         error_list => ['AERIS'],
@@ -659,7 +659,7 @@ subtest '[qesap_terraform_conditional_retry] retry with destroy terraform and fa
             my @results = (pop @return_list, 0);
             return @results; });
 
-    $qesap->redefine(qesap_file_find_strings => sub { return 1; });
+    $qesap->redefine(_qesap_file_find_strings => sub { return 1; });
 
     my @res = qesap_terraform_conditional_retry(
         error_list => ['AERIS'],
@@ -684,7 +684,7 @@ subtest '[qesap_terraform_conditional_retry] dies if expected error message is n
             return (1, 'log');
     });
     # Simulate that 'AERIS' is not in the log, ever
-    $qesap->redefine(qesap_file_find_strings => sub { return 0; });
+    $qesap->redefine(_qesap_file_find_strings => sub { return 0; });
 
     my @res = qesap_terraform_conditional_retry(
         logname => 'WALLABY_STREET',
@@ -695,7 +695,7 @@ subtest '[qesap_terraform_conditional_retry] dies if expected error message is n
     ok $res[0] == 1, "Check that the rc of the result $res[0] is 1";
 };
 
-subtest '[qesap_terraform_conditional_retry] test qesap_file_find_strings' => sub {
+subtest '[qesap_terraform_conditional_retry] test _qesap_file_find_strings' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
 
@@ -851,10 +851,10 @@ subtest '[qesap_cluster_logs]' => sub {
     $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
     $qesap->redefine(script_run => sub { return 0; });
     $qesap->redefine(upload_logs => sub { push @save_file_calls, $_[0]; return; });
-    $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
+    $qesap->redefine(_qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
     $qesap->redefine(qesap_upload_crm_report => sub { my (%args) = @_; push @crm_report_calls, $args{host}; return 0; });
     $qesap->redefine(qesap_save_y2logs => sub { return 0; });
-    # needed within qesap_host_is_reachable (private function)
+    # needed within _qesap_host_is_reachable (private function)
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -892,10 +892,10 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
     $qesap->redefine(script_run => sub { return 0; });
     $qesap->redefine(upload_logs => sub { return; });
-    $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt', Logs => ['ignore_me.txt', 'ignore_me_too.txt']}); });
+    $qesap->redefine(_qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt', Logs => ['ignore_me.txt', 'ignore_me_too.txt']}); });
     $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
     $qesap->redefine(qesap_save_y2logs => sub { return 0; });
-    # needed within qesap_host_is_reachable (private function)
+    # needed within _qesap_host_is_reachable (private function)
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -926,7 +926,7 @@ subtest '[qesap_cluster_logs] skips collection when host unreachable' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(_qesap_venv_cmd_exec => sub { return 1; });
 
-    $qesap->redefine(qesap_cluster_log_cmds => sub { $cluster_collected = 1; return (); });
+    $qesap->redefine(_qesap_cluster_log_cmds => sub { $cluster_collected = 1; return (); });
     $qesap->redefine(qesap_upload_crm_report => sub { $crm_report_called = 1; return 0; });
     $qesap->redefine(qesap_save_y2logs => sub { return 0; });
 
@@ -1028,7 +1028,7 @@ subtest '[qesap_supportconfig_logs]' => sub {
             return 0; });
     $qesap->redefine(qesap_ansible_fetch_file => sub { return 0; });
     $qesap->redefine(upload_logs => sub { $upload_log_called = 1; return 0; });
-    # needed within qesap_host_is_reachable (private function)
+    # needed within _qesap_host_is_reachable (private function)
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -1364,7 +1364,7 @@ subtest '[qesap_terraform_ansible_deploy_retry] no or unknown Ansible failures, 
     my $qesap_execute_calls = 0;
 
     # 0: unable to detect errors
-    $qesap->redefine(qesap_ansible_error_detection => sub { return 0; });
+    $qesap->redefine(_qesap_ansible_error_detection => sub { return 0; });
     $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -1381,7 +1381,7 @@ subtest '[qesap_terraform_ansible_deploy_retry] no or unknown Ansible failures, 
     my @calls;
 
     # Simulate we never find the string in the Ansible log file
-    # Simulate grep within qesap_file_find_strings, within qesap_ansible_error_detection.
+    # Simulate grep within _qesap_file_find_strings, within _qesap_ansible_error_detection.
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 1; });
 
     $qesap->redefine(script_output => sub {
@@ -1403,7 +1403,7 @@ subtest '[qesap_terraform_ansible_deploy_retry] generic Ansible failures, no ret
     my $qesap_execute_calls = 0;
 
     # 1 means a generic Ansible error
-    $qesap->redefine(qesap_ansible_error_detection => sub { return 1; });
+    $qesap->redefine(_qesap_ansible_error_detection => sub { return 1; });
     $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -1418,7 +1418,7 @@ subtest '[qesap_terraform_ansible_deploy_retry] no sudo password Ansible failure
     my $qesap_execute_calls = 0;
 
     # 3 means "no sudo password" error
-    $qesap->redefine(qesap_ansible_error_detection => sub { return 3; });
+    $qesap->redefine(_qesap_ansible_error_detection => sub { return 3; });
     $qesap->redefine(qesap_execute => sub {
             $qesap_execute_calls++;
             # Simulate that the Ansible retry is just fine
@@ -1438,7 +1438,7 @@ subtest '[qesap_terraform_ansible_deploy_retry] reboot timeout Ansible failures'
     my $qesap_execute_calls = 0;
 
     # 2 means "reboot timeout" error
-    $qesap->redefine(qesap_ansible_error_detection => sub { return 2; });
+    $qesap->redefine(_qesap_ansible_error_detection => sub { return 2; });
     $qesap->redefine(qesap_execute => sub {
             $qesap_execute_calls++;
             # Simulate that all other qesap.py calls are fine
@@ -1573,7 +1573,7 @@ subtest '[qesap_gcp_delete_leftover_ncc_spokes] cleanup logic' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     # Mock GCP spoke listing returning various test cases
-    $qesap->redefine(qesap_gcp_get_ncc_spokes => sub {
+    $qesap->redefine(_qesap_gcp_get_ncc_spokes => sub {
             return [
                 # 1. Permanent center spoke by name -> SKIP
                 {name => 'projects/FF8/locations/global/spokes/ibsm-center-spoke', group => 'center'},
@@ -1596,7 +1596,7 @@ subtest '[qesap_gcp_delete_leftover_ncc_spokes] cleanup logic' => sub {
     });
 
     # Record which spokes get triggered for deletion
-    $qesap->redefine(qesap_gcp_delete_ncc_spoke => sub {
+    $qesap->redefine(_qesap_gcp_delete_ncc_spoke => sub {
             my (%args) = @_;
             push @deleted_spokes, $args{name};
             return 1;

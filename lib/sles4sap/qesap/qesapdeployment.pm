@@ -753,7 +753,7 @@ sub qesap_terraform_conditional_retry {
         return @ret if ($ret[0] == 0);
 
         # Immediately fails if the output does not have one of the errors indicated by the caller
-        return @ret if (!qesap_file_find_strings(file => $ret[1], search_strings => $args{error_list}));
+        return @ret if (!_qesap_file_find_strings(file => $ret[1], search_strings => $args{error_list}));
         record_info('DETECTED ERROR', "Retrying (left: $retries_count)");
 
         # Wait and retry terraform apply
@@ -786,7 +786,7 @@ sub qesap_terraform_conditional_retry {
     return @ret;
 }
 
-=head3 qesap_file_find_strings
+=head3 _qesap_file_find_strings
 
     Search for a list of strings in the Ansible log file.
     Returns 1 if any of the strings are found in the log file, 0 otherwise.
@@ -800,7 +800,7 @@ sub qesap_terraform_conditional_retry {
 =back
 =cut
 
-sub qesap_file_find_strings {
+sub _qesap_file_find_strings {
     my (%args) = @_;
     foreach (qw(file search_strings)) {
         croak "Missing mandatory $_ argument" unless $args{$_};
@@ -1032,14 +1032,14 @@ sub qesap_ansible_softfail {
     }
 }
 
-=head3 qesap_ansible_get_playbook
+=head3 _qesap_ansible_get_playbook
 
     Download the playbook from the test code repo
     that is on the worker within the running JompHost.
 
 =cut
 
-sub qesap_ansible_get_playbook {
+sub _qesap_ansible_get_playbook {
     my (%args) = @_;
     croak 'Missing mandatory playbook argument' unless $args{playbook};
     if (script_run("test -e $args{playbook}")) {
@@ -1171,7 +1171,7 @@ sub qesap_ansible_script_output_file {
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $playbook = 'script_output.yaml';
-    qesap_ansible_get_playbook(playbook => $playbook);
+    _qesap_ansible_get_playbook(playbook => $playbook);
 
     my @ansible_cmd = ('ansible-playbook', $verbose, $playbook);
     push @ansible_cmd, ('-l', $args{host}, '-i', $inventory, '-u', $args{user});
@@ -1308,7 +1308,7 @@ sub qesap_ansible_fetch_file {
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $fetch_playbook = 'fetch_file.yaml';
 
-    qesap_ansible_get_playbook(playbook => $fetch_playbook);
+    _qesap_ansible_get_playbook(playbook => $fetch_playbook);
 
     my @ansible_fetch_cmd = ('ansible-playbook', $verbose, $fetch_playbook);
     push @ansible_fetch_cmd, ('-l', $args{host}, '-i', $inventory);
@@ -1460,7 +1460,7 @@ sub qesap_upload_crm_report {
     upload_logs($local_path, failok => 1);
 }
 
-=head3 qesap_upload_supportconfig_logs
+=head3 _qesap_upload_supportconfig_logs
 
     Generate supportconfig log on a host and upload the resulting tarball to openqa
 
@@ -1475,7 +1475,7 @@ sub qesap_upload_crm_report {
 =back
 =cut
 
-sub qesap_upload_supportconfig_logs {
+sub _qesap_upload_supportconfig_logs {
     my (%args) = @_;
     foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{failok} //= 0;
@@ -1513,7 +1513,7 @@ sub qesap_upload_supportconfig_logs {
     upload_logs($local_path, failok => 1);
 }
 
-=head3 qesap_cluster_log_cmds
+=head3 _qesap_cluster_log_cmds
 
   List of commands to collect logs from a deployed cluster
 
@@ -1524,7 +1524,7 @@ sub qesap_upload_supportconfig_logs {
 =back
 =cut
 
-sub qesap_cluster_log_cmds {
+sub _qesap_cluster_log_cmds {
     my (%args) = @_;
     croak "Missing mandatory 'provider' argument" unless $args{provider};
     # Many logs does not need to be in this list as collected with `crm report` as:
@@ -1609,12 +1609,12 @@ sub qesap_cluster_logs {
     # return != 0 means no inventory
     return if (script_run("test -e $inventory", 60));
     foreach my $host ('hana[0]', 'hana[1]') {
-        unless (qesap_host_is_reachable(provider => $provider, host => $host)) {
+        unless (_qesap_host_is_reachable(provider => $provider, host => $host)) {
             record_info('Skip Collection', "$host unreachable, skipping cluster log collection", result => 'fail');
             next;
         }
 
-        foreach my $cmd (qesap_cluster_log_cmds(provider => $provider)) {
+        foreach my $cmd (_qesap_cluster_log_cmds(provider => $provider)) {
             my $log_filename = "$host-$cmd->{Output}";
             $log_filename =~ s/[\[\]"]//g;
             my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
@@ -1688,9 +1688,9 @@ sub qesap_save_y2logs {
     upload_logs($local_path, failok => 1);
 }
 
-=head3 qesap_host_is_reachable
+=head3 _qesap_host_is_reachable
 
-    qesap_host_is_reachable(provider => 'aws', host => 'hana[0]');
+    _qesap_host_is_reachable(provider => 'aws', host => 'hana[0]');
 
 Quick reachability probe for a single inventory host via Ansible ping.
 
@@ -1714,7 +1714,7 @@ Returns 1 if host answers Ansible ping within timeout, 0 otherwise.
 =back
 =cut
 
-sub qesap_host_is_reachable {
+sub _qesap_host_is_reachable {
     my (%args) = @_;
     foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{user} //= 'cloudadmin';
@@ -1754,11 +1754,11 @@ sub qesap_supportconfig_logs {
     # return != 0 means no inventory
     return if (script_run("test -e $args{inventory}", 60));
     foreach my $host ('hana[0]', 'hana[1]') {
-        unless (qesap_host_is_reachable(provider => $args{provider}, host => $host)) {
+        unless (_qesap_host_is_reachable(provider => $args{provider}, host => $host)) {
             record_info('Skip Collection', "$host unreachable, skipping supportconfig log collection", result => 'fail');
             next;
         }
-        qesap_upload_supportconfig_logs(host => $host, provider => $args{provider}, failok => 1);
+        _qesap_upload_supportconfig_logs(host => $host, provider => $args{provider}, failok => 1);
     }
 }
 
@@ -1931,7 +1931,7 @@ sub qesap_aws_delete_leftover_tgw_attachments {
 
     Retry to deploy terraform + ansible. This function is only expected to be called if a previous `qesap.py`
     execution returns a non zero exit code. If this function is called after a successful execution,
-    the qesap_ansible_error_detection will not find anything wrong in the log, wrongly concluding that
+    the _qesap_ansible_error_detection will not find anything wrong in the log, wrongly concluding that
     an unknown error is in the log and skipping the retry and this function will return 1..
     Return 0: this function manage the failure properly, perform a retry and retry was a successful deployment
     Return 1: something went wrong or this function does not know what to do with the failure
@@ -1949,7 +1949,7 @@ sub qesap_terraform_ansible_deploy_retry {
     my (%args) = @_;
     foreach (qw(error_log provider)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
 
-    my $detected_error = qesap_ansible_error_detection(error_log => $args{error_log});
+    my $detected_error = _qesap_ansible_error_detection(error_log => $args{error_log});
     record_info('qesap_terraform_ansible_deploy_retry', "detected error:$detected_error");
     my @ret;
     # 3: no sudo password
@@ -2012,7 +2012,7 @@ sub qesap_terraform_ansible_deploy_retry {
         $detected_error = 0;
     }
     else {
-        # qesap_ansible_error_detection return:
+        # _qesap_ansible_error_detection return:
         # - 0 (unknown error),
         # - 1 (generic fatal, not something we can solve by retry) or something else...
         # Mark both as a failure in the retry, allowing error to be propagated.
@@ -2021,9 +2021,9 @@ sub qesap_terraform_ansible_deploy_retry {
     return $detected_error;
 }
 
-=head3 qesap_ansible_error_detection
+=head3 _qesap_ansible_error_detection
 
-    qesap_ansible_error_detection( error_log=>$error_log )
+    _qesap_ansible_error_detection( error_log=>$error_log )
 
     Inspect the provided Ansible log and search for known issue in the log
     Also provide a nice record_info to summarize the error
@@ -2040,18 +2040,18 @@ sub qesap_terraform_ansible_deploy_retry {
 =back
 =cut
 
-sub qesap_ansible_error_detection {
+sub _qesap_ansible_error_detection {
     my (%args) = @_;
     croak 'Missing mandatory error_log argument' unless $args{error_log};
     my $error_message = '';
     my $ret_code = 0;
 
-    if (qesap_file_find_strings(file => $args{error_log},
+    if (_qesap_file_find_strings(file => $args{error_log},
             search_strings => ['Missing sudo password'])) {
         $error_message = 'MISSING SUDO PASSWORD';
         $ret_code = 3;
     }
-    elsif (qesap_file_find_strings(file => $args{error_log},
+    elsif (_qesap_file_find_strings(file => $args{error_log},
             search_strings => ['Timed out waiting for last boot time check'])) {
         $error_message = 'REBOOT TIMEOUT';
         $ret_code = 2;
@@ -2162,9 +2162,9 @@ sub qesap_ssh_intrusion_detection {
     }
 }
 
-=head3 qesap_gcp_get_ncc_spokes
+=head3 _qesap_gcp_get_ncc_spokes
 
-    qesap_gcp_get_ncc_spokes( [hub => $hub], [name => $name] )
+    _qesap_gcp_get_ncc_spokes( [hub => $hub], [name => $name] )
 
     Queries GCP for Network Connectivity Center (NCC) spokes matching the given
     hub or spoke name.
@@ -2181,7 +2181,7 @@ sub qesap_ssh_intrusion_detection {
 =back
 =cut
 
-sub qesap_gcp_get_ncc_spokes {
+sub _qesap_gcp_get_ncc_spokes {
     my (%args) = @_;
     my $filter = '';
     if ($args{name}) {
@@ -2204,9 +2204,9 @@ sub qesap_gcp_get_ncc_spokes {
 }
 
 
-=head3 qesap_gcp_delete_ncc_spoke
+=head3 _qesap_gcp_delete_ncc_spoke
 
-    qesap_gcp_delete_ncc_spoke( name => $name, [wait => 1], [timeout => 300] )
+    _qesap_gcp_delete_ncc_spoke( name => $name, [wait => 1], [timeout => 300] )
 
     Deletes a GCP NCC spoke by name and optionally waits until deletion completes.
     Return:
@@ -2224,7 +2224,7 @@ sub qesap_gcp_get_ncc_spokes {
 =back
 =cut
 
-sub qesap_gcp_delete_ncc_spoke {
+sub _qesap_gcp_delete_ncc_spoke {
     my (%args) = @_;
     croak 'Must provide spoke name' unless $args{name};
     $args{timeout} //= bmwqemu::scale_timeout(300);
@@ -2240,7 +2240,7 @@ sub qesap_gcp_delete_ncc_spoke {
     my $res;
     while (($duration = time() - $start_time) < $args{timeout}) {
         sleep 5;
-        $res = qesap_gcp_get_ncc_spokes(name => $args{name});
+        $res = _qesap_gcp_get_ncc_spokes(name => $args{name});
         last unless ref($res) eq 'ARRAY' && @$res;
     }
     return $duration < $args{timeout} ? 1 : 0;
@@ -2268,7 +2268,7 @@ sub qesap_gcp_delete_leftover_ncc_spokes {
     my (%args) = @_;
     return 0 unless $args{hub};
 
-    my $available_spokes = qesap_gcp_get_ncc_spokes(hub => $args{hub});
+    my $available_spokes = _qesap_gcp_get_ncc_spokes(hub => $args{hub});
 
     return 1 unless ref($available_spokes) eq 'ARRAY' && @$available_spokes;
     record_info('GCP PEERING CLEANUP', 'Starting leftover NCC spoke cleanup (GCP)');
@@ -2289,7 +2289,7 @@ sub qesap_gcp_delete_leftover_ncc_spokes {
 
         record_info('LEFTOVER GCP SPOKE', "Spoke ${spoke_name}'s job $job_id has finished, deleting");
 
-        qesap_gcp_delete_ncc_spoke(
+        _qesap_gcp_delete_ncc_spoke(
             name => $spoke_name,
             wait => 0
         );
