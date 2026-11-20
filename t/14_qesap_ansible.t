@@ -185,7 +185,7 @@ subtest '[qesap_ansible_script_output_file]' => sub {
     my $fetch_remote_path;
     my $fetch_out_path;
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
-    $qesap->redefine(qesap_ansible_get_playbook => sub { return; });
+    $qesap->redefine(_qesap_ansible_get_playbook => sub { return; });
     $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
@@ -221,7 +221,7 @@ subtest '[qesap_ansible_script_output_file] fail' => sub {
     my @calls;
     my $fetch_called = 0;
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
-    $qesap->redefine(qesap_ansible_get_playbook => sub { return; });
+    $qesap->redefine(_qesap_ansible_get_playbook => sub { return; });
     $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
@@ -292,7 +292,7 @@ subtest '[qesap_ansible_script_output_file] call with all arguments' => sub {
     ok((any { /ansible-playbook.*-e.*remote_path='\/ADRIATIC_SEE'/ } @calls), 'remote_path is used as ansible-playbook -e remote_path');
 };
 
-subtest '[qesap_ansible_script_output_file] integrate with _qesap_venv_cmd_exec and qesap_ansible_get_playbook' => sub {
+subtest '[qesap_ansible_script_output_file] integrate with _qesap_venv_cmd_exec and _qesap_ansible_get_playbook' => sub {
     # This test does not mock _qesap_venv_cmd_exec so also test it implicitly
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
@@ -474,7 +474,7 @@ subtest '[qesap_ansible_fetch_file]' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
-    $qesap->redefine(qesap_ansible_get_playbook => sub { push @calls, $_[0]; });
+    $qesap->redefine(_qesap_ansible_get_playbook => sub { push @calls, $_[0]; });
     $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
@@ -492,7 +492,7 @@ subtest '[qesap_ansible_fetch_file] fail' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
-    $qesap->redefine(qesap_ansible_get_playbook => sub { push @calls, $_[0]; });
+    $qesap->redefine(_qesap_ansible_get_playbook => sub { push @calls, $_[0]; });
     $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
