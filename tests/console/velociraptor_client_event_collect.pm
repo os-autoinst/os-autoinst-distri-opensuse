@@ -82,11 +82,11 @@ sub run {
 EOF');
 
     script_run("velociraptor-client config generate --merge_file=init-config.json > server.conf");
+    # create api config for a new "admin" user. The server will create the user when it starts.
+    assert_script_run("velociraptor-client --config server.conf config api_client --name admin --role administrator api.config.yaml");
     background_script_run("velociraptor-client frontend -v --config server.conf > /dev/null 2>&1 &");
     script_run("velociraptor-client config client --config server.conf > /etc/velociraptor/client.config");
     script_run("sed -i 's/VELOCIRAPTOR_CLIENT_OPTS=\"\"/VELOCIRAPTOR_CLIENT_OPTS=\"-v\"' /etc/sysconfig/velociraptor-client");
-    # generate server api config
-    assert_script_run("velociraptor-client --config server.conf config api_client --name admin --role administrator api.config.yaml");
     # get client info from server
     sleep 10;
     assert_script_run("velociraptor-client --api_config ~/api.config.yaml query 'SELECT * FROM info()'");
