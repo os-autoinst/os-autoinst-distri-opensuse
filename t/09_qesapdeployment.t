@@ -341,10 +341,8 @@ subtest '[qesap_get_roles_code] from default github' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(_qesap_get_paths => sub {
-            my %paths;
-            $paths{roles_dir} = '/BRUCE';
-            return (%paths);
+    $qesap->redefine(_qesap_roles_paths => sub {
+            return (roles_dir => '/BRUCE', roles_dir_path => '/BRUCE/roles');
     });
 
     qesap_get_roles_code();
@@ -359,10 +357,8 @@ subtest '[qesap_get_roles_code] from fork' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(_qesap_get_paths => sub {
-            my %paths;
-            $paths{roles_dir} = '/BRUCE';
-            return (%paths);
+    $qesap->redefine(_qesap_roles_paths => sub {
+            return (roles_dir => '/BRUCE', roles_dir_path => '/BRUCE/roles');
     });
     set_var('QESAP_ROLES_INSTALL_GITHUB_REPO', 'WHALE');
 
@@ -379,10 +375,8 @@ subtest '[qesap_get_roles_code] from branch' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(_qesap_get_paths => sub {
-            my %paths;
-            $paths{roles_dir} = '/BRUCE';
-            return (%paths);
+    $qesap->redefine(_qesap_roles_paths => sub {
+            return (roles_dir => '/BRUCE', roles_dir_path => '/BRUCE/roles');
     });
     set_var('QESAP_ROLES_INSTALL_GITHUB_BRANCH', 'TED');
 
@@ -1141,7 +1135,7 @@ subtest '[qesap_prepare_env]' => sub {
     my @mock_func = qw(_qesap_get_variables
       qesap_yaml_replace
       _qesap_create_folder_tree
-      qesap_get_deployment_code
+      _qesap_get_deployment_code
       qesap_get_roles_code
       qesap_pip_install
       qesap_galaxy_install);
@@ -1171,7 +1165,7 @@ subtest '[qesap_prepare_env] openqa_variables' => sub {
     my @mock_func = qw(_qesap_get_variables
       qesap_yaml_replace
       _qesap_create_folder_tree
-      qesap_get_deployment_code
+      _qesap_get_deployment_code
       qesap_get_roles_code
       qesap_pip_install
       qesap_galaxy_install);
@@ -1195,7 +1189,7 @@ subtest '[qesap_prepare_env] only_configure' => sub {
     my @mock_func = qw(_qesap_get_variables
       qesap_yaml_replace
       _qesap_create_folder_tree
-      qesap_get_deployment_code
+      _qesap_get_deployment_code
       qesap_get_roles_code
       qesap_pip_install
       qesap_galaxy_install);
@@ -1209,7 +1203,7 @@ subtest '[qesap_prepare_env] only_configure' => sub {
     qesap_prepare_env(provider => 'DONALDUCK', only_configure => 1);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     # Check that a specific subset of function is not executed in only_configure mode
-    foreach (qw(_qesap_create_folder_tree qesap_get_deployment_code qesap_get_roles_code qesap_pip_install qesap_galaxy_install)) {
+    foreach (qw(_qesap_create_folder_tree _qesap_get_deployment_code qesap_get_roles_code qesap_pip_install qesap_galaxy_install)) {
         my $fn = $_;
         ok $called_functions{$fn} eq 0, "$fn not called by qesap_prepare_env in only_configure mode";
     }
@@ -1237,7 +1231,7 @@ subtest '[qesap_prepare_env] _qesap_create_folder_tree/_qesap_get_file_paths def
     my %called_functions;
     my @mock_func = qw(_qesap_get_variables
       qesap_yaml_replace
-      qesap_get_deployment_code
+      _qesap_get_deployment_code
       qesap_get_roles_code
       qesap_pip_install
       qesap_galaxy_install);
@@ -1262,7 +1256,7 @@ subtest '[qesap_prepare_env] _qesap_create_folder_tree/_qesap_get_file_paths use
     my %called_functions;
     my @mock_func = qw(_qesap_get_variables
       qesap_yaml_replace
-      qesap_get_deployment_code
+      _qesap_get_deployment_code
       qesap_get_roles_code
       qesap_pip_install
       qesap_galaxy_install);
@@ -1302,7 +1296,7 @@ sub create_qesap_prepare_env_mocks() {
     });
 
     $qesap->redefine(_qesap_create_folder_tree => sub { return; });
-    $qesap->redefine(qesap_get_deployment_code => sub { return; });
+    $qesap->redefine(_qesap_get_deployment_code => sub { return; });
     $qesap->redefine(qesap_get_roles_code => sub { return; });
     $qesap->redefine(qesap_pip_install => sub { return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -1691,14 +1685,14 @@ subtest '[qesap_prepare_env] malformed QESAP_INSTALL_VERSION must not fall back 
 subtest '[qesap_prepare_env] cache hit skips the code download' => sub {
     my @calls;
     my $qesap = create_qesap_prepare_env_cache_mocks(\@calls);
-    $qesap->redefine(qesap_get_deployment_code => sub { push @calls, 'qesap_get_deployment_code called'; return; });
+    $qesap->redefine(_qesap_get_deployment_code => sub { push @calls, '_qesap_get_deployment_code called'; return; });
     set_var('QESAP_INSTALL_VERSION', '2.6.15');
 
     qesap_prepare_env(provider => 'DONALDUCK');
 
     set_var('QESAP_INSTALL_VERSION', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok(!(any { /qesap_get_deployment_code called/ } @calls), 'Download not called on cache hit');
+    ok(!(any { /_qesap_get_deployment_code called/ } @calls), 'Download not called on cache hit');
     ok(!(any { /curl.*github.com\/SUSE\/qe-sap-deployment/ } @calls), 'No release tarball downloaded on cache hit');
     ok((any { /curl -v -fL \/TORNADO -o \/root\/qesap_cache\/2\.6\.15\/qe-sap-deployment\/scripts\/qesap\/MARLIN/ } @calls), 'Config file written into the cached code folder');
 };
@@ -1725,7 +1719,7 @@ subtest '[qesap_prepare_env] cache miss downloads the code' => sub {
 subtest '[qesap_prepare_env] latest resolved then cache hit skips the download' => sub {
     my @calls;
     my $qesap = create_qesap_prepare_env_cache_mocks(\@calls);
-    $qesap->redefine(qesap_get_deployment_code => sub { push @calls, 'qesap_get_deployment_code called'; return; });
+    $qesap->redefine(_qesap_get_deployment_code => sub { push @calls, '_qesap_get_deployment_code called'; return; });
     $qesap->redefine(script_output => sub { return "MYGITHUBREPO/tag/v2.6.16" });
     set_var('QESAP_INSTALL_VERSION', 'latest');
 
@@ -1733,7 +1727,7 @@ subtest '[qesap_prepare_env] latest resolved then cache hit skips the download' 
 
     set_var('QESAP_INSTALL_VERSION', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok(!(any { /qesap_get_deployment_code called/ } @calls), 'Download not called when latest resolves to a cached version');
+    ok(!(any { /_qesap_get_deployment_code called/ } @calls), 'Download not called when latest resolves to a cached version');
     ok((any { /curl -v -fL \/TORNADO -o \/root\/qesap_cache\/2\.6\.16\/qe-sap-deployment\/scripts\/qesap\/MARLIN/ } @calls), 'Config file written into the cached code folder');
 };
 
@@ -1752,6 +1746,82 @@ subtest '[qesap_prepare_env] latest resolved then cache miss downloads the resol
     set_var('QESAP_INSTALL_VERSION', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/v2\.6\.16\.tar\.gz.*-o \/tmp\/v2\.6\.16\.tar\.gz/ } @calls), 'Resolved version downloaded on latest cache miss');
+};
+
+subtest '[qesap_resolve_install_version] returns empty string when QESAP_INSTALL_VERSION is not set' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $script_output_called = 0;
+    $qesap->redefine(script_output => sub { $script_output_called = 1; return ''; });
+
+    my $result = qesap_resolve_install_version();
+
+    is $result, '', 'Returns empty string when QESAP_INSTALL_VERSION is not set';
+    ok(!$script_output_called, 'script_output (GitHub) not called when no version set');
+};
+
+subtest '[qesap_resolve_install_version] returns the version when set' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my $script_output_called = 0;
+    $qesap->redefine(script_output => sub { $script_output_called = 1; return ''; });
+    set_var('QESAP_INSTALL_VERSION', '2.6.15');
+
+    my $result = qesap_resolve_install_version();
+
+    set_var('QESAP_INSTALL_VERSION', undef);
+    is $result, '2.6.15', 'Returns the pinned version';
+    ok(!$script_output_called, 'script_output (GitHub) not called for a pinned version');
+};
+
+subtest '[qesap_resolve_install_version] resolves latest through GitHub' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(script_output => sub { return "https://github.com/SUSE/qe-sap-deployment/releases/tag/v2.7.0" });
+    set_var('QESAP_INSTALL_VERSION', 'latest');
+
+    my $result = qesap_resolve_install_version();
+
+    set_var('QESAP_INSTALL_VERSION', undef);
+    is $result, '2.7.0', 'Resolves latest to the GitHub release tag';
+};
+
+subtest '[qesap_resolve_install_version] dies on invalid version' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    set_var('QESAP_INSTALL_VERSION', 'not-a-version');
+
+    throws_ok { qesap_resolve_install_version() } qr/Invalid QESAP_INSTALL_VERSION/, 'Dies on invalid version';
+
+    set_var('QESAP_INSTALL_VERSION', undef);
+};
+
+subtest '[qesap_prepare_env] qesap_release arg skips GitHub resolution' => sub {
+    my @calls;
+    my $qesap = create_qesap_prepare_env_cache_mocks(\@calls);
+    my $script_output_called = 0;
+    $qesap->redefine(script_output => sub { $script_output_called = 1; return ''; });
+    # Cache hit: test -d returns 0
+    $qesap->redefine(_qesap_get_deployment_code => sub { push @calls, '_qesap_get_deployment_code called'; return; });
+
+    qesap_prepare_env(provider => 'DONALDUCK', qesap_release => '2.6.15');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(!$script_output_called, 'script_output (GitHub) not called when qesap_release is given');
+    ok(!(any { /_qesap_get_deployment_code called/ } @calls), 'Download not called on cache hit with qesap_release');
+    ok((any { /curl -v -fL \/TORNADO -o \/root\/qesap_cache\/2\.6\.15\/qe-sap-deployment\/scripts\/qesap\/MARLIN/ } @calls), 'Config written into cached folder');
+};
+
+subtest '[qesap_prepare_env] no version set does git clone without release download' => sub {
+    my @calls;
+    my $qesap = create_qesap_prepare_env_cache_mocks(\@calls);
+    my $script_output_called = 0;
+    $qesap->redefine(script_output => sub { $script_output_called = 1; return ''; });
+
+    qesap_prepare_env(provider => 'DONALDUCK');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(!$script_output_called, 'script_output (GitHub) not called when no version set');
+    ok(!(any { /^test -d / } @calls), 'No cache probe when no version set');
+    ok((any { /git.*clone.*github.*com\/SUSE\/qe-sap-deployment/ } @calls), 'Git clone of default branch runs');
+    ok(!(any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive/ } @calls), 'No release tarball download');
 };
 
 done_testing;
