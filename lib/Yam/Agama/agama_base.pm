@@ -29,9 +29,12 @@ sub upload_agama_logs {
     save_and_upload_log('journalctl -b > /tmp/journal.log', "/tmp/journal.log", {timeout => 60});
 
     # logs from the UI saved by default to this path
-    my $full_log_path = script_output("find /root/Downloads/ -name 'agama-logs*.tar.gz' 2>/dev/null || true");
-    $full_log_path =~ s/^\s+|\s+$//g;
+    my $full_log_path = script_output("ls /root/Downloads/agama-logs*.tar.gz 2>/dev/null | head -n1 || true");
     upload_logs($full_log_path, log_name => 'agama-logs-from-ui.tar.gz') if $full_log_path;
+
+    # agama configuration from the UI saved by default to this path
+    my $config_path = script_output("ls /root/Downloads/agama-config-*.json 2>/dev/null | head -n1 || true");
+    upload_logs($config_path, log_name => 'agama-config-from-ui.json') if $config_path;
 }
 
 sub upload_browser_automation_dumps {
