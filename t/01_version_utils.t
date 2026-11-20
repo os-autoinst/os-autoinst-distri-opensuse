@@ -282,6 +282,16 @@ subtest 'bootloader_tests' => sub {
     set_var('VERSION', 'Slowroll');
     ok get_default_bootloader eq 'grub2', "Slowroll on UEFI is grub2";
 
+    set_var('VERSION', '16.1');
+    ok get_default_bootloader eq 'grub2', "SLE/Leap 16.1 on UEFI is grub2";
+
+    set_var('VERSION', '16.2');
+    ok get_default_bootloader eq 'systemd-boot', "SLE/Leap 16.2 on UEFI is systemd-boot";
+
+    set_var('UEFI', '0');
+    ok get_default_bootloader eq 'grub2', "SLE 16.2/Leap non UEFI is grub2";
+
+    set_var('UEFI', '1');
     set_var('DISTRI', 'sle-micro');
     set_var('VERSION', '5.5');
     set_var('FLAVOR', 'Default-Updates');
