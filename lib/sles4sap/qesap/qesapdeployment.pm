@@ -53,10 +53,10 @@ my @log_files = ();
 # stdiag<PREFIX><JOB_ID> can only consist of lowercase letters and numbers,
 # and must be between 3 and 24 characters long
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
-
 use constant QESAPDEPLOY_VENV => '/tmp/exec_venv';
 use constant QESAPDEPLOY_PY_DEFAULT_VER => '3.11';
 use constant QESAP_CACHE_ROOT => '/root/qesap_cache';
+
 
 our @EXPORT = qw(
   qesap_cache_releases
@@ -111,6 +111,41 @@ sub _qesap_is_valid_version {
     return $version =~ /^\d+\.\d+(\.\d+)?$/;
 }
 
+=head3 _qesap_resolve_install_version
+
+    Reads QESAP_INSTALL_VERSION, if needed resolves 'latest' through GitHub,
+    and validates the result as a numeric release version.
+    Returns the resolved version string, or undef if QESAP_INSTALL_VERSION is not set.
+    Dies if the value is neither a numeric release version nor 'latest'.
+=cut
+
+sub _qesap_resolve_install_version {
+    my $version = get_var('QESAP_INSTALL_VERSION');
+    return unless defined $version && length $version;
+    $version = qesap_get_latest_version() if $version eq 'latest';
+    unless (_qesap_is_valid_version($version)) {
+        die "Invalid QESAP_INSTALL_VERSION '$version': expected a numeric release version (e.g. 2.6.15) or 'latest'";
+    }
+    return $version;
+}
+
+=head3 _qesap_deployment_dir
+
+    Returns the effective deployment code directory. When QESAP_INSTALL_VERSION
+    names a release with a complete folder under QESAP_CACHE_ROOT,
+    that cached folder is returned;
+    otherwise the value of QESAP_DEPLOYMENT_DIR (default /root/qe-sap-deployment).
+=cut
+
+sub _qesap_deployment_dir {
+    my $version = _qesap_resolve_install_version();
+    if ($version) {
+        my $dir = QESAP_CACHE_ROOT . "/$version/qe-sap-deployment";
+        return $dir if script_run("test -d '$dir/terraform'") == 0;
+    }
+    return get_var('QESAP_DEPLOYMENT_DIR', '/root/qe-sap-deployment');
+}
+
 =head3 _qesap_get_paths
 
     Returns a hash containing directory paths for qe-sap-deployment:
@@ -120,7 +155,8 @@ sub _qesap_is_valid_version {
 =over
 
 =item B<DEPLOYMENT_DIR> - optional override for deployment_dir (and the default
-derived terraform_dir). When omitted, the openQA variables are used as before.
+derived terraform_dir). When omitted, _qesap_deployment_dir() is used, which
+prefers a complete cache folder over QESAP_DEPLOYMENT_DIR.
 
 =back
 =cut
@@ -128,7 +164,7 @@ derived terraform_dir). When omitted, the openQA variables are used as before.
 sub _qesap_get_paths {
     my (%args) = @_;
     my %paths;
-    $paths{deployment_dir} = $args{deployment_dir} // get_var('QESAP_DEPLOYMENT_DIR', '/root/qe-sap-deployment');
+    $paths{deployment_dir} = $args{deployment_dir} // _qesap_deployment_dir();
     $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
     $paths{roles_dir} = get_var('QESAP_ROLES_DIR', '/root/community.sles-for-sap');
     $paths{roles_dir_path} = $paths{roles_dir} . '/roles';
@@ -923,8 +959,7 @@ sub qesap_ansible_get_roles_dir {
     - creates file structures
     - pulls git repository
     - external configuration files
-    - installs pip requirements and OS packages
-    - generates configuration files with qesap script
+    - installs pip requirements and OS  configuration files with qesap script
 
     For variables example see 'qesap_yaml_replace'
     Returns only result, failure handling has to be done by calling method.
@@ -957,7 +992,21 @@ sub qesap_prepare_env {
     unless ($args{only_configure}) {
         die "Missing mandatory qesap_conf_src from _qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
         _qesap_create_folder_tree();
-        qesap_get_deployment_code(version => get_var('QESAP_INSTALL_VERSION'));
+
+        my $install_version = _qesap_resolve_install_version();
+        if ($install_version) {
+            my $cache_dir = QESAP_CACHE_ROOT . "/$install_version/qe-sap-deployment";
+            if (script_run("test -d '$cache_dir/terraform'") == 0) {
+                record_info('QESAP repo', "Using cached qe-sap-deployment code at $cache_dir, skipping download");
+            }
+            else {
+                record_info('QESAP cache miss', "no complete cache for $install_version, downloading");
+                qesap_get_deployment_code(version => $install_version);
+            }
+        }
+        else {
+            qesap_get_deployment_code();
+        }
         qesap_get_roles_code();
         qesap_pip_install();
         # for the moment run it only conditionally
