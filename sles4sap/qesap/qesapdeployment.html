@@ -39,7 +39,7 @@
           <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
           <li><a href="#qesap_execute">qesap_execute</a></li>
           <li><a href="#qesap_terraform_conditional_retry">qesap_terraform_conditional_retry</a></li>
-          <li><a href="#qesap_file_find_strings">qesap_file_find_strings</a></li>
+          <li><a href="#qesap_file_find_strings">_qesap_file_find_strings</a></li>
           <li><a href="#qesap_get_inventory">qesap_get_inventory</a></li>
           <li><a href="#qesap_get_nodes_number">qesap_get_nodes_number</a></li>
           <li><a href="#qesap_get_nodes_names">qesap_get_nodes_names</a></li>
@@ -47,7 +47,7 @@
           <li><a href="#qesap_ansible_get_roles_dir">qesap_ansible_get_roles_dir</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
           <li><a href="#qesap_ansible_softfail">qesap_ansible_softfail</a></li>
-          <li><a href="#qesap_ansible_get_playbook">qesap_ansible_get_playbook</a></li>
+          <li><a href="#qesap_ansible_get_playbook">_qesap_ansible_get_playbook</a></li>
           <li><a href="#qesap_ansible_cmd">qesap_ansible_cmd</a></li>
           <li><a href="#qesap_ansible_script_output_file">qesap_ansible_script_output_file</a></li>
           <li><a href="#qesap_ansible_script_output">qesap_ansible_script_output</a></li>
@@ -56,11 +56,11 @@
           <li><a href="#qesap_remote_hana_public_ips">qesap_remote_hana_public_ips</a></li>
           <li><a href="#qesap_wait_for_ssh">qesap_wait_for_ssh</a></li>
           <li><a href="#qesap_upload_crm_report">qesap_upload_crm_report</a></li>
-          <li><a href="#qesap_upload_supportconfig_logs">qesap_upload_supportconfig_logs</a></li>
-          <li><a href="#qesap_cluster_log_cmds">qesap_cluster_log_cmds</a></li>
+          <li><a href="#qesap_upload_supportconfig_logs">_qesap_upload_supportconfig_logs</a></li>
+          <li><a href="#qesap_cluster_log_cmds">_qesap_cluster_log_cmds</a></li>
           <li><a href="#qesap_cluster_logs">qesap_cluster_logs</a></li>
           <li><a href="#qesap_save_y2logs">qesap_save_y2logs</a></li>
-          <li><a href="#qesap_host_is_reachable">qesap_host_is_reachable</a></li>
+          <li><a href="#qesap_host_is_reachable">_qesap_host_is_reachable</a></li>
           <li><a href="#qesap_supportconfig_logs">qesap_supportconfig_logs</a></li>
           <li><a href="#qesap_calculate_deployment_name">qesap_calculate_deployment_name</a></li>
           <li><a href="#qesap_aws_filter_query">qesap_aws_filter_query</a></li>
@@ -69,11 +69,11 @@
           <li><a href="#qesap_export_instances">qesap_export_instances</a></li>
           <li><a href="#qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</a></li>
           <li><a href="#qesap_terraform_ansible_deploy_retry">qesap_terraform_ansible_deploy_retry</a></li>
-          <li><a href="#qesap_ansible_error_detection">qesap_ansible_error_detection</a></li>
+          <li><a href="#qesap_ansible_error_detection">_qesap_ansible_error_detection</a></li>
           <li><a href="#qesap_create_cidr_from_ip">qesap_create_cidr_from_ip</a></li>
           <li><a href="#qesap_ssh_intrusion_detection">qesap_ssh_intrusion_detection</a></li>
-          <li><a href="#qesap_gcp_get_ncc_spokes">qesap_gcp_get_ncc_spokes</a></li>
-          <li><a href="#qesap_gcp_delete_ncc_spoke">qesap_gcp_delete_ncc_spoke</a></li>
+          <li><a href="#qesap_gcp_get_ncc_spokes">_qesap_gcp_get_ncc_spokes</a></li>
+          <li><a href="#qesap_gcp_delete_ncc_spoke">_qesap_gcp_delete_ncc_spoke</a></li>
           <li><a href="#qesap_gcp_delete_leftover_ncc_spokes">qesap_gcp_delete_leftover_ncc_spokes</a></li>
         </ul>
       </li>
@@ -384,7 +384,7 @@ The function returns its execution result in the same format as `qesap_execute`.
 </dd>
 </dl>
 
-<h3 id="qesap_file_find_strings">qesap_file_find_strings</h3>
+<h3 id="qesap_file_find_strings">_qesap_file_find_strings</h3>
 
 <pre><code>Search for a list of strings in the Ansible log file.
 Returns 1 if any of the strings are found in the log file, 0 otherwise.</code></pre>
@@ -505,7 +505,7 @@ This function does not return anything.</code></pre>
 </dd>
 </dl>
 
-<h3 id="qesap_ansible_get_playbook">qesap_ansible_get_playbook</h3>
+<h3 id="qesap_ansible_get_playbook">_qesap_ansible_get_playbook</h3>
 
 <pre><code>Download the playbook from the test code repo
 that is on the worker within the running JompHost.</code></pre>
@@ -781,7 +781,7 @@ Return total time of retry loop in case of pass.</code></pre>
 </dd>
 </dl>
 
-<h3 id="qesap_upload_supportconfig_logs">qesap_upload_supportconfig_logs</h3>
+<h3 id="qesap_upload_supportconfig_logs">_qesap_upload_supportconfig_logs</h3>
 
 <pre><code>Generate supportconfig log on a host and upload the resulting tarball to openqa</code></pre>
 
@@ -801,7 +801,7 @@ Return total time of retry loop in case of pass.</code></pre>
 </dd>
 </dl>
 
-<h3 id="qesap_cluster_log_cmds">qesap_cluster_log_cmds</h3>
+<h3 id="qesap_cluster_log_cmds">_qesap_cluster_log_cmds</h3>
 
 <pre><code>List of commands to collect logs from a deployed cluster</code></pre>
 
@@ -835,9 +835,9 @@ This is about logs generated remotely on the two HANA nodes,
 </dd>
 </dl>
 
-<h3 id="qesap_host_is_reachable">qesap_host_is_reachable</h3>
+<h3 id="qesap_host_is_reachable">_qesap_host_is_reachable</h3>
 
-<pre><code>qesap_host_is_reachable(provider =&gt; &#39;aws&#39;, host =&gt; &#39;hana[0]&#39;);</code></pre>
+<pre><code>_qesap_host_is_reachable(provider =&gt; &#39;aws&#39;, host =&gt; &#39;hana[0]&#39;);</code></pre>
 
 <p>Quick reachability probe for a single inventory host via Ansible ping.</p>
 
@@ -961,7 +961,7 @@ that the current job is running on.</code></pre>
 
 Retry to deploy terraform + ansible. This function is only expected to be called if a previous `qesap.py`
 execution returns a non zero exit code. If this function is called after a successful execution,
-the qesap_ansible_error_detection will not find anything wrong in the log, wrongly concluding that
+the _qesap_ansible_error_detection will not find anything wrong in the log, wrongly concluding that
 an unknown error is in the log and skipping the retry and this function will return 1..
 Return 0: this function manage the failure properly, perform a retry and retry was a successful deployment
 Return 1: something went wrong or this function does not know what to do with the failure</code></pre>
@@ -978,9 +978,9 @@ Return 1: something went wrong or this function does not know what to do with th
 </dd>
 </dl>
 
-<h3 id="qesap_ansible_error_detection">qesap_ansible_error_detection</h3>
+<h3 id="qesap_ansible_error_detection">_qesap_ansible_error_detection</h3>
 
-<pre><code>qesap_ansible_error_detection( error_log=&gt;$error_log )
+<pre><code>_qesap_ansible_error_detection( error_log=&gt;$error_log )
 
 Inspect the provided Ansible log and search for known issue in the log
 Also provide a nice record_info to summarize the error
@@ -1028,9 +1028,9 @@ Return:
 </dd>
 </dl>
 
-<h3 id="qesap_gcp_get_ncc_spokes">qesap_gcp_get_ncc_spokes</h3>
+<h3 id="qesap_gcp_get_ncc_spokes">_qesap_gcp_get_ncc_spokes</h3>
 
-<pre><code>qesap_gcp_get_ncc_spokes( [hub =&gt; $hub], [name =&gt; $name] )
+<pre><code>_qesap_gcp_get_ncc_spokes( [hub =&gt; $hub], [name =&gt; $name] )
 
 Queries GCP for Network Connectivity Center (NCC) spokes matching the given
 hub or spoke name.
@@ -1050,9 +1050,9 @@ Return:
 </dd>
 </dl>
 
-<h3 id="qesap_gcp_delete_ncc_spoke">qesap_gcp_delete_ncc_spoke</h3>
+<h3 id="qesap_gcp_delete_ncc_spoke">_qesap_gcp_delete_ncc_spoke</h3>
 
-<pre><code>qesap_gcp_delete_ncc_spoke( name =&gt; $name, [wait =&gt; 1], [timeout =&gt; 300] )
+<pre><code>_qesap_gcp_delete_ncc_spoke( name =&gt; $name, [wait =&gt; 1], [timeout =&gt; 300] )
 
 Deletes a GCP NCC spoke by name and optionally waits until deletion completes.
 Return:
