@@ -12,7 +12,7 @@ use testapi;
 use lockapi;
 use transactional;
 use utils;
-use version_utils qw(is_transactional);
+use version_utils;
 use Utils::Systemd;
 use Utils::Backends 'use_ssh_serial_console';
 use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
@@ -124,7 +124,12 @@ __END
     $self->check_service_status();
     assert_script_run("grep static /var/lib/kubelet/cpu_manager_state");
 
-    my $kubevirt_ver = script_output(qq(ssh root\@$server_ip "rpm -q --qf \%{VERSION} kubevirt-tests"));
+    # SLE 16 ships only versioned kubevirt<version>-tests packages (bsc#1252126)
+    my $kubevirt_tests_rel = get_versioned_kubevirt_release();
+    my $kubevirt_tests_pkg = $kubevirt_tests_rel ? "kubevirt-$kubevirt_tests_rel-tests" : 'kubevirt-tests';
+    my $kubevirt_ver = is_sle('>=16')
+      ? script_output(qq(ssh root\@$server_ip "rpm -qa --qf \%{VERSION} 'kubevirt[0-9]*.[0-9]*-tests'"))
+      : script_output(qq(ssh root\@$server_ip "rpm -q --qf \%{VERSION} $kubevirt_tests_pkg"));
     # Install Longhorn dependencies
     if (is_transactional) {
         if (script_run('rpmquery jq open-iscsi') && ($kubevirt_ver ge "0.50.0")) {
@@ -165,7 +170,9 @@ sub check_service_status {
 sub set_cpu_manager_policy {
     my $self = shift;
     # Set static policy for CPU Manager
-    assert_script_run("sed -i '/ExecStart=/s/agent\$/agent --kubelet-arg cpu-manager-policy=static --kubelet-arg kube-reserved=cpu=500m --kubelet-arg system-reserved=cpu=500m/' /etc/systemd/system/rke2-agent.service");
+    # Current rke2 keeps the unit under /usr/local/lib/systemd/system (older builds drop it in /etc), so resolve the real unit file
+    my $rke2_agent_unit = script_output('systemctl show -p FragmentPath --value rke2-agent.service');
+    assert_script_run("sed -i '/ExecStart=/s/agent\$/agent --kubelet-arg cpu-manager-policy=static --kubelet-arg kube-reserved=cpu=500m --kubelet-arg system-reserved=cpu=500m/' $rke2_agent_unit");
     assert_script_run("rm /var/lib/kubelet/cpu_manager_state");
     systemctl("daemon-reload");
 }
