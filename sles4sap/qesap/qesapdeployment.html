@@ -20,6 +20,8 @@
       <li><a href="#Methods">Methods</a>
         <ul>
           <li><a href="#qesap_is_valid_version">_qesap_is_valid_version</a></li>
+          <li><a href="#qesap_resolve_install_version">_qesap_resolve_install_version</a></li>
+          <li><a href="#qesap_deployment_dir">_qesap_deployment_dir</a></li>
           <li><a href="#qesap_get_paths">_qesap_get_paths</a></li>
           <li><a href="#qesap_get_file_paths">_qesap_get_file_paths</a></li>
           <li><a href="#qesap_create_folder_tree">_qesap_create_folder_tree</a></li>
@@ -104,6 +106,20 @@ SPDX-License-Identifier: FSFAP</code></pre>
 
 <pre><code>Validate string against qe-sap-deployment version format</code></pre>
 
+<h3 id="qesap_resolve_install_version">_qesap_resolve_install_version</h3>
+
+<pre><code>Reads QESAP_INSTALL_VERSION, if needed resolves &#39;latest&#39; through GitHub,
+and validates the result as a numeric release version.
+Returns the resolved version string, or undef if QESAP_INSTALL_VERSION is not set.
+Dies if the value is neither a numeric release version nor &#39;latest&#39;.</code></pre>
+
+<h3 id="qesap_deployment_dir">_qesap_deployment_dir</h3>
+
+<pre><code>Returns the effective deployment code directory. When QESAP_INSTALL_VERSION
+names a release with a complete folder under QESAP_CACHE_ROOT,
+that cached folder is returned;
+otherwise the value of QESAP_DEPLOYMENT_DIR (default /root/qe-sap-deployment).</code></pre>
+
 <h3 id="qesap_get_paths">_qesap_get_paths</h3>
 
 <pre><code>Returns a hash containing directory paths for qe-sap-deployment:
@@ -112,7 +128,7 @@ Unlike _qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.</code><
 
 <dl>
 
-<dt id="DEPLOYMENT_DIR---optional-override-for-deployment_dir-and-the-default-derived-terraform_dir-.-When-omitted-the-openQA-variables-are-used-as-before"><b>DEPLOYMENT_DIR</b> - optional override for deployment_dir (and the default derived terraform_dir). When omitted, the openQA variables are used as before.</dt>
+<dt id="DEPLOYMENT_DIR---optional-override-for-deployment_dir-and-the-default-derived-terraform_dir-.-When-omitted-_qesap_deployment_dir-is-used-which-prefers-a-complete-cache-folder-over-QESAP_DEPLOYMENT_DIR"><b>DEPLOYMENT_DIR</b> - optional override for deployment_dir (and the default derived terraform_dir). When omitted, _qesap_deployment_dir() is used, which prefers a complete cache folder over QESAP_DEPLOYMENT_DIR.</dt>
 <dd>
 
 </dd>
@@ -463,8 +479,7 @@ Prepare terraform environment.
 - creates file structures
 - pulls git repository
 - external configuration files
-- installs pip requirements and OS packages
-- generates configuration files with qesap script
+- installs pip requirements and OS  configuration files with qesap script
 
 For variables example see &#39;qesap_yaml_replace&#39;
 Returns only result, failure handling has to be done by calling method.</code></pre>
