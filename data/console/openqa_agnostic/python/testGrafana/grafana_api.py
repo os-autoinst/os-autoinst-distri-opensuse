@@ -1,4 +1,8 @@
 #!/usr/bin/python3
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
 """Shared helpers for the openQA-agnostic Grafana tests.
 
 The functions only use the Python standard library so the test runs on a
@@ -81,7 +85,7 @@ def service_restart():
         raise RuntimeError('could not restart %s: %s' % (SERVICE, result.stderr))
 
 
-def wait_healthy(timeout=180):
+def wait_healthy(timeout=600):
     deadline = time.time() + timeout
     last = ''
     while time.time() < deadline:

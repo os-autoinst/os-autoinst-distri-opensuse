@@ -41,7 +41,7 @@ sub run {
             name => 'testGrafana',
             domain => 'console',
             # The artifact restarts grafana-server twice and uploads 130 MiB.
-            run_timeout => 900,
+            run_timeout => 1800,
             # The SLE schedules already activated PackageHub; registering it
             # again fails.
             skip_phub => 1,

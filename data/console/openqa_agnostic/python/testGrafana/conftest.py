@@ -1,3 +1,8 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
 import time
 
 import pytest
