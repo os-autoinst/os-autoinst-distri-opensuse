@@ -1,0 +1,139 @@
+From 7ecf368f743b89cc111ae96e25d75f7bfe6c44ae Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Tue, 17 Nov 2026 10:39:57 +0100
+Subject: [PATCH 1/2] e2e: forward Docker TLS environment variables to the
+ tests
+
+BaseEnvironment() forwards DOCKER_HOST to the docker and compose
+commands run by the e2e tests, but not the variables that go with a TLS
+endpoint. With DOCKER_HOST=tcp://host:2376 and DOCKER_TLS_VERIFY=1 set,
+the tests talk plain HTTP to the daemon and fail with "Client sent an
+HTTP request to an HTTPS server".
+
+Forward DOCKER_TLS_VERIFY, DOCKER_CERT_PATH and DOCKER_API_VERSION too.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ internal/e2e/framework.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/internal/e2e/framework.go b/internal/e2e/framework.go
+index d10a915095..2f29ef9ff2 100644
+--- a/internal/e2e/framework.go
++++ b/internal/e2e/framework.go
+@@ -273,7 +273,7 @@ func (c *CLI) BaseEnvironment() []string {
+ 		"KUBECONFIG=invalid",
+ 		"PATH=" + os.Getenv("PATH"),
+ 	}
+-	for _, name := range []string{"DOCKER_HOST", "DOCKER_CONTEXT"} {
++	for _, name := range []string{"DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH", "DOCKER_API_VERSION"} {
+ 		if value, ok := os.LookupEnv(name); ok {
+ 			env = append(env, name+"="+value)
+ 		}
+
+From dc797609001bacbdc42407bf40ecdeea5bb05eff Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Wed, 18 Nov 2026 12:05:27 +0100
+Subject: [PATCH 2/2] e2e: create buildx builders on a context when TLS comes
+ from the environment
+
+"docker buildx create" refuses to use the default context when its TLS
+data is loaded from DOCKER_TLS_VERIFY/DOCKER_CERT_PATH:
+
+  could not create a builder instance with TLS data loaded from
+  environment. Please use `docker context create <context-name>` ...
+
+Now that these variables are forwarded to the tests, add a CreateBuilder
+helper that copies the default context to a "<builder>-ctx" context
+and creates the builder on it when TLS is configured through the
+environment. The context cannot share the builder's name because buildx
+treats every context as an implicit builder.
+
+Use it in the four tests that create a builder:
+TestBuildPlatformsWithCorrectBuildxConfig, TestBuildPrivileged,
+TestBuildBuilder and TestBuildEntitlements.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ internal/e2e/build_test.go | 12 ++++--------
+ internal/e2e/framework.go  | 21 +++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 8 deletions(-)
+
+diff --git a/internal/e2e/build_test.go b/internal/e2e/build_test.go
+index 76e37b70ff..7e57f0acf3 100644
+--- a/internal/e2e/build_test.go
++++ b/internal/e2e/build_test.go
+@@ -296,8 +296,7 @@ func TestBuildPlatformsWithCorrectBuildxConfig(t *testing.T) {
+ 	// declare a per-test-unique builder to avoid container-name collisions
+ 	// when tests run in parallel on the same Docker daemon.
+ 	builderName := BuilderName(t, "build-platform")
+-	result := c.RunDockerCmd(t, "buildx", "create", "--name", builderName, "--use", "--bootstrap")
+-	assert.NilError(t, result.Error)
++	c.CreateBuilder(t, builderName)
+ 
+ 	t.Cleanup(func() {
+ 		c.RunDockerComposeCmd(t, "--project-directory", "fixtures/build-test/platforms", "down")
+@@ -362,9 +361,8 @@ func TestBuildPrivileged(t *testing.T) {
+ 	// declare a per-test-unique builder to avoid container-name collisions
+ 	// when tests run in parallel on the same Docker daemon.
+ 	builderName := BuilderName(t, "build-privileged")
+-	result := c.RunDockerCmd(t, "buildx", "create", "--name", builderName, "--use", "--bootstrap", "--buildkitd-flags",
++	c.CreateBuilder(t, builderName, "--buildkitd-flags",
+ 		`'--allow-insecure-entitlement=security.insecure'`)
+-	assert.NilError(t, result.Error)
+ 
+ 	t.Cleanup(func() {
+ 		c.RunDockerComposeCmd(t, "--project-directory", "fixtures/build-test/privileged", "down")
+@@ -479,8 +477,7 @@ func TestBuildBuilder(t *testing.T) {
+ 	// declare a per-test-unique builder to avoid container-name collisions
+ 	// when tests run in parallel on the same Docker daemon.
+ 	builderName := BuilderName(t, "build-with-builder")
+-	result := c.RunDockerCmd(t, "buildx", "create", "--name", builderName, "--use", "--bootstrap")
+-	assert.NilError(t, result.Error)
++	c.CreateBuilder(t, builderName)
+ 
+ 	t.Cleanup(func() {
+ 		c.RunDockerComposeCmd(t, "--project-directory", "fixtures/build-test/", "down")
+@@ -507,9 +504,8 @@ func TestBuildEntitlements(t *testing.T) {
+ 	// declare a per-test-unique builder to avoid container-name collisions
+ 	// when tests run in parallel on the same Docker daemon.
+ 	builderName := BuilderName(t, "build-insecure")
+-	result := c.RunDockerCmd(t, "buildx", "create", "--name", builderName, "--use", "--bootstrap", "--buildkitd-flags",
++	c.CreateBuilder(t, builderName, "--buildkitd-flags",
+ 		`'--allow-insecure-entitlement=security.insecure'`)
+-	assert.NilError(t, result.Error)
+ 
+ 	t.Cleanup(func() {
+ 		c.RunDockerComposeCmd(t, "--project-directory", "fixtures/build-test/entitlements", "down")
+diff --git a/internal/e2e/framework.go b/internal/e2e/framework.go
+index 2f29ef9ff2..d07fc54276 100644
+--- a/internal/e2e/framework.go
++++ b/internal/e2e/framework.go
+@@ -533,6 +533,27 @@ func (c *CLI) ServicePublishedPort(t testing.TB, project, service string, target
+ 	return port
+ }
+ 
++// CreateBuilder creates a buildx builder named name and fails the test on error.
++//
++// "docker buildx create" refuses to run against the default context when its
++// TLS settings come from the environment (DOCKER_TLS_VERIFY, DOCKER_CERT_PATH),
++// so in that case the default context is first copied to a context named
++// "<name>-ctx" (buildx treats every context as an implicit builder, so it
++// cannot share the builder's name) and the builder is created on top of it.
++// The context lives in the per-test DOCKER_CONFIG directory, so it needs no
++// cleanup.
++func (c *CLI) CreateBuilder(t testing.TB, name string, args ...string) *icmd.Result {
++	t.Helper()
++	create := []string{"buildx", "create", "--name", name, "--use", "--bootstrap"}
++	create = append(create, args...)
++	if os.Getenv("DOCKER_TLS_VERIFY") != "" || os.Getenv("DOCKER_CERT_PATH") != "" {
++		ctx := name + "-ctx"
++		c.RunDockerCmd(t, "context", "create", ctx, "--from", "default")
++		create = append(create, ctx)
++	}
++	return c.RunDockerCmd(t, create...)
++}
++
+ // BuilderName returns a buildx builder name that is unique to the test,
+ // preventing container-name collisions when tests run in parallel on the
+ // same Docker daemon.
