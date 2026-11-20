@@ -284,11 +284,13 @@ sub run {
     my $iface_model;
     # VMs should be specified with known-to-work network interface.
     if ($vmm_family eq 'vmware') {
-        $iface_model = 'e1000';
+        $iface_model = 'vmxnet3';
         # `virsh iface-list' won't produce correct bridge name for VMware.
         # It should be provided by the worker or relied upon the default.
         $ifacecfg{type} = 'bridge';
         $ifacecfg{source} = {bridge => get_var('VMWARE_BRIDGE', 'VM Network')};
+        $ifacecfg{mac} = {address => genmac('00:0c:29'), type => 'static'};
+
     }
     elsif ($vmm_family eq 'kvm') {
         $iface_model = 'virtio';
