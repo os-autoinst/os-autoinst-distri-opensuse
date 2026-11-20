@@ -53,13 +53,14 @@ my @log_files = ();
 # stdiag<PREFIX><JOB_ID> can only consist of lowercase letters and numbers,
 # and must be between 3 and 24 characters long
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
+
 use constant QESAPDEPLOY_VENV => '/tmp/exec_venv';
 use constant QESAPDEPLOY_PY_DEFAULT_VER => '3.11';
 use constant QESAP_CACHE_ROOT => '/root/qesap_cache';
 
-
 our @EXPORT = qw(
   qesap_cache_releases
+  qesap_resolve_install_version
   qesap_upload_logs
   qesap_get_roles_code
   qesap_get_inventory
@@ -111,21 +112,25 @@ sub _qesap_is_valid_version {
     return $version =~ /^\d+\.\d+(\.\d+)?$/;
 }
 
-=head3 _qesap_resolve_install_version
+=head3 qesap_resolve_install_version
 
-    Reads QESAP_INSTALL_VERSION, if needed resolves 'latest' through GitHub,
-    and validates the result as a numeric release version.
-    Returns the resolved version string, or undef if QESAP_INSTALL_VERSION is not set.
+    Reads QESAP_INSTALL_VERSION, if needed resolves 'latest' through GitHub.
+    Returns the resolved version string, or an empty string if QESAP_INSTALL_VERSION is not set.
     Dies if the value is neither a numeric release version nor 'latest'.
+    It always returns exactly one value.
+
+    Test modules should call this once in run() and pass the result as the
+    optional qesap_version argument to the library functions, so that the version
+    (and 'latest') is resolved only once per module.
 =cut
 
-sub _qesap_resolve_install_version {
-    my $version = get_var('QESAP_INSTALL_VERSION');
-    return unless defined $version && length $version;
+sub qesap_resolve_install_version {
+    my $version = get_var('QESAP_INSTALL_VERSION', '');
+    # Intentionally not a bare 'return'
+    return '' unless length $version;
     $version = qesap_get_latest_version() if $version eq 'latest';
-    unless (_qesap_is_valid_version($version)) {
-        die "Invalid QESAP_INSTALL_VERSION '$version': expected a numeric release version (e.g. 2.6.15) or 'latest'";
-    }
+    die "Invalid QESAP_INSTALL_VERSION '$version': expected a numeric release version (e.g. 2.6.15) or 'latest'"
+      unless (_qesap_is_valid_version($version));
     return $version;
 }
 
@@ -135,10 +140,24 @@ sub _qesap_resolve_install_version {
     names a release with a complete folder under QESAP_CACHE_ROOT,
     that cached folder is returned;
     otherwise the value of QESAP_DEPLOYMENT_DIR (default /root/qe-sap-deployment).
+
+=over
+
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+    cache lookup entirely. When omitted, QESAP_INSTALL_VERSION is read and
+    'latest' is resolved through GitHub.
+
+=back
 =cut
 
 sub _qesap_deployment_dir {
-    my $version = _qesap_resolve_install_version();
+    my (%args) = @_;
+    # qesap_release always comes from qesap_resolve_install_version(), which
+    # returns '' only when QESAP_INSTALL_VERSION is not set ('latest' gives a
+    # number or dies). '' is defined, so '//' does not resolve again, and it is
+    # false, so the cache lookup is skipped. '//' is intentional: on undef
+    # (omitted, or passed by mistake) it resolves again, which is cheap.
+    my $version = $args{qesap_release} // qesap_resolve_install_version();
     if ($version) {
         my $dir = QESAP_CACHE_ROOT . "/$version/qe-sap-deployment";
         return $dir if script_run("test -d '$dir/terraform'") == 0;
@@ -158,26 +177,51 @@ sub _qesap_deployment_dir {
 derived terraform_dir). When omitted, _qesap_deployment_dir() is used, which
 prefers a complete cache folder over QESAP_DEPLOYMENT_DIR.
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_deployment_dir(). When omitted,
+QESAP_INSTALL_VERSION is read and 'latest' is resolved through GitHub.
+
 =back
 =cut
 
 sub _qesap_get_paths {
     my (%args) = @_;
     my %paths;
-    $paths{deployment_dir} = $args{deployment_dir} // _qesap_deployment_dir();
+    $paths{deployment_dir} = $args{deployment_dir} // _qesap_deployment_dir(qesap_release => $args{qesap_release});
     $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
     $paths{roles_dir} = get_var('QESAP_ROLES_DIR', '/root/community.sles-for-sap');
     $paths{roles_dir_path} = $paths{roles_dir} . '/roles';
     return (%paths);
 }
 
+=head3 _qesap_roles_paths
+
+    Returns a hash containing the roles directory paths:
+    roles_dir, roles_dir_path.
+    Unlike _qesap_get_paths(), this does not resolve QESAP_INSTALL_VERSION.
+=cut
+
+sub _qesap_roles_paths {
+    my $roles_dir = get_var('QESAP_ROLES_DIR', '/root/community.sles-for-sap');
+    return (roles_dir => $roles_dir, roles_dir_path => $roles_dir . '/roles');
+}
+
 =head3 _qesap_get_file_paths
 
     Returns a hash containing file paths for configuration files
+
+=over
+
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_paths(). When omitted,
+QESAP_INSTALL_VERSION is read and 'latest' is resolved through GitHub.
+
+=back
 =cut
 
 sub _qesap_get_file_paths {
-    my %paths = _qesap_get_paths();
+    my (%args) = @_;
+    my %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
     $paths{qesap_conf_filename} = get_required_var('QESAP_CONFIG_FILE');
     $paths{qesap_conf_trgt} = $paths{deployment_dir} . '/scripts/qesap/' . $paths{qesap_conf_filename};
     $paths{qesap_conf_src} = data_url('sles4sap/qe_sap_deployment/' . $paths{qesap_conf_filename});
@@ -187,10 +231,18 @@ sub _qesap_get_file_paths {
 =head3 _qesap_create_folder_tree
 
     Create all needed folders
+
+=over
+
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_paths().
+
+=back
 =cut
 
 sub _qesap_create_folder_tree {
-    my %paths = _qesap_get_paths();
+    my (%args) = @_;
+    my %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
     die 'Missing deployment_dir in paths' unless $paths{deployment_dir};
     assert_script_run("mkdir -p $paths{deployment_dir}", quiet => 1);
     die 'Missing roles_dir in paths' unless $paths{roles_dir};
@@ -379,10 +431,18 @@ sub _qesap_pip {
   in a dedicated virtual environment.
   This function has no return code but it is expected to die
   if something internally fails.
+
+=over
+
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_paths().
+
+=back
 =cut
 
 sub qesap_pip_install {
-    my %paths = _qesap_get_paths();
+    my (%args) = @_;
+    my %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
     my $pip_install_log = '/tmp/pip_install.txt';
     my $pip_ints_cmd = join(' ', _qesap_pip(), 'install --no-color --no-cache-dir',
         '-r', "$paths{deployment_dir}/requirements.txt");
@@ -413,10 +473,18 @@ sub qesap_pip_install {
   Install all Ansible requirements of the qe-sap-deployment.
   This function has no return code but it is expected to die
   if something internally fails.
+
+=over
+
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_paths().
+
+=back
 =cut
 
 sub qesap_galaxy_install {
-    my %paths = _qesap_get_paths();
+    my (%args) = @_;
+    my %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
     my $galaxy_install_log = '/tmp/galaxy_install.txt';
 
     my $ans_req = "$paths{deployment_dir}/requirements.yml";
@@ -474,13 +542,17 @@ sub qesap_get_latest_version {
     return $version;
 }
 
-=head3 qesap_get_deployment_code
+=head3 _qesap_get_deployment_code
 
     Get the qe-sap-deployment code
 
 =over
 
-=item B<VERSION> - optional release version tag to install (e.g. 'latest', '2.6.15')
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15),
+as returned by qesap_resolve_install_version(). When set, the release tarball is downloaded;
+when not set, undef or empty, the repository is cloned from a branch instead.
+'latest' is not accepted: dies if the value is not a numeric release version.
+It is also forwarded to _qesap_get_paths() for the cache lookup.
 
 =item B<DEPLOYMENT_DIR> - optional target directory for the code. When omitted,
 the openQA variable QESAP_DEPLOYMENT_DIR is used as before.
@@ -488,11 +560,11 @@ the openQA variable QESAP_DEPLOYMENT_DIR is used as before.
 =back
 =cut
 
-sub qesap_get_deployment_code {
+sub _qesap_get_deployment_code {
     my (%args) = @_;
     my $official_repo = 'github.com/SUSE/qe-sap-deployment';
     my $qesap_git_clone_log = '/tmp/git_clone.txt';
-    my %paths = _qesap_get_paths(deployment_dir => $args{deployment_dir});
+    my %paths = _qesap_get_paths(deployment_dir => $args{deployment_dir}, qesap_release => $args{qesap_release});
     die "Missing mandatory terraform_dir from _qesap_get_paths()" unless $paths{'terraform_dir'};
     die "Missing mandatory deployment_dir from _qesap_get_paths()" unless ($paths{'deployment_dir'} && $paths{'deployment_dir'} =~ /\S/);
 
@@ -515,11 +587,14 @@ sub qesap_get_deployment_code {
     push(@log_files, $qesap_git_clone_log);
 
     # Script from a release
-    if ($args{version}) {
+    if ($args{qesap_release}) {
+        # Only an already resolved release is accepted: 'latest' has to be
+        # resolved by the caller with qesap_resolve_install_version().
+        die "_qesap_get_deployment_code: '$args{qesap_release}' is not a valid numeric release version"
+          unless _qesap_is_valid_version($args{qesap_release});
         record_info('WARNING', 'QESAP_INSTALL_GITHUB_REPO will be ignored') if (get_var('QESAP_INSTALL_GITHUB_REPO'));
         record_info('WARNING', 'QESAP_INSTALL_GITHUB_BRANCH will be ignored') if (get_var('QESAP_INSTALL_GITHUB_BRANCH'));
-        $args{version} = qesap_get_latest_version() if ($args{version} eq 'latest');
-        my $ver_artifact = "v$args{version}.tar.gz";
+        my $ver_artifact = "v$args{qesap_release}.tar.gz";
 
         my $curl_cmd = "curl -v -fL https://$official_repo/archive/refs/tags/$ver_artifact -o /tmp/$ver_artifact";
         assert_script_run("set -o pipefail ; $curl_cmd | tee " . $qesap_git_clone_log, quiet => 1);
@@ -563,9 +638,9 @@ sub qesap_cache_releases {
     foreach my $version (@versions) {
         die "qesap_cache_releases: '$version' is not a valid numeric release version" unless _qesap_is_valid_version($version);
         record_info('QESAP cache', "Baking qe-sap-deployment $version into cache");
-        qesap_get_deployment_code(
-            version => $version,
+        _qesap_get_deployment_code(
             deployment_dir => QESAP_CACHE_ROOT . "/$version/qe-sap-deployment",
+            qesap_release => $version,
         );
     }
 }
@@ -581,7 +656,7 @@ sub qesap_cache_releases {
 sub qesap_get_roles_code {
     my $official_repo = 'github.com/sap-linuxlab/community.sles-for-sap';
     my $roles_git_clone_log = '/tmp/git_clone_roles.txt';
-    my %paths = _qesap_get_paths();
+    my %paths = _qesap_roles_paths();
 
     record_info('SLES4SAP Roles repo', 'Preparing community.sles-for-sap repository');
 
@@ -618,13 +693,20 @@ sub qesap_get_roles_code {
         $variables{HANA_SAR} = get_required_var("HANA_SAR");
         $variables{HANA_CLIENT_SAR} = get_required_var("HANA_CLIENT_SAR");
         qesap_yaml_replace(openqa_variables=>\%variables);
+
+=over
+
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_file_paths().
+
+=back
 =cut
 
 sub qesap_yaml_replace {
     my (%args) = @_;
     my $variables = $args{openqa_variables};
     my %replaced_variables = ();
-    my %paths = _qesap_get_file_paths();
+    my %paths = _qesap_get_file_paths(qesap_release => $args{qesap_release});
     push(@log_files, $paths{qesap_conf_trgt});
 
     for my $variable (keys %{$variables}) {
@@ -665,6 +747,9 @@ sub qesap_yaml_replace {
 
 =item B<TIMEOUT> - max expected execution time, default 90sec
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_file_paths().
+
 =back
 =cut
 
@@ -677,7 +762,7 @@ sub qesap_execute {
     $args{cmd_options} .= ' --numbered-logs' if $args{cmd} eq 'ansible';
     $args{timeout} //= bmwqemu::scale_timeout(90);
 
-    my %paths = _qesap_get_file_paths();
+    my %paths = _qesap_get_file_paths(qesap_release => $args{qesap_release});
     my $exec_log = '/tmp/' . ($args{cmd} eq 'ansible' ? '00-ansible-' : '') . $args{logname};
 
     my $qesap_cmd = join(' ', _qesap_py(), $paths{deployment_dir} . '/scripts/qesap/qesap.py',
@@ -930,13 +1015,16 @@ sub qesap_get_nodes_names {
 
 =item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_file_paths().
+
 =back
 =cut
 
 sub qesap_get_terraform_dir {
     my (%args) = @_;
     croak "Missing mandatory argument 'provider'" unless $args{provider};
-    my %paths = _qesap_get_file_paths();
+    my %paths = _qesap_get_file_paths(qesap_release => $args{qesap_release});
     return join('/', $paths{terraform_dir}, lc $args{provider});
 }
 
@@ -947,7 +1035,7 @@ sub qesap_get_terraform_dir {
 =cut
 
 sub qesap_ansible_get_roles_dir {
-    my %paths = _qesap_get_paths();
+    my %paths = _qesap_roles_paths();
     return $paths{roles_dir_path};
 }
 
@@ -959,7 +1047,8 @@ sub qesap_ansible_get_roles_dir {
     - creates file structures
     - pulls git repository
     - external configuration files
-    - installs pip requirements and OS  configuration files with qesap script
+    - installs pip requirements and OS packages
+    - generates configuration files with qesap script
 
     For variables example see 'qesap_yaml_replace'
     Returns only result, failure handling has to be done by calling method.
@@ -974,6 +1063,10 @@ sub qesap_ansible_get_roles_dir {
 
 =item B<ONLY_CONFIGURE> -
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. When omitted, QESAP_INSTALL_VERSION is read and
+'latest' is resolved through GitHub once. Forwarded to the internal calls.
+
 =back
 =cut
 
@@ -982,53 +1075,53 @@ sub qesap_prepare_env {
     croak "Missing mandatory argument 'provider'" unless $args{provider};
     croak "Missing mandatory argument 'region' when 'provider' is EC2" if (($args{provider} eq 'EC2') && !$args{region});
 
+    my $install_version = $args{qesap_release} // qesap_resolve_install_version();
     my $variables = $args{openqa_variables} ? $args{openqa_variables} : _qesap_get_variables();
     my $provider_folder = lc $args{provider};
-    my %paths = _qesap_get_file_paths();
+    my %paths = _qesap_get_file_paths(qesap_release => $install_version);
     die "Missing mandatory deployment_dir from _qesap_get_file_paths()" unless $paths{'deployment_dir'};
     die "Missing mandatory qesap_conf_trgt from _qesap_get_file_paths()" unless $paths{'qesap_conf_trgt'};
 
     # Option to skip straight to configuration
     unless ($args{only_configure}) {
         die "Missing mandatory qesap_conf_src from _qesap_get_file_paths()" unless $paths{'qesap_conf_src'};
-        _qesap_create_folder_tree();
+        _qesap_create_folder_tree(qesap_release => $install_version);
 
-        my $install_version = _qesap_resolve_install_version();
         if ($install_version) {
-            my $cache_dir = QESAP_CACHE_ROOT . "/$install_version/qe-sap-deployment";
-            if (script_run("test -d '$cache_dir/terraform'") == 0) {
-                record_info('QESAP repo', "Using cached qe-sap-deployment code at $cache_dir, skipping download");
+            my $deploy_dir = _qesap_deployment_dir(qesap_release => $install_version);
+            if (index($deploy_dir, QESAP_CACHE_ROOT . '/') == 0) {
+                record_info('QESAP repo', "Using cached qe-sap-deployment code at $deploy_dir, skipping download");
             }
             else {
                 record_info('QESAP cache miss', "no complete cache for $install_version, downloading");
-                qesap_get_deployment_code(version => $install_version);
+                _qesap_get_deployment_code(qesap_release => $install_version);
             }
         }
         else {
-            qesap_get_deployment_code();
+            _qesap_get_deployment_code(qesap_release => undef);
         }
         qesap_get_roles_code();
-        qesap_pip_install();
+        qesap_pip_install(qesap_release => $install_version);
         # for the moment run it only conditionally
         # to allow this test code also to work with older
         # qe-sap-deployment versions
-        qesap_galaxy_install() if (script_run("test -e $paths{deployment_dir}/requirements.yml") == 0);
+        qesap_galaxy_install(qesap_release => $install_version) if (script_run("test -e $paths{deployment_dir}/requirements.yml") == 0);
 
         record_info('QESAP yaml', 'Preparing yaml config file');
         assert_script_run('curl -v -fL ' . $paths{qesap_conf_src} . ' -o ' . $paths{qesap_conf_trgt});
     }
 
-    qesap_yaml_replace(openqa_variables => $variables);
+    qesap_yaml_replace(openqa_variables => $variables, qesap_release => $install_version);
     push(@log_files, $paths{qesap_conf_trgt});
 
     record_info('QESAP conf', 'Generating all terraform and Ansible configuration files');
     my $terraform_tfvars = join('/',
-        qesap_get_terraform_dir(provider => $args{provider}),
+        qesap_get_terraform_dir(provider => $args{provider}, qesap_release => $install_version),
         'terraform.tfvars');
     push(@log_files, $terraform_tfvars);
     my $hana_media = "$paths{deployment_dir}/ansible/playbooks/vars/hana_media.yaml";
     my $hana_vars = "$paths{deployment_dir}/ansible/playbooks/vars/hana_vars.yaml";
-    my @exec_rc = qesap_execute(cmd => 'configure', logname => 'qesap_configure.log.txt', verbose => 1);
+    my @exec_rc = qesap_execute(cmd => 'configure', logname => 'qesap_configure.log.txt', verbose => 1, qesap_release => $install_version);
 
     if ($args{provider} eq 'EC2') {
         my $data = get_credentials(url_suffix => 'aws.json');
