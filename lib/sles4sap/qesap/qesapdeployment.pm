@@ -1582,13 +1582,13 @@ sub qesap_cluster_log_cmds {
     );
     if ($args{provider} eq 'EC2') {
         push @log_list, {
-            Cmd => 'cat ~/.aws/config > aws_config.txt',
+            Cmd => 'cat ~/.aws/config',
             Output => 'aws_config.txt',
         };
     }
     elsif ($args{provider} eq 'AZURE') {
         push @log_list, {
-            Cmd => 'cat /var/log/cloud-init.log > azure_cloud_init_log.txt',
+            Cmd => 'cat /var/log/cloud-init.log',
             Output => 'azure_cloud_init_log.txt',
         };
     }

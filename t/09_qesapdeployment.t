@@ -938,6 +938,34 @@ subtest '[qesap_cluster_logs] skips collection when host unreachable' => sub {
     ok(!$crm_report_called, 'CRM report was not called for unreachable host');
 };
 
+subtest '[qesap_cluster_logs] remote commands do not redirect output' => sub {
+    foreach my $provider (qw(EC2 AZURE)) {
+        my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+        my @ansible_calls;
+        $qesap->redefine(qesap_ansible_script_output_file => sub {
+                my (%args) = @_;
+                push @ansible_calls, $args{cmd};
+                return '/tmp/ansible_script_output/testout.txt'; });
+        $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
+        $qesap->redefine(script_run => sub { return 0; });
+        $qesap->redefine(upload_logs => sub { return; });
+        $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
+        $qesap->redefine(qesap_save_y2logs => sub { return 0; });
+        $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+        $qesap->redefine(_qesap_venv_cmd_exec => sub { return 0; });
+        $qesap->redefine(qesap_az_diagnostic_log => sub { return (); });
+        $qesap->redefine(qesap_upload_logs => sub { return; });
+
+        set_var('PUBLIC_CLOUD_PROVIDER', $provider);
+        qesap_cluster_logs();
+        set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+        note("\n  ANSIBLE_CMD-->  " . join("\n  ANSIBLE_CMD-->  ", @ansible_calls));
+        ok(scalar(@ansible_calls), "$provider: remote commands are executed");
+        ok((none { />/ } @ansible_calls), "$provider: no remote command redirects its output");
+    }
+};
+
 subtest '[qesap_upload_crm_report] die for missing mandatory arguments' => sub {
     dies_ok { qesap_upload_crm_report(); } "Expected die if called without arguments";
     dies_ok { qesap_upload_crm_report(provider => 'SAND'); } "Expected die if called without host";
