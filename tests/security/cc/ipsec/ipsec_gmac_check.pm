@@ -28,7 +28,7 @@ sub run {
         return;
     }
 
-    my $log = script_output("journalctl -b --no-pager -o cat -u strongswan | grep -E 'selected proposal: ESP:|Requested AEAD algorithm not found' || true");
+    my $log = script_output("journalctl -b --no-pager -o cat -u strongswan | grep -E 'selected proposal: ESP:|received netlink error:' || true");
     if (gmac_refused_by_kernel($log)) {
         record_info('GMAC refused', "The server selected ESP AES-GMAC and the kernel refused it\n\n$log");
     }
