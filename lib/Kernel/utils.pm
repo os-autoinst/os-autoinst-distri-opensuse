@@ -25,9 +25,16 @@ our @EXPORT_OK = qw(
   start_trace_events
   save_trace
   install_fio_debug_wrapper
+  find_kernel_traces
 );
 
 my $TRACEFS = '/sys/kernel/tracing';
+# find_kernel_traces() keeps the result of each step here
+our $KERNEL_TRACE_DIR = '/tmp/kernel_traces';
+# Lines that show a kernel call trace, a BUG or an Oops. Similar to the check
+# of xfstests _check_dmesg, but without "WARNING:" lines: a WARNING always
+# prints a call trace too.
+my @KERNEL_TRACE_PATTERNS = ('Call Trace:', 'kernel BUG at', '\\bBUG:', 'Oops:', 'general protection fault', 'UBSAN:');
 
 =head2 is_debugfs_mounted
 
@@ -238,5 +245,62 @@ END
     write_sut_file($wrapper, $script);
     assert_script_run("chmod a+x $wrapper");
 }
+
+=head2 find_kernel_traces
+
+ my $traces = find_kernel_traces([file => $file] [, since => $text]
+     [, ignore => \@regexps] [, ignore_file => $file]);
+
+Find the kernel log lines that show a call trace, a kernel BUG or an Oops.
+The function reads C<dmesg>, or C<file> if you give it.
+
+With C<since>, the function only reads the last line that contains C<$text>
+and the lines after it. If no line contains C<$text>, for example because the
+SUT rebooted, the function returns C<undef>.
+
+C<ignore> is a list of extended regular expressions. The function removes the
+lines that match before it does the check. C<ignore_file> is a file with more
+of these expressions, one for each line. The function uses it only if it exists.
+
+Each step writes its result to a file in C<$KERNEL_TRACE_DIR> on the SUT
+(F<0-log>, F<1-since>, F<2-ignore>, F<3-ignore_file>, F<4-traces>), so you
+can look at them when the result is not what you expect. The next call
+overwrites them.
+
+Returns a reference to the list of lines that it found (the list can be empty,
+at most 100 lines).
+
+=cut
+
+sub find_kernel_traces {
+    my (%args) = @_;
+    my $dir = $KERNEL_TRACE_DIR;
+    my $log = "$dir/0-log";
+
+    script_run("rm -rf $dir && mkdir -p $dir");
+    script_run(($args{file} ? "cat $args{file}" : 'dmesg') . " > $log");
+
+    if (defined(my $since = $args{since})) {
+        my $found = script_output("grep -nF '$since' $log || true", proceed_on_failure => 1);
+        my $line = (($found // '') =~ /^(\d+):/mg)[-1];
+        return undef unless $line;
+        script_run("tail -n +$line $log > $dir/1-since");
+        $log = "$dir/1-since";
+    }
+    if (@{$args{ignore} // []}) {
+        script_run('grep -Ev' . join('', map { " -e '$_'" } @{$args{ignore}}) . " $log > $dir/2-ignore");
+        $log = "$dir/2-ignore";
+    }
+    if ($args{ignore_file} && script_run("test -f $args{ignore_file}") == 0) {
+        script_run("grep -Ev -f $args{ignore_file} $log > $dir/3-ignore_file");
+        $log = "$dir/3-ignore_file";
+    }
+    my $patterns = join('', map { " -e '$_'" } @KERNEL_TRACE_PATTERNS);
+    script_run("grep -aE -m 100$patterns $log > $dir/4-traces");
+    # Only send printable characters over the serial console
+    my $out = script_output("tr -cd '\\11\\12\\15\\40-\\176' < $dir/4-traces", proceed_on_failure => 1);
+    return [grep { /\S/ } split(/\n/, $out)];
+}
+
 
 1;
