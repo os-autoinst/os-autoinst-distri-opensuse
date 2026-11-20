@@ -418,11 +418,13 @@ receives only four arguments, dst_machine is the host on which operations will b
 performed, root_dir is the partition on which grub files reside, kernel_opts holds 
 a text string this is composed of terminal types separated by spaces, timeout has
 the value of desired timeout of grub boot, and the grub_to_change indicates whether 
-grub.cfg or default grub will be included to have these changes, including 1(Default 
-value. Both grub.cfg and default grub will be changed), 2(Only the grub.cfg will 
-be changed, 3(Only the default grub will be changed), and all the other values are 
-invalid. If there are no values passed in to dst_machine and root_dir, operations 
-will be performed on localhost and root '/' partition by default.
+grub.cfg (systemd-boot system uses /etc/kernel/cmdline instead) or default grub (
+systemd-boot does not have this file or equivalence) will be included to have these
+changes, including 1(Default value. Both grub.cfg and default grub will be changed),
+2(Only the grub.cfg will be changed, 3(Only the default grub will be changed), and
+all the other values are invalid. If there are no values passed in to dst_machine 
+and root_dir, operations will be performed on localhost and root '/' partition by
+default.
 
 =cut
 
@@ -439,12 +441,14 @@ sub add_kernel_options {
         croak("Nothing to be changed. Argument grub_to_change indicates neither grub.cfg nor default grub will be changed.");
     }
 
+    my $systemd_boot = is_systemd_boot;
     my @options = split(/ /, $args{kernel_opts});
     my $cmd = '';
     if (($args{grub_to_change} == 1) or ($args{grub_to_change} == 2)) {
-        my $grub_cfg_file = "$args{root_dir}boot/grub2/grub.cfg";
+        my $grub_cfg_file = "$args{root_dir}" . ($systemd_boot ? 'etc/kernel/cmdline' : 'boot/grub2/grub.cfg');
         foreach (@options) {
-            $cmd = "sed -i -r \'s/\\b\\S*$_\\S*\\b//g; /^\\s{1,}(linux|linuxefi)\\s{1,}\\\/boot\\\// s/\$/ $_/g\' $grub_cfg_file";
+            $cmd = ($systemd_boot ? "sed -i -r \'s/\\b\\S*$_\\S*\\b//g; /^/ s/\$/ $_/g\' $grub_cfg_file"
+                : "sed -i -r \'s/\\b\\S*$_\\S*\\b//g; /^\\s{1,}(linux|linuxefi)\\s{1,}\\\/boot\\\// s/\$/ $_/g\' $grub_cfg_file");
             $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
             assert_script_run($cmd);
             save_screenshot;
@@ -452,9 +456,11 @@ sub add_kernel_options {
         $cmd = "cat $grub_cfg_file";
         $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
         record_info("Content of $grub_cfg_file on $args{dst_machine}", script_output($cmd, proceed_on_failure => 1));
+        assert_script_run('sdbootutil update-all-entries') if ($systemd_boot);
     }
 
     if (($args{grub_to_change} == 1) or ($args{grub_to_change} == 3)) {
+        return if $systemd_boot;
         my $grub_default_file = "$args{root_dir}etc/default/grub";
         foreach (@options) {
             $cmd = "sed -i -r \'s/\\b$_\\S*\\b//g; /GRUB_CMDLINE_LINUX_DEFAULT/ s/\\\"\$/ $_\\\"/g\' $grub_default_file";
@@ -473,19 +479,21 @@ sub add_kernel_options {
   set_grub_terminal_and_timeou(dst_machine => $dst_machine, root_dir => $root_dir, 
   terminals => $terminals, timeout => $timeout, grub_to_change => [1|2|3])
 
-Change grub boot terminal and timeout settings in grub configuration file and also 
-GRUB_TERMINAL and GRUB_TIMEOUT in default grub configuration file. This subroutine
-receives only five arguments, dst_machine is the host on which operations will be 
-performed, root_dir is the partition on which grub files reside, terminals holds a 
-single text string this is composed of kernel options separated by spaces, and
-the grub_to_change indicates whether grub.cfg or default grub will be changed to
-have the kernel_opts, including 1(Default value. Both grub.cfg and default grub
-will be changed), 2(Only the grub.cfg will be changed, 3(Only the default grub will
-be changed), and all the other values are invalid. If there are no values passed in
-to dst_machine and root_dir, operations will be performed on localhost and root '/'
-partition by default.  Almost all regular kernel options can be passed in directly
-without modification except for very extreme cases in which very special characters
-should be treated specially and even escaped before being used.
+Change grub boot terminal and timeout settings in grub configuration file grub.cfg
+(systemd-boot system uses /etc/kernel/cmdline instead) and also GRUB_TERMINAL and
+GRUB_TIMEOUT in default grub configuration file etc/default/grub (systemd-boot does
+not have this file or equivalence). This subroutine receives only five arguments,
+dst_machine is the host on which operations will be performed, root_dir is the
+partition on which grub files reside, terminals holds a single text string this is
+composed of kernel options separated by spaces, and the grub_to_change indicates 
+whether grub.cfg or default grub will be changed to have the kernel_opts, including
+1(Default value. Both grub.cfg and default grub will be changed), 2(Only the grub.cfg
+will be changed, 3(Only the default grub will be changed), and all the other values
+are invalid. If there are no values passed in to dst_machine and root_dir, operations
+will be performed on localhost and root '/' partition by default.  Almost all regular
+kernel options can be passed in directly without modification except for very extreme
+cases in which very special characters should be treated specially and even escaped
+before being used.
 
 =cut
 
@@ -502,12 +510,15 @@ sub set_grub_terminal_and_timeout {
         croak("Nothing to be changed. Argument grub_to_change indicates neither grub.cfg nor default grub will be changed.");
     }
 
+    my $systemd_boot = is_systemd_boot;
     my $cmd = '';
     if (($args{grub_to_change} == 1) or ($args{grub_to_change} == 2)) {
-        my $grub_cfg_file = "$args{root_dir}boot/grub2/grub.cfg";
-        $cmd = "sed -i -r '/^terminal.*\$/ {:mylabel; n; /^terminal.*\$/d;b mylabel;};' $grub_cfg_file; "
-          . "sed -i -r 's/^terminal.*\$/terminal_input $args{terminals}\\nterminal_output $args{terminals}/g;' $grub_cfg_file; "
-          . "sed -i -r '/set timeout=-{0,1}[0-9]{1,}/ s/timeout.*\$/timeout=$args{timeout}/g;' $grub_cfg_file";
+        my $grub_cfg_file = "$args{root_dir}" . ($systemd_boot ? find_esp_mount_point . '/loader/loader.conf' : 'boot/grub2/grub.cfg');
+        $cmd = ($systemd_boot ? "sed -i -r -e '/^[ \t#]*console-mode/d' -e '\$a console-mode keep' $grub_cfg_file; "
+              . "sed -i -r -e '/^[ \t#]*timeout/d' -e '\$a timeout $args{timeout}' $grub_cfg_file"
+            : "sed -i -r '/^terminal.*\$/ {:mylabel; n; /^terminal.*\$/d;b mylabel;};' $grub_cfg_file; "
+              . "sed -i -r 's/^terminal.*\$/terminal_input $args{terminals}\\nterminal_output $args{terminals}/g;' $grub_cfg_file; "
+              . "sed -i -r '/set timeout=-{0,1}[0-9]{1,}/ s/timeout.*\$/timeout=$args{timeout}/g;' $grub_cfg_file");
         $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
         assert_script_run($cmd);
         save_screenshot;
@@ -515,9 +526,14 @@ sub set_grub_terminal_and_timeout {
         $cmd = "cat $grub_cfg_file";
         $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
         record_info("Content of $grub_cfg_file on $args{dst_machine}", script_output($cmd, proceed_on_failure => 1));
+        if ($systemd_boot) {
+            assert_script_run('update-bootloader --refresh');
+            assert_script_run("sdbootutil set-timeout $args{timeout}");
+        }
     }
 
     if (($args{grub_to_change} == 1) or ($args{grub_to_change} == 3)) {
+        return if is_systemd_boot;
         my $grub_default_file = "$args{root_dir}etc/default/grub";
         $cmd = "sed -i -r \'s/^#{0,}GRUB_TERMINAL=.*\$/GRUB_TERMINAL=\"$args{terminals}\"/' $grub_default_file; "
           . "sed -i -r \'s/^#{0,}GRUB_TERMINAL_INPUT=.*\$/GRUB_TERMINAL_INPUT=\"$args{terminals}\"/' $grub_default_file; "

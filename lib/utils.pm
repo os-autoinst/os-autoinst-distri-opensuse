@@ -124,6 +124,9 @@ our @EXPORT = qw(
   is_ipxe_boot
   is_uefi_boot
   is_usb_boot
+  is_systemd_boot
+  is_esp_system
+  find_esp_mount_point
   remove_efiboot_entry
   empty_usb_disks
   upload_y2logs
@@ -3181,6 +3184,40 @@ that it boots from USB.
 sub is_usb_boot {
     return 1 if get_var('USB_BOOT', '');
     return 0;
+}
+
+=head2 is_systemd_boot
+
+  is_systemd_boot()
+
+Detect whether systemd-boot being used on system with 'bootctl status' command.
+=cut
+
+sub is_systemd_boot {
+    return (script_run("bootctl status 2>/dev/null | grep -E \"Product.*systemd-boot\"") == 0 ? 1 : 0);
+}
+
+=head2 is_esp_system
+
+  is_esp_system()
+
+Detect whether system has ESP(EFI System Partition).
+=cut
+
+sub is_esp_system {
+    return (script_run('[ -d /sys/firmware/efi ]') == 0 ? 1 : 0);
+}
+
+=head2 find_esp_mount_point
+
+  find_esp_mount_point()
+
+Find out the physical partition to which ESP(EFI System Partition) is mounted.
+=cut
+
+sub find_esp_mount_point {
+    croak('System does not have ESP(EFI System Partition)') if !is_esp_system;
+    return script_output('bootctl --print-esp-path');
 }
 
 =head2 remove_efiboot_entry
