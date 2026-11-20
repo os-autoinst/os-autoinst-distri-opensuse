@@ -16,6 +16,7 @@ use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use x11utils 'default_gui_terminal';
+use version_utils 'is_sle';
 
 sub run {
     select_console('root-console');
@@ -28,7 +29,12 @@ sub run {
     assert_script_run 'cd texlive';
     assert_script_run 'pdflatex difference.tex';
 
-    script_run 'evince difference.pdf', 0;
+    # Tumbleweed no longer installs evince by default, use papers instead
+    # SLE ships an older GNOME, so evince is still available there.
+    my $pdf_viewer = is_sle ? 'evince' : 'papers';
+    ensure_installed($pdf_viewer);
+    x11_start_program(default_gui_terminal);
+    script_run "$pdf_viewer texlive/difference.pdf", 0;
     assert_screen 'texlive_diff';
 
     wait_screen_change { send_key "ctrl-w" };
