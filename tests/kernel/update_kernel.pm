@@ -520,12 +520,19 @@ sub install_requirements {
         @requirements = nvidia_utils::get_nvidia_driver(variant => 'cuda');
     } elsif ($flavor =~ /Base/) {
         @requirements = qw(kdump);
+    } elsif ($flavor =~ /Immutable/) {
+        @requirements = qw(
+          rasdaemon
+          kdump
+          crash
+          makedumpfile
+        );
     } else {
         record_info("Requirements", "There are no special requirements for $flavor");
         return;
     }
     record_info("Requirements", "Installing requirements for $flavor");
-    install_package(join(' ', @requirements));
+    install_package(join(' ', @requirements), trup_apply => 1);
 }
 
 sub run {
