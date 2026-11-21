@@ -383,6 +383,7 @@ sub wait_grub {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
     my $in_grub = $args{in_grub} // 0;
+    my $accept_already_booted = $args{accept_already_booted} // 0;
     my @tags;
     push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI') && !get_var('DISABLE_SECUREBOOT');
     push @tags, get_default_bootloader();
@@ -391,6 +392,12 @@ sub wait_grub {
     push @tags, 'encrypted-disk-password-prompt-grub', 'encrypted-disk-password-prompt' if get_var('ENCRYPT');
     if (get_var('ONLINE_MIGRATION')) {
         push @tags, 'migration-source-system-grub2';
+    }
+    # the SUT may have already booted past the bootloader (e.g. a preceding
+    # module waited for parallel jobs to start), so accept a booted screen
+    if ($accept_already_booted) {
+        push @tags, 'linux-login' if check_var('DESKTOP', 'textmode');
+        push @tags, 'displaymanager' if check_var('DESKTOP', 'gnome');
     }
     # if there was a request to enroll or remove a certificate used for SecureBoot process
     if (get_var('_EXPECT_EFI_MOK_MANAGER')) {
@@ -440,6 +447,10 @@ sub wait_grub {
         && (!(isotovideo::get_version() >= 12 && get_var('UEFI_PFLASH_VARS')) || get_var('ONLINE_MIGRATION') || get_var('UPGRADE') || get_var('ZDUP') || (get_var('LIVE_UPGRADE') && get_var('PATCH_BEFORE_MIGRATION')) || (get_var('WORKAROUND_BSC1022064'))));
     # sle micro on ppc64le with qemu backend has low performance, so skip the first bootloader check
     assert_screen(\@tags, $bootloader_time) unless (is_sle_micro && is_ppc64le && is_qemu);
+    # the SUT already booted past the bootloader, skip GRUB interaction
+    if ($accept_already_booted && (match_has_tag('linux-login') || match_has_tag('displaymanager'))) {
+        return;
+    }
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
@@ -722,11 +733,14 @@ sub handle_grub {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time};
     my $in_grub = $args{in_grub};
+    my $accept_already_booted = $args{accept_already_booted};
 
     # On Xen PV and svirt we don't see a Grub menu
     # If KEEP_GRUB_TIMEOUT is defined it means that GRUB menu will appear only for one second
     return if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && is_svirt || check_var('KEEP_GRUB_TIMEOUT', '1'));
-    $self->wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
+    $self->wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub, accept_already_booted => $accept_already_booted);
+    # if the SUT already booted past the bootloader, wait_grub returned early
+    return if $accept_already_booted && (match_has_tag('linux-login') || match_has_tag('displaymanager'));
     if (my $boot_params = get_var('EXTRABOOTPARAMS_BOOT_LOCAL')) {
         my $linux_boot_entry = get_var('EXTRABOOTPARAMS_LINE_OFFSET') // (is_sle('15+') ? 15 : 14);
         $linux_boot_entry -= 1 if is_aarch64 && !get_var('EXTRABOOTPARAMS_LINE_OFFSET');    # poo#100500
@@ -893,7 +907,7 @@ sub wait_boot_past_bootloader {
 
 =head2 wait_boot
 
- wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin] [, forcenologin => $forcenologin]);
+ wait_boot([bootloader_time => $bootloader_time] [, textmode => $textmode] [,ready_time => $ready_time] [,in_grub => $in_grub] [, nologin => $nologin] [, forcenologin => $forcenologin] [, accept_already_booted => $accept_already_booted]);
 
 Makes sure the bootloader appears and then boots to desktop or text mode
 correspondingly. Returns successfully when the system is ready on a login
@@ -907,7 +921,10 @@ C<$bootloader_time> in seconds as well as the time waiting for the system to
 be fully booted with C<$ready_time> in seconds. Set C<$in_grub> to 1 when the
 SUT is already expected to be within the grub menu. C<wait_boot> continues
 from there. C<$forcenologin> makes this function behave as if
-the env var NOAUTOLOGIN was set.
+the env var NOAUTOLOGIN was set. Set C<$accept_already_booted> to 1 when the
+SUT may have already booted past the bootloader (e.g. a preceding module
+blocked for minutes while the VM kept booting); in that case the GRUB menu
+is not required and the function proceeds directly to the login prompt.
 =cut
 
 sub wait_boot {
@@ -916,6 +933,7 @@ sub wait_boot {
     my $textmode = $args{textmode};
     my $ready_time = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || is_ipmi) ? 500 : 300);
     my $in_grub = $args{in_grub} // 0;
+    my $accept_already_booted = $args{accept_already_booted} // 0;
     my $enable_root_ssh = $args{enable_root_ssh} // 0;
 
     die "wait_boot: got undefined class" unless $self;
@@ -951,7 +969,7 @@ sub wait_boot {
     }
     elsif (is_bootloader_grub2) {
         assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600) if (uses_qa_net_hardware() || get_var("PXEBOOT"));
-        $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
+        $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub, accept_already_booted => $accept_already_booted);
         # part of soft failure bsc#1118456
         if (get_var('UEFI') && is_hyperv) {
             wait_still_screen stilltime => 5, timeout => 26;
@@ -965,7 +983,7 @@ sub wait_boot {
         assert_screen 'systemd-boot', 300;
         send_key('ret');
     } elsif (is_bootloader_grub2_bls) {
-        $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
+        $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub, accept_already_booted => $accept_already_booted);
     } else {
         die 'Unknown bootloader';
     }
