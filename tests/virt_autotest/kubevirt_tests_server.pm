@@ -305,7 +305,10 @@ sub install_kubevirt_packages {
         # transactional hosts).
         if (is_sle('>=16.0')) {
             my $repo_label = $virt_tests_repo ? "VIRT_TESTS_REPO $virt_tests_repo" : 'VIRT_TESTS_REPO';
-            ($virt_tests_pkg, $cdi_manifests_pkg) = select_kubevirt_packages($repo_label);
+            # Restrict the search to the repositories that the install uses.
+            # Thus the selection and the installation cannot disagree.
+            ($virt_tests_pkg, $cdi_manifests_pkg)
+              = select_kubevirt_packages($repo_label, $virt_tests_repo ? 'Virt-Tests-Repo' : undef, $virt_manifests_repo ? 'Virt-Manifests-Repo' : undef);
             $virt_manifests_pkgs = $cdi_manifests_pkg;
             $kubevirt_ver_pkg = $virt_tests_pkg;
             $virtctl_pkg = _virtctl_package($virt_tests_pkg);
