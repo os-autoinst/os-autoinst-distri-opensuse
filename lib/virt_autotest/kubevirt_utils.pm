@@ -37,20 +37,22 @@ sub set_grub_timeout {
 }
 
 sub _versioned_packages {
-    my ($query, $base, $suffix) = @_;
+    my ($query, $base, $suffix, $repo) = @_;
     # Only <base><major>.<minor>-<suffix> matches. The dot is escaped because
     # it is a literal separator, not any character.
     my $pattern = '^ *' . $base . '[0-9]+\\.[0-9]+-' . $suffix . ' *$';
-    return split(/\n/, script_output("zypper se $query | awk -F'|' '\$2 ~ /$pattern/ {gsub(/ /, \"\", \$2); print \$2}' | sort -Vu || true"));
+    # Restrict the search to $repo when the caller gives an alias.
+    my $repo_option = defined $repo && $repo ne '' ? "-r $repo " : '';
+    return split(/\n/, script_output("zypper se ${repo_option}$query | awk -F'|' '\$2 ~ /$pattern/ {gsub(/ /, \"\", \$2); print \$2}' | sort -Vu || true"));
 }
 
 sub select_kubevirt_packages {
     # Select the versioned kubevirt tests package and the CDI manifests package
     # that has the same rank. The repository decides the streams, so a product
     # with higher versions needs no code change (bsc#1252126).
-    my ($repo_label) = @_;
+    my ($repo_label, $tests_repo, $manifests_repo) = @_;
 
-    my @kubevirt_tests = _versioned_packages('kubevirt', 'kubevirt', 'tests');
+    my @kubevirt_tests = _versioned_packages('kubevirt', 'kubevirt', 'tests', $tests_repo);
     my $requested = get_var('KUBEVIRT_VERSION');
     my $virt_tests_pkg;
     if (defined $requested && $requested ne '') {
@@ -65,7 +67,7 @@ sub select_kubevirt_packages {
     }
 
     my @kubevirt_streams = map { /^kubevirt([0-9.]+)-tests$/ ? $1 : () } @kubevirt_tests;
-    my @cdi_manifests = _versioned_packages('containerized-data-importer', 'containerized-data-importer', 'manifests');
+    my @cdi_manifests = _versioned_packages('containerized-data-importer', 'containerized-data-importer', 'manifests', $manifests_repo);
     my $kubevirt_list = join(', ', @kubevirt_tests);
     my $cdi_list = @cdi_manifests ? join(', ', @cdi_manifests) : 'none';
     die "No versioned CDI manifests package (containerized-data-importer<major>.<minor>-manifests) is in $repo_label ('zypper se containerized-data-importer')"
