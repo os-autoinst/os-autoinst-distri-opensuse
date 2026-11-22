@@ -3794,7 +3794,7 @@ reflected in BUILD_SLE.
 
 sub render_scc_url {
     my $test_build = get_required_var('BUILD');
-    my $main_build = (is_sle ? get_required_var('BUILD_SLE') : get_required_var('BUILD'));
+    my $main_build = (is_sle ? get_var('BUILD_SLE', get_required_var('BUILD')) : get_required_var('BUILD'));
     my $scc_url = get_var('SCC_URL', 'https://scc.suse.com');
     $scc_url =~ s/$test_build/$main_build/g if is_disk_image;
     return $scc_url;
