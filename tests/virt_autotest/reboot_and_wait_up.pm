@@ -12,6 +12,7 @@ package reboot_and_wait_up;
 use testapi;
 use ipmi_backend_utils;
 use Utils::Architectures;
+use Utils::Backends qw(is_ipmi);
 use virt_autotest::utils;
 
 sub reboot_and_wait_up {
@@ -78,6 +79,32 @@ sub reboot_and_wait_up {
         login_console::login_to_console($self, $reboot_timeout);
 
     }
+}
+
+# True when the module runs on IPMI and ssh is already unreachable, so logs
+# can only be collected over the SOL console.
+sub ssh_unreachable {
+    my ($self) = @_;
+    # Probe once: the upgrade hook delegates to the base hook and the ssh
+    # state must not change between the two probes and skip both paths
+    return $self->{qevirt_ssh_unreachable} if exists $self->{qevirt_ssh_unreachable};
+    my $unreachable = is_ipmi && !check_port_state(get_required_var('SUT_IP'), 22, 3, 10);
+    return $self->{qevirt_ssh_unreachable} = $unreachable ? 1 : 0;
+}
+
+# reboot_and_wait_up calls login_console::login_to_console() on its own
+# objects, so an emergency-mode die there runs this module's post_fail_hook,
+# not login_console::post_fail_hook. Collect the SOL diagnostics and the
+# tarball here instead of losing them.
+sub post_fail_hook {
+    my ($self) = @_;
+    return 0 unless $self->ssh_unreachable;
+    require login_console;
+    my $collected = eval { login_console::collect_emergency_mode_logs() };
+    record_info('Emergency mode log collection failed', "collect_emergency_mode_logs died:\n$@", result => 'fail') if $@;
+    # The collector restarted sshd: a later parent call must not collect again
+    $self->{qevirt_ssh_unreachable} = 0 if $collected;
+    return $collected;
 }
 
 1;

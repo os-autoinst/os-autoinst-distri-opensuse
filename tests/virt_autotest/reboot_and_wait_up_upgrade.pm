@@ -56,6 +56,12 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = shift;
+    # In emergency mode root-ssh is unavailable; the base hook collects the
+    # SOL diagnostics and tarball instead of dying in select_console. When
+    # the collector recovers ssh, continue with the normal upgrade logs.
+    if ($self->ssh_unreachable) {
+        return unless $self->SUPER::post_fail_hook;
+    }
     reset_consoles;
     select_console('root-ssh');
     if (get_var('VIRT_PRJ2_HOST_UPGRADE')) {
