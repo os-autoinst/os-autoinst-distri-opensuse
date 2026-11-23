@@ -35,6 +35,7 @@ use lockapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);
 use version_utils qw(is_leap is_sle);
+use mmapi 'wait_for_children';
 
 sub run {
     # MM tests autofs requires barrier_create
@@ -81,5 +82,6 @@ sub run {
     }
     barrier_wait 'AUTOFS_SUITE_READY';
     barrier_wait 'AUTOFS_FINISHED';
+    wait_for_children;
 }
 1;
