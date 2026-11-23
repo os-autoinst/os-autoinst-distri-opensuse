@@ -113,14 +113,24 @@ def service_state(name):
     return props.get("ActiveState"), props.get("SubState")
 
 
-def restart_service(name, timeout=30):
+def service_log(name):
+    """Return the last journal lines of a service, to show why it failed."""
+    result = run(
+        ["journalctl", "-b", "-u", name + ".service", "-n", "20", "--no-pager"], timeout=30,
+    )
+    return result.stdout
+
+
+def try_restart_service(name, timeout=30):
+    """Restart a service and wait until it runs. Return an error text, empty on success."""
     result = run(["systemctl", "restart", name + ".service"], timeout=90)
-    assert result.returncode == 0, "restarting %s failed: %s" % (name, result.stdout)
-    for _ in range(timeout):
-        if service_state(name) == ("active", "running"):
-            return
-        time.sleep(1)
-    pytest.fail("%s did not become active (running): %s" % (name, service_state(name)))
+    if result.returncode == 0:
+        for _ in range(timeout):
+            if service_state(name) == ("active", "running"):
+                return ""
+            time.sleep(1)
+    return "restarting %s failed (%s): %s\n%s" % (
+        name, "/".join(map(str, service_state(name))), result.stdout, service_log(name))
 
 
 def wait_for_text(path, text, proc, timeout=30):
@@ -175,11 +185,12 @@ def bind_zone():
     if NAMED_INCLUDE not in original_named_conf:
         with open(NAMED_CONF, "a") as handle:
             handle.write(NAMED_INCLUDE)
+    # Do not fail here when a service does not start, test_services_running
+    # reports it and the checks that do not need the service still run
     for service in SERVICES:
-        result = run(["systemctl", "enable", "--now", service + ".service"], timeout=90)
-        assert result.returncode == 0, "enabling %s failed: %s" % (service, result.stdout)
+        run(["systemctl", "enable", "--now", service + ".service"], timeout=90)
     # named may already be running without the zone, make it read the new config
-    restart_service("named")
+    try_restart_service("named")
     yield
     # Best effort cleanup, never hide the result of the tests
     with open(NAMED_CONF, "w") as handle:
@@ -194,22 +205,23 @@ def bind_zone():
 
 
 @pytest.fixture(scope="module", params=POLICIES)
-def policy(request, bind_zone):
+def policy(request):
     """Provide the policy under test.
 
     Without CRYPTO_POLICY, switch to it and restart the services so they pick
-    it up. With CRYPTO_POLICY the caller already did that, just check it.
+    it up. With CRYPTO_POLICY the caller already did that, just check the
+    policy. Do not check the services here: test_services_running does that,
+    and a service that does not start must not hide the GnuTLS and NSS
+    results.
     """
     name = request.param
     if EXPECTED_POLICY:
         assert current_policy() == name
-        for service in SERVICES:
-            assert service_state(service) == ("active", "running"), service
         return name
     result = run(["update-crypto-policies", "--set", name], timeout=60)
     assert result.returncode == 0, "setting policy %s failed: %s" % (name, result.stdout)
     for service in SERVICES:
-        restart_service(service)
+        try_restart_service(service)
     return name
 
 
@@ -227,25 +239,27 @@ def test_policy_applied(policy):
     assert current_policy() == policy
 
 
-def test_services_running(policy):
+def test_services_running(policy, bind_zone):
     """sshd and named are running after the policy change."""
-    for service in SERVICES:
-        assert service_state(service) == ("active", "running"), service
+    failed = [name for name in SERVICES if service_state(name) != ("active", "running")]
+    assert not failed, "\n".join(
+        "%s is %s:\n%s" % (name, "/".join(map(str, service_state(name))), service_log(name))
+        for name in failed)
 
 
 def test_bind_dnssec_validation(policy):
-    """BIND validates the root DNS signature."""
+    """The BIND delv client validates the root DNS signature, named is not used."""
     result = run(["delv"], timeout=60)
     assert "fully validated" in result.stdout, result.stdout
 
 
-def test_bind_rndc_status(policy):
+def test_bind_rndc_status(policy, bind_zone):
     """rndc (crypto key authentication) can talk to named."""
     result = run(["rndc", "status"], timeout=30)
     assert "server is up and running" in result.stdout, result.stdout
 
 
-def test_bind_local_zone(policy):
+def test_bind_local_zone(policy, bind_zone):
     """The local authoritative zone is answered."""
     result = run(["host", "foobar.example.com", "localhost"], timeout=30)
     assert "foobar.example.com has address 1.2.3.4" in result.stdout, result.stdout
