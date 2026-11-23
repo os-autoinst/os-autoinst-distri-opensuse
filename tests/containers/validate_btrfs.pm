@@ -91,8 +91,11 @@ sub test_btrfs_device_mgmt {
     my $var_free = script_output('df 2>/dev/null | grep /var | awk \'{print $4;}\'');
     my $var_blocks = script_output('df 2>/dev/null | grep /var | awk \'{print $2;}\'');
     # Create file in the container enough to fill the "/var" partition (where the container is located)
-    my $fill = int($var_free * 1024 * 0.99);    # df returns the size in KiB
-    $rt->run_container('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
+    # df returns the size in KiB. A single fallocate that takes all the free space fails on btrfs,
+    # so fill 99% first and then keep adding smaller files until even 2 MiB do not fit.
+    my $fill = int($var_free * 1024 * 0.99);
+    my $top_up = q{i=0; for s in 512M 128M 32M 8M 2M; do while fallocate -l $s extra.$i 2>/dev/null; do i=$((i+1)); done; done};
+    $rt->run_container('huge_image', keep_container => 1, cmd => qq{sh -c 'fallocate -l $fill bigfile.txt; $top_up'});
     validate_script_output "df -h --sync|grep var", sub { m@$var_drive\s+.*(9[7-9]|100)%@ };
     # check if the partition is full
     my ($total, $used) = btrfs_fi("/var");
