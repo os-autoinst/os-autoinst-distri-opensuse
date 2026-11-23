@@ -10,7 +10,7 @@
 #   rebooted, and only this policy is checked.
 # steps:
 #   - check that an unknown policy is rejected
-#   - for each policy: set it and restart sshd and named (skipped when
+#   - for each policy, set it and restart sshd and named (skipped when
 #     CRYPTO_POLICY is set, then only that policy is checked)
 #   - check the active policy and that sshd and named are running
 #   - BIND - validate the root DNS signature, query rndc, query a local zone
