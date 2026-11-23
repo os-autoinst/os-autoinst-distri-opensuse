@@ -79,6 +79,39 @@ subtest '[qesap_get_inventory] lower case' => sub {
     is $inventory_path, '/BRUCE/nemo/inventory.yaml', "inventory_path:$inventory_path is the expected one";
 };
 
+subtest '[qesap_get_inventory] qesap_release forwarded' => sub {
+    my @calls;
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(qesap_get_terraform_dir => sub {
+            my (%args) = @_;
+            push @calls, {%args};
+            return '/BRUCE';
+    });
+
+    my $inventory_path = qesap_get_inventory(provider => 'nemo', qesap_release => '2.6.15');
+
+    is $inventory_path, '/BRUCE/inventory.yaml', 'Inventory path built from terraform dir';
+    is scalar @calls, 1, 'terraform dir resolved exactly once';
+    is $calls[0]{provider}, 'nemo', 'provider forwarded to qesap_get_terraform_dir';
+    is $calls[0]{qesap_release}, '2.6.15', 'qesap_release forwarded when provided';
+};
+
+subtest '[qesap_get_inventory] qesap_release omitted' => sub {
+    my @calls;
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(qesap_get_terraform_dir => sub {
+            my (%args) = @_;
+            push @calls, {%args};
+            return '/BRUCE';
+    });
+
+    my $inventory_path = qesap_get_inventory(provider => 'nemo');
+
+    is $inventory_path, '/BRUCE/inventory.yaml', 'Path still correct without qesap_release';
+    is scalar @calls, 1, 'terraform dir resolved exactly once';
+    ok !defined $calls[0]{qesap_release}, 'qesap_release is undef when not provided';
+};
+
 sub create_qesap_prepare_env_deployment_code_mocks {
     my ($calls) = @_;
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
@@ -1695,6 +1728,7 @@ subtest '[qesap_prepare_env] cache hit skips the code download' => sub {
     ok(!(any { /_qesap_get_deployment_code called/ } @calls), 'Download not called on cache hit');
     ok(!(any { /curl.*github.com\/SUSE\/qe-sap-deployment/ } @calls), 'No release tarball downloaded on cache hit');
     ok((any { /curl -v -fL \/TORNADO -o \/root\/qesap_cache\/2\.6\.15\/qe-sap-deployment\/scripts\/qesap\/MARLIN/ } @calls), 'Config file written into the cached code folder');
+    is(scalar(grep { /^test -d / } @calls), 1, 'Cache probed exactly once');
 };
 
 subtest '[qesap_prepare_env] cache miss downloads the code' => sub {
@@ -1714,6 +1748,7 @@ subtest '[qesap_prepare_env] cache miss downloads the code' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/v2\.6\.15\.tar\.gz.*-o \/tmp\/v2\.6\.15\.tar\.gz/ } @calls), 'Release tarball downloaded on cache miss');
     ok((any { /curl -v -fL \/TORNADO -o \/root\/qe-sap-deployment\/scripts\/qesap\/MARLIN/ } @calls), 'Config file written into the default code folder');
+    is(scalar(grep { /^test -d / } @calls), 1, 'Cache probed exactly once');
 };
 
 subtest '[qesap_prepare_env] latest resolved then cache hit skips the download' => sub {
@@ -1729,6 +1764,7 @@ subtest '[qesap_prepare_env] latest resolved then cache hit skips the download' 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(!(any { /_qesap_get_deployment_code called/ } @calls), 'Download not called when latest resolves to a cached version');
     ok((any { /curl -v -fL \/TORNADO -o \/root\/qesap_cache\/2\.6\.16\/qe-sap-deployment\/scripts\/qesap\/MARLIN/ } @calls), 'Config file written into the cached code folder');
+    is(scalar(grep { /^test -d / } @calls), 1, 'Cache probed exactly once');
 };
 
 subtest '[qesap_prepare_env] latest resolved then cache miss downloads the resolved version' => sub {
@@ -1746,6 +1782,7 @@ subtest '[qesap_prepare_env] latest resolved then cache miss downloads the resol
     set_var('QESAP_INSTALL_VERSION', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /curl.*github.com\/SUSE\/qe-sap-deployment\/archive\/refs\/tags\/v2\.6\.16\.tar\.gz.*-o \/tmp\/v2\.6\.16\.tar\.gz/ } @calls), 'Resolved version downloaded on latest cache miss');
+    is(scalar(grep { /^test -d / } @calls), 1, 'Cache probed exactly once');
 };
 
 subtest '[qesap_resolve_install_version] returns empty string when QESAP_INSTALL_VERSION is not set' => sub {
@@ -1807,6 +1844,7 @@ subtest '[qesap_prepare_env] qesap_release arg skips GitHub resolution' => sub {
     ok(!$script_output_called, 'script_output (GitHub) not called when qesap_release is given');
     ok(!(any { /_qesap_get_deployment_code called/ } @calls), 'Download not called on cache hit with qesap_release');
     ok((any { /curl -v -fL \/TORNADO -o \/root\/qesap_cache\/2\.6\.15\/qe-sap-deployment\/scripts\/qesap\/MARLIN/ } @calls), 'Config written into cached folder');
+    is(scalar(grep { /^test -d / } @calls), 1, 'Cache probed exactly once');
 };
 
 subtest '[qesap_prepare_env] no version set does git clone without release download' => sub {
