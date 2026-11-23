@@ -1,0 +1,16 @@
+name: sle16-qu-kvm-installation
+description: >
+  SLE 16 QU KVM host installation and virtualization checks.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/suseconnect_scc
+  - qemu/info
+  - qemu/qemu
+  - qemu/kvm
+  - console/journal_check
+  - console/coredump_collect
+  - shutdown/shutdown

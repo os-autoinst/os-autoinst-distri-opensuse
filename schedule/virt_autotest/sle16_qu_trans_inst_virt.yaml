@@ -1,0 +1,32 @@
+name: sle16-qu-trans-inst-virt
+description: >
+  SLE 16 QU immutable installation with virtualization patterns and KVM tests.
+schedule:
+  - '{{boot_install}}'
+  - transactional/host_config
+  - console/suseconnect_scc
+  - microos/services_enabled
+  - transactional/disable_timers
+  - qemu/info
+  - qemu/qemu
+  - '{{qemu_kvm}}'
+  - console/journal_check
+  - console/coredump_collect
+  - shutdown/shutdown
+conditional_schedule:
+  boot_install:
+    AGAMA:
+      0:
+        - installation/bootloader_uefi
+        - microos/selfinstall
+      1:
+        - yam/agama/boot_agama
+        - yam/agama/agama_auto
+        - installation/grub_test
+        - installation/first_boot
+  qemu_kvm:
+    ARCH:
+      x86_64:
+        - qemu/kvm
+      aarch64:
+        - qemu/kvm

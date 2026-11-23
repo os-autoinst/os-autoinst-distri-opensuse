@@ -1,0 +1,55 @@
+name: sle16-qu-trans-virt
+description: >
+  SLE 16 QU immutable image virtualization host tests.
+schedule:
+  - '{{boot_image}}'
+  - transactional/host_config
+  - console/suseconnect_scc
+  - '{{service_tests}}'
+  - qemu/info
+  - qemu/qemu
+  - '{{qemu_kvm}}'
+  - console/journal_check
+  - console/coredump_collect
+  - shutdown/shutdown
+conditional_schedule:
+  boot_image:
+    ARCH:
+      x86_64:
+        - '{{boot_and_run}}'
+      aarch64:
+        - microos/disk_boot
+      ppc64le:
+        - microos/disk_boot
+      s390x:
+        - installation/bootloader_start
+        - boot/boot_to_desktop
+  service_tests:
+    ARCH:
+      x86_64:
+        - microos/services_enabled
+        - transactional/disable_timers
+      aarch64:
+        - microos/services_enabled
+        - transactional/disable_timers
+      s390x:
+        - microos/services_enabled
+        - transactional/disable_timers
+        - microos/rebuild_initrd
+  qemu_kvm:
+    ARCH:
+      x86_64:
+        - qemu/kvm
+      aarch64:
+        - qemu/kvm
+      s390x:
+        - qemu/kvm
+  boot_and_run:
+    FLAVOR:
+      Transactional-Base-QR:
+        - microos/disk_boot
+      Transactional-Base-qcow-QR:
+        - microos/disk_boot
+      Transactional-Base-encrypted-QR:
+        - installation/bootloader_uefi
+        - jeos/firstrun
