@@ -32,7 +32,7 @@ schedule:
     - fips/squid/squid_reverse_proxy
     - console/apache_ssl
     - fips/mozilla_nss/apache_nssfips
-    - security/ecryptfs/ecryptfs
+    - security/oqa_agnostic/ecryptfs_agnostic
     - security/vsftpd/vsftpd_setup
     - security/vsftpd/vsftpd
     - security/vsftpd/lftp

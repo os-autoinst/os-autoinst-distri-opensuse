@@ -1,0 +1,60 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: eCryptfs ciphers
+# desc: >
+#   Mounts an eCryptfs directory with each supported cipher (aes, blowfish,
+#   des3_ede, twofish, cast6, cast5) and verifies that data written through
+#   the mountpoint is stored encrypted in the lower directory. In FIPS kernel
+#   mode every mount is expected to fail with "Operation not permitted".
+# steps:
+#   - 1. Load the ecryptfs kernel module.
+#   - 2. For each cipher, mount the lower directory on the upper one
+#        non-interactively, passing all the mount.ecryptfs answers as options.
+#   - 3. FIPS kernel mode, check the mount fails with "Operation not permitted".
+#        If ECRYPTFS_EXPECT_FIPS_KERNEL=1 is set, the kernel must run in FIPS mode.
+#   - 4. Otherwise, check /proc/mounts shows the requested cipher and key size.
+#   - 5. Write a file through the mountpoint and read it back.
+#   - 6. Check the lower copy does not contain the plain text.
+#   - 7. Unmount and check the mountpoint is empty.
+# requires: the ecryptfs-utils package must already be installed
+# author: <mmilian@suse.de>
+# maintainer: QE Security <none@suse.de>
+# expected: every cipher mounts and encrypts, or fails with EPERM in FIPS kernel mode
+# platform: SLE15SP4+, Tumbleweed (ecryptfs-utils is not shipped in SLE 16 / Leap 16)
+# tags: security ecryptfs encryption fips poo#110355 poo#207477
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_ecryptfs.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+ensure_command_available mount.ecryptfs
+
+# Show what was actually downloaded into the test directory, so a missing or
+# truncated TEST_FILES entry is obvious in the serial log.
+echo "--- Test directory: $PWD ---"
+ls -l
+echo "----------------------------"
+
+# Installing ecryptfs-utils is the caller's job: under openQA the wrapper module
+# tests/security/oqa_agnostic/ecryptfs_agnostic.pm does it, a standalone run is
+# expected to have it in place already.
+
+# Disable `set -e` around pytest so that a non-zero pytest exit code does
+# not abort this script before results.xml has been produced; failures are
+# surfaced from the uploaded XML.
+set +e
+pytest -v -s test_ecryptfs.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ]; then
+    exit 0
+fi
+exit $rc
