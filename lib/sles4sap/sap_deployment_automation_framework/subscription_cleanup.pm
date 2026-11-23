@@ -23,6 +23,7 @@ use sles4sap::sap_deployment_automation_framework::naming_conventions
 our @EXPORT = qw(
   get_orphaned_resource_groups
   get_orphaned_resources
+  get_orphaned_secrets
   destroy_orphaned_groups
   export_cleanup_report
   destroy_orphaned_resources
@@ -119,6 +120,26 @@ sub _time_test ($input_time, $retention_sec) {
         Resource orphaned: $resource_orphaned"
     );
     return $resource_orphaned;
+}
+
+=head2 _get_retention_date
+
+    my $retention_date = _get_retention_date($retention_sec);
+
+Returns the date and time which is B<$retention_sec> seconds in the past.
+Format: C<%Y-%m-%dT%H:%M:%S%z>. Time is UTC, example: C<2026-01-01T12:00:00+0000>.
+
+=over
+
+=item * B<retention_sec>: Retention period in seconds
+
+=back
+
+=cut
+
+sub _get_retention_date ($retention_sec) {
+    croak 'Missing mandatory argument: $retention_sec' unless defined($retention_sec);
+    return gmtime(time() - $retention_sec)->strftime('%Y-%m-%dT%H:%M:%S%z');
 }
 
 =head2 _kql_query
@@ -231,6 +252,28 @@ sub get_orphaned_resources ($self) {
 
     # Mark all found resources for deletion
     $self->{results}{deployer_vms} = [map { _time_test($_->{openqa_created_date}, $retention_sec) ? $_ : () } @{$resources}];
+}
+
+=head2 get_orphaned_secrets
+
+    my $cleanup_result = sles4sap::sap_deployment_automation_framework::subscription_cleanup->new();
+    $cleanup_result->get_orphaned_secrets();
+
+Searches keyvaults provided by B<$args{keyvaults}> for secrets meeting orphaned criteria.
+Secrets must match name pattern <ENV>-<Region short>-<test_id>-<client_secret|subscription_id|client_id> and being updated
+before retention period.
+
+=over
+
+=item * B<keyvaults>: B<ARRAYREF> of key vaults to search
+
+=back
+=cut
+
+sub get_orphaned_secrets ($self) {
+    #[?attributes.created < '2026-11-09T03:37:52'   && (ends_with(name,'-client-id') || ends_with(name,'-client-secret') || ends_with(name,'-subscriptiond'))]
+    my $retention_sec = $self->{openqa}{retention_sec};
+    #my $query = join(' ', '');
 }
 
 =head2 destroy_orphaned_groups
