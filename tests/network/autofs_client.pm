@@ -37,6 +37,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use lockapi;
+use serial_terminal 'select_serial_terminal';
 use autofs_utils qw(setup_autofs_server check_autofs_service install_service);
 use utils qw(systemctl script_retry);
 use version_utils qw(is_leap is_sle);
@@ -45,7 +46,7 @@ sub run {
     # autofs client needs mutex_wait
     mutex_wait 'barrier_setup_done';
 
-    select_console "root-console";
+    select_serial_terminal;
     my $nfs_server = "10.0.2.101";
     my $remote_mount = "/tmp/nfs/server";
     my $remote_mount_nfsidmap = "/home/tux";
