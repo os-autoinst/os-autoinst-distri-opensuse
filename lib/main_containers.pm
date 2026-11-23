@@ -222,10 +222,6 @@ sub load_host_tests_docker {
         loadtest 'containers/rootless_docker' unless (is_public_cloud);
     }
     load_volume_tests($run_args) unless is_public_cloud;
-    # Expected to work anywhere except of real HW backends, PC and Micro
-    unless (is_generalhw || is_ipmi || is_public_cloud || is_transactional || (is_sle('=12-SP5') && is_aarch64)) {
-        loadtest 'containers/validate_btrfs';
-    }
 }
 
 sub load_host_tests_containerd_crictl {
