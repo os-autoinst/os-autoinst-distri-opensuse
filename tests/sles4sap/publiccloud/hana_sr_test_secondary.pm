@@ -98,8 +98,11 @@ sub run {
 
     $self->stop_hana(method => $db_action, online_string => $online_string);
 
+    if (angi_fence_recovery()) {
+        $self->recover_fenced_node(peer => $run_args->{$hana_sites[0]}, $db_action eq 'crash' ? (rebooted => 1) : (optional => 1, timeout => 300));
+    }
     # SBD delay is active only after reboot
-    if ($db_action eq 'crash' || $db_action eq 'stop') {
+    elsif ($db_action eq 'crash' || $db_action eq 'stop') {
         record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
         # sleep needs to be a little longer than sbd start delay
         sleep($sbd_delay + 30);
