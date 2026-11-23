@@ -10,13 +10,9 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use mmapi;
+use hacluster qw(is_not_supportserver_scenario has_ondemand_luns);
 use iscsi 'lio_show_iqn';
 use version_utils 'check_os_release';
-
-# This tells the module whether the test is running in a supportserver or in node1
-sub is_not_supportserver_scenario {
-    return (get_var('HOSTNAME', '') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER'));
-}
 
 sub run {
     my $cluster_infos = get_required_var('CLUSTER_INFOS');
@@ -45,6 +41,8 @@ sub run {
             barrier_create("BARRIER_HA_HOSTS_FILES_READY_$cluster_name", $qnetd_num_nodes);
             barrier_create("BARRIER_HA_LUNS_FILES_READY_$cluster_name", $qnetd_num_nodes);
             barrier_create("BARRIER_HA_NONSS_FILES_SYNCED_$cluster_name", $num_nodes);
+
+            barrier_create('INIT_ONDEMAND_TARGETS', $num_nodes) if (has_ondemand_luns);
         }
         else {
             barrier_create("BARRIER_HA_$cluster_name", $num_nodes + 1);

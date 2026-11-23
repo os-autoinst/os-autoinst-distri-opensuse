@@ -14,7 +14,7 @@ use lockapi;
 use Socket qw(getaddrinfo getnameinfo NI_NUMERICHOST);
 use utils qw(systemctl file_content_replace script_retry);
 use package_utils qw(install_package);
-use hacluster qw(get_cluster_name get_hostname get_ip get_my_ip is_node choose_node exec_csync);
+use hacluster qw(get_cluster_name get_hostname get_ip get_my_ip is_node choose_node exec_csync has_ondemand_luns);
 use mmapi qw(get_current_job_id get_parents);
 
 sub replace_text_in_ha_files {
@@ -133,7 +133,7 @@ sub run {
         my $num_luns = (split(/:/, $cluster))[2];
         my $lun_list_file = "$mountpt/$dir_id/$cluster_name-lun.list";
         my $index = get_var('ISCSI_LUN_INDEX', 0);
-        $index = 0 if (check_var('ISCSI_LUN_INDEX', 'ondemand'));
+        $index = 0 if (has_ondemand_luns);
 
         assert_script_run "rm -f $lun_list_file ; touch $lun_list_file";
 
@@ -145,7 +145,7 @@ sub run {
                 $lun =~ /\|([^\|]+)\|/;
                 $lun = $1;
                 # Skip cleanup of LUNs when using On Demand targets
-                next if (check_var('ISCSI_LUN_INDEX', 'ondemand'));
+                next if (has_ondemand_luns);
                 # Need more time due to low performance on hmc_ppc64le workers
                 # Even with "ls $lun" returns 0 command 'dd' still reports sporadic error like:
                 #  "dd: failed to open '/xxx/*-lun-41': No such device or address"
