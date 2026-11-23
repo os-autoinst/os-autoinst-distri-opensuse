@@ -9,16 +9,19 @@ Ported from tests/security/crypto_policies/crypto_policies_tests.pm.
 Two modes:
 
 * ``CRYPTO_POLICY`` is not set (standalone): for each of the LEGACY, BSI,
-  FUTURE and DEFAULT policies the policy is switched with
+  FUTURE, CNSA-1.0 and DEFAULT policies the policy is switched with
   ``update-crypto-policies --set`` and sshd and named are restarted to pick
-  it up. The system is not rebooted.
+  it up. The system is not rebooted. A policy that the installed
+  crypto-policies package does not ship (CNSA-1.0 in older packages) is
+  skipped.
 * ``CRYPTO_POLICY=<policy>`` is set (the openQA wrapper): the caller has
   already set the policy and rebooted. The test only checks that this
   policy is the active one, then runs the checks below once.
 
 BIND (DNSSEC validation, rndc, a local zone), GnuTLS (certtool +
 gnutls-serv/gnutls-cli) and NSS (certutil + tstclnt against an openssl
-s_server) are exercised with the active policy.
+s_server) are exercised with the active policy. With CNSA-1.0 the GnuTLS
+handshake must use ECDHE with P-384 and AES-256-GCM.
 
 Standalone use outside openQA::
 
@@ -44,7 +47,9 @@ import pytest
 
 # Set when the caller applies the policy (and reboots) itself
 EXPECTED_POLICY = os.environ.get("CRYPTO_POLICY")
-POLICIES = (EXPECTED_POLICY,) if EXPECTED_POLICY else ("LEGACY", "BSI", "FUTURE", "DEFAULT")
+POLICIES = ((EXPECTED_POLICY,) if EXPECTED_POLICY
+            else ("LEGACY", "BSI", "FUTURE", "CNSA-1.0", "DEFAULT"))
+POLICY_DIR = "/usr/share/crypto-policies/policies"
 SERVICES = ("sshd", "named")
 
 ZONE_FILE = "/var/lib/named/master/example.com"
@@ -99,6 +104,11 @@ def current_policy():
     result = run(["update-crypto-policies", "--show"], timeout=30)
     assert result.returncode == 0, result.stdout
     return result.stdout.strip()
+
+
+def policy_shipped(name):
+    """True if the installed crypto-policies package ships the policy."""
+    return os.path.exists(os.path.join(POLICY_DIR, name + ".pol"))
 
 
 def service_state(name):
@@ -218,6 +228,8 @@ def policy(request):
     if EXPECTED_POLICY:
         assert current_policy() == name
         return name
+    if not policy_shipped(name):
+        pytest.skip("crypto-policies does not ship the %s policy" % name)
     result = run(["update-crypto-policies", "--set", name], timeout=60)
     assert result.returncode == 0, "setting policy %s failed: %s" % (name, result.stdout)
     for service in SERVICES:
@@ -305,6 +317,13 @@ def test_gnutls_handshake(policy, tmp_path):
     assert re.search(
         r"Status: The certificate is trusted.*Handshake was completed.*helloSUSE",
         output, re.DOTALL), output
+    if policy == "CNSA-1.0":
+        # CNSA-1.0 allows only P-384 for ECDHE and only AES-256-GCM for TLS,
+        # e.g. "- Description: (TLS1.3-X.509)-(ECDHE-SECP384R1)-...-(AES-256-GCM)"
+        description = re.search(r"^- Description: (.*)$", output, re.MULTILINE)
+        assert description, output
+        assert "(ECDHE-SECP384R1)" in description.group(1), output
+        assert "(AES-256-GCM)" in description.group(1), output
 
 
 def test_nss_handshake(policy, tmp_path):

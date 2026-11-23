@@ -3,8 +3,9 @@
 # ---
 # test: crypto-policies
 # desc: >
-#   Switches the system-wide crypto-policies (LEGACY, BSI, FUTURE, DEFAULT)
-#   and checks that sshd, BIND, GnuTLS and NSS keep working with each one.
+#   Switches the system-wide crypto-policies (LEGACY, BSI, FUTURE, CNSA-1.0,
+#   DEFAULT) and checks that sshd, BIND, GnuTLS and NSS keep working with
+#   each one. CNSA-1.0 is skipped when crypto-policies does not ship it.
 #   By default the services are restarted to apply each policy. When
 #   CRYPTO_POLICY=<policy> is set, the caller has already set that policy and
 #   rebooted, and only this policy is checked.
@@ -15,7 +16,8 @@
 #   - check the active policy and that sshd and named are running
 #   - BIND - validate the root DNS signature, query rndc, query a local zone
 #   - GnuTLS - create a P-384 CA and server certificate signed with SHA-384,
-#     handshake gnutls-cli to gnutls-serv
+#     handshake gnutls-cli to gnutls-serv; with CNSA-1.0 check that ECDHE
+#     with P-384 and AES-256-GCM are used
 #   - NSS - trust a new certificate in an NSS database, fetch a page from
 #     openssl s_server with tstclnt
 #   - reset the policy to DEFAULT and restore named.conf
@@ -23,7 +25,7 @@
 # maintainer: QE Security <none@suse.de>
 # expected: all tests pass
 # platform: SLE 16.1 (also immutable), Tumbleweed
-# tags: security crypto-policies bind gnutls nss poo#208152
+# tags: security crypto-policies bind gnutls nss poo#208152 poo#210675
 # ---
 # METADATA_END
 
