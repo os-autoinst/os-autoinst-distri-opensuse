@@ -20,9 +20,10 @@
       <li><a href="#Methods">Methods</a>
         <ul>
           <li><a href="#qesap_is_valid_version">_qesap_is_valid_version</a></li>
-          <li><a href="#qesap_resolve_install_version">_qesap_resolve_install_version</a></li>
+          <li><a href="#qesap_resolve_install_version">qesap_resolve_install_version</a></li>
           <li><a href="#qesap_deployment_dir">_qesap_deployment_dir</a></li>
           <li><a href="#qesap_get_paths">_qesap_get_paths</a></li>
+          <li><a href="#qesap_roles_paths">_qesap_roles_paths</a></li>
           <li><a href="#qesap_get_file_paths">_qesap_get_file_paths</a></li>
           <li><a href="#qesap_create_folder_tree">_qesap_create_folder_tree</a></li>
           <li><a href="#qesap_get_variables">_qesap_get_variables</a></li>
@@ -35,7 +36,7 @@
           <li><a href="#qesap_galaxy_install">qesap_galaxy_install</a></li>
           <li><a href="#qesap_upload_logs">qesap_upload_logs</a></li>
           <li><a href="#qesap_get_latest_version">qesap_get_latest_version</a></li>
-          <li><a href="#qesap_get_deployment_code">qesap_get_deployment_code</a></li>
+          <li><a href="#qesap_get_deployment_code">_qesap_get_deployment_code</a></li>
           <li><a href="#qesap_cache_releases">qesap_cache_releases</a></li>
           <li><a href="#qesap_get_roles_code-Get-the-Ansible-roles-code-from-github.com-sap-linuxlab-community.sles-for-sap">qesap_get_roles_code Get the Ansible roles code from github.com/sap-linuxlab/community.sles-for-sap</a></li>
           <li><a href="#qesap_yaml_replace">qesap_yaml_replace</a></li>
@@ -106,12 +107,16 @@ SPDX-License-Identifier: FSFAP</code></pre>
 
 <pre><code>Validate string against qe-sap-deployment version format</code></pre>
 
-<h3 id="qesap_resolve_install_version">_qesap_resolve_install_version</h3>
+<h3 id="qesap_resolve_install_version">qesap_resolve_install_version</h3>
 
-<pre><code>Reads QESAP_INSTALL_VERSION, if needed resolves &#39;latest&#39; through GitHub,
-and validates the result as a numeric release version.
-Returns the resolved version string, or undef if QESAP_INSTALL_VERSION is not set.
-Dies if the value is neither a numeric release version nor &#39;latest&#39;.</code></pre>
+<pre><code>Reads QESAP_INSTALL_VERSION, if needed resolves &#39;latest&#39; through GitHub.
+Returns the resolved version string, or an empty string if QESAP_INSTALL_VERSION is not set.
+Dies if the value is neither a numeric release version nor &#39;latest&#39;.
+It always returns exactly one value.
+
+Test modules should call this once in run() and pass the result as the
+optional qesap_version argument to the library functions, so that the version
+(and &#39;latest&#39;) is resolved only once per module.</code></pre>
 
 <h3 id="qesap_deployment_dir">_qesap_deployment_dir</h3>
 
@@ -119,6 +124,14 @@ Dies if the value is neither a numeric release version nor &#39;latest&#39;.</co
 names a release with a complete folder under QESAP_CACHE_ROOT,
 that cached folder is returned;
 otherwise the value of QESAP_DEPLOYMENT_DIR (default /root/qe-sap-deployment).</code></pre>
+
+<dl>
+
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-as-returned-by-qesap_resolve_install_version-.-Accepted-values:---a-numeric-release:-the-cache-lookup-is-attempted---an-empty-string:-returned-by-qesap_resolve_install_version-when-QESAP_INSTALL_VERSION-is-not-set-the-cache-lookup-is-skipped---undef-omitted-:-QESAP_INSTALL_VERSION-is-read-and-latest-is-resolved-through-GitHub"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), as returned by qesap_resolve_install_version(). Accepted values: - a numeric release: the cache lookup is attempted; - an empty string: returned by qesap_resolve_install_version() when QESAP_INSTALL_VERSION is not set; the cache lookup is skipped; - undef (omitted): QESAP_INSTALL_VERSION is read and &#39;latest&#39; is resolved through GitHub.</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_get_paths">_qesap_get_paths</h3>
 
@@ -132,15 +145,41 @@ Unlike _qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.</code><
 <dd>
 
 </dd>
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-Forwarded-to-_qesap_deployment_dir-.-When-omitted-QESAP_INSTALL_VERSION-is-read-and-latest-is-resolved-through-GitHub"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. Forwarded to _qesap_deployment_dir(). When omitted, QESAP_INSTALL_VERSION is read and &#39;latest&#39; is resolved through GitHub.</dt>
+<dd>
+
+</dd>
 </dl>
+
+<h3 id="qesap_roles_paths">_qesap_roles_paths</h3>
+
+<pre><code>Returns a hash containing the roles directory paths:
+roles_dir, roles_dir_path.
+Unlike _qesap_get_paths(), this does not resolve QESAP_INSTALL_VERSION.</code></pre>
 
 <h3 id="qesap_get_file_paths">_qesap_get_file_paths</h3>
 
 <pre><code>Returns a hash containing file paths for configuration files</code></pre>
 
+<dl>
+
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-Forwarded-to-_qesap_get_paths-.-When-omitted-QESAP_INSTALL_VERSION-is-read-and-latest-is-resolved-through-GitHub"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. Forwarded to _qesap_get_paths(). When omitted, QESAP_INSTALL_VERSION is read and &#39;latest&#39; is resolved through GitHub.</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="qesap_create_folder_tree">_qesap_create_folder_tree</h3>
 
 <pre><code>Create all needed folders</code></pre>
+
+<dl>
+
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-Forwarded-to-_qesap_get_paths"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. Forwarded to _qesap_get_paths().</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_get_variables">_qesap_get_variables</h3>
 
@@ -221,11 +260,27 @@ in a dedicated virtual environment.
 This function has no return code but it is expected to die
 if something internally fails.</code></pre>
 
+<dl>
+
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-Forwarded-to-_qesap_get_paths1"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. Forwarded to _qesap_get_paths().</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="qesap_galaxy_install">qesap_galaxy_install</h3>
 
 <pre><code>Install all Ansible requirements of the qe-sap-deployment.
 This function has no return code but it is expected to die
 if something internally fails.</code></pre>
+
+<dl>
+
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-Forwarded-to-_qesap_get_paths2"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. Forwarded to _qesap_get_paths().</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_upload_logs">qesap_upload_logs</h3>
 
@@ -247,13 +302,13 @@ This is about logs generated locally on the jumphost.</code></pre>
 <pre><code>Queries GitHub for the latest release tag of qe-sap-deployment
 and returns the parsed version string.</code></pre>
 
-<h3 id="qesap_get_deployment_code">qesap_get_deployment_code</h3>
+<h3 id="qesap_get_deployment_code">_qesap_get_deployment_code</h3>
 
 <pre><code>Get the qe-sap-deployment code</code></pre>
 
 <dl>
 
-<dt id="VERSION---optional-release-version-tag-to-install-e.g.-latest-2.6.15"><b>VERSION</b> - optional release version tag to install (e.g. &#39;latest&#39;, &#39;2.6.15&#39;)</dt>
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-as-returned-by-qesap_resolve_install_version-.-When-set-the-release-tarball-is-downloaded-when-not-set-undef-or-empty-the-repository-is-cloned-from-a-branch-instead.-latest-is-not-accepted:-dies-if-the-value-is-not-a-numeric-release-version.-It-is-also-forwarded-to-_qesap_get_paths-for-the-cache-lookup"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), as returned by qesap_resolve_install_version(). When set, the release tarball is downloaded; when not set, undef or empty, the repository is cloned from a branch instead. &#39;latest&#39; is not accepted: dies if the value is not a numeric release version. It is also forwarded to _qesap_get_paths() for the cache lookup.</dt>
 <dd>
 
 </dd>
@@ -296,6 +351,14 @@ Example:
     $variables{HANA_CLIENT_SAR} = get_required_var(&quot;HANA_CLIENT_SAR&quot;);
     qesap_yaml_replace(openqa_variables=&gt;\%variables);</code></pre>
 
+<dl>
+
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-Forwarded-to-_qesap_get_file_paths"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. Forwarded to _qesap_get_file_paths().</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="qesap_execute">qesap_execute</h3>
 
 <pre><code>qesap_execute(
@@ -334,6 +397,10 @@ This function is not expected to internally die, any failure has to be handled b
 
 </dd>
 <dt id="TIMEOUT---max-expected-execution-time-default-90sec"><b>TIMEOUT</b> - max expected execution time, default 90sec</dt>
+<dd>
+
+</dd>
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-Forwarded-to-_qesap_get_file_paths1"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. Forwarded to _qesap_get_file_paths().</dt>
 <dd>
 
 </dd>
@@ -464,6 +531,10 @@ It is useful if test would like to call terraform</code></pre>
 <dd>
 
 </dd>
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-Forwarded-to-_qesap_get_file_paths2"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. Forwarded to _qesap_get_file_paths().</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h3 id="qesap_ansible_get_roles_dir">qesap_ansible_get_roles_dir</h3>
@@ -479,7 +550,8 @@ Prepare terraform environment.
 - creates file structures
 - pulls git repository
 - external configuration files
-- installs pip requirements and OS  configuration files with qesap script
+- installs pip requirements and OS packages
+- generates configuration files with qesap script
 
 For variables example see &#39;qesap_yaml_replace&#39;
 Returns only result, failure handling has to be done by calling method.</code></pre>
@@ -499,6 +571,10 @@ Returns only result, failure handling has to be done by calling method.</code></
 
 </dd>
 <dt id="ONLY_CONFIGURE"><b>ONLY_CONFIGURE</b> -</dt>
+<dd>
+
+</dd>
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-When-omitted-QESAP_INSTALL_VERSION-is-read-and-latest-is-resolved-through-GitHub-once.-Forwarded-to-the-internal-calls"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. When omitted, QESAP_INSTALL_VERSION is read and &#39;latest&#39; is resolved through GitHub once. Forwarded to the internal calls.</dt>
 <dd>
 
 </dd>
