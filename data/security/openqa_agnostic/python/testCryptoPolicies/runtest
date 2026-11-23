@@ -14,7 +14,8 @@
 #     CRYPTO_POLICY is set, then only that policy is checked)
 #   - check the active policy and that sshd and named are running
 #   - BIND - validate the root DNS signature, query rndc, query a local zone
-#   - GnuTLS - create a CA and a server certificate, handshake gnutls-cli to gnutls-serv
+#   - GnuTLS - create a P-384 CA and server certificate signed with SHA-384,
+#     handshake gnutls-cli to gnutls-serv
 #   - NSS - trust a new certificate in an NSS database, fetch a page from
 #     openssl s_server with tstclnt
 #   - reset the policy to DEFAULT and restore named.conf

@@ -258,14 +258,18 @@ def test_gnutls_handshake(policy, tmp_path):
 
     (tmp_path / "ca.tmpl").write_text(CA_TEMPLATE)
     (tmp_path / "server.tmpl").write_text(SERVER_TEMPLATE)
+    # The certtool defaults (RSA signed with SHA-256) are too weak for some
+    # policies. P-384 keys signed with SHA-384 are accepted by all of them.
+    genkey = ["certtool", "--generate-privkey", "--key-type", "ecdsa", "--curve", "secp384r1"]
     steps = (
-        (["certtool", "--generate-privkey", "--outfile", path("ca-key.pem")], 120),
+        (genkey + ["--outfile", path("ca-key.pem")], 120),
         (["certtool", "--generate-self-signed", "--load-privkey", path("ca-key.pem"),
-          "--template", path("ca.tmpl"), "--outfile", path("ca.pem")], 120),
-        (["certtool", "--generate-privkey", "--outfile", path("server-key.pem")], 120),
+          "--hash", "SHA384", "--template", path("ca.tmpl"), "--outfile", path("ca.pem")], 120),
+        (genkey + ["--outfile", path("server-key.pem")], 120),
         (["certtool", "--generate-certificate", "--load-privkey", path("server-key.pem"),
           "--load-ca-certificate", path("ca.pem"), "--load-ca-privkey", path("ca-key.pem"),
-          "--template", path("server.tmpl"), "--outfile", path("server.pem")], 300),
+          "--hash", "SHA384", "--template", path("server.tmpl"),
+          "--outfile", path("server.pem")], 300),
     )
     for cmd, timeout in steps:
         result = run(cmd, timeout=timeout)
@@ -296,11 +300,13 @@ def test_nss_handshake(policy, tmp_path):
 
     nssdb = "sql:" + path("nssdb")
     os.mkdir(path("nssdb"))
-    # 4096 bits so the key also satisfies the FUTURE policy
+    # An RSA key of 4096 bits signed with SHA-384, so that the strict
+    # policies (FUTURE: RSA 3072 and up, CNSA-1.0: also SHA-384 and up)
+    # accept the certificate
     steps = (
         (["certutil", "-N", "-d", nssdb, "--empty-password"], 60),
-        (["openssl", "req", "-new", "-newkey", "rsa:4096", "-x509", "-days", "7", "-nodes",
-          "-subj", "/CN=localhost", "-out", path("localhost.pem"),
+        (["openssl", "req", "-new", "-newkey", "rsa:4096", "-sha384", "-x509", "-days", "7",
+          "-nodes", "-subj", "/CN=localhost", "-out", path("localhost.pem"),
           "-keyout", path("localhost.key")], 300),
         (["certutil", "-d", nssdb, "-A", "-a", "-i", path("localhost.pem"),
           "-t", "TCP", "-n", "localhost"], 60),
