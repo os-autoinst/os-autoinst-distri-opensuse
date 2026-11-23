@@ -82,7 +82,7 @@ sub test_btrfs_thin_partitioning {
 # Fill up the btrfs subvolume, check if it is full and then increase the available size by adding another disk
 sub test_btrfs_device_mgmt {
     my ($rt, $dev_path) = @_;
-    my $container = 'registry.opensuse.org/cloud/platform/stack/rootfs/images/sle15';
+    my $container = 'registry.opensuse.org/opensuse/tumbleweed';
     my $btrfs_head = '/tmp/subvolumes_saved';
     my $var_drive = find_partition("/var");
     record_info "test btrfs";
