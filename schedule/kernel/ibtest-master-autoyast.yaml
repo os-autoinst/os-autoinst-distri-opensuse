@@ -5,7 +5,6 @@ vars:
     AUTOYAST: autoyast_mlx_con5.xml
     AUTOYAST_PREPARE_PROFILE: 1
     GRUB_TIMEOUT: 300
-    IBTESTS: 1
     IBTEST_ROLE: IBTEST_MASTER
     IPXE: 1
     IPXE_CONSOLE: ttyS1,115200

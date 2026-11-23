@@ -3257,7 +3257,6 @@ sub load_lvm_tests {
 
 sub load_kernel_baremetal_tests {
     set_var('ADDONURL', 'sdk') if (is_sle('>=12') && is_sle('<15')) && !is_released;
-    loadtest "kernel/ibtests_barriers" if get_var("IBTESTS");
     loadtest "autoyast/prepare_profile" if get_var("AUTOYAST_PREPARE_PROFILE");
     load_boot_tests();
     get_var("AUTOYAST") ? load_ayinst_tests() : load_inst_tests();
