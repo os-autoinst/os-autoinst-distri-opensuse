@@ -34,11 +34,4 @@ sub configure_insecure_registries {
     systemctl('restart docker');
 }
 
-sub get_storage_driver {
-    my $storage = script_output("docker info -f '{{.Driver}}'");
-    record_info 'Storage', "Detected storage driver=$storage";
-
-    return $storage;
-}
-
 1;
