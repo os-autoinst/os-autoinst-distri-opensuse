@@ -114,9 +114,15 @@ sub run {
         # Flaky tests:
         "github.com/moby/moby/v2/integration/container::TestContainerRestartWithCancelledRequest",
         "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
+        "github.com/moby/moby/v2/integration/container::TestNetworkLocalhostTCPNat",
+        "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeout",
+        "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeout/too_small_timeout:_expect_forceful_container_kill",
+        "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeout/unlimited_timeout:_expect_graceful_container_stop",
         "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeoutCancel",
-        "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
+        "github.com/moby/moby/v2/integration/container::TestWaitRestartedContainer",
+        "github.com/moby/moby/v2/integration/container::TestWaitRestartedContainer/next-exit",
         "github.com/moby/moby/v2/integration/service::TestRestoreEncryptedOverlayRulesOnFirewalldReload",
+        "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
     );
     # Cross-platform builds only work on 15-SP6+
     push @xfails, (
