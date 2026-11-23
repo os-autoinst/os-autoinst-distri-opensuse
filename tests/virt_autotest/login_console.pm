@@ -86,7 +86,7 @@ sub login_to_console {
         if (get_var("XEN") && check_var('CPU_BUGS', '1')) {
             assert_screen([qw(pxe-qa-net-mitigation qa-net-selection)], 90);
             send_key 'ret';
-            assert_screen([qw(grub2 grub1)], 60);
+            assert_screen([qw(systemd-boot grub2 grub1)], 60);
             send_key 'up';
         }
         else {
@@ -99,7 +99,7 @@ sub login_to_console {
         }
     }
 
-    my @bootup_needles = is_ipxe_boot ? qw(grub2) : qw(grub2 grub1 prague-pxe-menu);
+    my @bootup_needles = is_ipxe_boot ? qw(systemd-boot grub2) : qw(systemd-boot grub2 grub1 prague-pxe-menu);
     my $check_screen_timer = ((get_var('AUTOYAST') && !get_var("NOT_DIRECT_REBOOT_AFTER_AUTOYAST")) or is_disk_image) ? 1 : 180;
     unless (get_var('UPGRADE_AFTER_REBOOT') or is_agama or is_tumbleweed or check_screen(\@bootup_needles, $check_screen_timer)) {
         ipmitool("chassis power reset");
@@ -112,7 +112,7 @@ sub login_to_console {
     if (match_has_tag('prague-pxe-menu')) {
         send_key 'ret';
 
-        check_screen([qw(grub2 grub1)], 60);
+        check_screen([qw(systemd-boot grub2 grub1)], 60);
     }
 
     if (!get_var('UPGRADE_AFTER_REBOOT')) {

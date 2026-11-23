@@ -144,7 +144,7 @@ sub process_reboot {
                 reset_consoles;
                 select_console('sol', await_console => 0);
             }
-            assert_screen 'grub2', 300;
+            assert_screen [qw(systemd-boot grub2)], 300;
             wait_screen_change { send_key 'ret' };
             assert_screen 'linux-login', 400;
         }
