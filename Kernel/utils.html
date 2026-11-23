@@ -22,6 +22,7 @@
       <li><a href="#start_trace_events">start_trace_events</a></li>
       <li><a href="#save_trace">save_trace</a></li>
       <li><a href="#install_fio_debug_wrapper">install_fio_debug_wrapper</a></li>
+      <li><a href="#find_kernel_traces">find_kernel_traces</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/utils.pm</h1>
@@ -86,6 +87,21 @@ start_trace_events(\@events, filters =&gt; {$event =&gt; $filter}, buffer_kb =&g
 <p>Only fio runs that write the results to a file with <code>--output=</code> are changed, else the debug output would change the output of the test. The debug output is kept out of the <code>--output</code> file too, tests often copy this file to their logs.</p>
 
 <p>Without <code>strace</code> 5.2 or newer (for <code>-Z</code>) fio runs without strace.</p>
+
+<h2 id="find_kernel_traces">find_kernel_traces</h2>
+
+<pre><code>my $traces = find_kernel_traces([file =&gt; $file] [, since =&gt; $text]
+    [, ignore =&gt; \@regexps] [, ignore_file =&gt; $file]);</code></pre>
+
+<p>Find the kernel log lines that show a call trace, a kernel BUG, an Oops, a kernel panic or a hung task. The function reads <code>dmesg</code>, or <code>file</code> if you give it.</p>
+
+<p>With <code>since</code>, the function only reads the last line that contains <code>$text</code> and the lines after it. If no line contains <code>$text</code>, for example because the SUT rebooted, the function returns <code>undef</code>.</p>
+
+<p><code>ignore</code> is a list of extended regular expressions. The function removes the lines that match before it does the check. <code>ignore_file</code> is a file with more of these expressions, one for each line. The function uses it only if it exists.</p>
+
+<p>Each step writes its result to a file in <code>$KERNEL_TRACE_DIR</code> on the SUT (<i>0-log</i>, <i>1-since</i>, <i>2-ignore</i>, <i>3-ignore_file</i>, <i>4-traces</i>), so you can look at them when the result is not what you expect. The next call overwrites them.</p>
+
+<p>Returns a reference to the list of lines that it found (the list can be empty, at most 100 lines).</p>
 
 
 </body>
