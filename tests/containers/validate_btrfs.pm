@@ -100,7 +100,8 @@ sub test_btrfs_device_mgmt {
     # check if the partition is full
     my ($total, $used) = btrfs_fi("/var");
     die "partition should be full" unless (int($used) >= int($total * 0.99));
-    die("pull should fail on full partition") if ($rt->pull($container, timeout => 600, die => 0) == 0);
+    # Pull once: $rt->pull retries and the retry works, as btrfs frees the temporary file meanwhile
+    die("pull should fail on full partition") if (script_run($rt->runtime . " pull $container", timeout => 600) == 0);
     # Increase the amount of available storage by adding the second HDD (e.g. '/dev/vdb') to the pool
     my $second = substr($play_drive, 0, length($play_drive));
     assert_script_run "btrfs device add $second $dev_path";
