@@ -120,7 +120,7 @@ sub _qesap_is_valid_version {
     It always returns exactly one value.
 
     Test modules should call this once in run() and pass the result as the
-    optional qesap_version argument to the library functions, so that the version
+    optional qesap_release argument to the library functions, so that the version
     (and 'latest') is resolved only once per module.
 =cut
 
@@ -189,7 +189,7 @@ sub _qesap_get_paths {
     my (%args) = @_;
     my %paths;
     $paths{deployment_dir} = $args{deployment_dir} // _qesap_deployment_dir(qesap_release => $args{qesap_release});
-    $paths{terraform_dir} = get_var('PUBLIC_CLOUD_TERRAFORM_DIR', $paths{deployment_dir} . '/terraform');
+    $paths{terraform_dir} = $paths{deployment_dir} . '/terraform';
     $paths{roles_dir} = get_var('QESAP_ROLES_DIR', '/root/community.sles-for-sap');
     $paths{roles_dir_path} = $paths{roles_dir} . '/roles';
     return (%paths);
@@ -291,6 +291,10 @@ sub _qesap_get_variables {
 
 =item B<SECTION_CONTENT> - content as a perl hash
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_file_paths(). When omitted,
+QESAP_INSTALL_VERSION is read and 'latest' is resolved through GitHub.
+
 =back
 =cut
 
@@ -299,7 +303,7 @@ sub qesap_ansible_create_section {
     foreach (qw(ansible_section section_content)) {
         croak "Missing mandatory $_ argument" unless $args{$_}; }
 
-    my %paths = _qesap_get_file_paths();
+    my %paths = _qesap_get_file_paths(qesap_release => $args{qesap_release});
     my $yaml_config_path = $paths{qesap_conf_trgt};
     assert_script_run("test -e $yaml_config_path",
         fail_message => "Yaml config file '$yaml_config_path' does not exist.");
@@ -943,14 +947,17 @@ sub _qesap_file_find_strings {
 
 =item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to qesap_get_terraform_dir(). When omitted,
+QESAP_INSTALL_VERSION is read and 'latest' is resolved through GitHub.
+
 =back
 =cut
 
 sub qesap_get_inventory {
     my (%args) = @_;
     croak "Missing mandatory argument 'provider'" unless $args{provider};
-    my %paths = _qesap_get_file_paths();
-    return join('/', qesap_get_terraform_dir(provider => $args{provider}), 'inventory.yaml');
+    return join('/', qesap_get_terraform_dir(provider => $args{provider}, qesap_release => $args{qesap_release}), 'inventory.yaml');
 }
 
 =head3 qesap_get_nodes_number
@@ -1089,17 +1096,16 @@ sub qesap_prepare_env {
         _qesap_create_folder_tree(qesap_release => $install_version);
 
         if ($install_version) {
-            my $deploy_dir = _qesap_deployment_dir(qesap_release => $install_version);
-            if (index($deploy_dir, QESAP_CACHE_ROOT . '/') == 0) {
-                record_info('QESAP repo', "Using cached qe-sap-deployment code at $deploy_dir, skipping download");
+            if (index($paths{deployment_dir}, QESAP_CACHE_ROOT . '/') == 0) {
+                record_info('QESAP repo', "Using cached qe-sap-deployment code at $paths{deployment_dir}, skipping download");
             }
             else {
                 record_info('QESAP cache miss', "no complete cache for $install_version, downloading");
-                _qesap_get_deployment_code(qesap_release => $install_version);
+                _qesap_get_deployment_code(deployment_dir => $paths{deployment_dir}, qesap_release => $install_version);
             }
         }
         else {
-            _qesap_get_deployment_code(qesap_release => undef);
+            _qesap_get_deployment_code(deployment_dir => $paths{deployment_dir});
         }
         qesap_get_roles_code();
         qesap_pip_install(qesap_release => $install_version);
