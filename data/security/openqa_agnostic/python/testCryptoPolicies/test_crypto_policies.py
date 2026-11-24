@@ -9,16 +9,19 @@ Ported from tests/security/crypto_policies/crypto_policies_tests.pm.
 Two modes:
 
 * ``CRYPTO_POLICY`` is not set (standalone): for each of the LEGACY, BSI,
-  FUTURE and DEFAULT policies the policy is switched with
+  FUTURE, CNSA-1.0 and DEFAULT policies the policy is switched with
   ``update-crypto-policies --set`` and sshd and named are restarted to pick
-  it up. The system is not rebooted.
+  it up. The system is not rebooted. A policy that the installed
+  crypto-policies package does not ship (CNSA-1.0 in older packages) is
+  skipped.
 * ``CRYPTO_POLICY=<policy>`` is set (the openQA wrapper): the caller has
   already set the policy and rebooted. The test only checks that this
   policy is the active one, then runs the checks below once.
 
 BIND (DNSSEC validation, rndc, a local zone), GnuTLS (certtool +
 gnutls-serv/gnutls-cli) and NSS (certutil + tstclnt against an openssl
-s_server) are exercised with the active policy.
+s_server) are exercised with the active policy. With CNSA-1.0 the GnuTLS
+handshake must use ECDHE with P-384 and AES-256-GCM.
 
 Standalone use outside openQA::
 
@@ -44,7 +47,9 @@ import pytest
 
 # Set when the caller applies the policy (and reboots) itself
 EXPECTED_POLICY = os.environ.get("CRYPTO_POLICY")
-POLICIES = (EXPECTED_POLICY,) if EXPECTED_POLICY else ("LEGACY", "BSI", "FUTURE", "DEFAULT")
+POLICIES = ((EXPECTED_POLICY,) if EXPECTED_POLICY
+            else ("LEGACY", "BSI", "FUTURE", "CNSA-1.0", "DEFAULT"))
+POLICY_DIR = "/usr/share/crypto-policies/policies"
 SERVICES = ("sshd", "named")
 
 ZONE_FILE = "/var/lib/named/master/example.com"
@@ -101,6 +106,11 @@ def current_policy():
     return result.stdout.strip()
 
 
+def policy_shipped(name):
+    """True if the installed crypto-policies package ships the policy."""
+    return os.path.exists(os.path.join(POLICY_DIR, name + ".pol"))
+
+
 def service_state(name):
     """Return (ActiveState, SubState) of a systemd service."""
     result = run(
@@ -113,14 +123,24 @@ def service_state(name):
     return props.get("ActiveState"), props.get("SubState")
 
 
-def restart_service(name, timeout=30):
+def service_log(name):
+    """Return the last journal lines of a service, to show why it failed."""
+    result = run(
+        ["journalctl", "-b", "-u", name + ".service", "-n", "20", "--no-pager"], timeout=30,
+    )
+    return result.stdout
+
+
+def try_restart_service(name, timeout=30):
+    """Restart a service and wait until it runs. Return an error text, empty on success."""
     result = run(["systemctl", "restart", name + ".service"], timeout=90)
-    assert result.returncode == 0, "restarting %s failed: %s" % (name, result.stdout)
-    for _ in range(timeout):
-        if service_state(name) == ("active", "running"):
-            return
-        time.sleep(1)
-    pytest.fail("%s did not become active (running): %s" % (name, service_state(name)))
+    if result.returncode == 0:
+        for _ in range(timeout):
+            if service_state(name) == ("active", "running"):
+                return ""
+            time.sleep(1)
+    return "restarting %s failed (%s): %s\n%s" % (
+        name, "/".join(map(str, service_state(name))), result.stdout, service_log(name))
 
 
 def wait_for_text(path, text, proc, timeout=30):
@@ -175,11 +195,12 @@ def bind_zone():
     if NAMED_INCLUDE not in original_named_conf:
         with open(NAMED_CONF, "a") as handle:
             handle.write(NAMED_INCLUDE)
+    # Do not fail here when a service does not start, test_services_running
+    # reports it and the checks that do not need the service still run
     for service in SERVICES:
-        result = run(["systemctl", "enable", "--now", service + ".service"], timeout=90)
-        assert result.returncode == 0, "enabling %s failed: %s" % (service, result.stdout)
+        run(["systemctl", "enable", "--now", service + ".service"], timeout=90)
     # named may already be running without the zone, make it read the new config
-    restart_service("named")
+    try_restart_service("named")
     yield
     # Best effort cleanup, never hide the result of the tests
     with open(NAMED_CONF, "w") as handle:
@@ -194,22 +215,25 @@ def bind_zone():
 
 
 @pytest.fixture(scope="module", params=POLICIES)
-def policy(request, bind_zone):
+def policy(request):
     """Provide the policy under test.
 
     Without CRYPTO_POLICY, switch to it and restart the services so they pick
-    it up. With CRYPTO_POLICY the caller already did that, just check it.
+    it up. With CRYPTO_POLICY the caller already did that, just check the
+    policy. Do not check the services here: test_services_running does that,
+    and a service that does not start must not hide the GnuTLS and NSS
+    results.
     """
     name = request.param
     if EXPECTED_POLICY:
         assert current_policy() == name
-        for service in SERVICES:
-            assert service_state(service) == ("active", "running"), service
         return name
+    if not policy_shipped(name):
+        pytest.skip("crypto-policies does not ship the %s policy" % name)
     result = run(["update-crypto-policies", "--set", name], timeout=60)
     assert result.returncode == 0, "setting policy %s failed: %s" % (name, result.stdout)
     for service in SERVICES:
-        restart_service(service)
+        try_restart_service(service)
     return name
 
 
@@ -227,25 +251,27 @@ def test_policy_applied(policy):
     assert current_policy() == policy
 
 
-def test_services_running(policy):
+def test_services_running(policy, bind_zone):
     """sshd and named are running after the policy change."""
-    for service in SERVICES:
-        assert service_state(service) == ("active", "running"), service
+    failed = [name for name in SERVICES if service_state(name) != ("active", "running")]
+    assert not failed, "\n".join(
+        "%s is %s:\n%s" % (name, "/".join(map(str, service_state(name))), service_log(name))
+        for name in failed)
 
 
 def test_bind_dnssec_validation(policy):
-    """BIND validates the root DNS signature."""
+    """The BIND delv client validates the root DNS signature, named is not used."""
     result = run(["delv"], timeout=60)
     assert "fully validated" in result.stdout, result.stdout
 
 
-def test_bind_rndc_status(policy):
+def test_bind_rndc_status(policy, bind_zone):
     """rndc (crypto key authentication) can talk to named."""
     result = run(["rndc", "status"], timeout=30)
     assert "server is up and running" in result.stdout, result.stdout
 
 
-def test_bind_local_zone(policy):
+def test_bind_local_zone(policy, bind_zone):
     """The local authoritative zone is answered."""
     result = run(["host", "foobar.example.com", "localhost"], timeout=30)
     assert "foobar.example.com has address 1.2.3.4" in result.stdout, result.stdout
@@ -258,14 +284,18 @@ def test_gnutls_handshake(policy, tmp_path):
 
     (tmp_path / "ca.tmpl").write_text(CA_TEMPLATE)
     (tmp_path / "server.tmpl").write_text(SERVER_TEMPLATE)
+    # The certtool defaults (RSA signed with SHA-256) are too weak for some
+    # policies. P-384 keys signed with SHA-384 are accepted by all of them.
+    genkey = ["certtool", "--generate-privkey", "--key-type", "ecdsa", "--curve", "secp384r1"]
     steps = (
-        (["certtool", "--generate-privkey", "--outfile", path("ca-key.pem")], 120),
+        (genkey + ["--outfile", path("ca-key.pem")], 120),
         (["certtool", "--generate-self-signed", "--load-privkey", path("ca-key.pem"),
-          "--template", path("ca.tmpl"), "--outfile", path("ca.pem")], 120),
-        (["certtool", "--generate-privkey", "--outfile", path("server-key.pem")], 120),
+          "--hash", "SHA384", "--template", path("ca.tmpl"), "--outfile", path("ca.pem")], 120),
+        (genkey + ["--outfile", path("server-key.pem")], 120),
         (["certtool", "--generate-certificate", "--load-privkey", path("server-key.pem"),
           "--load-ca-certificate", path("ca.pem"), "--load-ca-privkey", path("ca-key.pem"),
-          "--template", path("server.tmpl"), "--outfile", path("server.pem")], 300),
+          "--hash", "SHA384", "--template", path("server.tmpl"),
+          "--outfile", path("server.pem")], 300),
     )
     for cmd, timeout in steps:
         result = run(cmd, timeout=timeout)
@@ -287,6 +317,13 @@ def test_gnutls_handshake(policy, tmp_path):
     assert re.search(
         r"Status: The certificate is trusted.*Handshake was completed.*helloSUSE",
         output, re.DOTALL), output
+    if policy == "CNSA-1.0":
+        # CNSA-1.0 allows only P-384 for ECDHE and only AES-256-GCM for TLS,
+        # e.g. "- Description: (TLS1.3-X.509)-(ECDHE-SECP384R1)-...-(AES-256-GCM)"
+        description = re.search(r"^- Description: (.*)$", output, re.MULTILINE)
+        assert description, output
+        assert "(ECDHE-SECP384R1)" in description.group(1), output
+        assert "(AES-256-GCM)" in description.group(1), output
 
 
 def test_nss_handshake(policy, tmp_path):
@@ -296,11 +333,13 @@ def test_nss_handshake(policy, tmp_path):
 
     nssdb = "sql:" + path("nssdb")
     os.mkdir(path("nssdb"))
-    # 4096 bits so the key also satisfies the FUTURE policy
+    # An RSA key of 4096 bits signed with SHA-384, so that the strict
+    # policies (FUTURE: RSA 3072 and up, CNSA-1.0: also SHA-384 and up)
+    # accept the certificate
     steps = (
         (["certutil", "-N", "-d", nssdb, "--empty-password"], 60),
-        (["openssl", "req", "-new", "-newkey", "rsa:4096", "-x509", "-days", "7", "-nodes",
-          "-subj", "/CN=localhost", "-out", path("localhost.pem"),
+        (["openssl", "req", "-new", "-newkey", "rsa:4096", "-sha384", "-x509", "-days", "7",
+          "-nodes", "-subj", "/CN=localhost", "-out", path("localhost.pem"),
           "-keyout", path("localhost.key")], 300),
         (["certutil", "-d", nssdb, "-A", "-a", "-i", path("localhost.pem"),
           "-t", "TCP", "-n", "localhost"], 60),
