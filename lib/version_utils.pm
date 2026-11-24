@@ -912,6 +912,17 @@ sub is_bootloader_grub2_bls {
     return get_bootloader() eq 'grub2-bls';
 }
 
+=head2 is_migrating_from
+
+Returns true if VERSION_UPGRADE_FROM set as expected version.
+=cut
+
+sub is_migrating_from {
+    my ($version_query) = @_;
+    my $from = get_var('VERSION_UPGRADE_FROM');
+    return $from && check_version($version_query, $from);
+}
+
 =head2 get_bootloader
 
 Returns the expected bootloader based on test variables
@@ -925,7 +936,7 @@ sub get_bootloader {
     return 'wsl' if is_wsl;
     return 'grub2' if !check_var('UEFI', 1);
     # https://jira.suse.com/browse/PED-10703, BLS support in sle16.2 + UEFI
-    return 'grub2' if is_sle('<16.2') || is_leap('<16.2') || is_sle_micro;
+    return 'grub2' if is_sle('<16.2') || is_leap('<16.2') || is_sle_micro || is_migrating_from('<16.2');
     return 'grub2' if (get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
     return 'grub2' if is_community_jeos;
     return 'grub2' if is_slowroll;
