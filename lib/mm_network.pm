@@ -243,17 +243,18 @@ sub setup_static_mm_network {
 sub restart_networking {
     my (%args) = @_;
     my $is_nm = $args{is_nm} // is_networkmanager();
+    my $gw = $args{gw} // '10.0.2.2';
 
     if ($is_nm) {
         assert_script_run 'nmcli networking off';
         assert_script_run 'nmcli networking on';
-        script_retry("journalctl --lines 10 -u NetworkManager | grep 'CONNECTED_GLOBAL'", retry => 10, delay => 1, fail_message => "NM didn't connect");
+        script_retry("journalctl --lines 10 -u NetworkManager | grep -E 'CONNECTED_(LOCAL|GLOBAL)'", retry => 20, delay => 1, fail_message => "NM didn't connect");
         # Wait until the connections are configured
         my $expected_nm_connectivity = get_var('EXPECTED_NM_CONNECTIVITY', 'full');
-        if ($expected_nm_connectivity eq 'full') {
+        if ($expected_nm_connectivity ne 'none') {
             my $gw_reachable = 0;
             for my $attempt (1 .. 6) {
-                if (script_run('ping -c 3 -W 6 10.0.2.2') == 0) {
+                if (script_run("ping -c 3 -W 6 $gw") == 0) {
                     $gw_reachable = 1;
                     last;
                 }
@@ -261,7 +262,7 @@ sub restart_networking {
             }
             if (!$gw_reachable) {
                 script_run 'ip -s link show; ip a; ip r; ip neigh show';
-                die 'Multimachine gateway 10.0.2.2 is unreachable';
+                die "Multimachine gateway $gw is unreachable";
             }
         }
     } else {

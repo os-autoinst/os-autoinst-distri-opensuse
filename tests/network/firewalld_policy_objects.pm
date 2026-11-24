@@ -76,7 +76,7 @@ sub configure_machines {
         configure_static_ip(ip => "$CLI_IP/24", device => $net0, is_nm => $is_nm);
         configure_static_dns(get_host_resolv_conf(), is_nm => $is_nm);
         set_var('EXPECTED_NM_CONNECTIVITY', 'limited');
-        restart_networking(is_nm => $is_nm);
+        restart_networking(is_nm => $is_nm, gw => $CLI_IP);
         # Make sure NIC is connected
         assert_script_run("until nmcli device show $net0 | tee /dev/stderr | grep 'connected'; do sleep 10; done", timeout => 300) if $is_nm;
         assert_script_run("ip route add default via $FW_INT_IP");
