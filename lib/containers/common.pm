@@ -13,10 +13,8 @@ use registration;
 use version_utils;
 use utils qw(zypper_call systemctl file_content_replace script_retry script_output_retry);
 use containers::utils qw(registry_url container_ip container_route);
-use transactional qw(trup_call check_reboot_changes process_reboot);
-use bootloader_setup 'add_grub_cmdline_settings';
+use transactional qw(trup_call check_reboot_changes);
 use serial_terminal 'select_serial_terminal';
-use power_action_utils 'power_action';
 use Mojo::JSON;
 use version_utils qw(is_sle);
 use Utils::Architectures qw(is_aarch64);
@@ -24,7 +22,7 @@ use Utils::Architectures qw(is_aarch64);
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image
   install_buildah_when_needed activate_containers_module check_containers_connectivity
-  switch_cgroup_version install_packages);
+  install_packages);
 
 sub is_unreleased_sle {
     # If "SCC_URL" is set, it means we are in not-released SLE host and it points to proxy SCC url
@@ -266,29 +264,6 @@ sub check_containers_connectivity {
 
     # Kill the container running on background
     assert_script_run "$runtime kill $container_name";
-}
-
-sub switch_cgroup_version {
-    my ($self, $version) = @_;
-
-    my $setting = ($version == 1) ? 0 : 1;
-
-    my $rc = script_run("ls /sys/fs/cgroup/cgroup.controllers");
-    return if ($version == 2 && $rc == 0 || $version == 1 && $rc != 0);
-
-    record_info "cgroup v$version", "Switching to cgroup v$version";
-    if (is_transactional) {
-        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=$setting", update_grub => 0);
-        assert_script_run('transactional-update grub.cfg');
-        process_reboot(trigger => 1);
-    } else {
-        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=$setting", update_grub => 1);
-        power_action('reboot', textmode => 1);
-        $self->wait_boot(bootloader_time => 360);
-    }
-    select_serial_terminal;
-
-    validate_script_output("cat /proc/cmdline", sub { m/systemd\.unified_cgroup_hierarchy=$setting/ });
 }
 
 sub install_packages {
