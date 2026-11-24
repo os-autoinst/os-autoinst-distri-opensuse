@@ -6,7 +6,7 @@ schedule:
   - boot/boot_to_desktop
   - security/oqa_agnostic/polkit_rules
   - security/libserf/libserf
-  - security/ecryptfs/ecryptfs
+  - security/oqa_agnostic/ecryptfs_agnostic
   - security/smartcard/version_check
   - security/usbguard/usbguard
   - security/check_kernel_config/CONFIG_FORTIFY_SOURCE
