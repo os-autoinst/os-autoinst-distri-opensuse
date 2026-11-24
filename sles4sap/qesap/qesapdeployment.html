@@ -115,7 +115,7 @@ Dies if the value is neither a numeric release version nor &#39;latest&#39;.
 It always returns exactly one value.
 
 Test modules should call this once in run() and pass the result as the
-optional qesap_version argument to the library functions, so that the version
+optional qesap_release argument to the library functions, so that the version
 (and &#39;latest&#39;) is resolved only once per module.</code></pre>
 
 <h3 id="qesap_deployment_dir">_qesap_deployment_dir</h3>
@@ -204,6 +204,10 @@ Example:
 
 </dd>
 <dt id="SECTION_CONTENT---content-as-a-perl-hash"><b>SECTION_CONTENT</b> - content as a perl hash</dt>
+<dd>
+
+</dd>
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-Forwarded-to-_qesap_get_file_paths-.-When-omitted-QESAP_INSTALL_VERSION-is-read-and-latest-is-resolved-through-GitHub"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. Forwarded to _qesap_get_file_paths(). When omitted, QESAP_INSTALL_VERSION is read and &#39;latest&#39; is resolved through GitHub.</dt>
 <dd>
 
 </dd>
@@ -491,6 +495,10 @@ Returns 1 if any of the strings are found in the log file, 0 otherwise.</code></
 <dl>
 
 <dt id="PROVIDER---Cloud-provider-name-using-same-format-of-PUBLIC_CLOUD_PROVIDER-setting"><b>PROVIDER</b> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting</dt>
+<dd>
+
+</dd>
+<dt id="QESAP_RELEASE---optional-resolved-qe-sap-deployment-release-e.g.-2.6.15-or-undef-to-skip-the-cache-lookup-entirely.-Forwarded-to-qesap_get_terraform_dir-.-When-omitted-QESAP_INSTALL_VERSION-is-read-and-latest-is-resolved-through-GitHub"><b>QESAP_RELEASE</b> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the cache lookup entirely. Forwarded to qesap_get_terraform_dir(). When omitted, QESAP_INSTALL_VERSION is read and &#39;latest&#39; is resolved through GitHub.</dt>
 <dd>
 
 </dd>
