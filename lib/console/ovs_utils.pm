@@ -33,12 +33,12 @@ sub ping_check {
     assert_script_run("cd");
     assert_script_run "(ping -c 20 $vpn &>ping.log &)";
     if ($vpn eq "192.0.0.2") {
-        assert_script_run("tcpdump -ni any net -c 20 $client_ip > check.log", 300);
+        assert_script_run("tcpdump -ni any net -c 24 $client_ip and not udp port 500 and not udp port 4500 > check.log", 300);
         assert_script_run('cat check.log');
         assert_script_run("grep 'IP $server_ip > $client_ip: ESP' check.log");
     }
     else {
-        assert_script_run("tcpdump -ni any net -c 20 $server_ip > check.log", 300);
+        assert_script_run("tcpdump -ni any net -c 24 $server_ip and not udp port 500 and not udp port 4500 > check.log", 300);
         assert_script_run('cat check.log');
         assert_script_run("grep 'IP $client_ip > $server_ip: ESP' check.log");
     }
