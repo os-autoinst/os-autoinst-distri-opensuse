@@ -273,10 +273,6 @@ sub run {
 
     my $dir = "/root/DockerTest";
 
-    if (get_var('CONTAINERS_CGROUP_VERSION')) {
-        switch_cgroup_version($self, get_var('CONTAINERS_CGROUP_VERSION'));
-    }
-
     my $engine = $self->containers_factory($self->{runtime});
 
     # Test the connectivity of Docker containers

@@ -60,7 +60,7 @@ sub run {
     }
 
     # Prepare for Podman 3.4.4 and CGroups v2
-    if ((is_sle('15-SP3+') || is_leap('15.3+')) && !check_var('CONTAINERS_CGROUP_VERSION', '1')) {
+    if (is_sle('15-SP3+') || is_leap('15.3+')) {
         switch_cgroup_version($self, 2);
         select_serial_terminal;
 
