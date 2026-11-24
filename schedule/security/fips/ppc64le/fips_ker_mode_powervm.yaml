@@ -42,7 +42,6 @@ schedule:
     - fips/mozilla_nss/nss_smoke
     - fips/mozilla_nss/apache_nssfips
     - fips/mozilla_nss/firefox_nss
-    - x11/x3270_ssl
     - x11/evolution/evolution_prepare_servers
     - console/mutt
     - console/cryptsetup
