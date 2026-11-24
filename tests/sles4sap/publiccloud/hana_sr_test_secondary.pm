@@ -109,8 +109,9 @@ sub run {
     # wait for DB to start with resources
     $self->is_hana_online(wait_for_start => 'true', timeout => 300);
     my $hana_started = time;
-    while (time - $hana_started > $hana_start_timeout) {
-        last if $self->is_hana_resource_running();
+    while (!$self->is_hana_resource_running()) {
+        die("HANA resource did not start within defined timeout: $hana_start_timeout s")
+          if (time - $hana_started > $hana_start_timeout);
         sleep 30;
     }
 
