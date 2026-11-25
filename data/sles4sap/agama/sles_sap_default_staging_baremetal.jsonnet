@@ -41,27 +41,21 @@ local urls = std.split(repo, ",");
   storage: {
     drives: [
       {
+        search: '/dev/sda',
         partitions: [
           { search: '*', delete: true },
           { generate: 'default' },
         ],
       },
-    ],
-  },
-  scripts: {
-    pre: [
       {
-        name: 'wipefs',
-        content: |||
-          #!/usr/bin/env bash
-          for i in `lsblk -n -l -o NAME -d -e 7,11,254`
-              do wipefs -af /dev/$i
-              sleep 1
-              sync
-          done
-        |||,
+        search: '*',
+        partitions: [
+          { search: '*', delete: true },
+        ],
       },
     ],
+  },  
+  scripts: {
     post: [
       {
         name: 'enable root login',

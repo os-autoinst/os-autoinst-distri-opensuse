@@ -20,26 +20,22 @@
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true
   },
+  storage: {
+    drives: [
+      {
+        partitions: [
+          { search: '*', delete: true },
+          { generate: 'default' },
+        ],
+      },
+    ],
+  },
   software: {
     patterns: {
       add: ['ha_sles']
     }
   },
   scripts: {
-    pre: [
-      {
-        name: 'wipefs',
-        content: |||
-          #!/usr/bin/env bash
-          for i in `lsblk -n -l -o NAME -d -e 7,11,254`
-              do wipefs -af /dev/$i
-              sleep 1
-              parted -s /dev/$i mklabel gpt
-              sync
-          done
-        |||
-      }
-    ],
     post: [
       {
         name: 'enable root login sshd',
