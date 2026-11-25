@@ -32,8 +32,10 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use lockapi;
+use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);
 use version_utils qw(is_leap is_sle);
+use mmapi 'wait_for_children';
 
 sub run {
     # MM tests autofs requires barrier_create
@@ -41,7 +43,7 @@ sub run {
     barrier_create('AUTOFS_FINISHED', 2);
     mutex_create 'barrier_setup_done';
 
-    select_console "root-console";
+    select_serial_terminal;
     my $test_share_dir = "/tmp/nfs/server";
     my $nfsidmap_share_dir = "/home/tux";
     if (!is_sle) {
@@ -80,5 +82,6 @@ sub run {
     }
     barrier_wait 'AUTOFS_SUITE_READY';
     barrier_wait 'AUTOFS_FINISHED';
+    wait_for_children;
 }
 1;
