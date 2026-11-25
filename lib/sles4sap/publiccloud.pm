@@ -50,6 +50,7 @@ our @EXPORT = qw(
   get_promoted_instance
   wait_for_sync
   wait_for_pacemaker
+  wait_for_hana_resource_running
   cloud_file_content_replace
   change_sbd_service_timeout
   setup_sbd_delay_publiccloud
@@ -577,7 +578,6 @@ sub start_hana {
 
 sub cleanup_resource {
     my ($self, %args) = @_;
-    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my @errors = (
         qr/Aborting because no messages received in \d+ seconds/,
         qr/Error performing operation: Timeout occurred/
@@ -595,14 +595,7 @@ sub cleanup_resource {
     die "Clean up resource failed:\n$out" if ($retry == 0);
 
     # Wait for resource to start
-    my $start_time = time;
-    while ($self->is_hana_resource_running() == 0) {
-        if (time - $start_time > $timeout) {
-            record_info('Cluster status', $self->run_cmd(cmd => $crm_mon_cmd));
-            die("cleanup_resource [ERROR] Resource did not start within defined timeout. ($timeout sec).");
-        }
-        sleep 30;
-    }
+    $self->wait_for_hana_resource_running(timeout => $args{timeout});
     # Show the status of resource after cleanup resource
     record_info('Cluster status after cleanup resource', $self->run_cmd(cmd => $crm_mon_cmd));
 }
@@ -896,6 +889,33 @@ sub wait_for_sync {
         record_info('Sync FAIL', 'Host replication status: ' . $self->run_cmd(cmd => 'SAPHanaSR-showAttr'));
         record_info('Cluster status', $self->run_cmd(cmd => $crm_mon_cmd));
         die("wait_for_sync [ERROR] Replication SYNC did not finish within defined timeout. ($timeout sec).");
+    }
+}
+
+=head2 wait_for_hana_resource_running
+    wait_for_hana_resource_running([timeout => 300]);
+
+    Wait until the HANA resource is running on the current node.
+    Record the cluster status and die if the resource does not start within the timeout.
+
+=over
+
+=item B<timeout> - timeout for waiting resource to start (default: 300)
+
+=back
+=cut
+
+sub wait_for_hana_resource_running {
+    my ($self, %args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
+    my $start_time = time;
+
+    while ($self->is_hana_resource_running() == 0) {
+        if (time - $start_time > $timeout) {
+            record_info('Cluster status', $self->run_cmd(cmd => $crm_mon_cmd));
+            die("wait_for_hana_resource_running [ERROR] Resource did not start within defined timeout. ($timeout sec).");
+        }
+        sleep 30;
     }
 }
 
