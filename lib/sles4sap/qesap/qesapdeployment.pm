@@ -332,7 +332,7 @@ sub qesap_ansible_create_section {
 =head3 _qesap_venv_cmd_exec
 
     Run a command within the Python virtualenv
-    created by qesap_pip_install.
+    created by _qesap_pip_install.
 
     This function never dies: it always returns an error to the caller.
     Timeout error is 124 (the one reported by timeout command line utility).
@@ -350,6 +350,8 @@ sub qesap_ansible_create_section {
 =item B<PROGRESS> - instead of the command output, print a C<dd> style progress to stdout. If set to a number
 bigger than one, also print that number of lines from the output after the command finishes.
 
+=item B<VENV> - optional path to the Python virtualenv to activate. Defaults to C<QESAPDEPLOY_VENV>.
+
 =back
 =cut
 
@@ -361,6 +363,7 @@ sub _qesap_venv_cmd_exec {
     my $retry = $args{retry} // 1;
     my $print_tail = ($args{progress} && looks_like_number($args{progress}) && $args{progress} > 1);
     $args{progress} //= 0;
+    my $venv = $args{venv} // QESAPDEPLOY_VENV;
 
     my $cmd = $args{cmd};
     # pipefail is needed as at the end of the command line there could be a pipe
@@ -374,9 +377,9 @@ sub _qesap_venv_cmd_exec {
     # pass the output to 'dd status=progress' to print a progress report instead of the output
     $cmd .= ' |& dd status=progress of=/dev/null 2>&1' if ($args{progress});
 
-    my $ret = script_run('source ' . QESAPDEPLOY_VENV . '/bin/activate');
+    my $ret = script_run('source ' . $venv . '/bin/activate');
     if ($ret) {
-        record_info('_qesap_venv_cmd_exec error', "source .venv ret:$ret");
+        record_info('_qesap_venv_cmd_exec error', "source $venv ret:$ret");
         return $ret;
     }
     $ret = script_retry($cmd, timeout => $args{timeout}, retry => $retry, die => 0);
@@ -430,7 +433,7 @@ sub _qesap_pip {
     return 'pip' . get_var('QESAP_PIP_VERSION', QESAPDEPLOY_PY_DEFAULT_VER);
 }
 
-=head3 qesap_pip_install
+=head3 _qesap_pip_install
 
   Install all Python requirements of the qe-sap-deployment
   in a dedicated virtual environment.
@@ -442,23 +445,28 @@ sub _qesap_pip {
 =item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
 cache lookup entirely. Forwarded to _qesap_get_paths().
 
+=item B<VENV> - optional path for the Python virtualenv. Defaults to C<QESAPDEPLOY_VENV>.
+
+=item B<DEPLOYMENT_DIR> - optional override for the deployment directory, forwarded to _qesap_get_paths().
+
 =back
 =cut
 
-sub qesap_pip_install {
+sub _qesap_pip_install {
     my (%args) = @_;
-    my %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
+    my $venv = $args{venv} // QESAPDEPLOY_VENV;
+    my %paths = _qesap_get_paths(deployment_dir => $args{deployment_dir}, qesap_release => $args{qesap_release});
     my $pip_install_log = '/tmp/pip_install.txt';
     my $pip_ints_cmd = join(' ', _qesap_pip(), 'install --no-color --no-cache-dir',
         '-r', "$paths{deployment_dir}/requirements.txt");
 
     # Create a Python virtualenv
-    assert_script_run(join(' ', _qesap_py(), '-m venv', QESAPDEPLOY_VENV));
+    assert_script_run(join(' ', _qesap_py(), '-m venv', $venv));
 
     # Configure pip in it, ignore the return value
     # and does not provide any timeout as it should be
     # instantaneous
-    _qesap_venv_cmd_exec(cmd => _qesap_pip() . ' config --site set global.progress_bar off');
+    _qesap_venv_cmd_exec(cmd => _qesap_pip() . ' config --site set global.progress_bar off', venv => $venv);
 
     push(@log_files, $pip_install_log);
     record_info('QESAP repo', 'Installing all qe-sap-deployment python requirements');
@@ -466,14 +474,15 @@ sub qesap_pip_install {
         cmd => $pip_ints_cmd,
         timeout => 720,
         retry => 3,
-        log_file => $pip_install_log);
+        log_file => $pip_install_log,
+        venv => $venv);
 
     # here it is possible to retry in case of exit code 124
     die "cmd:$pip_ints_cmd  --> ret:$ret" if $ret;
 }
 
 
-=head3 qesap_galaxy_install
+=head3 _qesap_galaxy_install
 
   Install all Ansible requirements of the qe-sap-deployment.
   This function has no return code but it is expected to die
@@ -487,7 +496,7 @@ cache lookup entirely. Forwarded to _qesap_get_paths().
 =back
 =cut
 
-sub qesap_galaxy_install {
+sub _qesap_galaxy_install {
     my (%args) = @_;
     my %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
     my $galaxy_install_log = '/tmp/galaxy_install.txt';
@@ -625,7 +634,9 @@ sub _qesap_get_deployment_code {
 
     Bakes a list of qe-sap-deployment release versions into the local disk cache
     under QESAP_CACHE_ROOT, so that downstream jobs can reuse them without
-    re-downloading. Each version is stored under QESAP_CACHE_ROOT/<ver>/qe-sap-deployment.
+    re-downloading. For each version, bakes:
+    - the code tarball under <cache>/<ver>/qe-sap-deployment
+    - a Python virtualenv with pip requirements under <cache>/<ver>/exec_venv
 
     Only explicit numeric release versions are supported; 'latest' is rejected.
 
@@ -635,17 +646,27 @@ sub _qesap_get_deployment_code {
 
     =back
 
-    Dies if any version is not a numeric release version, or on any download failure.
+    Dies if any version is not a numeric release version, or on any download/install failure.
 =cut
 
 sub qesap_cache_releases {
     my (@versions) = @_;
     foreach my $version (@versions) {
         die "qesap_cache_releases: '$version' is not a valid numeric release version" unless _qesap_is_valid_version($version);
+        my $ver_dir = QESAP_CACHE_ROOT . "/$version";
+        my $deploy_dir = "$ver_dir/qe-sap-deployment";
+        my $venv_dir = "$ver_dir/exec_venv";
+
         record_info('QESAP cache', "Baking qe-sap-deployment $version into cache");
         _qesap_get_deployment_code(
-            deployment_dir => QESAP_CACHE_ROOT . "/$version/qe-sap-deployment",
+            deployment_dir => $deploy_dir,
             qesap_release => $version,
+        );
+
+        record_info('QESAP cache', "Baking venv for $version");
+        _qesap_pip_install(
+            deployment_dir => $deploy_dir,
+            venv => $venv_dir,
         );
     }
 }
@@ -1108,11 +1129,11 @@ sub qesap_prepare_env {
             _qesap_get_deployment_code(deployment_dir => $paths{deployment_dir});
         }
         qesap_get_roles_code();
-        qesap_pip_install(qesap_release => $install_version);
+        _qesap_pip_install(qesap_release => $install_version);
         # for the moment run it only conditionally
         # to allow this test code also to work with older
         # qe-sap-deployment versions
-        qesap_galaxy_install(qesap_release => $install_version) if (script_run("test -e $paths{deployment_dir}/requirements.yml") == 0);
+        _qesap_galaxy_install(qesap_release => $install_version) if (script_run("test -e $paths{deployment_dir}/requirements.yml") == 0);
 
         record_info('QESAP yaml', 'Preparing yaml config file');
         assert_script_run('curl -v -fL ' . $paths{qesap_conf_src} . ' -o ' . $paths{qesap_conf_trgt});

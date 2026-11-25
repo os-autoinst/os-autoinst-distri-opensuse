@@ -123,8 +123,8 @@ sub create_qesap_prepare_env_deployment_code_mocks {
     $qesap->redefine(_qesap_get_variables => sub { return {}; });
     $qesap->redefine(_qesap_create_folder_tree => sub { return; });
     $qesap->redefine(qesap_get_roles_code => sub { return; });
-    $qesap->redefine(qesap_pip_install => sub { return; });
-    $qesap->redefine(qesap_galaxy_install => sub { return; });
+    $qesap->redefine(_qesap_pip_install => sub { return; });
+    $qesap->redefine(_qesap_galaxy_install => sub { return; });
     $qesap->redefine(qesap_yaml_replace => sub { return; });
     $qesap->redefine(qesap_upload_logs => sub { return; });
     $qesap->redefine(qesap_get_terraform_dir => sub { return '/BRUCE/OCEAN'; });
@@ -341,6 +341,7 @@ subtest '[qesap_cache_releases] bakes each version into the cache' => sub {
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     # Respect the deployment_dir override passed by qesap_cache_releases
     $qesap->redefine(_qesap_get_paths => sub {
             my (%args) = @_;
@@ -366,6 +367,33 @@ subtest '[qesap_cache_releases] rejects latest and non-numeric versions' => sub 
     throws_ok { qesap_cache_releases('latest') } qr/not a valid numeric release version/, 'Dies on latest';
     throws_ok { qesap_cache_releases('main') } qr/not a valid numeric release version/, 'Dies on branch name';
     throws_ok { qesap_cache_releases('v2.6.15') } qr/not a valid numeric release version/, 'Dies on version with v prefix';
+};
+
+subtest '[qesap_cache_releases] bakes venv per version' => sub {
+    my @calls;
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(_qesap_get_paths => sub {
+            my (%args) = @_;
+            my $deploy = $args{deployment_dir} // '/BRUCE';
+            return (
+                deployment_dir => $deploy,
+                terraform_dir => $deploy . '/terraform',
+                roles_dir => '/BRUCE_ROLES',
+                roles_dir_path => '/BRUCE_ROLES/roles',
+            );
+    });
+
+    qesap_cache_releases('2.6.15');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /python3\.11 -m venv \/root\/qesap_cache\/2\.6\.15\/exec_venv/ } @calls), 'Creates venv at per-version path');
+    ok((any { /source \/root\/qesap_cache\/2\.6\.15\/exec_venv\/bin\/activate/ } @calls), 'Activates per-version venv');
+    ok((any { /pip3\.11 install.*-r \/root\/qesap_cache\/2\.6\.15\/qe-sap-deployment\/requirements\.txt/ } @calls), 'Installs pip requirements from cached code');
 };
 
 subtest '[qesap_get_roles_code] from default github' => sub {
@@ -1157,7 +1185,7 @@ subtest '[qesap_prepare_env] integration test' => sub {
     qesap_prepare_env(provider => 'DONALDUCK', openqa_variables => \%variables);
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /3/ } @retries), 'default retry times is 3 for qesap_pip_install and qesap_galaxy_install');
+    ok((any { /3/ } @retries), 'default retry times is 3 for _qesap_pip_install and _qesap_galaxy_install');
     ok((any { /git.*clone.*github.*com\/SUSE\/qe-sap-deployment.*\/root\/qe-sap-deployment/ } @calls), 'Clones deployment code');
     ok((any { /git.*clone.*github.*com\/sap-linuxlab\/community\.sles-for-sap.*\/root\/community.sles-for-sap/ } @calls), 'Clones roles code');
     ok((any { /qesap\.py.*-c \/root\/qe-sap-deployment\/scripts\/qesap\/MARLIN -b \/root\/qe-sap-deployment configure/ } @calls), 'Runs qesap.py configure');
@@ -1170,8 +1198,8 @@ subtest '[qesap_prepare_env]' => sub {
       _qesap_create_folder_tree
       _qesap_get_deployment_code
       qesap_get_roles_code
-      qesap_pip_install
-      qesap_galaxy_install);
+      _qesap_pip_install
+      _qesap_galaxy_install);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
     create_qesap_prepare_env_mocks_with_calls($qesap, \%called_functions);
     my @calls;
@@ -1200,8 +1228,8 @@ subtest '[qesap_prepare_env] openqa_variables' => sub {
       _qesap_create_folder_tree
       _qesap_get_deployment_code
       qesap_get_roles_code
-      qesap_pip_install
-      qesap_galaxy_install);
+      _qesap_pip_install
+      _qesap_galaxy_install);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
     create_qesap_prepare_env_mocks_with_calls($qesap, \%called_functions);
     my @calls;
@@ -1224,8 +1252,8 @@ subtest '[qesap_prepare_env] only_configure' => sub {
       _qesap_create_folder_tree
       _qesap_get_deployment_code
       qesap_get_roles_code
-      qesap_pip_install
-      qesap_galaxy_install);
+      _qesap_pip_install
+      _qesap_galaxy_install);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
     create_qesap_prepare_env_mocks_with_calls($qesap, \%called_functions);
     my @calls;
@@ -1236,7 +1264,7 @@ subtest '[qesap_prepare_env] only_configure' => sub {
     qesap_prepare_env(provider => 'DONALDUCK', only_configure => 1);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     # Check that a specific subset of function is not executed in only_configure mode
-    foreach (qw(_qesap_create_folder_tree _qesap_get_deployment_code qesap_get_roles_code qesap_pip_install qesap_galaxy_install)) {
+    foreach (qw(_qesap_create_folder_tree _qesap_get_deployment_code qesap_get_roles_code _qesap_pip_install _qesap_galaxy_install)) {
         my $fn = $_;
         ok $called_functions{$fn} eq 0, "$fn not called by qesap_prepare_env in only_configure mode";
     }
@@ -1266,8 +1294,8 @@ subtest '[qesap_prepare_env] _qesap_create_folder_tree/_qesap_get_file_paths def
       qesap_yaml_replace
       _qesap_get_deployment_code
       qesap_get_roles_code
-      qesap_pip_install
-      qesap_galaxy_install);
+      _qesap_pip_install
+      _qesap_galaxy_install);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
     my @calls;
     $qesap->redefine(data_url => sub { return '/TORNADO'; });
@@ -1291,8 +1319,8 @@ subtest '[qesap_prepare_env] _qesap_create_folder_tree/_qesap_get_file_paths use
       qesap_yaml_replace
       _qesap_get_deployment_code
       qesap_get_roles_code
-      qesap_pip_install
-      qesap_galaxy_install);
+      _qesap_pip_install
+      _qesap_galaxy_install);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
     my @calls;
     $qesap->redefine(data_url => sub { return '/TORNADO'; });
@@ -1331,7 +1359,7 @@ sub create_qesap_prepare_env_mocks() {
     $qesap->redefine(_qesap_create_folder_tree => sub { return; });
     $qesap->redefine(_qesap_get_deployment_code => sub { return; });
     $qesap->redefine(qesap_get_roles_code => sub { return; });
-    $qesap->redefine(qesap_pip_install => sub { return; });
+    $qesap->redefine(_qesap_pip_install => sub { return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(_qesap_get_variables => sub { return; });
     $qesap->redefine(qesap_yaml_replace => sub { return; });
@@ -1676,8 +1704,8 @@ sub create_qesap_prepare_env_cache_mocks {
     $qesap->redefine(_qesap_get_variables => sub { return {}; });
     $qesap->redefine(_qesap_create_folder_tree => sub { return; });
     $qesap->redefine(qesap_get_roles_code => sub { return; });
-    $qesap->redefine(qesap_pip_install => sub { return; });
-    $qesap->redefine(qesap_galaxy_install => sub { return; });
+    $qesap->redefine(_qesap_pip_install => sub { return; });
+    $qesap->redefine(_qesap_galaxy_install => sub { return; });
     $qesap->redefine(qesap_yaml_replace => sub { return; });
     $qesap->redefine(qesap_upload_logs => sub { return; });
     $qesap->redefine(qesap_get_terraform_dir => sub { return '/BRUCE/OCEAN'; });
