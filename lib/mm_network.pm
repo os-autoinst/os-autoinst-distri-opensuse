@@ -10,7 +10,7 @@ use testapi;
 use version_utils 'is_opensuse';
 use Utils::Architectures 'is_aarch64';
 use Utils::Systemd qw(systemctl);
-use utils qw(script_retry);
+use utils qw(script_retry script_output_retry);
 
 our @EXPORT = qw(configure_hostname get_host_resolv_conf is_networkmanager restart_networking
   configure_static_ip configure_dhcp configure_default_gateway configure_static_dns
@@ -76,7 +76,8 @@ sub configure_static_ip {
     if ($is_nm) {
         my $nm_id;
         $device //= '\S';
-        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v '^lo:' | grep -e '$device' | head -n1");
+        # DEVICE is empty in nmcli terse output while the connection is not active yet
+        my $nm_list = script_output_retry("nmcli -t -f DEVICE,NAME c show --active | grep -v '^lo:' | grep -e '$device' | head -n1", retry => 6, delay => 2, fail_message => "No NetworkManager connection for device '$device'");
         ($device, $nm_id) = split(':', $nm_list);
 
         record_info('set_ip', "Device: $device\n NM ID: $nm_id\nIP: $ip\nMTU: $mtu");
@@ -119,7 +120,8 @@ sub configure_default_gateway {
     if ($is_nm) {
         my $nm_id;
         # When $device is not specified grep just does nothing and first connection is selected
-        my $nm_list = script_output("nmcli -t -f DEVICE,NAME c | grep -v '^lo:' | grep -e '$device' | head -n1");
+        # DEVICE is empty in nmcli terse output while the connection is not active yet
+        my $nm_list = script_output_retry("nmcli -t -f DEVICE,NAME c show --active | grep -v '^lo:' | grep -e '$device' | head -n1", retry => 6, delay => 2, fail_message => "No NetworkManager connection for device '$device'");
         ($device, $nm_id) = split(':', $nm_list);
 
         assert_script_run "nmcli connection modify '$nm_id' ipv4.gateway 10.0.2.2";
