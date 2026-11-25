@@ -10,7 +10,6 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap is_plasma6);
-use Mojo::File qw(path);
 use utils qw(assert_and_click_until_screen_change type_string_slow);
 use Utils::Architectures;
 use Utils::Backends qw(is_pvm is_qemu);
@@ -244,14 +243,19 @@ openQA console.
 
 sub update_x11_vt {
     x11_start_program(default_gui_terminal());
-    # At this point, permissions for $serialdev may not be set up yet and switching
-    # to root-console won't work either, so (mis)use log upload.
-    enter_cmd('curl --form upload=$XDG_VTNR\;filename=x ' . autoinst_url('/uploadlog/xdgvtnr') . ' && exit');
+    # At this point, permissions for $serialdev may not be set up yet
+    # so store in a temporary file and finish the setup from root console
+    enter_cmd('echo $XDG_VTNR > /tmp/vt_nr && exit');
     assert_screen('generic-desktop');    # Waits until finished
 
-    my $tty = path('ulogs/xdgvtnr')->slurp;
+    select_console('root-console');
+    my $tty = script_output('cat /tmp/vt_nr');
+    die "Failed to get VT number from X11 session" unless $tty =~ /^\d+$/;
+    assert_script_run("rm /tmp/vt_nr");
+
     record_info('XDG_VTNR', "Graphical session on VT $tty");
     console('x11')->set_tty(int($tty));
+    select_console('x11');
 }
 
 sub handle_additional_polkit_windows {
