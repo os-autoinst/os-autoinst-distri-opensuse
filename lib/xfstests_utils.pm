@@ -29,16 +29,6 @@ use LTP::utils;
 use LTP::WhiteList;
 use bugzilla;
 
-# Heartbeat variables, need to sync with tests/xfstests/run.pm
-my $HB_PATN = '<h>';    #shorter label <heartbeat> to getting stable under heavy stress
-my $HB_DONE = '<d>';    #shorter label <done> to getting stable under heavy stress
-my $HB_DONE_FILE = '/opt/test.done';
-my $HB_EXIT_FILE = '/opt/test.exit';
-my $HB_SCRIPT = '/opt/heartbeat.sh';
-
-# None heartbeat variables
-my ($test_status, $test_start, $test_duration);
-
 # General variables, need to sync with tests/xfstests/run.pm
 my $TEST_WRAPPER = '/opt/wrapper.sh';
 my $STATUS_LOG = '/opt/status.log';
@@ -52,11 +42,6 @@ my $SCRATCH_FOLDER = '/opt/scratch';
 my @_worker_status_log;
 
 our @EXPORT = qw(
-  heartbeat_prepare
-  heartbeat_start
-  heartbeat_stop
-  heartbeat_wait
-  test_wait
   test_name
   log_add
   tests_from_category
@@ -76,120 +61,8 @@ our @EXPORT = qw(
   recover_after_crash
   umount_xfstests_dev
   config_debug_option
-  test_run_without_heartbeat
   check_bugzilla_status
   get_status_log_content);
-
-=head2 heartbeat_prepare
-
-Create heartbeat script and directories (Call it only once)
-
-=cut
-
-sub heartbeat_prepare {
-    my $hb_intvl = shift;
-    my $redir = " >> /dev/$serialdev";
-    my $script = <<END_CMD;
-#!/bin/sh
-rm -f $HB_DONE_FILE $HB_EXIT_FILE
-declare -i c=0
-while [[ ! -f $HB_EXIT_FILE ]]; do
-    if [[ -f $HB_DONE_FILE ]]; then
-        c=0
-        echo "$HB_DONE" $redir
-        sleep 2
-    elif [[ \$c -ge $hb_intvl ]]; then
-        c=0
-        echo "$HB_PATN" $redir
-    else
-        c+=1
-    fi
-    sleep 1
-done
-END_CMD
-    assert_script_run("cat > $HB_SCRIPT <<'END'\n$script\nEND\n( exit \$?)");
-}
-
-=head2 heartbeat_start
-
-Start heartbeat, setup environment variables (Call it everytime SUT reboots)
-
-=cut
-
-sub heartbeat_start {
-    enter_cmd(". $INST_DIR/local.config; nohup sh $HB_SCRIPT &");
-}
-
-=head2 heartbeat_stop
-
-Stop heartbeat
-
-=cut
-
-sub heartbeat_stop {
-    my $virtio_console = shift;
-    ($virtio_console == 1) ? type_string "\n" : send_key 'ret';
-    assert_script_run("touch $HB_EXIT_FILE");
-}
-
-=head2 heartbeat_wait
-
-Wait for heartbeat
-
-=cut
-
-sub heartbeat_wait {
-    # When under heavy load, the SUT might be unable to send
-    # heartbeat messages to serial console. That's why HB_TIMEOUT
-    # is set to 200 by default: waiting for such tests to finish.
-    my ($hb_timeout, $virtio_console) = @_;
-    my $ret = wait_serial([$HB_PATN, $HB_DONE], $hb_timeout);
-    if ($ret) {
-        if ($ret =~ /$HB_PATN/) {
-            return ($HB_PATN, '');
-        }
-        else {
-            my $status;
-            ($virtio_console == 1) ? type_string "\n" : send_key 'ret';
-            my $ret = script_output("cat $HB_DONE_FILE; rm -f $HB_DONE_FILE", 120, type_command => 1, proceed_on_failure => 1);
-            $ret =~ s/^\s+|\s+$//g;
-            if ($ret == 0) {
-                $status = 'PASSED';
-            }
-            elsif ($ret == 22) {
-                $status = 'SKIPPED';
-            }
-            else {
-                $status = 'FAILED';
-            }
-            return ($HB_DONE, $status);
-        }
-    }
-    return ('', 'FAILED');
-}
-
-=head2 test_wait
-
-Wait for test to finish
-
-=cut
-
-sub test_wait {
-    my ($subtest_timeout, $hb_timeout, $virtio_console) = @_;
-    my $begin = time();
-    my ($type, $status) = heartbeat_wait($hb_timeout, $virtio_console);
-    my $delta = time() - $begin;
-    # In case under heavy stress, only match first 2 words in label is enough
-    my $hb_label = substr($HB_PATN, 0, 2);
-    while ($type =~ /$hb_label/ and $delta < $subtest_timeout) {
-        ($type, $status) = heartbeat_wait($hb_timeout, $virtio_console);
-        $delta = time() - $begin;
-    }
-    if ($type eq $HB_PATN) {
-        return ('', 'FAILED', $delta);
-    }
-    return ($type, $status, $delta);
-}
 
 =head2 test_name
 
@@ -353,31 +226,6 @@ sub tests_from_ranges {
         }
     }
     return @tests;
-}
-
-=head2 test_run
-
-# Run a single test and write log to file
-# test - test to run (e.g. xfs/001)
-
-=cut
-
-sub test_run {
-    my ($test, $fstype, $deep_clean, $inject_info) = @_;
-    my ($category, $num) = split(/\//, $test);
-    my $run_options = '';
-    if ($fstype =~ 'nfs') {
-        $run_options = '-nfs';
-    }
-    elsif ($fstype =~ 'overlay') {
-        $run_options = '-overlay';
-    }
-    else {
-        $run_options = $fstype;
-    }
-    my $cmd = "\n$TEST_WRAPPER '$test' $run_options $deep_clean $inject_info | tee $LOG_DIR/$category/$num; ";
-    $cmd .= "echo \${PIPESTATUS[0]} > $HB_DONE_FILE\n";
-    type_string($cmd);
 }
 
 =head2 save_kdump
@@ -586,9 +434,8 @@ sub reload_loop_device {
 
 Recover the SUT after a subtest crashed or hung. Reboots the system (soft reboot
 on public cloud), saves kdump data when enabled and reloads loop devices so that
-the next subtest starts from a clean environment. Shared by the heartbeat path
-and the non-heartbeat path (test_run_without_heartbeat), and by the sporadic
-debug loop. $cloud_instance is only used on public cloud.
+the next subtest starts from a clean environment. Used by test_run.
+$cloud_instance is only used on public cloud.
 
 =cut
 
@@ -660,15 +507,17 @@ sub config_debug_option {
     }
 }
 
-=head2 test_run_without_heartbeat
+=head2 test_run
 
-Run a single test and write log to file but without heartbeat, return log_add output
+Run a single subtest with a timeout, write its log to file and add its status to
+the status log. Return a hash with name, status, time, output and timeout.
 
 =cut
 
-sub test_run_without_heartbeat {
-    my ($self, $test, $timeout, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, $deep_clean, $inject_info, $loop_device, $enable_kdump, $virtio_console, $get_log_content, $cloud_instance) = @_;
+sub test_run {
+    my ($self, $test, $timeout, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, $deep_clean, $inject_info, $enable_kdump, $cloud_instance) = @_;
     my ($category, $num) = split(/\//, $test);
+    my ($test_status, $test_start, $test_duration);
     my $run_options = '';
     my $status_num = 1;
     my $test_timeout = 0;
@@ -714,21 +563,15 @@ sub test_run_without_heartbeat {
         }
     }
     # Add test status to STATUS_LOG file
-    if ($get_log_content) {
-        return log_add($STATUS_LOG, $test, $test_status, $test_duration);
-    }
-    else {
-        log_add($STATUS_LOG, $test, $test_status, $test_duration);
-        my $log_content = script_output("cat $LOG_DIR/subtest_result_num", 120, type_command => 1, proceed_on_failure => 1);
-        my $targs = {
-            name => $test,
-            status => $test_status,
-            time => $test_duration,
-            output => $log_content,
-            timeout => $test_timeout,
-        };
-        return $targs;
-    }
+    log_add($STATUS_LOG, $test, $test_status, $test_duration);
+    my $log_content = script_output("cat $LOG_DIR/subtest_result_num", 120, type_command => 1, proceed_on_failure => 1);
+    return {
+        name => $test,
+        status => $test_status,
+        time => $test_duration,
+        output => $log_content,
+        timeout => $test_timeout,
+    };
 }
 
 =head2 check_bugzilla_status

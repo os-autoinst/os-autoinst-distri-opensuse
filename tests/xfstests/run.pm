@@ -6,13 +6,10 @@
 # Package: xfsprogs
 # Summary: Run xfstests
 # - Shuffle the list of xfs tests to run
-# - Create heartbeat script, directorie
-# - Start heartbeat, setup environment variables
 # - Start test from list, write log to file
 # - Collect test log and system logs
 # - Check if SUT crashed, reset if necessary
 # - Save kdump data, unless NO_KDUMP is set to 1
-# - Stop heartbeat after last test on list
 # - Collect all logs
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
@@ -43,7 +40,6 @@ use lockapi;
 # - XFSTESTS_RANGES: Set sub tests ranges. e.g. XFSTESTS_RANGES=xfs/100-199 or XFSTESTS_RANGES=generic/010,generic/019,generic/038
 # - XFSTESTS_BLACKLIST: Set sub tests not run in XFSTESTS_RANGES. e.g. XFSTESTS_BLACKLIST=generic/010,generic/019,generic/038
 # - XFSTESTS_GROUPLIST: Include/Exclude tests in group(a classification by upstream). e.g. XFSTESTS_GROUPLIST='auto,!dangerous_online_repair'
-# - XFSTESTS_SUBTEST_MAXTIME: Debug use. To set the max time to wait for sub test to finish. Meet this time frame will trigger reboot, and continue next tests.
 # - XFSTESTS: TEST_DEV type, and test in this folder and generic/ folder will be triggered. XFSTESTS=(xfs|btrfs|ext4)
 my $TEST_RANGES = get_required_var('XFSTESTS_RANGES');
 my $TEST_WRAPPER = '/opt/wrapper.sh';
@@ -53,7 +49,6 @@ my $STATUS_LOG = '/opt/status.log';
 my $INST_DIR = '/opt/xfstests';
 my $LOG_DIR = '/opt/log';
 my $KDUMP_DIR = '/opt/kdump';
-my $SUBTEST_MAX_TIME = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
 my $FSTYPE = get_required_var('XFSTESTS');
 my $TEST_SUITE = get_var('TEST');
 my $ENABLE_KDUMP = check_var('NO_KDUMP', '1') ? 0 : 1;
@@ -72,17 +67,6 @@ my $LOOP_DEVICE = get_var('XFSTESTS_LOOP_DEVICE');
 my $INJECT_INFO = get_var('INJECT_INFO', '');
 my $RAW_DUMP = get_var('RAW_DUMP', 0);
 my $DEBUG_INFO = get_var('XFSTESTS_DEBUG', '');
-
-# Heartbeat mode variables
-# - XFSTESTS_HEARTBEAT_INTERVAL: Set how long to send/receive a heartbeat
-# - XFSTESTS_HEARTBEAT_TIMEOUT: Set the threshold to decide lose heartbeat
-my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
-my $HB_TIMEOUT = get_var('XFSTESTS_HEARTBEAT_TIMEOUT') || 200;
-my $HB_DONE = '<d>';
-
-# None heartbeat mode variables
-# - XFSTESTS_TIMEOUT: Set the sub-test timeout threshold
-my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
 
 # Sporadic debug: tests listed in DEBUG_SPORADIC_FAIL are looped in place (at
 # their scheduled position among the other tests) by run_subtest.pm instead of
@@ -103,8 +87,6 @@ sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
     return if get_var('XFSTESTS_NFS_SERVER');
-    my $enable_heartbeat = 1;
-    $enable_heartbeat = 0 if (check_var 'XFSTESTS_NO_HEARTBEAT', '1');
 
     config_debug_option($DEBUG_INFO);
 
@@ -132,7 +114,6 @@ sub run {
         @tests = shuffle(@tests);
     }
 
-    heartbeat_prepare($HB_INTVL) if $enable_heartbeat;
     assert_script_run("mkdir -p $KDUMP_DIR $LOG_DIR");
 
     # Tests to loop for sporadic failure debugging; run_subtest.pm does the loop
@@ -173,7 +154,6 @@ sub run {
         # Change / to -, because openqa will see / as path and it'll fail to find run file in loadtest
         $test =~ s/\//-/;
         $targs->{name} = $test;
-        $targs->{enable_heartbeat} = $enable_heartbeat;
         $targs->{last_one} = 0;
         # run_subtest.pm loops this test in place instead of running it once
         $targs->{sporadic} = 1 if $is_sporadic;

@@ -36,23 +36,19 @@ use lockapi;
 # - XFSTESTS_RANGES: Set sub tests ranges. e.g. XFSTESTS_RANGES=xfs/100-199 or XFSTESTS_RANGES=generic/010,generic/019,generic/038
 # - XFSTESTS_BLACKLIST: Set sub tests not run in XFSTESTS_RANGES. e.g. XFSTESTS_BLACKLIST=generic/010,generic/019,generic/038
 # - XFSTESTS_GROUPLIST: Include/Exclude tests in group(a classification by upstream). e.g. XFSTESTS_GROUPLIST='auto,!dangerous_online_repair'
-# - XFSTESTS_SUBTEST_MAXTIME: Debug use. To set the max time to wait for sub test to finish. Meet this time frame will trigger reboot, and continue next tests.
 # - XFSTESTS: TEST_DEV type, and test in this folder and generic/ folder will be triggered. XFSTESTS=(xfs|btrfs|ext4)
 my $STATUS_LOG = '/opt/status.log';
 my $INST_DIR = '/opt/xfstests';
 my $LOG_DIR = '/opt/log';
 my $KDUMP_DIR = '/opt/kdump';
-my $SUBTEST_MAX_TIME = get_var('XFSTESTS_SUBTEST_MAXTIME', 2400);
 my $FSTYPE = get_required_var('XFSTESTS');
 my $TEST_SUITE = get_var('TEST');
 my $ENABLE_KDUMP = check_var('NO_KDUMP', '1') ? 0 : 1;
-my $VIRTIO_CONSOLE = get_var('VIRTIO_CONSOLE');
 
 # variables set by previous steps
 my $TEST_DEV = get_var('XFSTESTS_TEST_DEV');
 my $SCRATCH_DEV = get_var('XFSTESTS_SCRATCH_DEV');
 my $SCRATCH_DEV_POOL = get_var('XFSTESTS_SCRATCH_DEV_POOL');
-my $LOOP_DEVICE = get_var('XFSTESTS_LOOP_DEVICE');
 
 # Debug variables
 # - INJECT_INFO: inject a line or more line into xfstests subtests for debugging.
@@ -69,15 +65,8 @@ my $XFSTESTS_DEEP_CLEAN = get_var('XFSTESTS_CLEAN_BEFORE_TEST');
 my $PNFS_DEBUG = get_var('XFSTESTS_PNFS_DEBUG');
 my $PNFS_DEBUG_DIR = '/opt/pnfs_debug';
 
-# Heartbeat mode variables
-# - XFSTESTS_HEARTBEAT_INTERVAL: Set how long to send/receive a heartbeat
-# - XFSTESTS_HEARTBEAT_TIMEOUT: Set the threshold to decide lose heartbeat
-my $HB_TIMEOUT = get_var('XFSTESTS_HEARTBEAT_TIMEOUT', 200);
-my $HB_DONE = '<d>';
-
-# None heartbeat mode variables
 # - XFSTESTS_TIMEOUT: Set the sub-test timeout threshold
-my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
+my $TIMEOUT = get_var('XFSTESTS_TIMEOUT', 2000);
 
 # Sporadic debug variables (only used when a subtest is tagged sporadic by run.pm)
 # - DEBUG_SPORADIC_LOOP: iterations (fixed) or consecutive passes required (until_pass). Default 10
@@ -89,7 +78,6 @@ my $SPORADIC_MAX = get_var('DEBUG_SPORADIC_MAX', 20);
 # Keep artifacts under LOG_DIR so generate_report.pm uploads them automatically
 my $SPORADIC_DIR = "$LOG_DIR/sporadic_debug";
 
-my ($type, $status, $time, $test_timeout);
 my $whitelist_env = prepare_whitelist_environment();
 my %softfail_list = generate_xfstests_list(get_var('XFSTESTS_SOFTFAIL'));
 
@@ -124,11 +112,10 @@ sub override_known_failures {
     }
 }
 
-# Run a single subtest once, reusing the same execution paths as the normal
-# run() below so both heartbeat and non-heartbeat modes behave identically to a
-# regular run. Returns ($status, $duration).
+# Run a single subtest once with the same test_run as the normal run() below.
+# Returns ($status, $duration).
 sub run_sporadic_once {
-    my ($self, $test, $enable_heartbeat, $my_instance, $iteration) = @_;
+    my ($self, $test, $my_instance, $iteration) = @_;
     my ($category, $num) = split(/\//, $test);
 
     # Each iteration starts from a clean, unmounted state, like a normal run.
@@ -136,31 +123,9 @@ sub run_sporadic_once {
     enter_cmd("echo $test > /dev/$serialdev");
     start_pnfs_debug($PNFS_DEBUG_DIR) if $PNFS_DEBUG;
 
-    my ($status, $duration);
-    # Non-heartbeat mode: test_run_without_heartbeat runs the test, waits for it
-    # and recovers from a crash internally, returning status and duration.
-    unless ($enable_heartbeat) {
-        my $result = test_run_without_heartbeat(
-            $self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $RAW_DUMP,
-            $SCRATCH_DEV, $SCRATCH_DEV_POOL, $XFSTESTS_DEEP_CLEAN, $INJECT_INFO,
-            $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $my_instance);
-        ($status, $duration) = ($result->{status}, $result->{time});
-    }
-    # Heartbeat mode: start the heartbeat, run the test, wait for the done marker
-    # and recover the SUT if the heartbeat is lost.
-    else {
-        heartbeat_start;
-        test_run($test, $FSTYPE, $XFSTESTS_DEEP_CLEAN, $INJECT_INFO);
-        my $type;
-        ($type, $status, $duration) = test_wait($SUBTEST_MAX_TIME, $HB_TIMEOUT, $VIRTIO_CONSOLE);
-        if ($type eq $HB_DONE) {
-            copy_all_log($category, $num, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL) if $status =~ /FAILED/;
-        }
-        else {
-            recover_after_crash($self, $test, $FSTYPE, $ENABLE_KDUMP, $my_instance);
-        }
-        heartbeat_stop($VIRTIO_CONSOLE);
-    }
+    my $result = test_run($self, $test, $TIMEOUT, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL,
+        $XFSTESTS_DEEP_CLEAN, $INJECT_INFO, $ENABLE_KDUMP, $my_instance);
+    my ($status, $duration) = ($result->{status}, $result->{time});
     finish_pnfs_debug($test, $status, "iter_$iteration") if $PNFS_DEBUG;
 
     # On failure, push the key logs to the openQA result DB via record_info so
@@ -369,7 +334,7 @@ sub analyze_sporadic_results {
 #   until_pass - loop until DEBUG_SPORADIC_LOOP consecutive passes, capped at
 #                DEBUG_SPORADIC_MAX (confirm a fix)
 sub run_sporadic_loop {
-    my ($self, $test_name, $enable_heartbeat, $my_instance) = @_;
+    my ($self, $test_name, $my_instance) = @_;
     my ($category, $num) = split(/\//, $test_name);
     (my $dirname = $test_name) =~ s/\//-/;
     my $test_dir = "$SPORADIC_DIR/$dirname";
@@ -387,7 +352,7 @@ sub run_sporadic_loop {
         my ($mem_mb, $disk_mb) = capture_metrics();
         snapshot_env($iter_dir, 'before');
         my $start_time = time();
-        my ($iter_status, $duration) = run_sporadic_once($self, $test_name, $enable_heartbeat, $my_instance, $iteration);
+        my ($iter_status, $duration) = run_sporadic_once($self, $test_name, $my_instance, $iteration);
         snapshot_env($iter_dir, 'after');
         collect_iteration_logs($category, $num, $iter_dir);
 
@@ -412,19 +377,17 @@ sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
     (my $test = $args->{name}) =~ s/-/\//;
-    my $enable_heartbeat = $args->{enable_heartbeat};
     my $is_last_one = $args->{last_one};
 
     # Sporadic debug: loop this test in place instead of running it once.
     if ($args->{sporadic}) {
-        run_sporadic_loop($self, $test, $enable_heartbeat, $args->{my_instance});
+        run_sporadic_loop($self, $test, $args->{my_instance});
         mutex_unlock 'last_subtest_run_finish' if $is_last_one;
         return;
     }
 
     umount_xfstests_dev($TEST_DEV, $SCRATCH_DEV, $SCRATCH_DEV_POOL) unless get_var('XFSTESTS_HIGHSPEED');
     my ($category, $num) = split(/\//, $test);
-    my $status_log_content = "";
     my %targs = (name => $test, status => 'FAILED', time => 'timeout');
 
     $self->{targs} = \%targs;
@@ -435,36 +398,9 @@ sub run {
     $whitelist_env->{ltp_version} = script_output('rpm -q xfstests');
     enter_cmd("echo $test > /dev/$serialdev");
     start_pnfs_debug($PNFS_DEBUG_DIR) if $PNFS_DEBUG;
-    if ($enable_heartbeat == 0) {
-        $self->{result_args} = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $XFSTESTS_DEEP_CLEAN, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
-        $status = $self->{result_args}->{status};
-        $time = $self->{result_args}->{time};
-        $status_log_content = $self->{result_args}->{output};
-        $test_timeout = $self->{result_args}->{timeout};
-    }
-    else {
-        my $result_args = {};
-        heartbeat_start;
-        test_run($test, $FSTYPE, $XFSTESTS_DEEP_CLEAN, $INJECT_INFO);
-        ($type, $status, $time) = test_wait($SUBTEST_MAX_TIME, $HB_TIMEOUT, $VIRTIO_CONSOLE);
-        $result_args->{type} = $type;
-        $result_args->{status} = $status;
-        $result_args->{time} = $time;
-        $self->{result_args} = $result_args;
-        if ($type eq $HB_DONE) {
-            # Test finished without crashing SUT
-            $status_log_content = log_add($STATUS_LOG, $test, $status, $time);
-            copy_all_log($category, $num, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL) if ($status =~ /FAILED/);
-        }
-        else {
-            # Heartbeat lost: the SUT crashed or hung. Recover it (reboot, save
-            # kdump, reload loop devices) before continuing with the next subtest.
-            recover_after_crash($self, $test, $FSTYPE, $ENABLE_KDUMP, $args->{my_instance});
-            # Add test status to STATUS_LOG file
-            log_add($STATUS_LOG, $test, $status, $time);
-        }
-        heartbeat_stop($VIRTIO_CONSOLE);
-    }
+    $self->{result_args} = test_run($self, $test, $TIMEOUT, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL,
+        $XFSTESTS_DEEP_CLEAN, $INJECT_INFO, $ENABLE_KDUMP, $args->{my_instance});
+    my ($status, $time, $test_timeout) = @{$self->{result_args}}{qw(status time timeout)};
     finish_pnfs_debug($test, $status) if $PNFS_DEBUG;
 
     (my $generate_name = $test) =~ s/-/\//;
