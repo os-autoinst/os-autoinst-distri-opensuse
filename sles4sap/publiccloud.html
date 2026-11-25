@@ -32,6 +32,7 @@
       <li><a href="#get_replication_info-get_replication_info">get_replication_info get_replication_info();</a></li>
       <li><a href="#get_promoted_instance-get_promoted_instance">get_promoted_instance get_promoted_instance();</a></li>
       <li><a href="#wait_for_sync-wait_for_sync-timeout-timeout">wait_for_sync wait_for_sync([timeout =&gt; $timeout]);</a></li>
+      <li><a href="#wait_for_hana_resource_running-wait_for_hana_resource_running-timeout-300">wait_for_hana_resource_running wait_for_hana_resource_running([timeout =&gt; 300]);</a></li>
       <li><a href="#wait_for_pacemaker-wait_for_pacemaker-timeout-timeout">wait_for_pacemaker wait_for_pacemaker([timeout =&gt; $timeout]);</a></li>
       <li><a href="#change_sbd_service_timeout-self-change_sbd_service_timeout-service_timeout-30">change_sbd_service_timeout $self-&gt;change_sbd_service_timeout(service_timeout =&gt; &#39;30&#39;);</a></li>
       <li><a href="#setup_sbd_delay_publiccloud-self-setup_sbd_delay_publiccloud">setup_sbd_delay_publiccloud $self-&gt;setup_sbd_delay_publiccloud();</a></li>
@@ -312,6 +313,19 @@ Expected conditions:
 
 </dd>
 <dt id="online_string---mandatory-string-used-to-match-node-state-in-topology-output-4-for-pacemaker-2.1.7-lss-score-online-for-older-versions.-Use-self-get_online_string-to-compute-this-value1"><b>online_string</b> - mandatory string used to match node state in topology output; &#39;4&#39; for pacemaker &gt;= 2.1.7 (lss score), &#39;online&#39; for older versions. Use <code>$self-</code>get_online_string()&gt; to compute this value.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="wait_for_hana_resource_running-wait_for_hana_resource_running-timeout-300">wait_for_hana_resource_running wait_for_hana_resource_running([timeout =&gt; 300]);</h2>
+
+<pre><code>Wait until the HANA resource is running on the current node.
+Record the cluster status and die if the resource does not start within the timeout.</code></pre>
+
+<dl>
+
+<dt id="timeout---timeout-for-waiting-resource-to-start-default:-300"><b>timeout</b> - timeout for waiting resource to start (default: 300)</dt>
 <dd>
 
 </dd>
