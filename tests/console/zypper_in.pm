@@ -14,7 +14,7 @@
 # Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
 use Mojo::Base 'consoletest';
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use version_utils qw(is_sle is_leap is_jeos);
 use serial_terminal 'select_serial_terminal';
@@ -41,7 +41,7 @@ sub run {
         $pkgname = 'xdelta3' if check_var('DISTRI', 'opensuse');
     }
     zypper_call "in screen $pkgname";
-    clear_console;    # clear screen to see that second update does not do any more
+    clear_console unless is_serial_terminal;
     assert_script_run("rpm -e $pkgname", timeout => $timeout);
     assert_script_run("! rpm -q $pkgname");
 
