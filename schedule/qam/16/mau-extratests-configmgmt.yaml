@@ -1,0 +1,11 @@
+---
+name: mau-extratests-configmgmt
+description: Domain-specific CLI tests for configuration management and automation
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/oqa_agnostic/ansible_agnostic
+  - console/coredump_collect

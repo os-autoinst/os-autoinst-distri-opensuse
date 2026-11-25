@@ -1,0 +1,20 @@
+---
+name: mau-extratests-network
+description: Domain-specific CLI tests for networking stack and tools
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/ping
+  - console/arping
+  - console/traceroute
+  - console/tracepath
+  - console/wireshark_cli
+  - console/tcpdump
+  - console/curl_ipv6
+  - console/wget_ipv6
+  - console/check_default_network_manager
+  - console/networkmanager
+  - console/coredump_collect

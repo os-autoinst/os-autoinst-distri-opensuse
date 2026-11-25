@@ -1,0 +1,13 @@
+---
+name: mau-extratests-database
+description: Domain-specific CLI tests for databases and key-value stores
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/sqlite3
+  - console/redis
+  - console/valkey
+  - console/coredump_collect

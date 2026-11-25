@@ -1,0 +1,13 @@
+---
+name: mau-extratests-storage
+description: Domain-specific CLI tests for storage and filesystems
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/mdadm
+  - console/quota
+  - console/ndctl
+  - console/coredump_collect

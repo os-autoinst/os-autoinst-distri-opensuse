@@ -1,0 +1,12 @@
+---
+name: mau-extratests-sdn
+description: Domain-specific CLI tests for virtual networking
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/openvswitch
+  - console/ovn
+  - console/coredump_collect

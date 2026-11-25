@@ -1,0 +1,23 @@
+---
+name: mau-extratests-monitoring
+description: Domain-specific CLI tests for system monitoring and diagnostics
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/oqa_agnostic/sysstat_agnostic
+  - console/dstat
+  - console/iotop
+  - console/procps
+  - console/pciutils
+  - console/supportutils
+  - console/vhostmd
+  - '{{x86_64}}'
+  - console/coredump_collect
+conditional_schedule:
+  x86_64:
+    ARCH:
+      x86_64:
+        - console/lshw

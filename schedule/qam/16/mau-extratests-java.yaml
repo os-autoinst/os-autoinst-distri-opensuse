@@ -1,0 +1,11 @@
+---
+name: mau-extratests-java
+description: Domain-specific CLI tests for java runtime and application servers
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/java
+  - console/coredump_collect

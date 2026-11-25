@@ -1,0 +1,13 @@
+---
+name: mau-extratests-languages
+description: Domain-specific CLI tests for language runtimes and stacks
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/ruby
+  - console/golang
+  - console/rust
+  - console/coredump_collect

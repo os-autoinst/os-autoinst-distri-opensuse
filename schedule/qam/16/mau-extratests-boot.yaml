@@ -1,0 +1,23 @@
+---
+name: mau-extratests-boot
+description: Domain-specific CLI tests for boot, kernel and firmware
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/sysctl
+  - console/kmod
+  - console/suse_module_tools
+  - '{{fwupd}}'
+  - console/coredump_collect
+conditional_schedule:
+  fwupd:
+    ARCH:
+      x86_64:
+        - console/fwupd
+      aarch64:
+        - console/fwupd
+      ppc64le:
+        - console/fwupd
