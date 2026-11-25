@@ -18,6 +18,7 @@ use publiccloud::azure_client;
 use publiccloud::img_proof qw(run_img_proof);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
+use List::Util 'uniq';
 
 has resource_group => 'openqa-upload';
 has container => 'sle-images';
@@ -438,8 +439,7 @@ sub create_image_definition {
 sub image_target_regions {
     my $self = shift;
     my @regions = ($self->provider_client->region, $self->storage_region, split(/\s*,\s*/, get_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', '')));
-    my %seen;
-    return grep { !$seen{$_}++ } @regions;
+    return uniq @regions;
 }
 
 sub create_image_version {
