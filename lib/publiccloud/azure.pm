@@ -434,6 +434,14 @@ sub create_image_definition {
     }
 }
 
+# Regions the image version is replicated to: the job region, the storage region and the fallback regions.
+sub image_target_regions {
+    my $self = shift;
+    my @regions = ($self->provider_client->region, $self->storage_region, split(/\s*,\s*/, get_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', '')));
+    my %seen;
+    return grep { !$seen{$_}++ } @regions;
+}
+
 sub create_image_version {
     my ($self, $file) = @_;
 
@@ -449,7 +457,7 @@ sub create_image_version {
     my $version = generate_img_version();
     my $os_vhd_uri = $self->get_blob_uri($file);
     my $tags = generate_image_tags();
-    my $target_regions = ($self->provider_client->region !~ $self->storage_region) ? $self->provider_client->region . ' ' . $self->storage_region : $self->provider_client->region;
+    my $target_regions = join(' ', $self->image_target_regions());
     # Note: Repetitive calls do not fail
     assert_script_run("az sig image-version create --debug --resource-group '$resource_group' --gallery-name '$gallery' " .
           "--gallery-image-definition '$definition' --gallery-image-version '$version' --os-vhd-storage-account '$sa_url' " .
