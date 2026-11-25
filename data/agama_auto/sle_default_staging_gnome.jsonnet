@@ -1,5 +1,6 @@
 local repo = '{{INCIDENT_REPO}}';
 local urls = std.split(repo, ',');
+local is_immutable = '{{TRANSACTIONAL}}' == '1';
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
@@ -25,9 +26,12 @@ local urls = std.split(repo, ',');
   },
   software: {
     packages: [],
-    patterns: {
-      add: ['gnome']
-    },
+    patterns:
+      if is_immutable then {
+        add: ['gnome', 'immutable_base']
+      } else {
+        add: ['gnome']
+      },
     extraRepositories:
       if repo != '' then
         [
