@@ -3,7 +3,7 @@
 # Copyright  SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: ibtests_prepare
+# Package: hpc-testing rdma-core
 # Summary: prepare for InfiniBand test suite hpc-testing
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>

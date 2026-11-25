@@ -3,7 +3,7 @@
 # Copyright 2020 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: run InfiniBand test suite hpc-testing
+# Summary: create the barriers for the InfiniBand test suite hpc-testing
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
