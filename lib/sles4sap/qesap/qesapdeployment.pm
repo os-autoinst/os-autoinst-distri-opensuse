@@ -30,7 +30,7 @@ package sles4sap::qesap::qesapdeployment;
 use strict;
 use warnings;
 use Carp qw(croak);
-use Mojo::JSON qw(decode_json);
+use Mojo::JSON qw(decode_json encode_json);
 use YAML::PP;
 use NetAddr::IP;
 use Exporter 'import';
@@ -1423,6 +1423,65 @@ sub qesap_ansible_script_output {
     return $output;
 }
 
+=head3 _qesap_ansible_collect_logs
+
+  Collect all the logs listed by C<_qesap_cluster_log_cmds> from one host
+  into a single tarball created on the remote system and download it with
+  Ansible.
+
+    _qesap_ansible_collect_logs(provider => 'AZURE', host => 'hana[0]');
+
+  It uses playbook data/sles4sap/collect_logs.yaml
+
+  1. ansible-playbook runs the playbook
+  2. the playbook collects every command output and every file in a work
+     directory on the remote host and creates a tarball there
+  3. qesap_ansible_fetch_file downloads the tarball locally
+
+  Collecting the logs on the remote host keeps them out of the Ansible
+  control node memory.
+
+  Return the local path of the downloaded tarball.
+
+=over
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=item B<HOST> - filter hosts in the inventory
+
+=back
+=cut
+
+sub _qesap_ansible_collect_logs {
+    my (%args) = @_;
+    foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
+    my $inventory = qesap_get_inventory(provider => $args{provider});
+    my $playbook = 'collect_logs.yaml';
+    _qesap_ansible_get_playbook(playbook => $playbook);
+
+    my $file = "$args{host}-qesap_logs.tar.gz";
+    # $args{host} is an Ansible host pattern (for example 'hana[0]').
+    # Remove brackets and quotes to make a valid tarball name.
+    $file =~ s/[\[\]"]//g;
+    my @logs = map { {cmd => $_->{Cmd}, file => $_->{Output}} } _qesap_cluster_log_cmds(provider => $args{provider});
+    my $variables = encode_json({logs => \@logs, bundle => "/tmp/$file"});
+
+    my @ansible_cmd = ('ansible-playbook', $playbook, '-l', $args{host}, '-i', $inventory,
+        '-u', 'cloudadmin', '-b', '--become-user', 'root', '-e', "'$variables'");
+
+    # Log collection is best effort: never die, the caller decides what to do
+    _qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd), timeout => bmwqemu::scale_timeout(1200));
+
+    return qesap_ansible_fetch_file(
+        provider => $args{provider},
+        host => $args{host},
+        root => 1,
+        failok => 1,
+        remote_path => '/tmp/',
+        file => $file);
+}
+
 =head3 qesap_ansible_fetch_file
 
     Use Ansible to fetch a file from remote.
@@ -1700,15 +1759,9 @@ sub _qesap_cluster_log_cmds {
     # Many logs does not need to be in this list as collected with `crm report` as:
     # `crm status`, `crm configure show`, `journalctl -b`,
     # `systemctl status sbd`, `corosync.conf` and `csync2`
+    # `lsblk`, `lsscsi` and `/var/log/cloudregister` are not collected here
+    # as already part of the supportconfig tarball.
     my @log_list = (
-        {
-            Cmd => 'lsblk -i -a',
-            Output => 'lsblk.txt',
-        },
-        {
-            Cmd => 'lsscsi -i',
-            Output => 'lsscsi.txt',
-        },
         {
             Cmd => 'cat /var/tmp/hdbinst.log',
             Output => 'hdbinst.log.txt',
@@ -1728,10 +1781,6 @@ sub _qesap_cluster_log_cmds {
         {
             Cmd => 'cat /var/log/zypp/history',
             Output => 'zypp.history.txt',
-        },
-        {
-            Cmd => 'cat /var/log/cloudregister',
-            Output => 'cloudregister.txt',
         },
         {
             Cmd => 'rpm -qa',
@@ -1770,6 +1819,10 @@ sub _qesap_cluster_log_cmds {
   Collect logs from a deployed cluster.
   This is about logs generated remotely on the two HANA nodes,
   `crm report` collection is part of this function.
+
+  Every host log is collected in a tarball created on the remote host
+  and downloaded with Ansible, see C<_qesap_ansible_collect_logs>.
+
 =cut
 
 sub qesap_cluster_logs {
@@ -1784,19 +1837,9 @@ sub qesap_cluster_logs {
             next;
         }
 
-        foreach my $cmd (_qesap_cluster_log_cmds(provider => $provider)) {
-            my $log_filename = "$host-$cmd->{Output}";
-            $log_filename =~ s/[\[\]"]//g;
-            my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
-                provider => $provider,
-                host => $host,
-                failok => 1,
-                root => 1,
-                remote_path => '/tmp/',
-                out_path => '/tmp/ansible_script_output/',
-                file => $log_filename);
-            upload_logs($out, failok => 1);
-        }
+        my $out = _qesap_ansible_collect_logs(provider => $provider, host => $host);
+        upload_logs($out, failok => 1);
+
         # Upload crm report
         qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
     }

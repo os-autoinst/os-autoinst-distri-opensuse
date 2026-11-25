@@ -915,83 +915,61 @@ subtest '[qesap_wait_for_ssh] timeout' => sub {
     ok($duration == -1, 'If fails it returns -1');
 };
 
-subtest '[qesap_cluster_logs]' => sub {
+subtest '[qesap_cluster_logs] collects one tarball per host' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    my @ansible_calls;
+    my @exec_calls;
+    my @fetch_calls;
+    my @upload_calls;
     my @crm_report_calls;
-    my @save_file_calls;
-    my @logfile_calls;
-    $qesap->redefine(qesap_ansible_script_output_file => sub {
-            my (%args) = @_;
-            push @ansible_calls, $args{cmd};
-            push @logfile_calls, $args{file};
-            note("\n ###--> out_path : $args{out_path}");
-            note("\n ###--> file : $args{file}");
-            return 'BOUBLE BOUBLE BOUBLE'; });
+
     $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
     $qesap->redefine(script_run => sub { return 0; });
-    $qesap->redefine(upload_logs => sub { push @save_file_calls, $_[0]; return; });
-    $qesap->redefine(_qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
-    $qesap->redefine(qesap_upload_crm_report => sub { my (%args) = @_; push @crm_report_calls, $args{host}; return 0; });
-    $qesap->redefine(qesap_save_y2logs => sub { return 0; });
-    # needed within _qesap_host_is_reachable (private function)
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(_qesap_ansible_get_playbook => sub { return; });
     $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
-            push @ansible_calls, $args{cmd};
+            push @exec_calls, $args{cmd};
             return 0; });
-
-    my $cloud_provider = 'NEMO';
-    set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
-
-    qesap_cluster_logs();
-
-    set_var('PUBLIC_CLOUD_PROVIDER', undef);
-    note("\n  ANSIBLE_CMD-->  " . join("\n  ANSIBLE_CMD-->  ", @ansible_calls));
-    note("\n  CRM_REPORT-->  " . join("\n  CRM_REPORT-->  ", @crm_report_calls));
-    note("\n  SAVE_FILE-->  " . join("\n  SAVE_FILE-->  ", @save_file_calls));
-    note("\n  LOG_FILES-->  " . join("\n  LOG_FILES-->  ", @logfile_calls));
-    ok((any { /crm status/ } @ansible_calls), 'expected command executed remotely');
-    ok((any { /.*hana0-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana01 log file');
-    ok((any { /.*hana1-crm_status\.txt/ } @logfile_calls), 'qesap_ansible_script_output_file called with the expected vmhana02 log file');
-    ok((any { /.*BOUBLE.*/ } @save_file_calls), 'upload_logs is called with whatever filename returned by qesap_ansible_script_output_file');
-    ok((any { /hana\[[0-1]\]/ } @crm_report_calls), 'upload_logs properly calls qesap_upload_crm_report with hostnames');
-};
-
-subtest '[qesap_cluster_logs] multi log command' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    my @ansible_calls;
-    my @logfile_calls;
-    $qesap->redefine(qesap_ansible_script_output_file => sub {
+    $qesap->redefine(qesap_ansible_fetch_file => sub {
             my (%args) = @_;
-            push @ansible_calls, $args{cmd};
-            push @logfile_calls, $args{file};
-            note("\n ###--> out_path : $args{out_path}");
-            note("\n ###--> file : $args{file}");
-            return 'BOUBLE BOUBLE BOUBLE'; });
-    $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
-    $qesap->redefine(script_run => sub { return 0; });
-    $qesap->redefine(upload_logs => sub { return; });
-    $qesap->redefine(_qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt', Logs => ['ignore_me.txt', 'ignore_me_too.txt']}); });
-    $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
+            push @fetch_calls, $args{file};
+            return '/tmp/ansible_script_output/' . $args{file}; });
+    $qesap->redefine(upload_logs => sub { push @upload_calls, $_[0]; return; });
+    $qesap->redefine(qesap_upload_crm_report => sub {
+            my (%args) = @_;
+            push @crm_report_calls, $args{host};
+            return 0; });
     $qesap->redefine(qesap_save_y2logs => sub { return 0; });
-    # needed within _qesap_host_is_reachable (private function)
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(_qesap_venv_cmd_exec => sub {
-            my (%args) = @_;
-            push @ansible_calls, $args{cmd};
-            return 0; });
+    $qesap->redefine(qesap_az_diagnostic_log => sub { return (); });
+    $qesap->redefine(qesap_upload_logs => sub { return; });
 
-    my $cloud_provider = 'NEMO';
-    set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
-
+    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
     qesap_cluster_logs();
-
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
-    note("\n  ANSIBLE_CMD-->  " . join("\n  ANSIBLE_CMD-->  ", @ansible_calls));
-    note("\n  LOG_FILES-->  " . join("\n  LOG_FILES-->  ", @logfile_calls));
-    ok((none { /.*ignore_me\.txt/ } @logfile_calls), 'ignore_me.txt is expected to be ignored');
-    ok((none { /.*ignore_me_too\.txt/ } @logfile_calls), 'ignore_me_too.txt is expected to be ignored');
+
+    my @playbooks = grep { /collect_logs\.yaml/ } @exec_calls;
+    note("\n  PLAYBOOK-->  " . join("\n  PLAYBOOK-->  ", @playbooks));
+    note("\n  FETCH-->  " . join("\n  FETCH-->  ", @fetch_calls));
+    note("\n  UPLOAD-->  " . join("\n  UPLOAD-->  ", @upload_calls));
+
+    is(scalar @playbooks, 2, 'one log collection playbook run per host');
+    ok((any { /-l hana\[0\].*hana0-qesap_logs\.tar\.gz/ } @playbooks), 'hana0 playbook call uses the expected host and tarball name');
+    ok((any { /-l hana\[1\].*hana1-qesap_logs\.tar\.gz/ } @playbooks), 'hana1 playbook call uses the expected host and tarball name');
+
+    # The remote commands are JSON encoded in the ansible-playbook -e argument
+    ok((any { /zypper\.log/ } @playbooks), 'zypper.log is collected');
+    ok((any { /rpm -qa/ } @playbooks), 'rpm -qa is collected');
+    ok((any { /cloud-init\.log/ } @playbooks), 'provider specific cloud-init.log is collected');
+    ok((none { /lsblk/ } @playbooks), 'lsblk is not collected');
+    ok((none { /lsscsi/ } @playbooks), 'lsscsi is not collected');
+    ok((none { /cloudregister/ } @playbooks), 'cloudregister is not collected');
+    ok((none { /"cmd":"[^"]*>/ } @playbooks), 'collected commands do not redirect their output');
+
+    is_deeply(\@fetch_calls, ['hana0-qesap_logs.tar.gz', 'hana1-qesap_logs.tar.gz'], 'tarball fetched once per host');
+    is_deeply(\@upload_calls,
+        ['/tmp/ansible_script_output/hana0-qesap_logs.tar.gz', '/tmp/ansible_script_output/hana1-qesap_logs.tar.gz'],
+        'tarball uploaded once per host');
+    is_deeply(\@crm_report_calls, ['hana[0]', 'hana[1]'], 'crm report collected once per host');
 };
 
 subtest '[qesap_cluster_logs] skips collection when host unreachable' => sub {
@@ -1006,7 +984,7 @@ subtest '[qesap_cluster_logs] skips collection when host unreachable' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(_qesap_venv_cmd_exec => sub { return 1; });
 
-    $qesap->redefine(_qesap_cluster_log_cmds => sub { $cluster_collected = 1; return (); });
+    $qesap->redefine(_qesap_ansible_collect_logs => sub { $cluster_collected = 1; return 'BOUBLE'; });
     $qesap->redefine(qesap_upload_crm_report => sub { $crm_report_called = 1; return 0; });
     $qesap->redefine(qesap_save_y2logs => sub { return 0; });
 
@@ -1014,36 +992,8 @@ subtest '[qesap_cluster_logs] skips collection when host unreachable' => sub {
     qesap_cluster_logs();
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
 
-    ok(!$cluster_collected, 'Log collection commands were not called for unreachable host');
+    ok(!$cluster_collected, 'Log collection was not called for unreachable host');
     ok(!$crm_report_called, 'CRM report was not called for unreachable host');
-};
-
-subtest '[qesap_cluster_logs] remote commands do not redirect output' => sub {
-    foreach my $provider (qw(EC2 AZURE)) {
-        my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-        my @ansible_calls;
-        $qesap->redefine(qesap_ansible_script_output_file => sub {
-                my (%args) = @_;
-                push @ansible_calls, $args{cmd};
-                return '/tmp/ansible_script_output/testout.txt'; });
-        $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
-        $qesap->redefine(script_run => sub { return 0; });
-        $qesap->redefine(upload_logs => sub { return; });
-        $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
-        $qesap->redefine(qesap_save_y2logs => sub { return 0; });
-        $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-        $qesap->redefine(_qesap_venv_cmd_exec => sub { return 0; });
-        $qesap->redefine(qesap_az_diagnostic_log => sub { return (); });
-        $qesap->redefine(qesap_upload_logs => sub { return; });
-
-        set_var('PUBLIC_CLOUD_PROVIDER', $provider);
-        qesap_cluster_logs();
-        set_var('PUBLIC_CLOUD_PROVIDER', undef);
-
-        note("\n  ANSIBLE_CMD-->  " . join("\n  ANSIBLE_CMD-->  ", @ansible_calls));
-        ok(scalar(@ansible_calls), "$provider: remote commands are executed");
-        ok((none { />/ } @ansible_calls), "$provider: no remote command redirects its output");
-    }
 };
 
 subtest '[qesap_upload_crm_report] die for missing mandatory arguments' => sub {

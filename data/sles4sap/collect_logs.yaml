@@ -1,0 +1,27 @@
+---
+- name: "Collect logs from remote host into a tarball"
+  hosts: all
+  vars:
+    workdir: '/tmp/qesap_logs'
+    bundle: '/tmp/qesap_logs.tar.gz'
+    logs: []
+  tasks:
+    - name: 'Create work directory'
+      ansible.builtin.file:
+        path: "{{ workdir }}"
+        state: directory
+        mode: '0755'
+
+    - name: 'Run collection commands and save output on the remote host'
+      ansible.builtin.shell: "{{ item.cmd }} > {{ workdir }}/{{ item.file }} 2>&1; echo $? > {{ workdir }}/{{ item.file }}.rc"
+      loop: "{{ logs }}"
+      changed_when: false
+      failed_when: false
+
+    - name: 'Create the tarball'
+      ansible.builtin.shell: "tar -czf {{ bundle }} -C {{ workdir | dirname }} {{ workdir | basename }}"
+
+    - name: 'Remove the work directory'
+      ansible.builtin.file:
+        path: "{{ workdir }}"
+        state: absent
