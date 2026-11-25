@@ -6,7 +6,6 @@ vars:
     DESKTOP: textmode
     IBTEST_ROLE: IBTEST_SLAVE
     LTP_BAREMETAL: '1'
-    MLX_PROTOCOL: 1
     PARALLEL_WITH: ibtest-master
 schedule:
     - installation/ipxe_install

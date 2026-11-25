@@ -6,7 +6,6 @@ vars:
     DESKTOP: textmode
     IBTEST_ROLE: IBTEST_MASTER
     LTP_BAREMETAL: '1'
-    MLX_PROTOCOL: 1
 schedule:
     - kernel/ibtests_barriers
     - installation/ipxe_install
