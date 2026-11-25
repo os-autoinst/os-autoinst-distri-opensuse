@@ -379,7 +379,7 @@ PUBLIC_CLOUD_IMAGE_PROJECT | string | "" | Google Compute Engine image project
 PUBLIC_CLOUD_IMAGE_URI | string | "" | The URI of the image to be used. Use 'auto' if you want the URI to be calculated.
 PUBLIC_CLOUD_IMG_PROOF_EXCLUDE | string | "" | Tests to be excluded by img-proof.
 PUBLIC_CLOUD_IMG_PROOF_TESTS | string | "test-sles" | Tests run by img-proof.
-PUBLIC_CLOUD_INSTANCE_TYPE | string | "" | Specify the instance type. Which instance types exists depends on the CSP. (default-azure: Standard_A2, default-ec2: t3a.large )
+PUBLIC_CLOUD_INSTANCE_TYPE | string | "" | Specify the instance type. Which instance types exists depends on the CSP. (default-azure: Standard_B2s, default-ec2: t3a.large )
 PUBLIC_CLOUD_K8S_CLUSTER | string | "" | Name for the kubernetes cluster.
 PUBLIC_CLOUD_KEEP_IMG | boolean | false | If set, the uploaded image will be tagged with `pcw_ignore=1`
 PUBLIC_CLOUD_LTP | boolean | false | Marks a public cloud LTP job (e.g. selects the rsa ssh key). Modules are scheduled via YAML_SCHEDULE=schedule/publiccloud/ltp_latest.yaml or ltp_maintenance.yaml.
