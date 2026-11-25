@@ -9,14 +9,12 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
-use Utils::Backends;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use version_utils;
 use registration;
-use mmapi;
 use repo_tools 'add_qa_head_repo';
 use package_utils 'install_package';
 

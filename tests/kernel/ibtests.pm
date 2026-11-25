@@ -9,14 +9,12 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
-use Utils::Backends;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use lockapi;
-use mmapi;
-use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
+use Utils::Logging qw(save_and_upload_log);
 use mm_network;
 use LTP::WhiteList;
 use LTP::utils 'prepare_whitelist_environment';
