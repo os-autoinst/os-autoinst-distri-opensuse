@@ -409,4 +409,23 @@ subtest '[resource_group_exist] boolean from az output' => sub {
     is($provider->resource_group_exist(), 0, 'empty array output => not exists');
 };
 
+subtest '[create_image_version] target regions' => sub {
+    my $provider = publiccloud::azure->new(provider_client => Test::MockObject->new->set_always(region => 'northeurope')->set_always(subscription => 'sub'));
+    my @cmds;
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    $azure->redefine(get_image_definition => sub { 'def' });
+    $azure->redefine(get_blob_uri => sub { 'https://blob' });
+    $azure->redefine(generate_img_version => sub { '1.0.0' });
+    $azure->redefine(generate_image_tags => sub { '' });
+    $azure->redefine(assert_script_run => sub { push @cmds, shift });
+
+    $provider->create_image_version('img.vhd');
+    like($cmds[-1], qr/--target-regions northeurope westeurope --location westeurope/, 'job region and storage region');
+
+    set_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', 'westeurope, southeastasia');
+    $provider->create_image_version('img.vhd');
+    like($cmds[-1], qr/--target-regions northeurope westeurope southeastasia --location/, 'alternate regions are added without duplicates');
+    _unset('PUBLIC_CLOUD_ALTERNATE_REGIONS');
+};
+
 done_testing;
