@@ -6,11 +6,12 @@
 # Package: xorg-x11-Xvnc ncurses-utils tigervnc xev
 # Summary: Check VNC Secondary viewonly password
 # - Stop vncmanager
-# - Create custom passwords (one for readonly, other for # read/write)
+# - Create custom passwords (one for read/write, other for readonly)
 # - Starts a vncserver with the custom password file
 # - Starts a xterm
-# - For each password (read only/read write)
+# - For each password (read write/read only)
 #   - Starts xev to monitor events
+#   - In read/write mode, verify authentication failure with wrong password
 #   - Launch vncview with supplied password
 #   - Send some vnc events to xev
 # - Check if events were recorded by xev
@@ -33,7 +34,7 @@ my $timeout = (is_aarch64 && is_sle) ? 120 : 30;
 my $display = ':37';
 
 # Passwords for VNC access
-my @options = ({pw => "ropasswd", change => 0}, {pw => "rwpasswd", change => 1});
+my @options = ({pw => "rwpasswd", change => 1}, {pw => "ropasswd", change => 0});
 # A wrong password to check if the access is denied
 my $wrong_password = "badpass";
 
@@ -61,8 +62,8 @@ sub setup_vnc_server {
         assert_script_run('umask 0077');
         assert_script_run('mkdir -Z $HOME/.vnc');
         assert_script_run('chmod go-rwx "$HOME/.vnc"');
-        script_output(qq(expect -c 'spawn vncpasswd /tmp/file.passwd; expect "Password:"; send $options[1]->{pw}\\r; expect "Verify:"; send $options[1]->{pw}\\r; expect "view-only"; send y\\r; expect "Password:"; send $options[0]->{pw}\\r; expect "Verify:"; send $options[0]->{pw}\\r ; interact'));
-        if (script_run("echo \"$options[1]->{pw}\" | vncpasswd -f > \$HOME/.vnc/passwd; echo \"$options[0]->{pw}\" | vncpasswd -f >> \$HOME/.vnc/passwd") != 0) {
+        script_output(qq(expect -c 'spawn vncpasswd /tmp/file.passwd; expect "Password:"; send $options[0]->{pw}\\r; expect "Verify:"; send $options[0]->{pw}\\r; expect "view-only"; send y\\r; expect "Password:"; send $options[1]->{pw}\\r; expect "Verify:"; send $options[1]->{pw}\\r ; interact'));
+        if (script_run("echo \"$options[0]->{pw}\" | vncpasswd -f > \$HOME/.vnc/passwd; echo \"$options[1]->{pw}\" | vncpasswd -f >> \$HOME/.vnc/passwd") != 0) {
             record_soft_failure('vncpasswd crashes - bsc#1171519');
             assert_script_run('cp /tmp/file.passwd $HOME/.vnc/passwd');
         }
@@ -76,9 +77,9 @@ sub setup_vnc_server {
         sleep 2;
     }
     else {
-        script_output(qq(expect -c 'spawn vncpasswd; expect "Password:"; send $options[1]->{pw}\\r; expect "Verify:"; send $options[1]->{pw}\\r; expect "view-only"; send y\\r; expect "Password:"; send $options[0]->{pw}\\r; expect "Verify:"; send $options[0]->{pw}\\r ; interact'));
-        script_output("echo \"$options[1]->{pw}\" | vncpasswd -f");    # bsc#1171519
-        script_output(qq(expect -c 'spawn vncpasswd -f /home/testuser/.config/tigervnc/passwd; expect "Password:"; send $options[1]->{pw}\\r; expect "Verify:"; send $options[1]->{pw}\\r; expect "view-only"; send y\\r; expect "Password:"; send $options[0]->{pw}\\r; expect "Verify:"; send $options[0]->{pw}\\r ; interact'));
+        script_output(qq(expect -c 'spawn vncpasswd; expect "Password:"; send $options[0]->{pw}\\r; expect "Verify:"; send $options[0]->{pw}\\r; expect "view-only"; send y\\r; expect "Password:"; send $options[1]->{pw}\\r; expect "Verify:"; send $options[1]->{pw}\\r ; interact'));
+        script_output("echo \"$options[0]->{pw}\" | vncpasswd -f");    # bsc#1171519
+        script_output(qq(expect -c 'spawn vncpasswd -f /home/testuser/.config/tigervnc/passwd; expect "Password:"; send $options[0]->{pw}\\r; expect "Verify:"; send $options[0]->{pw}\\r; expect "view-only"; send y\\r; expect "Password:"; send $options[1]->{pw}\\r; expect "Verify:"; send $options[1]->{pw}\\r ; interact'));
         record_info("TigerVNC version", "TigerVNC version $tigervnc_vers is greater than of equal to 1.12.0");
         set_serial_prompt '# ';
         enter_cmd 'exit';
@@ -95,29 +96,54 @@ sub setup_vnc_server {
 sub prepare_vnc {
     # maximize vnc window and press esc to close the gnome activity
     wait_still_screen 2;
+    # https://bugzilla.suse.com/show_bug.cgi?id=1290510
+    send_key 'esc' if check_screen 'tigervnc-auth', 5;
+    wait_still_screen 2;
     send_key 'super-up';
     wait_still_screen 2;
     send_key_until_needlematch 'tigervnc-desktop-loggedin', 'esc', 5, 5;
 }
 
-sub generate_vnc_events {
-    my $password = shift;
-
-    # Login into vnc display in RO/RW mode
-    x11_start_program 'xterm';
-    send_key 'super-left';
-    enter_cmd "vncviewer $display -SecurityTypes=VncAuth ; echo vncviewer-finished >/dev/$serialdev ", timeout => 60;
+sub launch_vncviewer_xterm {
+    my ($serial_marker) = @_;
+    $serial_marker //= 'vncviewer-finished';
+    enter_cmd "vncviewer $display -SecurityTypes=VncAuth ; echo $serial_marker >/dev/$serialdev ", timeout => 60;
     wait_still_screen 4;
-    assert_screen [qw(vnc_password_dialog vnc_password_dialog_incomplete)];
+    assert_screen [qw(vnc_password_dialog vnc_password_dialog_incomplete)], $timeout;
     if (match_has_tag 'vnc_password_dialog_incomplete') {
         # https://progress.opensuse.org/issues/158622
         assert_and_click 'vnc_password_dialog_incomplete', button => 'right';
         send_key 'esc';
-        assert_screen 'vnc_password_dialog';
+        assert_screen 'vnc_password_dialog', $timeout;
     }
+}
+
+sub generate_vnc_events {
+    my ($password, $change) = @_;
+
+    # Login into vnc display in RO/RW mode
+    x11_start_program 'xterm';
+    send_key 'super-left';
+
+    # In RW mode, test wrong password to verify authentication failure
+    if ($change) {
+        record_info 'Wrong password', 'Test wrong password on VNC RW mode';
+        launch_vncviewer_xterm 'vncviewer-wrong-pw-finished';
+        enter_cmd "$wrong_password";
+        assert_screen 'tigervnc-login-fail', $timeout;
+        if ($curr_vers >= 0) {
+            send_key "tab";
+            send_key " ";
+        }
+        else {
+            send_key "ret";
+        }
+        wait_serial('vncviewer-wrong-pw-finished', $timeout) || die 'vncviewer auth fail not finished';
+    }
+
+    launch_vncviewer_xterm;
     enter_cmd "$password";
     prepare_vnc;
-    send_key 'super-left';
     wait_still_screen 2;
 
     # Send some vnc events to xev
@@ -158,8 +184,56 @@ sub run {
 
     # add testuser and use testuser to setup vncserver
     assert_script_run("useradd -m -G tty,dialout,\$(stat -c %G /dev/$testapi::serialdev) testuser");
-    assert_script_run(qq(expect -c 'spawn passwd testuser; expect "New password:"; send $options[1]->{pw}\\r; expect "Retype new password:"; send $options[1]->{pw}\\r; interact'));
+    assert_script_run(qq(expect -c 'spawn passwd testuser; expect "New password:"; send $options[0]->{pw}\\r; expect "Retype new password:"; send $options[0]->{pw}\\r; interact'));
     setup_vnc_server;
+
+    if (check_var('DESKTOP', 'gnome')) {
+        # Switch to desktop and run vncviewer
+        select_console('x11');
+        ensure_unlocked_desktop;
+        x11_start_program('vncviewer');
+        type_string("$display");
+        send_key("ret");
+        # We first test for a unsucessfull login
+        assert_screen('tigervnc-desktop-login', $timeout);
+        type_string("$wrong_password");
+        send_key("ret");
+        assert_screen('tigervnc-login-fail', $timeout);
+        if ($curr_vers >= 0) {
+            send_key("tab");
+            send_key(" ");
+        }
+        else {
+            send_key("ret");
+        }
+        # Test for a sucessfull login. Note: vncviewer remembers the last address, don't type it again
+        # sometimes screen is frozen with strange dialog like 'logged-as-priviled-user', there is no way to go further, so repeat these steps
+        x11_start_program('vncviewer');
+        send_key("ret");
+        assert_screen([qw(tigervnc-desktop-login logged-as-priviled-user)], $timeout);
+        if (match_has_tag 'logged-as-priviled-user') {
+            record_soft_failure('poo#120282');
+            send_key("alt-f4");
+            select_console('root-console');
+            assert_script_run("killall vncviewer");
+            select_console('x11');
+            ensure_unlocked_desktop;
+            x11_start_program('vncviewer');
+            send_key("ret");
+            assert_screen('tigervnc-desktop-loggedin', $timeout);
+            type_string("$options[0]->{pw}");
+            send_key("ret");
+        }
+        else {
+            type_string("$options[0]->{pw}");
+            send_key("ret");
+            prepare_vnc;
+        }
+        send_key("alt-f4");
+        save_screenshot();
+    } else {
+        record_info("skipping graphical vnc tests (non-gnome desktop)");
+    }
 
     # open xterm for xev
     x11_start_program('xterm');
@@ -182,7 +256,7 @@ sub run {
         enter_cmd "(trap 'echo xev-finished >/dev/$serialdev' SIGINT; xev -display $display -root | tee /tmp/xev_log); sleep $delay_time; ";
 
         # Repeat with RO/RW password
-        generate_vnc_events $opt->{pw};
+        generate_vnc_events $opt->{pw}, $opt->{change};
 
         # Close xev, re-try if needed on aarch64, increase timeout on aarch64 for wait_serial, see poo#119416
         send_key 'ctrl-c';
@@ -204,53 +278,6 @@ sub run {
     }
     send_key "alt-f4";    # close xev xterm
 
-    if (check_var('DESKTOP', 'gnome')) {
-        # Switch to desktop and run vncviewer
-        select_console('x11');
-        ensure_unlocked_desktop;
-        x11_start_program('vncviewer');
-        type_string("$display");
-        send_key("ret");
-        # We first test for a unsucessfull login
-        assert_screen('tigervnc-desktop-login', $timeout);
-        type_string("$wrong_password");
-        send_key("ret");
-        assert_screen('tigervnc-login-fail');
-        if ($curr_vers >= 0) {
-            send_key("tab");
-            send_key(" ");
-        }
-        else {
-            send_key("ret");
-        }
-        # Test for a sucessfull login. Note: vncviewer remembers the last address, don't type it again
-        # sometimes screen is frozen with strange dialog like 'logged-as-priviled-user', there is no way to go further, so repeat these steps
-        x11_start_program('vncviewer');
-        send_key("ret");
-        assert_screen([qw(tigervnc-desktop-login logged-as-priviled-user)]);
-        if (match_has_tag 'logged-as-priviled-user') {
-            record_soft_failure('poo#120282');
-            send_key("alt-f4");
-            select_console('root-console');
-            assert_script_run("killall vncviewer");
-            select_console('x11');
-            ensure_unlocked_desktop;
-            x11_start_program('vncviewer');
-            send_key("ret");
-            assert_screen('tigervnc-desktop-loggedin', $timeout);
-            type_string("$options[1]->{pw}");
-            send_key("ret");
-        }
-        else {
-            type_string("$options[1]->{pw}");
-            send_key("ret");
-            prepare_vnc;
-        }
-        send_key("alt-f4");
-        save_screenshot();
-    } else {
-        record_info("skipping graphical vnc tests (non-gnome desktop)");
-    }
     # Done
     clean;
 }
