@@ -60,7 +60,7 @@ sub run {
     my @hana_sites = get_hana_site_names();
     croak("$hana_sites[1] is missing or undefined in run_args") if (!$run_args->{$hana_sites[1]});
 
-    my $hana_start_timeout = bmwqemu::scale_timeout(600);
+    my $hana_start_timeout = 600;
     # $site_b = $instance of secondary instance located in $run_args->{$instances}
     my $site_b = $run_args->{$hana_sites[1]};
     my $sbd_delay = 0;
@@ -108,12 +108,7 @@ sub run {
 
     # wait for DB to start with resources
     $self->is_hana_online(wait_for_start => 'true', timeout => 300);
-    my $hana_started = time;
-    while (!$self->is_hana_resource_running()) {
-        die("HANA resource did not start within defined timeout: $hana_start_timeout s")
-          if (time - $hana_started > $hana_start_timeout);
-        sleep 30;
-    }
+    $self->wait_for_hana_resource_running(timeout => $hana_start_timeout);
 
     # Check if DB started as primary
     die("Site B '$site_b->{instance_id}' did NOT start in replication mode.")

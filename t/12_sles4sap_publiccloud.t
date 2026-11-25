@@ -1661,6 +1661,74 @@ subtest '[wait_for_sync] missing online_string croaks' => sub {
     dies_ok { $self->wait_for_sync() } 'Missing online_string argument causes croak';
 };
 
+subtest '[wait_for_hana_resource_running] resource already running' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $polls = 0;
+    $sles4sap_publiccloud->redefine(is_hana_resource_running => sub { $polls++; return 1; });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub { my ($self, %args) = @_; push @calls, $args{cmd}; return 'Stephen Maturin'; });
+    my $self = sles4sap::publiccloud->new();
+    my $start = time;
+
+    $self->wait_for_hana_resource_running();
+
+    ok(($polls == 1), 'Resource is polled only one time');
+    ok((time - $start == 0), 'No sleep if the resource is already running');
+    ok((scalar @calls == 0), 'No command is executed if the resource is running');
+};
+
+subtest '[wait_for_hana_resource_running] resource running after some polls' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $polls = 0;
+    $sles4sap_publiccloud->redefine(is_hana_resource_running => sub { $polls++; return $polls >= 3 ? 1 : 0; });
+    $sles4sap_publiccloud->redefine(run_cmd => sub { die 'run_cmd is not expected'; });
+    my $self = sles4sap::publiccloud->new();
+    my $start = time;
+
+    lives_ok { $self->wait_for_hana_resource_running() } 'No die if the resource starts within the timeout';
+
+    ok(($polls == 3), 'Resource is polled until it is running');
+    ok((time - $start == 60), 'Sleep 30 seconds between two polls');
+};
+
+subtest '[wait_for_hana_resource_running] timeout' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my @infos;
+    $sles4sap_publiccloud->redefine(record_info => sub { push @infos, $_[0]; note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(is_hana_resource_running => sub { return 0; });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub { my ($self, %args) = @_; push @calls, $args{cmd}; return 'Stephen Maturin'; });
+    my $self = sles4sap::publiccloud->new();
+    my $start = time;
+
+    throws_ok { $self->wait_for_hana_resource_running(timeout => 100) } qr/Resource did not start within defined timeout. \(100 sec\)/, 'Die if the resource does not start within the timeout';
+
+    # Polls at 0, 30, 60, 90 and 120 seconds: the first one over the timeout is at 120
+    ok((time - $start == 120), 'Die at the first poll after the timeout');
+    ok((any { /crm_mon/ } @calls), 'Cluster status is collected before the die');
+    ok((any { /Cluster status/ } @infos), 'Cluster status is recorded before the die');
+};
+
+subtest '[cleanup_resource]' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $sles4sap_publiccloud->redefine(run_cmd => sub { my ($self, %args) = @_; push @calls, $args{cmd}; return 'Stephen Maturin'; });
+    my @timeouts;
+    $sles4sap_publiccloud->redefine(wait_for_hana_resource_running => sub { my ($self, %args) = @_; push @timeouts, $args{timeout}; return; });
+    my $self = sles4sap::publiccloud->new();
+
+    $self->cleanup_resource();
+    $self->cleanup_resource(timeout => 42);
+
+    note("\n  C -->  " . join("\n  C -->  ", @calls));
+    ok((any { /crm resource cleanup/ } @calls), 'Resource cleanup is executed');
+    ok((!defined $timeouts[0]), 'Without timeout argument the wait uses its default');
+    ok(($timeouts[1] == 42), 'Timeout argument is passed to the wait without scaling');
+};
+
 subtest '[wait_for_cluster]' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
