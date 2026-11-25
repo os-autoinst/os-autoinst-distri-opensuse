@@ -161,7 +161,7 @@ sub register_addon {
     if ($addon =~ /ltss/) {
         my $name = get_addon_fullname($addon);
         ssh_add_suseconnect_product($remote, $name, program => $program, version => '${VERSION_ID}', arch => $arch, params => "-r " . $ADDONS_REGCODE{$name}, timeout => $timeout, retries => $retries, delay => $delay);
-    } elsif (is_ondemand) {
+    } elsif (is_ondemand && $addon !~ /phub/) {
         record_info($addon, 'This is on demand image, we will not register this addon.');
         return;
     } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
