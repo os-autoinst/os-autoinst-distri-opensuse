@@ -375,8 +375,12 @@ sub run_sporadic_loop {
 
 sub run {
     my ($self, $args) = @_;
-    select_serial_terminal;
     (my $test = $args->{name}) =~ s/-/\//;
+    # Set the result data first: post_fail_hook needs it if the module dies early
+    my %targs = (name => $test, status => 'FAILED', time => 'timeout');
+    $self->{targs} = \%targs;
+    $self->{result_args} = {status => 'FAILED', time => 'timeout'};
+    select_serial_terminal;
     my $is_last_one = $args->{last_one};
 
     # Sporadic debug: loop this test in place instead of running it once.
@@ -388,11 +392,6 @@ sub run {
 
     umount_xfstests_dev($TEST_DEV, $SCRATCH_DEV, $SCRATCH_DEV_POOL) unless get_var('XFSTESTS_HIGHSPEED');
     my ($category, $num) = split(/\//, $test);
-    my %targs = (name => $test, status => 'FAILED', time => 'timeout');
-
-    $self->{targs} = \%targs;
-    $self->{result_args} = {status => 'FAILED', time => 'timeout'};
-
     $whitelist_env->{kernel} = script_output('uname -r');
     $whitelist_env->{libc} = script_output('rpm -q glibc');
     $whitelist_env->{ltp_version} = script_output('rpm -q xfstests');
