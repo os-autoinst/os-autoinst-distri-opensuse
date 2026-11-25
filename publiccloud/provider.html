@@ -134,7 +134,7 @@ Returns a string-name containing distri, version, flavor, arch.</code></pre>
 
 <pre><code>my $bool = $self-&gt;_region_out_of_resources($terraform_output);</code></pre>
 
-<p>Return true if the given terraform <code>apply</code> output indicates that the current region has no resources available to fulfil the request for the selected instance type (e.g. STOCKOUT on GCE, <code>InsufficientInstanceCapacity</code> on EC2 or <code>SkuNotAvailable</code>/<code>AllocationFailed</code> on Azure).</p>
+<p>Return true if the given terraform <code>apply</code> output indicates that the current region has no resources available to fulfil the request for the selected instance type (e.g. STOCKOUT on GCE, <code>InsufficientInstanceCapacity</code> on EC2 or <code>SkuNotAvailable</code>/<code>AllocationFailed</code> or an exhausted vCPU family quota on Azure).</p>
 
 <p>It is used by <a href="#terraform_apply">&quot;terraform_apply&quot;</a> to decide whether it is worth retrying the deployment in one of the <code>PUBLIC_CLOUD_ALTERNATE_REGIONS</code> (poo#202446, AC2). Any other kind of error must fail immediately, so it returns false for them.</p>
 
