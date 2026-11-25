@@ -107,6 +107,8 @@ our @EXPORT = qw(
   get_fencing_ra_name
   pcmk_delay_max_cmd
   get_bootstrap_properties
+  is_not_supportserver_scenario
+  has_ondemand_luns
 );
 
 =head1 SYNOPSIS
@@ -477,7 +479,7 @@ sub is_package_installed {
  check_rsc( $resource );
 
 Checks if cluster resource B<$resource> is configured in the cluster. Returns
-true or false. 
+true or false.
 
 =cut
 
@@ -1488,7 +1490,7 @@ sub check_iscsi_failure {
 
 =head2 cluster_status_matches_regex
 
-Check crm status output against a hardcode regular expression in order to check the cluster health 
+Check crm status output against a hardcode regular expression in order to check the cluster health
 
 =over 1
 
@@ -1616,6 +1618,21 @@ sub crm_check_resource_location {
     croak "Test timed out while waiting for resource '$args{resource}' to move to '$wait_for_target'";
 }
 
+
+=head2 has_ondemand_luns
+
+    has_ondemand_luns()
+
+Wrapper around check_var to see if the cluster uses the ondemand lun creation mechanism.
+
+
+=cut
+
+
+sub has_ondemand_luns {
+    check_var('ISCSI_LUN_INDEX', 'ondemand');
+}
+
 =head2 generate_lun_list
 
     generate_lun_list()
@@ -1631,7 +1648,7 @@ sub generate_lun_list {
     my $target_ip_port = script_output("ls /sys/kernel/config/target/iscsi/${target_iqn}/tpgt_1/np 2>/dev/null");
     my $dev_by_path = '/dev/disk/by-path';
     my $index = get_var('ISCSI_LUN_INDEX', 0);
-    $index = 0 if (check_var('ISCSI_LUN_INDEX', 'ondemand'));
+    $index = 0 if (has_ondemand_luns);
 
     my $cluster_infos = get_cluster_info();
     my $cluster_name = $cluster_infos->{cluster_name};
@@ -2320,5 +2337,18 @@ sub get_bootstrap_properties {
     my %properties = map { /(\S+)=(\S+)/ } split(/\n/, $out);
     return \%properties;
 }
+
+=head2 is_not_supportserver_scenario
+
+    is_not_supportserver_scenario()
+
+Helper function to check if the multimachine cluster uses a support server.
+
+=cut
+
+sub is_not_supportserver_scenario {
+    return (get_var('HOSTNAME', '') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER'));
+}
+
 
 1;

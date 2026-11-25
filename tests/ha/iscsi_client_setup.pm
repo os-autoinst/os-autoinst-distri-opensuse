@@ -13,6 +13,7 @@ use utils qw(zypper_call systemctl ping_size_check file_content_replace script_r
 use testapi;
 use hacluster;
 use mmapi qw(get_parents get_current_job_id);
+use lockapi qw(barrier_wait);
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(is_sle package_version_cmp);
 use package_utils qw(install_package);
@@ -83,13 +84,22 @@ iSCSI target and LUNs.
 
 =cut
 
+
+# Make a request for dynamic luns by creating a directory on the NFS server. The
+# request is then processed by the iscsi server, which deletes the directory
+# when it is done. This can take a while so we wait *up to* 10 minutes for the
+# directory to be destroyed, signaling that the targets are ready to be used.
 sub request_luns {
     my (%args) = @_;
     foreach (qw(instance jobid numluns)) { die "request_luns: missing [$_] argument" unless $args{$_} }
     assert_script_run 'mount -t nfs ' . get_required_var('NFS_SUPPORT_SHARE') . ' /mnt';
-    assert_script_run "mkdir /mnt/ondemand/$args{instance}_$args{jobid}_$args{numluns}";
+    my $dir = "/mnt/ondemand/$args{instance}_$args{jobid}_$args{numluns}";
+    assert_script_run "mkdir $dir";
+    script_retry('! stat ' . "$dir", retry => 20,
+        fail_message => "The server did not finish processing our request in time");
     assert_script_run 'umount /mnt';
 }
+
 
 sub run {
     my $iscsi_server = get_var('USE_SUPPORT_SERVER') ? 'ns' : get_required_var('ISCSI_SERVER');
@@ -126,8 +136,7 @@ sub run {
     # Use below workaround to generate a new one, we need to apply it for upgrade from sle15sp2 to sle15sp3
     if (is_sle('>=15-SP3') && !check_var('ORIGIN_SYSTEM_VERSION', '15-SP2')) {
         assert_script_run '/sbin/iscsi-gen-initiatorname -f';
-    }
-    else {
+    } else {
         assert_script_run qq(echo "InitiatorName=`/sbin/iscsi-iname`" | tee /etc/iscsi/initiatorname.iscsi);
     }
     record_info 'iscsi initiator after forcing regeneration', script_output('cat /etc/iscsi/initiatorname.iscsi');
@@ -146,18 +155,20 @@ sub run {
     record_info('iscsid status', script_output('systemctl status iscsid'));
 
     my $iqn_search_string = 'openqa';    # Search iqn names that match 'openqa' by default
-    if (check_var('ISCSI_LUN_INDEX', 'ondemand')) {
+    if (has_ondemand_luns()) {
         # Special value on ISCSI_LUN_INDEX means that we need to request iSCSI LUNs on demand.
         # in that case, iqn will match to node 1's job id
         $iqn_search_string = is_node(1) ? get_current_job_id : (get_parents)->[0];
         die 'Got non-numeric job id' unless ($iqn_search_string =~ m/^\d+$/);
-        # Only node 1 will request the LUNs. Number of LUNs to request is the third element in CLUSTER_INFOS
-        request_luns(jobid => $iqn_search_string, instance => get_required_var('OPENQA_HOSTNAME'),
-            numluns => (split(/:/, get_required_var('CLUSTER_INFOS')))[2]) if is_node(1);
-        # Dynamic LUNs provisioning can take some time. We check and wait for up to 10 minutes:
-        # 20 retries every 30 seconds = 600 seconds
-        script_retry("iscsiadm -m discovery -t st -p '$iscsi_server'|grep -q '$iqn_search_string'", retry => 20,
-            fail_message => "Did not see iSCSI target matching [$iqn_search_string] for 10 minutes");
+        # Only node 1 will request the LUNs as ondemand luns are only used with no supportserver scenarios.
+        if (is_node(1)) {
+            request_luns(jobid => $iqn_search_string, instance => get_required_var('OPENQA_HOSTNAME'), numluns => get_cluster_info()->{num_luns});
+            script_retry("iscsiadm -m discovery -t st -p '$iscsi_server'|grep -q '$iqn_search_string'", retry => 20,
+                fail_message => "Did not see iSCSI target matching [$iqn_search_string] after 20 retries");
+            barrier_wait('INIT_ONDEMAND_TARGETS');
+        } else {
+            barrier_wait('INIT_ONDEMAND_TARGETS');
+        }
     }
 
     my $iqn_node_name = script_output("iscsiadm -m discovery -t st -p '$iscsi_server'|grep '$iqn_search_string'");
