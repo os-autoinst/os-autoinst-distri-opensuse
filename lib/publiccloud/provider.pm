@@ -386,7 +386,7 @@ sub _gce_zone_unavailable {
 Return true if the given terraform C<apply> output indicates that the current
 region has no resources available to fulfil the request for the selected
 instance type (e.g. STOCKOUT on GCE, C<InsufficientInstanceCapacity> on EC2 or
-C<SkuNotAvailable>/C<AllocationFailed> on Azure).
+C<SkuNotAvailable>/C<AllocationFailed> or an exhausted vCPU family quota on Azure).
 
 It is used by L</terraform_apply> to decide whether it is worth retrying the
 deployment in one of the C<PUBLIC_CLOUD_ALTERNATE_REGIONS> (poo#202446, AC2).
@@ -402,6 +402,7 @@ sub _region_out_of_resources {
     # fulfil the request for the requested instance type.
     return ($output =~ /InsufficientInstanceCapacity|Insufficient capacity/i    # EC2
           || $output =~ /SkuNotAvailable|AllocationFailed|OverconstrainedAllocationRequest/i    # Azure
+          || $output =~ /exceeding approved .* Cores quota/i    # Azure vCPU family quota (poo#199010)
     ) ? 1 : 0;
 }
 

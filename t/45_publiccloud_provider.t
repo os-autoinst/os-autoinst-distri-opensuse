@@ -420,6 +420,7 @@ sub _cat_responses { return ({output => ''}, map { ({output => ''}, $_) } @_); }
 # Provider-specific terraform 'apply' outputs that flag a resource shortage:
 my %OUT_OF_RESOURCES = (
     AZURE => q{Error: creating Linux Virtual Machine ... Code="SkuNotAvailable" Message="The requested VM size ... is not available"},
+    AZURE_QUOTA => q{Error: creating Linux Virtual Machine ... Code="OperationNotAllowed" Message="Operation could not be completed as it results in exceeding approved standardBSFamily Cores quota. Location: northeurope, Current Limit: 50, Current Usage: 50, Additional Required: 2"},
     EC2 => q{Error: ... InsufficientInstanceCapacity: We currently do not have sufficient capacity in the Availability Zone},
     GCE => q{Error: The zone 'projects/p/zones/a' does not have enough resources available to fulfill the request},
 );
@@ -476,6 +477,12 @@ subtest '[terraform_apply] Azure retries in the first alternate region and succe
         'az queried the network once per region attempt, in order');
     is($provider->provider_client->region, 'Bajoran', 'active region left on the successful alternate');
     _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_ALTERNATE_REGIONS PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
+};
+
+subtest '[_region_out_of_resources] Azure vCPU family quota is treated as out of resources' => sub {
+    my $provider = publiccloud::provider->new(provider_client => publiccloud::azure_client->new());
+    ok($provider->_region_out_of_resources($OUT_OF_RESOURCES{AZURE_QUOTA}), 'quota error triggers the region fallback');
+    ok(!$provider->_region_out_of_resources('Error: Code="InvalidParameter"'), 'unrelated error does not');
 };
 
 subtest '[terraform_apply] Azure retries in the first alternate region and fails but succeed on the second one' => sub {
