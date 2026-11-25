@@ -65,6 +65,7 @@
       <li><a href="#crm_maintenance_status">crm_maintenance_status</a></li>
       <li><a href="#crm_wait_for_maintenance">crm_wait_for_maintenance</a></li>
       <li><a href="#crm_check_resource_location">crm_check_resource_location</a></li>
+      <li><a href="#has_ondemand_luns">has_ondemand_luns</a></li>
       <li><a href="#generate_lun_list">generate_lun_list</a></li>
       <li><a href="#set_cluster_parameter">set_cluster_parameter</a></li>
       <li><a href="#show_cluster_parameter">show_cluster_parameter</a></li>
@@ -86,6 +87,7 @@
       <li><a href="#get_fencing_ra_name">get_fencing_ra_name</a></li>
       <li><a href="#pcmk_delay_max_cmd">pcmk_delay_max_cmd</a></li>
       <li><a href="#get_bootstrap_properties">get_bootstrap_properties</a></li>
+      <li><a href="#is_not_supportserver_scenario">is_not_supportserver_scenario</a></li>
     </ul>
   </li>
 </ul><h1>lib/hacluster.pm</h1>
@@ -514,6 +516,12 @@ sync_path(&#39;/path/to/files*&#39;);</code></pre>
 
 </ul>
 
+<h2 id="has_ondemand_luns">has_ondemand_luns</h2>
+
+<pre><code>has_ondemand_luns()</code></pre>
+
+<p>Wrapper around check_var to see if the cluster uses the ondemand lun creation mechanism.</p>
+
 <h2 id="generate_lun_list">generate_lun_list</h2>
 
 <pre><code>generate_lun_list()</code></pre>
@@ -864,6 +872,12 @@ pcmk_delay_max_cmd($primitive_name);</code></pre>
       &#39;priority-fencing-delay&#39; =&gt; &#39;60&#39;,
       &#39;have-watchdog&#39; =&gt; &#39;true&#39;
     };</code></pre>
+
+<h2 id="is_not_supportserver_scenario">is_not_supportserver_scenario</h2>
+
+<pre><code>is_not_supportserver_scenario()</code></pre>
+
+<p>Helper function to check if the multimachine cluster uses a support server.</p>
 
 
 </body>
