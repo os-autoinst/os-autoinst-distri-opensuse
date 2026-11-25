@@ -1,0 +1,14 @@
+---
+name: trento_rpm_tests
+description: >
+  Maintainer: Trento team <trento-developers@suse.com>
+  Trento RPM validation on SLES for SAP with the repositories of a
+  maintenance incident. The test deploys Trento Server and Agent with
+  ansible-trento over TLS and validates their health.
+schedule:
+  - installation/bootloader_uefi
+  - installation/first_boot
+  - jeos/host_config
+  - console/suseconnect_scc
+  - qa_automation/patch_and_reboot
+  - trento/rpm/deploy
