@@ -65,13 +65,11 @@ sub load_third_party_image_test {
     # - Staging
     # - Public Cloud
     # - VMWare due to lack of latest CPU version support
-    # - Testing alternative cgroups version
     # - Testing docker-stable with CONTAINERS_DOCKER_FLAVOUR
     # - Testing latest Tumbleweed image with CONTAINER_IMAGE_TO_TEST
     # - FIPS tests
     # - Testing a different OCI runtime like crun
     return if (is_staging || is_public_cloud || is_vmware ||
-        get_var("CONTAINERS_CGROUP_VERSION") ||
         get_var("CONTAINERS_DOCKER_FLAVOUR") ||
         get_var("CONTAINER_IMAGE_TO_TEST") ||
         get_var("FIPS_ENABLED") ||

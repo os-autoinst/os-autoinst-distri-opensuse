@@ -59,14 +59,6 @@ sub run {
         assert_script_run('podman system reset -f');
     }
 
-    # Prepare for Podman 3.4.4 and CGroups v2
-    if ((is_sle('15-SP3+') || is_leap('15.3+')) && !check_var('CONTAINERS_CGROUP_VERSION', '1')) {
-        switch_cgroup_version($self, 2);
-        select_serial_terminal;
-
-        validate_script_output('podman info', sub { /cgroupVersion: v2/ }, fail_message => "podman not operating in cgroup v2");
-    }
-
     # Check for bsc#1192051
     # Test needs to pass, if seccomp filtering is off
     my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");

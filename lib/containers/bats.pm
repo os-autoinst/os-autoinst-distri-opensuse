@@ -473,8 +473,6 @@ EOF
     # This is a workaround for https://bugzilla.suse.com/show_bug.cgi?id=1246227
     run_command "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf" unless (is_sle(">=16") || is_tumbleweed);
 
-    add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1) if check_var('CONTAINERS_CGROUP_VERSION', '2');
-
     delegate_controllers;
 
     # We use ignore_loglevel to get task traces in case we get
