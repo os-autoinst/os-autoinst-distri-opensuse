@@ -425,19 +425,21 @@ sub get_valid_vmcore {
     my $vmcore_glob = '/var/crash/*/vmcore';
     my $vmcore = script_output("ls -1t $vmcore_glob | head -n1");
 
-    my $file_type = script_output("file $vmcore");
-    if ($file_type =~ /Flattened kdump compressed dump/i || $file_type =~ /:\s*data\s*$/i) {
-        record_info('vmcore', "Dump format reported as '$file_type'. Attempting to unflatten via -R");
-        my $unflatten_cmd;
-        $unflatten_cmd = "makedumpfile -f -R ${vmcore}.unflattened < $vmcore";
+    unless (is_ipmi) {
+        my $file_type = script_output("file $vmcore");
+        if ($file_type =~ /Flattened kdump compressed dump/i || $file_type =~ /:\s*data\s*$/i) {
+            record_info('vmcore', "Dump format reported as '$file_type'. Attempting to unflatten via -R");
+            my $unflatten_cmd;
+            $unflatten_cmd = "makedumpfile -f -R ${vmcore}.unflattened < $vmcore";
 
-        my $ret = script_run($unflatten_cmd, 300);
+            my $ret = script_run($unflatten_cmd, 300);
 
-        if ($ret == 0) {
-            record_info('vmcore', 'Successfully unflattened vmcore using makedumpfile');
-            return "${vmcore}.unflattened";
-        } else {
-            record_info('vmcore', 'Unflattening failed via makedumpfile, proceeding with original vmcore');
+            if ($ret == 0) {
+                record_info('vmcore', 'Successfully unflattened vmcore using makedumpfile');
+                return "${vmcore}.unflattened";
+            } else {
+                record_info('vmcore', 'Unflattening failed via makedumpfile, proceeding with original vmcore');
+            }
         }
     }
 
@@ -518,7 +520,7 @@ sub check_function {
           ? '/boot/vmlinux-$(uname -r)*'
           : '/usr/lib/modules/$(uname -r)/vmlinux*';
 
-        my $vmcore = test_makedumpfile();
+        my $vmcore = is_ipmi() ? get_valid_vmcore() : test_makedumpfile();
 
         # check the core dump via the crash utility if possible
         my $crash_cmd;
