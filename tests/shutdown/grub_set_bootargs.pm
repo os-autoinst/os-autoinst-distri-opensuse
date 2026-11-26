@@ -10,13 +10,15 @@
 #   - Remove "quiet" from $GRUB_CMDLINE_LINUX_DEFAULT
 #   - If FIPS_ENABLED is set, add fips=1 to new grub command line
 #   - If encryption is enabled, add "boot=<boot device>" to grub command line
-#   - Apply all changes by running: "grub2-mkconfig -o /boot/grub2/grub.cfg"
+#   - Apply all changes by regenerating grub.cfg
+#     (transactional-update on immutable systems)
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
 use Mojo::Base 'y2_installbase';
 use testapi;
 use Utils::Architectures;
 use serial_terminal qw(select_serial_terminal prepare_serial_console);
+use bootloader_setup 'grub_mkconfig';
 
 sub run {
     prepare_serial_console() if is_ppc64le();
@@ -31,7 +33,6 @@ sub run {
         }
     }
     push @cmds, 'sed -i "s#GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*\"#GRUB_CMDLINE_LINUX_DEFAULT=\"$new_cmdline\"#" /etc/default/grub';
-    push @cmds, 'grub2-mkconfig -o /boot/grub2/grub.cfg';
 
     # Slow type for 12-SP2 aarch64 image creation test to try to avoid filling up the key event queue
     for my $cmd (@cmds) {
@@ -43,6 +44,7 @@ sub run {
             script_run $cmd;
         }
     }
+    grub_mkconfig();
 }
 
 1;
