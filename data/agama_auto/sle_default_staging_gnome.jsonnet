@@ -1,6 +1,8 @@
 local repo = '{{INCIDENT_REPO}}';
 local urls = std.split(repo, ',');
-local is_immutable = '{{TRANSACTIONAL}}' == '1';
+local transactional = '{{TRANSACTIONAL}}';
+# Unfilled or empty placeholder must not enable the immutable mode
+local is_immutable = transactional == '1';
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
