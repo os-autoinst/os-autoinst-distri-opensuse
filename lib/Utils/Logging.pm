@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use feature 'state';
 use testapi;
+use IO::Select;
 use JSON qw(decode_json);
 use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638 download_script);
 use Utils::Systemd 'get_started_systemd_services';
@@ -31,6 +32,7 @@ our @EXPORT = qw(
   tar_and_upload_log
   save_and_upload_systemd_unit_log
   save_ulog
+  read_ulog
   export_healthcheck_basic
   select_log_console
   cleanup_known_coredumps
@@ -147,6 +149,41 @@ sub save_ulog {
     my ($out, $filename) = @_;
     mkdir('ulogs') if (!-d 'ulogs');
     path("ulogs/$filename")->spew($out);    # save the logs to the ulogs directory on the worker directly
+}
+
+=head2 read_ulog
+
+read_ulog($filename, wait = 0)
+
+Reads a file saved in ulogs directory of the worker running isotovideo.
+
+Due to a race condition with the command_server in isotovideo, it can wait and poll the filesystem
+until the file is created, up to 5 times for 0.5 seconds each time.
+
+=cut
+
+use constant {
+    READ_ULOG_POLL_TIMES => 5,
+    READ_ULOG_POLL_WAIT => 0.5
+};
+
+sub read_ulog {
+    my ($filename, $wait) = @_;
+    $wait //= 0;
+
+    my $file = path("ulogs/$filename");
+    for my $times (1 .. ($wait ? READ_ULOG_POLL_TIMES : 1)) {
+        eval { $file->stat or die "$file does not exist yet"; };
+        if ($wait) {
+            sleep READ_ULOG_POLL_WAIT;
+            IO::Select::select undef, undef, undef, READ_ULOG_POLL_WAIT;
+            diag "Waiting for $filename to exist";
+        }
+        return $file unless $@;
+        diag "File does not exist yet: $@";
+        diag $_ for path($file->dirname)->list_tree->each;
+    }
+    die "Giving up reading $filename after " . ($wait ? READ_ULOG_POLL_TIMES : 1) . " tries";
 }
 
 =head2 export_healthcheck_basic

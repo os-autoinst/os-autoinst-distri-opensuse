@@ -13,7 +13,7 @@ use version_utils qw(is_sle is_leap is_plasma6);
 use utils qw(assert_and_click_until_screen_change type_string_slow susefirewall2_to_firewalld);
 use Utils::Architectures;
 use Utils::Backends qw(is_pvm is_qemu);
-use Mojo::File 'path';
+use Utils::Logging 'read_ulog';
 
 our @EXPORT = qw(
   desktop_runner_hotkey
@@ -250,10 +250,11 @@ sub _get_graphical_console_tty {
         select_console('root-console');
         $tty = script_output('cat /tmp/vt_nr');
         assert_script_run("rm /tmp/vt_nr");
-        select_console('x11');
     } else {
         enter_cmd('curl --form upload=$XDG_VTNR\;filename=x ' . autoinst_url('/uploadlog/xdgvtnr') . ' && exit');
-        $tty = path('ulogs/xdgvtnr')->slurp;
+        my $file = read_ulog('xdgvtnr', 1);
+        $tty = $file->slurp;
+        $file->remove;
     }
     return $tty;
 }
@@ -269,12 +270,17 @@ permissions for $serialdev to be set up
 
 sub update_x11_vt {
     x11_start_program(default_gui_terminal());
-
     my $tty = _get_graphical_console_tty(get_var('OFFLINE_SUT', 0));
-    assert_screen('generic-desktop');    # Waits until finished
     die "Failed to get VT number from X11 session" unless $tty =~ /^\d+$/;
     record_info('XDG_VTNR', "Graphical session on VT $tty");
     console('x11')->set_tty(int($tty));
+
+    # ensures VT is correct and that the terminal program exited properly
+    if (get_var('OFFLINE_SUT', 0)) {
+        select_console('x11');
+    } else {
+        assert_screen('generic-desktop');
+    }
 }
 
 sub handle_additional_polkit_windows {
