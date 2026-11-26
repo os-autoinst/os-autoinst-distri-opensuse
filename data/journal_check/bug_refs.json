@@ -1078,9 +1078,12 @@
             ],
             "microos": [
                 "Tumbleweed"
+            ],
+            "sle": [
+                "16.1"
             ]
         },
-        "type": "bug"
+        "type": "ignore"
     },
     "bsc#1252028": {
         "description": "PAM: Authentication failure for root from.*",
