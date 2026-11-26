@@ -1,0 +1,45 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: openssh-pqc-kex
+# desc: >
+#   Checks the OpenSSH ML-KEM / NIST P-256 hybrid key exchange
+#   mlkem768nistp256-sha256 (jsc#PED-17037). A dedicated sshd in debug
+#   mode on 127.0.0.1 reads the system configuration, so the active
+#   crypto-policy applies. No crypto-policy lists the algorithm, thus
+#   KexAlgorithms is set to it on the server and on the client.
+# steps:
+#   - check that ssh -Q kex lists mlkem768nistp256-sha256
+#   - check that sshd accepts it as the only KexAlgorithms value
+#   - create ECDSA P-384 host and user keys, start sshd -d on a free port
+#   - run a command over ssh and check that ssh and sshd negotiated
+#     mlkem768nistp256-sha256
+# author: <pstivanin@suse.com>
+# maintainer: QE Security <none@suse.de>
+# expected: all tests pass
+# platform: SLE 16.0 and later with the PED-17037 backport, Tumbleweed
+# tags: security openssh post-quantum-crypto ml-kem poo#210513
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(openssh_pqc_kex_test.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+for cmd in ssh ssh-keygen sshd; do
+    ensure_command_available "$cmd"
+done
+
+set +e
+pytest -v --tb=short openssh_pqc_kex_test.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc

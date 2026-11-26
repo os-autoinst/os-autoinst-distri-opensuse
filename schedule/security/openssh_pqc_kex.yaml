@@ -1,0 +1,15 @@
+name: openssh_pqc_kex
+description: >
+  OpenSSH ML-KEM / NIST P-256 hybrid key exchange test (mlkem768nistp256-sha256),
+  in FIPS mode when FIPS_ENABLED is set.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - '{{fips_setup}}'
+  - security/oqa_agnostic/openssh_pqc_kex
+conditional_schedule:
+  fips_setup:
+    FIPS_ENABLED:
+      1:
+        - fips/fips_setup
