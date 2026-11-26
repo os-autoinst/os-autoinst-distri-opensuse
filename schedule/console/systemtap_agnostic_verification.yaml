@@ -1,0 +1,19 @@
+name: systemtap_agnostic_verification
+description: >
+  Standalone run of the openQA-agnostic systemtap test: pass-4 runtime
+  build for the running kernel, the bsc#1226019 vfs.read reproducer and
+  the cpu_throttle example.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - '{{patch_sut}}'
+  - console/consoletest_setup
+  - console/oqa_agnostic/systemtap_agnostic
+conditional_schedule:
+  # The Installtest images run the GA kernel, but the repositories only
+  # offer kernel-default-devel for the latest kernel update. Only the
+  # ppc64le SLE 15 jobs use this flavour today.
+  patch_sut:
+    FLAVOR:
+      Server-DVD-Incidents-Install:
+        - qa_automation/patch_and_reboot
