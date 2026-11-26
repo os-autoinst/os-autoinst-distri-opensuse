@@ -479,12 +479,8 @@ Run-time related: timeout control to avoid random fails when low performance
 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
-XFSTESTS_HEARTBEAT_INTERVAL | integer | 30 | The interval (seconds) of each heartbeat signal
-XFSTESTS_HEARTBEAT_TIMEOUT | integer | 200 | The timeout (seconds) of not receiving a heartbeat signal
-XFSTESTS_SUBTEST_MAXTIME | integer | 2400 | Define the max test time (seconds) for a single subtest. The test logic will take the time out as a hang, to reset SUT and continue the rest of the tests. Considering xfstests contain some fuzzing tests which take quite a long time to finish, I suggest this max time don't set too small
-XFSTESTS_NO_HEARTBEAT | boolean | 0 | set XFSTESTS_NO_HEARTBEAT=1 to enable non-heartbeat mode. The heartbeat mode is default, you could also unset this parameter
-XFSTESTS_TIMEOUT | integer | 2000 | set de timeout (seconds) for each subtest. It is only used in non-heartbeat mode. And it's the only time control strategy in that mode
-XFSTESTS_HIGHSPEED | boolean | 0 | set XFSTESTS_HIGHSPEED=1 to reduce the typing and waiting time. Suggest to set also VIRTIO_CONSOLE=1 and XFSTESTS_NO_HEARTBEAT=1 to getting highest performance. But beware system may hang in a crash because send_key 'alt-sysrq-b' not working in virtio console.
+XFSTESTS_TIMEOUT | integer | 2000 | The timeout (seconds) for each subtest. A subtest that runs longer is stopped. If the SUT does not respond after this time, it is rebooted and the next subtest runs
+XFSTESTS_HIGHSPEED | boolean | 0 | set XFSTESTS_HIGHSPEED=1 to skip unmounting TEST_DEV and SCRATCH_DEV before each subtest. Set VIRTIO_CONSOLE=1 too for the highest speed
 
 
 Installation related: some optional setting to solve testsuite installation dependency issue
