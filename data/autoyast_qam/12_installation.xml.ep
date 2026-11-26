@@ -279,6 +279,9 @@
   % if ($check_var->('ARCH', 'x86_64')) {
   <partitioning config:type="list">
     <drive>
+    % if (my $disk_wwn = $get_var->('INSTALL_DISK_WWN')) {
+    <device>/dev/disk/by-id/<%= $disk_wwn %></device>
+    % }
     <initialize config:type="boolean">true</initialize>
     <use>all</use>
     </drive>
