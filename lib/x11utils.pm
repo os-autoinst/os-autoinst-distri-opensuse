@@ -10,9 +10,10 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap is_plasma6);
-use utils qw(assert_and_click_until_screen_change type_string_slow);
+use utils qw(assert_and_click_until_screen_change type_string_slow susefirewall2_to_firewalld);
 use Utils::Architectures;
 use Utils::Backends qw(is_pvm is_qemu);
+use Mojo::File 'path';
 
 our @EXPORT = qw(
   desktop_runner_hotkey
@@ -232,30 +233,48 @@ sub ensure_fullscreen {
     }
 }
 
+=head2 _get_graphical_console_tty
+
+  _get_graphical_console_tty($sut_is_offline)
+
+Abstracts reading the $XDG_VTNR variable from a graphical session, supports SUTS that
+are completely offline.
+
+=cut
+
+sub _get_graphical_console_tty {
+    my ($sut_is_offline) = @_;
+    my $tty;
+    if ($sut_is_offline) {
+        enter_cmd('echo $XDG_VTNR > /tmp/vt_nr && exit');
+        select_console('root-console');
+        $tty = script_output('cat /tmp/vt_nr');
+        assert_script_run("rm /tmp/vt_nr");
+        select_console('x11');
+    } else {
+        enter_cmd('curl --form upload=$XDG_VTNR\;filename=x ' . autoinst_url('/uploadlog/xdgvtnr') . ' && exit');
+        $tty = path('ulogs/xdgvtnr')->slurp;
+    }
+    return $tty;
+}
+
 =head2 update_x11_vt
 
   update_x11_vt()
 
-From a graphical session, read $XDG_VTNR to update the VT of the "x11"
-openQA console.
+From a graphical session, update the VT of the "x11" openQA console, doesn't require
+permissions for $serialdev to be set up
 
 =cut
 
 sub update_x11_vt {
     x11_start_program(default_gui_terminal());
-    # At this point, permissions for $serialdev may not be set up yet
-    # so store in a temporary file and finish the setup from root console
-    enter_cmd('echo $XDG_VTNR > /tmp/vt_nr && exit');
+
+    my $tty = _get_graphical_console_tty(get_var('OFFLINE_SUT', 0));
     assert_screen('generic-desktop');    # Waits until finished
-
-    select_console('root-console');
-    my $tty = script_output('cat /tmp/vt_nr');
     die "Failed to get VT number from X11 session" unless $tty =~ /^\d+$/;
-    assert_script_run("rm /tmp/vt_nr");
-
     record_info('XDG_VTNR', "Graphical session on VT $tty");
     console('x11')->set_tty(int($tty));
-    select_console('x11');
 }
 
 sub handle_additional_polkit_windows {
