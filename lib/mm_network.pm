@@ -77,7 +77,10 @@ sub configure_static_ip {
         my $nm_id;
         $device //= '\S';
         # DEVICE is empty in nmcli terse output while the connection is not active yet
-        my $nm_list = script_output_retry("nmcli -t -f DEVICE,NAME c show --active | grep -v '^lo:' | grep -e '$device' | head -n1", retry => 6, delay => 2, fail_message => "No NetworkManager connection for device '$device'");
+        my $nm_list = script_output_retry(
+            "nmcli -t -f DEVICE,NAME c | grep -v '^lo:' | grep -e '$device' | head -n1",
+            retry => 6, delay => 2, type_command => 1,
+            fail_message => "No NetworkManager connection for device '$device'");
         ($device, $nm_id) = split(':', $nm_list);
 
         record_info('set_ip', "Device: $device\n NM ID: $nm_id\nIP: $ip\nMTU: $mtu");
@@ -120,8 +123,10 @@ sub configure_default_gateway {
     if ($is_nm) {
         my $nm_id;
         # When $device is not specified grep just does nothing and first connection is selected
-        # DEVICE is empty in nmcli terse output while the connection is not active yet
-        my $nm_list = script_output_retry("nmcli -t -f DEVICE,NAME c show --active | grep -v '^lo:' | grep -e '$device' | head -n1", retry => 6, delay => 2, fail_message => "No NetworkManager connection for device '$device'");
+        my $nm_list = script_output_retry(
+            "nmcli -t -f DEVICE,NAME c | grep -v '^lo:' | grep -e '$device' | head -n1",
+            retry => 6, delay => 2, type_command => 1,
+            fail_message => "No NetworkManager connection for device '$device'");
         ($device, $nm_id) = split(':', $nm_list);
 
         assert_script_run "nmcli connection modify '$nm_id' ipv4.gateway 10.0.2.2";
