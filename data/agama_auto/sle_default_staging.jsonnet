@@ -1,5 +1,6 @@
 local repo = '{{INCIDENT_REPO}}';
 local urls = std.split(repo, ',');
+local is_immutable = '{{TRANSACTIONAL}}' == '1';
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
@@ -26,6 +27,7 @@ local urls = std.split(repo, ',');
   },
   software: {
     packages: ['openssh-server-config-rootlogin'],
+    patterns: if is_immutable then ['immutable_base'] else [],
     extraRepositories:
       if repo != '' then
         [
