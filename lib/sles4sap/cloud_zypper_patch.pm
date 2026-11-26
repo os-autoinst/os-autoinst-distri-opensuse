@@ -14,6 +14,7 @@ use Exporter qw(import);
 use Mojo::JSON qw( decode_json );
 use mmapi qw(get_current_job_id);
 use sles4sap::azure_cli;
+use sles4sap::qesap::utils qw( qesap_get_public_cloud_tags );
 use publiccloud::utils qw(get_ssh_private_key_path);
 
 
@@ -80,9 +81,13 @@ sub zp_azure_deploy {
 
     my $rg = zp_azure_resource_group();
 
+    my %tags = qesap_get_public_cloud_tags();
+    my $tags = join(' ', map { "$_=$tags{$_}" } sort keys %tags);
+
     az_group_create(
         name => $rg,
-        region => $args{region});
+        region => $args{region},
+        tags => $tags);
 
     my $subnet = DEPLOY_PREFIX . '-snet';
     az_network_vnet_create(

@@ -19,10 +19,28 @@ subtest '[zp_azure_deploy]' => sub {
     $zp->redefine(az_network_vnet_create => sub { $called++; });
     $zp->redefine(az_network_publicip_create => sub { $called++; });
     $zp->redefine(az_vm_create => sub { $called++; });
+    $zp->redefine(qesap_get_public_cloud_tags => sub { return (); });
 
     zp_azure_deploy(region => 'SABBIA', os => 'MARE');
 
     ok $called eq 6;
+};
+
+subtest '[zp_azure_deploy] tags' => sub {
+    my $zp = Test::MockModule->new('sles4sap::cloud_zypper_patch', no_auto => 1);
+
+    $zp->redefine(az_version => sub { });
+    $zp->redefine(zp_azure_resource_group => sub { return 'SPIAGGIA'; });
+    my $rg_tags;
+    $zp->redefine(az_group_create => sub { my %args = @_; $rg_tags = $args{tags}; });
+    $zp->redefine(az_network_vnet_create => sub { });
+    $zp->redefine(az_network_publicip_create => sub { });
+    $zp->redefine(az_vm_create => sub { });
+    $zp->redefine(qesap_get_public_cloud_tags => sub { return (cloud => 'azure', job => '12345'); });
+
+    zp_azure_deploy(region => 'SABBIA', os => 'MARE');
+
+    is($rg_tags, 'cloud=azure job=12345', 'Resource group is created with the openQA tags');
 };
 
 subtest '[zp_azure_deploy] integration test' => sub {
@@ -33,6 +51,7 @@ subtest '[zp_azure_deploy] integration test' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'PALETTA'; });
     $azcli->redefine(az => sub { my %args = @_; push @calls, ['azure_cli', $args{az_args}]; return {rc => 0}; });
+    $zp->redefine(qesap_get_public_cloud_tags => sub { return (); });
 
     zp_azure_deploy(region => 'SABBIA', os => 'MARE');
 
