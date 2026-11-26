@@ -3,8 +3,9 @@
 # Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Install AMD SEV-SNP tooling packages (snphost/sevctl/ucode-amd on
-# the host, snpguest on each guest) before the generic
+# Summary: Activate the Confidential Computing module on SLE 15 SP7, then
+# install AMD SEV-SNP tooling packages (snphost/sevctl/ucode-amd on the host,
+# snpguest on each guest) before the generic
 # virtualization/universal/kernel test module runs. This lets that generic
 # module validate UPDATE_PACKAGE=snphost/snpguest with its own plain
 # 'package is installed and up-to-date' check, without kernel.pm needing to
@@ -21,11 +22,13 @@ use Mojo::Base 'consoletest';
 use testapi;
 use virt_autotest::common;
 use package_utils 'install_package';
-use virt_autotest::sev_snp_utils qw(SNP_HOST_TOOLS SNP_GUEST_TOOLS);
+use virt_autotest::sev_snp_utils qw(SNP_HOST_TOOLS SNP_GUEST_TOOLS activate_coco_module_if_needed);
 
 sub run {
     my $self = shift;
     select_console('root-console');
+
+    activate_coco_module_if_needed();
 
     record_info('Installing SNP host packages', 'Installing SEV-SNP host packages: ' . join(', ', @{+SNP_HOST_TOOLS}));
     install_package(join(' ', @{+SNP_HOST_TOOLS}));
