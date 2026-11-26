@@ -2256,7 +2256,7 @@ sub script_output_retry {
 
     my $exec = "timeout --foreground " . ($timeout - 3) . " $cmd";
     for (1 .. $retry) {
-        my $ret = eval { script_output($exec, timeout => $timeout, proceed_on_failure => 0); };
+        my $ret = eval { script_output($exec, timeout => $timeout, proceed_on_failure => 0, type_command => $args{type_command}); };
         return $ret if ($ret);
         sleep $delay;
         record_info("Retry", "Command:\n$cmd\nfailed, retrying.");
