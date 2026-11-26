@@ -28,6 +28,7 @@ use constant {
           is_micro
           is_alp
           is_agama
+          is_headless_installation
           is_aeon
           is_selfinstall
           is_gnome_next
@@ -1125,6 +1126,16 @@ sub is_agama {
     return 1 if $flavor =~ /agama/;
     return 1 if is_opensuse && $flavor =~ /(online|offline)-install/;
 
+    return 0;
+}
+
+=head2 is_headless_installation
+
+Check if agama headless installation is being used
+=cut
+
+sub is_headless_installation {
+    return 1 if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/);
     return 0;
 }
 

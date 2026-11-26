@@ -20,7 +20,7 @@
 
 use Mojo::Base 'installbasetest';
 use testapi;
-use version_utils qw(is_leap is_sle);
+use version_utils qw(is_leap is_sle is_headless_installation);
 use utils;
 use Utils::Logging qw(export_healthcheck_basic);
 use x11utils 'ensure_unlocked_desktop';
@@ -59,7 +59,7 @@ sub verify_agama_auto_install_done_cmdline {
 sub run {
     my ($self) = @_;
 
-    if ((is_ipmi || is_pvm || is_s390x) && get_var('INST_AUTO')) {
+    if ((is_ipmi || is_pvm || is_s390x || is_headless_installation) && get_var('INST_AUTO')) {
         select_console('install-shell');
         record_info 'Wait for installation phase done';
         verify_agama_auto_install_done_cmdline();
