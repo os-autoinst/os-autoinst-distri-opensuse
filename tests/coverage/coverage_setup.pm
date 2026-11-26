@@ -143,7 +143,9 @@ sub run {
     my @_pkgs = @packages;
     while (@_pkgs) { push @pkg_chunks, [splice(@_pkgs, 0, 20)] }
     for my $chunk (@pkg_chunks) {
-        my $cmd = '--gpg-auto-import-keys in ' . join(' ', @{$chunk});
+        # The image can be ahead of the repositories; let the solver apply
+        # the repository version instead of cancelling on a downgrade.
+        my $cmd = '--gpg-auto-import-keys in --allow-downgrade ' . join(' ', @{$chunk});
         # A chunk can pull well over 1 GiB of debuginfo/debugsource. A slow
         # or mirror-hopping download exceeds the 700 s zypper default.
         my $ret = zypper_call($cmd, exitcode => [0, 8, 106], timeout => 1800);
