@@ -33,20 +33,6 @@ def _get_test_list():
 
 _TESTS = _get_test_list()
 
-# bsc#1290886: these Camel tests read paths that only exist in the build
-# tree, so they fail on an installed system. Match the exact known error,
-# so a different failure still fails the module. Drop an entry once
-# upstream and the package are fixed.
-KNOWN_FAILURES = {
-    'evolution-data-server/test-camel-folder-body-search.test': r'camel_test_provider_init: assertion failed',
-    'evolution-data-server/test-camel-maildir-flags.test': r'camel_test_provider_init: assertion failed',
-    'evolution-data-server/test-camel-provider-imapx.test': r'camel_test_provider_init: assertion failed',
-    'evolution-data-server/test-camel-provider-nntp.test': r'camel_test_provider_init: assertion failed',
-    'evolution-data-server/test-camel-provider-pop3.test': r'camel_test_provider_init: assertion failed',
-    'evolution-data-server/test-camel-mime-filter-crlf.test': r'Failed to open input case in ".*installed-tests/data/crlf-1\.in"',
-    'evolution-data-server/test-camel-mime-filter-tohtml.test': r"'indisk' should not be NULL",
-}
-
 
 @pytest.fixture(scope='session')
 def suite_results():
@@ -104,7 +90,4 @@ def test_evolution_data_server(test_name, suite_results):
     if test_name not in suite_results:
         pytest.skip(f'{test_name} not found in runner output')
     entry = suite_results[test_name]
-    known = KNOWN_FAILURES.get(test_name)
-    if not entry['passed'] and known and re.search(known, entry['output']):
-        pytest.skip(f'bsc#1290886: {test_name} reads a build-tree path')
     assert entry['passed'], f"{test_name} failed:\n{entry['output']}"
