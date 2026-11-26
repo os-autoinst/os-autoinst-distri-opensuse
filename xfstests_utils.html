@@ -14,11 +14,6 @@
 <ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
-      <li><a href="#heartbeat_prepare">heartbeat_prepare</a></li>
-      <li><a href="#heartbeat_start">heartbeat_start</a></li>
-      <li><a href="#heartbeat_stop">heartbeat_stop</a></li>
-      <li><a href="#heartbeat_wait">heartbeat_wait</a></li>
-      <li><a href="#test_wait">test_wait</a></li>
       <li><a href="#test_name">test_name</a></li>
       <li><a href="#log_add">log_add</a></li>
       <li><a href="#get_status_log_content">get_status_log_content</a></li>
@@ -26,7 +21,6 @@
       <li><a href="#exclude_grouplist">exclude_grouplist</a></li>
       <li><a href="#include_grouplist">include_grouplist</a></li>
       <li><a href="#tests_from_ranges">tests_from_ranges</a></li>
-      <li><a href="#test_run">test_run</a></li>
       <li><a href="#save_kdump">save_kdump</a></li>
       <li><a href="#shuffle">shuffle</a></li>
       <li><a href="#copy_log">copy_log</a></li>
@@ -39,31 +33,11 @@
       <li><a href="#recover_after_crash">recover_after_crash</a></li>
       <li><a href="#umount_xfstests_dev">umount_xfstests_dev</a></li>
       <li><a href="#config_debug_option">config_debug_option</a></li>
-      <li><a href="#test_run_without_heartbeat">test_run_without_heartbeat</a></li>
+      <li><a href="#test_run">test_run</a></li>
       <li><a href="#check_bugzilla_status">check_bugzilla_status</a></li>
     </ul>
   </li>
 </ul><h1>lib/xfstests_utils.pm</h1>
-
-<h2 id="heartbeat_prepare">heartbeat_prepare</h2>
-
-<p>Create heartbeat script and directories (Call it only once)</p>
-
-<h2 id="heartbeat_start">heartbeat_start</h2>
-
-<p>Start heartbeat, setup environment variables (Call it everytime SUT reboots)</p>
-
-<h2 id="heartbeat_stop">heartbeat_stop</h2>
-
-<p>Stop heartbeat</p>
-
-<h2 id="heartbeat_wait">heartbeat_wait</h2>
-
-<p>Wait for heartbeat</p>
-
-<h2 id="test_wait">test_wait</h2>
-
-<p>Wait for test to finish</p>
 
 <h2 id="test_name">test_name</h2>
 
@@ -92,10 +66,6 @@
 <h2 id="tests_from_ranges">tests_from_ranges</h2>
 
 <p>Return a list of tests to run from given test ranges ranges - test ranges (e.g. xfs/001-100,btrfs/100-159) dir - xfstests installation dir (e.g. /opt/xfstests)</p>
-
-<h2 id="test_run">test_run</h2>
-
-<p># Run a single test and write log to file # test - test to run (e.g. xfs/001)</p>
 
 <h2 id="save_kdump">save_kdump</h2>
 
@@ -135,7 +105,7 @@
 
 <h2 id="recover_after_crash">recover_after_crash</h2>
 
-<p>Recover the SUT after a subtest crashed or hung. Reboots the system (soft reboot on public cloud), saves kdump data when enabled and reloads loop devices so that the next subtest starts from a clean environment. Shared by the heartbeat path and the non-heartbeat path (test_run_without_heartbeat), and by the sporadic debug loop. $cloud_instance is only used on public cloud.</p>
+<p>Recover the SUT after a subtest crashed or hung. Reboots the system (soft reboot on public cloud), saves kdump data when enabled and reloads loop devices so that the next subtest starts from a clean environment. Used by test_run. $cloud_instance is only used on public cloud.</p>
 
 <h2 id="umount_xfstests_dev">umount_xfstests_dev</h2>
 
@@ -145,9 +115,9 @@
 
 <p>Enable softlockup panic collection and could manually enable other setting by XFSTESTS_DEBUG</p>
 
-<h2 id="test_run_without_heartbeat">test_run_without_heartbeat</h2>
+<h2 id="test_run">test_run</h2>
 
-<p>Run a single test and write log to file but without heartbeat, return log_add output</p>
+<p>Run a single subtest with a timeout, write its log to file and add its status to the status log. Return a hash with name, status, time, output and timeout.</p>
 
 <h2 id="check_bugzilla_status">check_bugzilla_status</h2>
 
