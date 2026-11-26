@@ -125,6 +125,7 @@ sub run {
     my $grub_menu = $testapi::distri->get_grub_menu_agama();
     my $grub_entry_edition = $testapi::distri->get_grub_entry_edition();
     my $agama_up_and_running = $testapi::distri->get_agama_up_and_running();
+    $agama_up_and_running->{timeout_expect_is_shown} = 600;
 
     my @params = prepare_boot_params();
 
