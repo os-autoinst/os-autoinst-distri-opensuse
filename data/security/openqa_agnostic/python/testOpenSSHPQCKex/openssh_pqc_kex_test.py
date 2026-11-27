@@ -39,11 +39,15 @@ import pytest
 KEX = "mlkem768nistp256-sha256"
 # ssh and sshd log this line with LogLevel DEBUG1 (ssh -v, sshd -d)
 KEX_LINE = "kex: algorithm: " + KEX
-# sshd needs an absolute path to re-execute itself
-SSHD = "/usr/sbin/sshd"
+# The sshd that runtest finds in PATH. sshd needs an absolute path to
+# re-execute itself.
+SSHD = os.path.abspath(shutil.which("sshd") or "/usr/sbin/sshd")
 # known_hosts name of the test sshd, so the entry does not depend on the port
 HOST_ALIAS = "openssh-pqc-kex-test"
 TIMEOUT = 60
+# sshd logs this when the port is taken, and then exits
+PORT_IN_USE = "Address already in use"
+PORT_ATTEMPTS = 3
 
 
 def run(cmd, timeout=TIMEOUT):
@@ -60,6 +64,16 @@ def output(result):
         result.returncode, result.stdout, result.stderr)
 
 
+def decode(data):
+    """TimeoutExpired.stdout and .stderr are bytes, also when run() decodes
+    the output, or None when there was no output."""
+    if data is None:
+        return ""
+    if isinstance(data, bytes):
+        return data.decode("utf-8", "replace")
+    return data
+
+
 def read(path):
     with open(path, encoding="utf-8", errors="replace") as handle:
         return handle.read()
@@ -71,16 +85,20 @@ def free_port():
         return sock.getsockname()[1]
 
 
-def wait_for_text(path, text, proc, timeout=TIMEOUT):
-    """Wait until text shows up in the log file of a background process."""
-    deadline = time.monotonic() + timeout
+def wait_until_listening(proc, log, port):
+    """Return True when sshd listens on the port, False when it exited."""
+    # sshd logs this when it is ready. Do not probe the port: sshd -d would
+    # use the probe as its only connection.
+    ready = "Server listening on 127.0.0.1 port %d" % port
+    deadline = time.monotonic() + TIMEOUT
     while time.monotonic() < deadline:
-        if text in read(path):
-            return
+        if ready in read(log):
+            return True
         if proc.poll() is not None:
-            pytest.fail("sshd exited early (rc %s):\n%s" % (proc.returncode, read(path)))
+            return False
         time.sleep(0.2)
-    pytest.fail("'%s' not found in the sshd log within %ss:\n%s" % (text, timeout, read(path)))
+    stop(proc)
+    pytest.fail("'%s' not found in the sshd log within %ss:\n%s" % (ready, TIMEOUT, read(log)))
 
 
 def stop(proc):
@@ -137,6 +155,29 @@ def sshd_command(env, port):
     ]
 
 
+def start_sshd(env, log):
+    """Start sshd in debug mode on a free port and return it and the port.
+
+    free_port() closes its socket before sshd binds the port, so another
+    process can take the port in between. sshd then exits, and the next
+    attempt uses a new port.
+    """
+    for _ in range(PORT_ATTEMPTS):
+        port = free_port()
+        with open(log, "w") as handle:
+            # -d: debug mode, sshd serves one connection and then exits
+            proc = subprocess.Popen(
+                sshd_command(env, port) + ["-d", "-e"],
+                stdin=subprocess.DEVNULL, stdout=handle, stderr=subprocess.STDOUT,
+            )
+        if wait_until_listening(proc, log, port):
+            return proc, port
+        if PORT_IN_USE not in read(log):
+            pytest.fail("sshd exited early (rc %s):\n%s" % (proc.returncode, read(log)))
+    pytest.fail("sshd did not get a free port in %d attempts:\n%s"
+                % (PORT_ATTEMPTS, read(log)))
+
+
 def ssh_command(env, port, *remote_command):
     return [
         "ssh", "-n", "-v", "-p", str(port), "-i", env["user_key"],
@@ -183,23 +224,13 @@ def test_kex_negotiated(ssh_env):
     algorithm."""
     log = os.path.join(ssh_env["dir"], "sshd.log")
     token = "openssh-pqc-kex-" + uuid.uuid4().hex
-    # get the port just before sshd starts, to keep the race window small
-    port = free_port()
-    with open(log, "w") as handle:
-        # -d: debug mode, sshd serves one connection and then exits
-        sshd = subprocess.Popen(
-            sshd_command(ssh_env, port) + ["-d", "-e"],
-            stdin=subprocess.DEVNULL, stdout=handle, stderr=subprocess.STDOUT,
-        )
+    sshd, port = start_sshd(ssh_env, log)
     try:
-        # sshd logs this when it is ready. Do not probe the port: sshd -d
-        # would use the probe as its only connection.
-        wait_for_text(log, "Server listening on 127.0.0.1 port %d" % port, sshd)
         try:
             client = run(ssh_command(ssh_env, port, "echo", token))
         except subprocess.TimeoutExpired as exc:
             pytest.fail("ssh did not finish within %ss\nssh stderr:\n%s\nsshd log:\n%s"
-                        % (exc.timeout, exc.stderr, read(log)))
+                        % (exc.timeout, decode(exc.stderr), read(log)))
         if client.returncode == 0:
             # let sshd finish the session and write its last log lines
             try:
