@@ -1,0 +1,26 @@
+name:  agama-create-hdd-textmode-headless-staging
+description:    >
+    Install sle16 via agama headless mode and publish qcow2 images
+    Requires the setting INST_AUTO
+    systemd.unit - standard way to change target for systemd boot.
+                   It is useful for head-less mode when graphical
+                   interface neither browser needs to be started locally
+vars:
+    EXTRABOOTPARAMS: 'systemd.unit=multi-user.target'
+schedule:
+    - yam/agama/boot_agama
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - '{{zypper_lr}}'
+    - console/system_prepare
+    - console/hostname
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
+conditional_schedule:
+    zypper_lr:
+        FLAVOR:
+            'Online':
+                - console/zypper_lr

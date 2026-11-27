@@ -16,6 +16,7 @@ use File::Basename;
 use Yam::Agama::agama_base 'upload_agama_logs';
 use Yam::Agama::LiveIso qw(read_live_iso);
 use lockapi 'mutex_wait';
+use version_utils qw(is_headless_installation);
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../installation';
@@ -142,7 +143,7 @@ sub run {
 
     validate_ntui_network_configuration if (get_var('EXTRABOOTPARAMS', '') =~ /live\.net_config_tui=1/);
 
-    if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
+    if (is_headless_installation) {
         wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
         return;
     }

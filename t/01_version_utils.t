@@ -64,6 +64,25 @@ subtest 'is_agama' => sub {
 
 };
 
+
+subtest 'is_headless_installation' => sub {
+    use version_utils 'is_headless_installation';
+
+    ok !is_headless_installation, "check !is_headless_installation by default";
+
+    set_var('EXTRABOOTPARAMS', 'systemd.unit=multi-user.target');
+    ok is_headless_installation, "check is_headless_installation with systemd.unit=multi-user.target";
+
+    set_var('EXTRABOOTPARAMS', 'quiet systemd.unit=multi-user.target console=ttyS0');
+    ok is_headless_installation, "check is_headless_installation surrounded by other boot params";
+
+    set_var('EXTRABOOTPARAMS', 'something_else=1');
+    ok !is_headless_installation, "check !is_headless_installation with non-matching params";
+
+    set_var('EXTRABOOTPARAMS', undef);
+};
+
+
 subtest 'is_microos' => sub {
     use version_utils 'is_microos';
 

@@ -23,12 +23,8 @@ use testapi qw(
 );
 use Utils::Architectures qw(is_s390x is_ppc64le);
 use Utils::Backends qw(is_pvm is_svirt);
-use version_utils qw(is_vmware);
+use version_utils qw(is_vmware is_headless_installation);
 use power_action_utils 'power_action';
-
-sub is_headless_installation {
-    return 1 if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/);
-}
 
 sub run {
     my $self = shift;
