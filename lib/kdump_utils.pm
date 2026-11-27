@@ -126,7 +126,8 @@ sub prepare_for_kdump {
     my %args = @_;
     $args{test_type} //= '';
 
-    install_required_packages;
+    # debuginfo_only is for tests that need the debuginfo but not kdump.
+    install_required_packages unless $args{debuginfo_only};
     return if ($args{test_type} eq 'before');
 
     # add debuginfo channels

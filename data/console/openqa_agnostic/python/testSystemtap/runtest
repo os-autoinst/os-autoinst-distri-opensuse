@@ -1,0 +1,47 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: systemtap pass-4 runtime build and bsc#1226019 regression
+# desc: >
+#   Builds the systemtap runtime for the running kernel (pass 4) and runs
+#   the bsc#1226019 vfs.read reproducer plus the cpu_throttle example on
+#   the installed system. A build-time %check cannot do this because the
+#   build root has no matching live kernel.
+# steps:
+#   - verify systemtap and the kernel build tree of the running kernel
+#   - run a hello-world script
+#   - run the bsc#1226019 vfs.read probe and reject modpost errors
+#   - pass-4 build the cpu_throttle example
+#   - run cpu_throttle for one second when therm_throt_process exists
+# requires: systemtap, systemtap-docs, kernel-default-devel,
+#   kernel-default-debuginfo, gcc, make and python3-pytest installed
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all pass; cpu_throttle cases skip on non-Intel; under kernel
+#   lockdown the module cases do a pass-4 build instead of loading, and
+#   skip when stap cannot sign modules (no EFI/MOK);
+#   vfs.read needs the running kernel's debuginfo
+# platform: SLE 15 SP4-SP5, SLE 16; SP6/SP7 blocked by a pass-4 build bug
+# tags: console systemtap kernel module bsc1226019 cpu_throttle
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(conftest.py systemtap_helpers.py test_systemtap.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+ensure_command_available pytest
+
+set +e
+pytest -v -s --tb=short test_systemtap.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ] && grep -q '<testcase' results.xml; then
+    exit 0
+fi
+exit $rc
