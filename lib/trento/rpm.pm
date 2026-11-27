@@ -13,7 +13,7 @@ use warnings;
 use base 'Exporter';
 use Exporter;
 use testapi;
-use utils qw(zypper_call file_content_replace random_string);
+use utils qw(zypper_call file_content_replace random_string script_retry);
 use version_utils qw(is_sle);
 use Carp qw(croak);
 
@@ -29,11 +29,18 @@ our @EXPORT = qw(
   trento_rpm_setup_tls
   trento_rpm_prepare_ansible
   trento_rpm_run_playbook
+  trento_rpm_prepare_e2e
+  trento_rpm_setup_cypress
+  trento_rpm_run_cypress
 );
 
 use constant TLS_DIR => '/root/trento-tls';
 use constant INVENTORY => '/root/trento-inventory.yml';
 use constant PLAYBOOK_LOG => '/var/log/trento-ansible-playbook.log';
+use constant WEB_URL => 'https://localhost';
+use constant WEB_DIR => '/root/trento-web';
+use constant NODE_DIR => '/opt/node';
+use constant PHOTOFINISH_BIN => '/usr/local/bin/photofinish';
 
 =head2 trento_rpm_install_ansible_trento
 
@@ -135,6 +142,134 @@ sub trento_rpm_run_playbook {
     record_info('Trento packages', script_output('rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{VENDOR})\n" "trento-*" ansible-trento | sort', proceed_on_failure => 1));
     record_info('Trento repos', script_output('zypper -n search -s -x trento-web trento-wanda trento-agent', proceed_on_failure => 1));
     die 'The suse.trento.site playbook failed' if $ret;
+}
+
+=head2 trento_rpm_prepare_e2e
+
+    trento_rpm_prepare_e2e(admin_password => $password);
+
+Prepare the SUT for the end-to-end tests: stop the Trento agent, remove its
+host from Trento Web, raise the PostgreSQL C<max_connections> to 200 and
+restart PostgreSQL, Trento Web and Trento Wanda.
+The agent is removed because the tests load their own hosts with photofinish.
+C<admin_password> is mandatory and must not contain single quotes.
+The host removal is retried until the agent heartbeat expires.
+
+=cut
+
+sub trento_rpm_prepare_e2e {
+    my (%args) = @_;
+    croak 'Missing mandatory admin_password argument' unless $args{admin_password};
+    $args{admin_user} //= 'admin';
+    my $url = WEB_URL;
+
+    zypper_call('in jq');
+    assert_script_run('systemctl stop trento-agent');
+
+    my $token = script_output(
+        qq{curl -sSf -X POST $url/api/session -H 'Content-Type: application/json' }
+          . qq{-d '{"username":"$args{admin_user}","password":"$args{admin_password}"}' | jq -r .access_token});
+    my $host_id = script_output(
+        qq{curl -sSf $url/api/v1/hosts -H 'Authorization: Bearer $token' | jq -r '.[0].id // empty'});
+    if ($host_id) {
+        # The API answers 422 until the heartbeat of the stopped agent expires
+        script_retry(q{test "$(curl -s -o /dev/null -w '%{http_code}' -X DELETE }
+              . qq{$url/api/v1/hosts/$host_id -H 'Authorization: Bearer $token')" = 204},
+            retry => 15, delay => 10, timeout => 60);
+    }
+
+    assert_script_run(q{sudo -u postgres psql -v ON_ERROR_STOP=1 -c "ALTER SYSTEM SET max_connections = 200"});
+    assert_script_run('systemctl restart postgresql');
+    assert_script_run('systemctl restart trento-web trento-wanda');
+    script_retry("curl -fsS $url/api/readyz", retry => 15, delay => 10, timeout => 60);
+}
+
+=head2 trento_rpm_setup_cypress
+
+    trento_rpm_setup_cypress();
+
+Install what the Trento Web Cypress tests need: system libraries for the
+Electron browser, Node.js, photofinish, and the test sources of
+C<trento-project/web>.
+The tests come from the Git tag equal to the version of the installed
+C<trento-web> package, or from the C<TRENTO_WEB_REF> setting when it is set.
+Node.js has the version of F<.tool-versions> in that tag, and photofinish the
+version of C<TRENTO_PHOTOFINISH_VERSION> (default C<v1.4.2>).
+The test CA is added to the NSS database that the browser uses.
+
+=cut
+
+sub trento_rpm_setup_cypress {
+    my $web_ref = get_var('TRENTO_WEB_REF') // script_output(q{rpm -q --qf '%{VERSION}' trento-web | cut -d- -f1});
+    my $photofinish_version = get_var('TRENTO_PHOTOFINISH_VERSION', 'v1.4.2');
+    my $web_dir = WEB_DIR;
+    my $node_dir = NODE_DIR;
+
+    zypper_call('in git-core xz tar xauth xorg-x11-server-Xvfb mozilla-nss-tools libgtk-3-0 libnotify4 libXss1 libXtst6 libgbm1 libasound2');
+
+    assert_script_run(join(' ', 'git clone --depth 1 --filter=blob:none --sparse',
+            "--branch $web_ref https://github.com/trento-project/web.git $web_dir"), timeout => 300);
+    assert_script_run("git -C $web_dir sparse-checkout set --no-cone /test/e2e/ /test/fixtures/ /.photofinish.toml /.tool-versions");
+    record_info('Trento web tests', "Tests taken from the tag $web_ref");
+
+    my $node_version = script_output(qq{awk '/^nodejs/ {print \$2}' $web_dir/.tool-versions});
+    assert_script_run(join(' ', "mkdir -p $node_dir &&",
+            "curl -fsSL https://nodejs.org/dist/v$node_version/node-v$node_version-linux-x64.tar.xz",
+            "| tar -xJ --strip-components=1 -C $node_dir"), timeout => 300);
+
+    assert_script_run(join(' ', "curl -fsSL https://github.com/trento-project/photofinish/releases/download/$photofinish_version/photofinish_linux_x86_64.tar.gz",
+            '| tar -xz -C /usr/local/bin photofinish'), timeout => 120);
+    assert_script_run('photofinish --help > /dev/null');
+
+    assert_script_run('mkdir -p ~/.pki/nssdb');
+    assert_script_run('certutil -d sql:$HOME/.pki/nssdb -N --empty-password');
+    assert_script_run('certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n trento-test-ca -i ' . TLS_DIR . '/ca.crt');
+
+    assert_script_run("export PATH=$node_dir/bin:\$PATH; cd $web_dir/test/e2e && npm ci", timeout => 900);
+}
+
+=head2 trento_rpm_run_cypress
+
+    trento_rpm_run_cypress(admin_password => $password, spec => $spec);
+
+Run the Cypress tests prepared by C<trento_rpm_setup_cypress> against the
+Trento Web of the SUT.
+C<admin_password> is mandatory and must not contain single quotes.
+C<spec> is an optional Cypress spec pattern relative to F<test/e2e>. All the
+tests run when it is empty.
+C<expose> is an optional string with more comma-separated values for the
+Cypress C<--expose> option.
+The screenshots of failed tests are uploaded as an archive.
+
+=cut
+
+sub trento_rpm_run_cypress {
+    my (%args) = @_;
+    croak 'Missing mandatory admin_password argument' unless $args{admin_password};
+    $args{spec} //= '';
+    $args{expose} //= '';
+    $args{admin_user} //= 'admin';
+    my $dir = WEB_DIR . '/test/e2e';
+
+    my $expose = join(',', 'wanda_mode=prod', 'web_mode=prod', 'photofinish_binary=' . PHOTOFINISH_BIN, $args{expose} || ());
+    my $cmd = join(' ', 'export PATH=' . NODE_DIR . '/bin:$PATH;',
+        "cd $dir &&",
+        'NODE_EXTRA_CA_CERTS=' . TLS_DIR . '/ca.crt',
+        'cypress_video=false',
+        "CYPRESS_login_user=$args{admin_user}",
+        "CYPRESS_login_password='$args{admin_password}'",
+        'npx cypress run',
+        '--config baseUrl=' . WEB_URL . ',retries=1',
+        "--expose $expose",
+        ($args{spec} ? "--spec '$args{spec}'" : ()),
+        '> /var/log/trento-cypress.log 2>&1');
+    my $ret = script_run($cmd, timeout => 3600);
+    upload_logs('/var/log/trento-cypress.log', failok => 1);
+    if (script_run("test -d $dir/cypress/screenshots") == 0) {
+        assert_script_run("tar -czf /tmp/cypress-screenshots.tar.gz -C $dir/cypress screenshots");
+        upload_logs('/tmp/cypress-screenshots.tar.gz', failok => 1);
+    }
+    die 'The Cypress tests failed' if $ret;
 }
 
 1;
