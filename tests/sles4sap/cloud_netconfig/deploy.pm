@@ -73,6 +73,7 @@ use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle';
 use sles4sap::azure_cli;
+use sles4sap::qesap::utils qw( qesap_get_public_cloud_tags );
 
 use constant DEPLOY_PREFIX => 'clne';
 
@@ -83,6 +84,7 @@ sub run {
       unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
     my $rg = DEPLOY_PREFIX . get_current_job_id();
+    my %tags = qesap_get_public_cloud_tags();
 
     select_serial_terminal;
 
@@ -104,7 +106,10 @@ sub run {
     # break test steps that relay to remote ssh comman output
     assert_script_run('rm ~/.ssh/config');
 
-    az_group_create(name => $rg, region => $provider->provider_client->region);
+    az_group_create(
+        name => $rg,
+        region => $provider->provider_client->region,
+        tags => join(' ', map { "$_=$tags{$_}" } sort keys %tags));
 
     # Create a virtual network with a subnet
     my $vnet = DEPLOY_PREFIX . '-vnet';
