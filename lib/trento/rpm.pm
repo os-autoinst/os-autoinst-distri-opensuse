@@ -225,7 +225,9 @@ sub trento_rpm_setup_cypress {
     assert_script_run('certutil -d sql:$HOME/.pki/nssdb -N --empty-password');
     assert_script_run('certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n trento-test-ca -i ' . TLS_DIR . '/ca.crt');
 
-    assert_script_run("export PATH=$node_dir/bin:\$PATH; cd $web_dir/test/e2e && npm ci", timeout => 900);
+    # The tests import code from assets/js/lib, which needs the dependencies of assets
+    assert_script_run("export PATH=$node_dir/bin:\$PATH; cd $web_dir/assets && npm ci", timeout => 900);
+    assert_script_run("cd $web_dir/test/e2e && npm ci", timeout => 900);
 }
 
 =head2 trento_rpm_run_cypress
