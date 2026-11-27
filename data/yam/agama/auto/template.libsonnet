@@ -37,6 +37,7 @@ function(access_ssh_enabled=false,
          scripts_post_partitioning='',
          scripts_post='',
          software_only_required=false,
+         version_latest=false,
           // Only for 16.0 needed
          ssh_public_key=false,
          ssl_certificates=false,
@@ -80,11 +81,17 @@ function(access_ssh_enabled=false,
           },
           [if decrypt_password != '' || registration_packagehub || multipath_activate then 'questions']: {
             [if questions_policy_auto then 'policy']: 'auto',
-            answers: std.prune([
-              if decrypt_password != '' then answers_lib.questions_decrypt(decrypt_password),
-              if registration_packagehub then answers_lib.questions_import_gpg(),
-              if multipath_activate then answers_lib.questions_activate_multipath(),
-            ]),
+              answers: std.prune(
+                if version_latest then [
+                  if decrypt_password != '' then answers_lib.questions_decrypt(decrypt_password),
+                  if registration_packagehub then answers_lib.questions_import_gpg(),
+                  if multipath_activate then answers_lib.questions_activate_multipath(),
+                ] else [
+                  if decrypt_password != '' then answers_lib.questions_decrypt_old(decrypt_password),
+                  if registration_packagehub then answers_lib.questions_import_gpg_old(),
+                  if multipath_activate then answers_lib.questions_activate_multipath_old(),
+                ]
+             ),
           },
           [if storage != '' then 'storage']: storage_lib[storage],
           [if user == true then 'user']: base_lib['user'],
