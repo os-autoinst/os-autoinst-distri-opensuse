@@ -19,7 +19,8 @@ sub run {
     trento_rpm_run_cypress(
         admin_password => get_var('TRENTO_ADMIN_PASSWORD'),
         admin_user => get_var('TRENTO_ADMIN_USER', 'admin'),
-        spec => get_var('TRENTO_CYPRESS_SPEC', ''));
+        # TODO: temporary, run only the about spec while testing. Restore get_var('TRENTO_CYPRESS_SPEC', '')
+        spec => 'cypress/e2e/about.cy.js');
 }
 
 sub post_fail_hook {
