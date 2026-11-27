@@ -252,6 +252,9 @@ sub check_exceptions {
         ".*kdump-notify.service.*UNSAFE*",
         ".*plymouth-(halt|kexec|poweroff|reboot).service.*UNSAFE*",
         ".*purge-kernels.service.*UNSAFE*",
+        # The ppc64le HMC jobs boot the LPAR disk that an earlier job
+        # installed, so the services of that system can show up too.
+        '.*(ovs-vswitchd|ovsdb-server|vncmanager)\.service.*UNSAFE',
         # xvnc@ is the per-connection openQA VNC unit on s390x
         ".*xvnc\@.*.service.*UNSAFE*",
         ".*/etc/issue contents.*WEAK*",
