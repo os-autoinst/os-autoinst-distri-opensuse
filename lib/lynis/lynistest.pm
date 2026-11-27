@@ -232,8 +232,9 @@ sub check_exceptions {
         ".*rc-local.service.*UNSAFE*",
         ".*rescue.service.*UNSAFE*",
         ".*rsyslog.service.*UNSAFE*",
-        ".*serial-getty\@hvc0.service.*UNSAFE*",
-        ".*serial-getty\@ttyS0.service.*UNSAFE*",
+        # The serial-getty@ units depend on the consoles of the machine, for
+        # example ttyAMA0, ttyS1 and ttyS2 also show up on ppc64le.
+        '.*serial-getty@[^.]+\.service.*UNSAFE',
         ".*smartd.service.*UNSAFE*",
         ".*snapperd.service.*UNSAFE*",
         ".*sshd.service.*UNSAFE*",
@@ -251,9 +252,9 @@ sub check_exceptions {
         ".*kdump-notify.service.*UNSAFE*",
         ".*plymouth-(halt|kexec|poweroff|reboot).service.*UNSAFE*",
         ".*purge-kernels.service.*UNSAFE*",
-        ".*serial-getty\@hvc1.service.*UNSAFE*",
-        ".*serial-getty\@sclp_line0.service.*UNSAFE*",
-        ".*serial-getty\@ttysclp0.service.*UNSAFE*",
+        # The ppc64le HMC jobs boot the LPAR disk that an earlier job
+        # installed, so the services of that system can show up too.
+        '.*(ovs-vswitchd|ovsdb-server|vncmanager)\.service.*UNSAFE',
         # xvnc@ is the per-connection openQA VNC unit on s390x
         ".*xvnc\@.*.service.*UNSAFE*",
         ".*/etc/issue contents.*WEAK*",
