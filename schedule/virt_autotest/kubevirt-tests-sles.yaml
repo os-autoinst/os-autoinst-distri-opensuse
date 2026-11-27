@@ -30,5 +30,6 @@ conditional_schedule:
         SERVICE:
             rke2-server:
                 - virt_autotest/kubevirt_tests_server
+                - virt_autotest/kubevirt_fake_red
             rke2-agent:
                 - virt_autotest/kubevirt_tests_agent
