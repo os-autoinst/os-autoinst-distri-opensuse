@@ -131,6 +131,9 @@ sub trento_rpm_run_playbook {
         'suse.trento.site >', PLAYBOOK_LOG, '2>&1');
     my $ret = script_run($cmd, timeout => 1800);
     upload_logs(PLAYBOOK_LOG, failok => 1);
+    # Show the installed versions and their source repository, to check the incident packages are used
+    record_info('Trento packages', script_output('rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{VENDOR})\n" "trento-*" ansible-trento | sort', proceed_on_failure => 1));
+    record_info('Trento repos', script_output('zypper -n search -s -x trento-web trento-wanda trento-agent', proceed_on_failure => 1));
     die 'The suse.trento.site playbook failed' if $ret;
 }
 
