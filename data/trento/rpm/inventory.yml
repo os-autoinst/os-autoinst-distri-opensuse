@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: SUSE LLC
+# SPDX-License-Identifier: Apache-2.0
+#
+# Single node inventory for the suse.trento.site playbook of ansible-trento,
+# based on examples/single-node/inventory.yml in
+# https://github.com/trento-project/ansible, without alerting and with TLS.
+# The ${...} placeholders are replaced by the test.
+
+---
+all:
+  children:
+    trento_server:
+      hosts:
+        localhost:
+          ansible_connection: local
+    postgres_hosts:
+      hosts:
+        localhost:
+          ansible_connection: local
+    rabbitmq_hosts:
+      hosts:
+        localhost:
+          ansible_connection: local
+    prometheus_hosts:
+      hosts:
+        localhost:
+          ansible_connection: local
+    agents:
+      hosts:
+        localhost:
+          ansible_connection: local
+
+  vars:
+    ansible_python_interpreter: "${PYTHON_INTERPRETER}"
+    trento_server_name: "localhost"
+    trento_server_url: "https://localhost"
+    trento_web_admin_password: "${ADMIN_PASSWORD}"
+    trento_web_postgres_password: "${SERVICES_PASSWORD}"
+    trento_wanda_postgres_password: "${SERVICES_PASSWORD}"
+    trento_rabbitmq_password: "${SERVICES_PASSWORD}"
+    trento_prometheus_auth: "basic"
+    trento_prometheus_auth_username: "prometheus"
+    trento_prometheus_auth_password: "${SERVICES_PASSWORD}"
+
+    nginx_ssl_cert: "{{ lookup('file', '${TLS_DIR}/server.crt') }}"
+    nginx_ssl_key: "{{ lookup('file', '${TLS_DIR}/server.key') }}"
+    agent_server_ca_cert: "{{ lookup('file', '${TLS_DIR}/ca.crt') }}"
+
+    provision_postgres: true
+    provision_rabbitmq: true
+    provision_prometheus: true
+    provision_proxy: true

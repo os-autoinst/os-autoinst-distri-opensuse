@@ -581,8 +581,11 @@ Variable        | Type      | Default value | Details
 CERT_MANAGER_VERSION | string | v1.20.2 | cert-manager chart version used for ingress TLS
 TRENTO_ADMIN_PASSWORD | string | random 12 character password | Admin password for Trento Web, generated when unset
 TRENTO_ADMIN_USER | string | admin | Admin user for Trento Web
+TRENTO_CYPRESS_SPEC | string | | Cypress spec pattern, relative to test/e2e, for the RPM tests. Runs all the specs when empty
 TRENTO_HELM_CHARTS_REF | string | main | Git ref of the Trento helm-charts repository to check out
 TRENTO_HELM_CHARTS_REPO | string | https://github.com/trento-project/helm-charts.git | Repository providing the upstream smoke test script
 TRENTO_HELM_RELEASE | string | trento-server | Name of the Helm release
 TRENTO_INGRESS_URL | string | https://$TRENTO_SERVER_HOSTNAME | Base URL used to reach Trento through the ingress
+TRENTO_PHOTOFINISH_VERSION | string | v1.4.2 | Release of photofinish used by the Cypress tests of the RPM tests
 TRENTO_SERVER_HOSTNAME | string | localhost | Hostname used for the ingress and the TLS certificate
+TRENTO_WEB_REF | string | version of the installed trento-web | Git tag or branch of trento-project/web that provides the Cypress tests
