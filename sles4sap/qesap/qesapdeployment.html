@@ -54,6 +54,7 @@
           <li><a href="#qesap_ansible_cmd">qesap_ansible_cmd</a></li>
           <li><a href="#qesap_ansible_script_output_file">qesap_ansible_script_output_file</a></li>
           <li><a href="#qesap_ansible_script_output">qesap_ansible_script_output</a></li>
+          <li><a href="#qesap_ansible_collect_logs">_qesap_ansible_collect_logs</a></li>
           <li><a href="#qesap_ansible_fetch_file">qesap_ansible_fetch_file</a></li>
           <li><a href="#qesap_ansible_reg_module">qesap_ansible_reg_module</a></li>
           <li><a href="#qesap_remote_hana_public_ips">qesap_remote_hana_public_ips</a></li>
@@ -777,6 +778,38 @@ remotely executed command.</code></pre>
 </dd>
 </dl>
 
+<h3 id="qesap_ansible_collect_logs">_qesap_ansible_collect_logs</h3>
+
+<pre><code>Collect all the logs listed by C&lt;_qesap_cluster_log_cmds&gt; from one host
+into a single tarball created on the remote system and download it with
+Ansible.
+
+  _qesap_ansible_collect_logs(provider =&gt; &#39;AZURE&#39;, host =&gt; &#39;hana[0]&#39;);
+
+It uses playbook data/sles4sap/collect_logs.yaml
+
+1. ansible-playbook runs the playbook
+2. the playbook collects every command output and every file in a work
+   directory on the remote host and creates a tarball there
+3. qesap_ansible_fetch_file downloads the tarball locally
+
+Collecting the logs on the remote host keeps them out of the Ansible
+control node memory.
+
+Return the local path of the downloaded tarball.</code></pre>
+
+<dl>
+
+<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory3"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
+<dd>
+
+</dd>
+<dt id="HOST---filter-hosts-in-the-inventory2"><b>HOST</b> - filter hosts in the inventory</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="qesap_ansible_fetch_file">qesap_ansible_fetch_file</h3>
 
 <pre><code>Use Ansible to fetch a file from remote.
@@ -794,11 +827,11 @@ Return the local path of the downloaded file.</code></pre>
 
 <dl>
 
-<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory3"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
+<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory4"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
 <dd>
 
 </dd>
-<dt id="HOST---filter-hosts-in-the-inventory2"><b>HOST</b> - filter hosts in the inventory</dt>
+<dt id="HOST---filter-hosts-in-the-inventory3"><b>HOST</b> - filter hosts in the inventory</dt>
 <dd>
 
 </dd>
@@ -884,7 +917,7 @@ Return total time of retry loop in case of pass.</code></pre>
 <dd>
 
 </dd>
-<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory4"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
+<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory5"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
 <dd>
 
 </dd>
@@ -904,7 +937,7 @@ Return total time of retry loop in case of pass.</code></pre>
 <dd>
 
 </dd>
-<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory5"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
+<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory6"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
 <dd>
 
 </dd>
@@ -920,7 +953,7 @@ Return total time of retry loop in case of pass.</code></pre>
 
 <dl>
 
-<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory6"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
+<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory7"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
 <dd>
 
 </dd>
@@ -930,7 +963,10 @@ Return total time of retry loop in case of pass.</code></pre>
 
 <pre><code>Collect logs from a deployed cluster.
 This is about logs generated remotely on the two HANA nodes,
-`crm report` collection is part of this function.</code></pre>
+`crm report` collection is part of this function.
+
+Every host log is collected in a tarball created on the remote host
+and downloaded with Ansible, see C&lt;_qesap_ansible_collect_logs&gt;.</code></pre>
 
 <h3 id="qesap_save_y2logs">qesap_save_y2logs</h3>
 
