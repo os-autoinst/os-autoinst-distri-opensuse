@@ -1,6 +1,8 @@
 local arch = '{{ARCH}}';
 local version = '{{VERSION}}';
-local is_immutable = '{{TRANSACTIONAL}}' == '1';
+local transactional = '{{TRANSACTIONAL}}';
+# Unfilled or empty placeholder must not enable the immutable mode
+local is_immutable = transactional == '1';
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
