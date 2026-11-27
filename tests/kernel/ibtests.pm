@@ -3,20 +3,18 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: git-core twopence-shell-client bc iputils python pciutils
+# Package: hpc-testing rdma-core
 # Summary: run InfiniBand test suite hpc-testing
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
-use Utils::Backends;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use lockapi;
-use mmapi;
-use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
+use Utils::Logging qw(save_and_upload_log);
 use mm_network;
 use LTP::WhiteList;
 use LTP::utils 'prepare_whitelist_environment';
@@ -210,17 +208,13 @@ sub post_fail_hook {
 =head1 Description
 
 Test module for bare metal testing of InfiniBand. This section describes how
-to setup your environment for running the testsuite on bare metal. Once fully
-implemented, it will be expanded to virtualized testing.
+to setup your environment for running the testsuite on bare metal.
 
 This test is executing the hpc-testing testsuite from
 https://github.com/SUSE/hpc-testing
 
 In order to run this testsuite, two machines with InfiniBand HCA's are
 required.
-
-The test has some additional dependencies (twopence) that need to be in
-DEVEL_TOOLS_REPO.
 
 =head2 Logs for bug reports
 
@@ -234,23 +228,24 @@ C<ibtests-results-raw.xml>. Attach these files to InfiniBand bug reports.
 
 =head2 openQA worker setup
 
-The workers with the InfiniBand HCA's need a special worker class, in this case
-we assume it is "64bit-mlx_con5". See the schedule/kernel/ibtest-master.yaml and
-schedule/kernel/ibtest-slave.yaml for more details.
+The workers with the InfiniBand HCAs need a special worker class, in this case
+we assume it is "64bit-mlx_con5".
 
 =head2 openQA test suites
 
-As the test is executed on two hosts, two test suites should be created. Please note:
-most settings are now defined in the YAML schedule.
+As the test is executed on two hosts, two test suites should be created. Both
+need C<IBTEST_IP1> and C<IBTEST_IP2>, the IP addresses of the master and the
+slave. Use the C<agama_ibtest-*> schedules for SLE 16 and the C<ibtest-*>
+schedules for SLE 15.
 
 =head3 ibtest-master
 
-YAML_SCHEDULE=schedule/kernel/ibtest-master.yaml
+YAML_SCHEDULE=schedule/kernel/agama_ibtest-master.yaml
 
 =head3 ibtest-slave
 
 PARALLEL_WITH=ibtest-master
-YAML_SCHEDULE=schedule/kernel/ibtest-slave.yaml
+YAML_SCHEDULE=schedule/kernel/agama_ibtest-slave.yaml
 
 =head1 Configuration
 
@@ -287,7 +282,7 @@ Default: 999
 =head2 IBTEST_MPI_FLAVOURS
 
 Comma separated list of MPI flavours to test.
-Default: mvapich2,mpich,openmpi,openmpi2,openmpi3
+Default: chosen by hpc-testing based on the SUSE version under test.
 
 =head2 IBTEST_IPOIB_MODES
 

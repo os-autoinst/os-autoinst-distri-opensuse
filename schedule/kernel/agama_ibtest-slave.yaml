@@ -4,10 +4,8 @@ description:    >
 vars:
     INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
     DESKTOP: textmode
-    IBTESTS: 1
     IBTEST_ROLE: IBTEST_SLAVE
     LTP_BAREMETAL: '1'
-    MLX_PROTOCOL: 1
     PARALLEL_WITH: ibtest-master
 schedule:
     - installation/ipxe_install
