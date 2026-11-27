@@ -218,7 +218,7 @@ sub trento_rpm_setup_cypress {
             "| tar -xJ --strip-components=1 -C $node_dir"), timeout => 300);
 
     assert_script_run(join(' ', "curl -fsSL https://github.com/trento-project/photofinish/releases/download/$photofinish_version/photofinish_linux_x86_64.tar.gz",
-            '| tar -xz -C /usr/local/bin photofinish'), timeout => 120);
+            '| tar -xz -C /usr/local/bin'), timeout => 120);
     assert_script_run('photofinish --help > /dev/null');
 
     assert_script_run('mkdir -p ~/.pki/nssdb');
