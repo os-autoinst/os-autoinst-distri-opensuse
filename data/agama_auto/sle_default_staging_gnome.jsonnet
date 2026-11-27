@@ -30,9 +30,9 @@ local is_immutable = transactional == '1';
     packages: [],
     patterns:
       if is_immutable then {
-        add: ['gnome', 'immutable_base']
+        add: ['gnome', 'immutable_base', 'selinux']
       } else {
-        add: ['gnome']
+        add: ['gnome', 'selinux']
       },
     extraRepositories:
       if repo != '' then

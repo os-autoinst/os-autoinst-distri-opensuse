@@ -29,7 +29,7 @@ local is_immutable = transactional == '1';
   },
   software: {
     packages: ['openssh-server-config-rootlogin'],
-    patterns: if is_immutable then ['immutable_base'] else [],
+    patterns: ['selinux'] + (if is_immutable then ['immutable_base'] else []),
     extraRepositories:
       if repo != '' then
         [
