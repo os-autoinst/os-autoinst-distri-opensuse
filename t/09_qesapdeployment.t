@@ -996,6 +996,36 @@ subtest '[qesap_cluster_logs] skips collection when host unreachable' => sub {
     ok(!$crm_report_called, 'CRM report was not called for unreachable host');
 };
 
+subtest '[qesap_post_fail_logs] order, ETX and failok' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @calls;
+    my @terminate_calls;
+    my @failok_calls;
+
+    $qesap->redefine(type_string => sub {
+            my ($string, %args) = @_;
+            push @calls, 'type_string';
+            push @terminate_calls, $args{terminate_with};
+            return; });
+    $qesap->redefine(qesap_cluster_logs => sub { push @calls, 'qesap_cluster_logs'; return; });
+    $qesap->redefine(qesap_upload_logs => sub {
+            my (%args) = @_;
+            push @calls, 'qesap_upload_logs';
+            push @failok_calls, $args{failok};
+            return; });
+
+    qesap_post_fail_logs();
+
+    is_deeply(\@calls, ['type_string', 'qesap_cluster_logs', 'qesap_upload_logs'],
+        'The serial terminal is unblocked before the logs are collected and uploaded');
+    is_deeply(\@terminate_calls, ['ETX'], 'ETX is sent to the serial terminal');
+    is_deeply(\@failok_calls, [0], 'failok defaults to 0');
+
+    @failok_calls = ();
+    qesap_post_fail_logs(failok => 1);
+    is_deeply(\@failok_calls, [1], 'failok is forwarded to qesap_upload_logs');
+};
+
 subtest '[qesap_upload_crm_report] die for missing mandatory arguments' => sub {
     dies_ok { qesap_upload_crm_report(); } "Expected die if called without arguments";
     dies_ok { qesap_upload_crm_report(provider => 'SAND'); } "Expected die if called without host";
