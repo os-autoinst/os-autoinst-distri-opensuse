@@ -35,6 +35,11 @@ for cmd in ssh ssh-keygen sshd; do
     ensure_command_available "$cmd"
 done
 
+# Exit 0 when results.xml has test cases, also when tests fail.
+# agnosticTestRunner runs `./runtest && mv results.xml ...`, thus a non-zero
+# exit code would drop the results, and parse_results reports the failures
+# from results.xml. A standalone run shows the failures in the pytest summary,
+# not in the exit code.
 set +e
 pytest -v --tb=short openssh_pqc_kex_test.py --junitxml=results.xml
 rc=$?
