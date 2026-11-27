@@ -23,6 +23,7 @@ sub new {
               agama-unsupported-autoyast-elements
               agama-installing
               agama-sle-overview
+              agama-install-finished
               agama-multipath)],
         timeout_expect_is_shown => $args->{timeout_expect_is_shown} // 240
     }, $class;
@@ -31,6 +32,9 @@ sub new {
 sub expect_is_shown {
     my ($self) = @_;
     assert_screen($self->{tag_array_ref_any_first_screen_shown}, $self->{timeout_expect_is_shown});
+    if (match_has_tag('agama-install-finished')) {
+        record_soft_failure('bsc#1291469 agama stalled');
+    }
 }
 
 1;
