@@ -7,7 +7,8 @@
   software: {
     patterns: {
       add: ['gnome']
-    }
+    },
+    packages: ['xauth'],
   },
   bootloader: {
     stopOnBootMenu: true,
