@@ -1,0 +1,16 @@
+---
+name: mau-extratests-devtools
+description: Domain-specific CLI tests for developer toolchain
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/git
+  - console/gdb
+  - console/perf
+  - console/libxslt
+  - console/gcc
+  - console/valgrind
+  - console/coredump_collect

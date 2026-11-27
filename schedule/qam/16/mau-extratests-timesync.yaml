@@ -1,0 +1,14 @@
+---
+name: mau-extratests-timesync
+description: Domain-specific CLI tests for time synchronization and real-time
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/chrony
+  - console/timezone
+  - console/synce4l_gpsd
+  - console/stalld
+  - console/coredump_collect

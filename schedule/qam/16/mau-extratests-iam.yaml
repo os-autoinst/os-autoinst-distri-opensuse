@@ -1,0 +1,15 @@
+---
+name: mau-extratests-iam
+description: Domain-specific CLI tests for identity and access management
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/pam
+  - console/krb5
+  - console/sssd_389ds_functional
+  - console/ds389_advanced_functional
+  - console/oqa_agnostic/sudo_agnostic
+  - console/coredump_collect

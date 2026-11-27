@@ -1,0 +1,24 @@
+---
+name: mau-extratests-base
+description: Domain-specific CLI tests for base system and core utilities
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/man_pages
+  - console/cron
+  - console/cpio
+  - console/tar
+  - console/uuidd
+  - console/shells
+  - console/aaa_base
+  - console/oqa_agnostic/unzip_agnostic
+  - console/osinfo_db
+  - console/zziplib
+  - console/sevenzip
+  - console/autoyast_removed
+  - console/glibc_sanity
+  - console/ncurses
+  - console/coredump_collect

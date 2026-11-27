@@ -1,0 +1,15 @@
+---
+name: mau-extratests-packaging
+description: Domain-specific CLI tests for package and software management
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/update_alternatives
+  - console/rpm
+  - console/command_not_found
+  - console/pkcon
+  - console/systemd_rpm_macros
+  - console/coredump_collect

@@ -1,0 +1,15 @@
+---
+name: mau-extratests-logging
+description: Domain-specific CLI tests for logging and auditing
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/journalctl
+  - console/journalctlLevels
+  - console/syslog
+  - console/journald_fss
+  - qe-core/systemd/journal_remote
+  - console/coredump_collect
