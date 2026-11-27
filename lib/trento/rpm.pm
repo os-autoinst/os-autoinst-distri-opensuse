@@ -209,7 +209,7 @@ sub trento_rpm_setup_cypress {
 
     assert_script_run(join(' ', 'git clone --depth 1 --filter=blob:none --sparse',
             "--branch $web_ref https://github.com/trento-project/web.git $web_dir"), timeout => 300);
-    assert_script_run("git -C $web_dir sparse-checkout set --no-cone /test/e2e/ /test/fixtures/ /.photofinish.toml /.tool-versions");
+    assert_script_run("git -C $web_dir sparse-checkout set --no-cone /assets/ /test/e2e/ /test/fixtures/ /.photofinish.toml /.tool-versions");
     record_info('Trento web tests', "Tests taken from the tag $web_ref");
 
     my $node_version = script_output(qq{awk '/^nodejs/ {print \$2}' $web_dir/.tool-versions});
