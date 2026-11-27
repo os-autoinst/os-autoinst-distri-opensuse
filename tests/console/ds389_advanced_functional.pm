@@ -91,6 +91,8 @@ sub clean_up {
     script_run("rm -rf $backup_dir");
     script_run("mv /etc/hosts.bak /etc/hosts");
 
+    script_run("cd ~");
+
     # Gracefully stop the 389-ds service instance if running
     script_run("dsctl localhost stop");
 }
