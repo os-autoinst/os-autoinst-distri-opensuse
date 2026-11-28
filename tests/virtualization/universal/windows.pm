@@ -8,6 +8,7 @@
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
 use Mojo::Base 'consoletest';
+use virt_autotest::domain_management_utils qw(check_guest_state shutdown_guest);
 use virt_autotest::common;
 use virt_autotest::utils;
 use testapi;
@@ -39,7 +40,13 @@ sub run {
 
     # Remove already existing guests to ensure a fresh start (needed for restarting jobs)
     remove_guest $_ foreach (keys %virt_autotest::common::imports);
-    #    shutdown_guests();    # Shutdown SLES guests as they are not needed here
+    my @sles_guests = grep {
+        my $state = check_guest_state(guest => $_);
+        $state && $state ne 'shutoff';
+    } keys %virt_autotest::common::guests;
+    # Save the state before shutdown so a partial failure can still be recovered.
+    $self->{sles_guests_to_restore} = \@sles_guests;
+    shutdown_guest(guest => join(' ', @sles_guests), die => 1) if @sles_guests;
 
     import_guest $_, 'virt-install' foreach (values %virt_autotest::common::imports);
 
@@ -72,16 +79,19 @@ sub run {
     assert_script_run "grep '$virt_autotest::common::imports{$_}->{version}' /tmp/$_-systeminfo.txt" foreach (keys %virt_autotest::common::imports);
 }
 
+# Keep Windows guest definitions and disks on both outcomes while releasing host memory.
 sub post_fail_hook {
     my $self = shift;
-    # Note: Don't cleanup guests on test failure, so their state is preserved for debugging purposes!
     $self->SUPER::post_fail_hook;
+    $self->post_run_hook;
 }
 
 sub post_run_hook {
-    #    my $self = shift;
-    remove_guest $_ foreach (keys %virt_autotest::common::imports);
-    #    $self->SUPER::post_run_hook;
+    my $self = shift;
+    my @sles_guests = @{delete $self->{sles_guests_to_restore} // []};
+    my @windows_guests = grep { check_guest_state(guest => $_) } keys %virt_autotest::common::imports;
+    shutdown_guest(guest => join(' ', @windows_guests), die => 1) if @windows_guests;
+    ensure_online($_, skip_network => 1) foreach @sles_guests;
 }
 
 1;
