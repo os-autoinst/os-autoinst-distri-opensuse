@@ -10,10 +10,10 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap is_plasma6);
-use Mojo::File qw(path);
 use utils qw(assert_and_click_until_screen_change type_string_slow);
 use Utils::Architectures;
 use Utils::Backends qw(is_pvm is_qemu);
+use Utils::Logging qw(read_ulog);
 
 our @EXPORT = qw(
   desktop_runner_hotkey
@@ -246,10 +246,12 @@ sub update_x11_vt {
     x11_start_program(default_gui_terminal());
     # At this point, permissions for $serialdev may not be set up yet and switching
     # to root-console won't work either, so (mis)use log upload.
-    enter_cmd('curl --form upload=$XDG_VTNR\;filename=x ' . autoinst_url('/uploadlog/xdgvtnr') . ' && exit');
-    assert_screen('generic-desktop');    # Waits until finished
+    my $filename = 'xdgvtnr';
+    unlink "ulogs/$filename";    # otherwise a repeated call reads the previous upload
+    enter_cmd('curl --form upload=$XDG_VTNR\;filename=x ' . autoinst_url("/uploadlog/$filename") . ' && exit');
+    my $tty = read_ulog($filename);    # the typed command runs asynchronously, so poll for its upload
+    assert_screen('generic-desktop');    # the terminal closed after the upload
 
-    my $tty = path('ulogs/xdgvtnr')->slurp;
     record_info('XDG_VTNR', "Graphical session on VT $tty");
     console('x11')->set_tty(int($tty));
 }

@@ -22,15 +22,22 @@ use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638 do
 use Utils::Systemd 'get_started_systemd_services';
 use File::Basename 'basename';
 use Mojo::File 'path';
+use Time::HiRes qw(sleep);
 use serial_terminal qw(select_serial_terminal upload_file);
 use version_utils qw(is_tumbleweed is_transactional);
 use network_utils;
+
+use constant {
+    READ_ULOG_POLL_INTERVAL => 0.5,
+    READ_ULOG_TIMEOUT => 90,
+};
 
 our @EXPORT = qw(
   save_and_upload_log
   tar_and_upload_log
   save_and_upload_systemd_unit_log
   save_ulog
+  read_ulog
   export_healthcheck_basic
   select_log_console
   cleanup_known_coredumps
@@ -147,6 +154,32 @@ sub save_ulog {
     my ($out, $filename) = @_;
     mkdir('ulogs') if (!-d 'ulogs');
     path("ulogs/$filename")->spew($out);    # save the logs to the ulogs directory on the worker directly
+}
+
+=head2 read_ulog
+
+ my $content = read_ulog($filename, timeout => 90);
+
+Reads the file C<$filename> from the ulogs directory of the worker and dies if the file does not appear within
+C<$timeout> seconds, the default matching the bound of C<upload_logs>. C</uploadlog/#filename> stores the upload
+before it answers, but a command that C<enter_cmd> typed can still be running on the SUT when the test reads the
+file, so poll for it instead of reading it immediately. A caller that uploads under the same file name repeatedly
+must remove the previous file first, otherwise the poll returns the stale content.
+
+=cut
+
+sub read_ulog {
+    my ($filename, %args) = @_;
+    my $timeout = $args{timeout} // READ_ULOG_TIMEOUT;
+    my $file = path("ulogs/$filename");
+    my $attempts = int($timeout / READ_ULOG_POLL_INTERVAL) || 1;
+    for my $attempt (1 .. $attempts) {
+        return $file->slurp if -e $file;
+        diag "Waiting up to $timeout seconds for $file" if $attempt == 1;
+        sleep READ_ULOG_POLL_INTERVAL if $attempt < $attempts;
+    }
+    eval { save_screenshot; 1 } or diag "Saving a screenshot failed: $@";    # the timeout is the primary error
+    die "Gave up reading $file after $timeout seconds";
 }
 
 =head2 export_healthcheck_basic
