@@ -177,4 +177,66 @@ EOF
     is_deeply(zypper_patches(), [], 'no table in output');
 };
 
+
+subtest 'is_systemd_boot' => sub {
+    my $mock = Test::MockModule->new('utils');
+    my ($cmd, $rc);
+    $mock->redefine(script_run => sub { $cmd = shift; return $rc });
+
+    $rc = 0;
+    is(is_systemd_boot(), 1, 'systemd-boot detected on localhost');
+    is($cmd, 'bootctl status 2>/dev/null | grep -E "Product.*systemd-boot"', 'bootctl status is checked locally');
+    $rc = 1;
+    is(is_systemd_boot(dst_machine => 'localhost'), 0, 'no systemd-boot on localhost');
+
+    $rc = 0;
+    is(is_systemd_boot(dst_machine => 'sut.example.com'), 1, 'systemd-boot detected on remote host');
+    is($cmd, 'ssh root@sut.example.com "bootctl status 2>/dev/null | grep -E "Product.*systemd-boot""', 'bootctl status is checked over ssh');
+    $rc = 1;
+    is(is_systemd_boot(dst_machine => 'sut.example.com'), 0, 'no systemd-boot on remote host');
+};
+
+subtest 'is_esp_system' => sub {
+    my $mock = Test::MockModule->new('utils');
+    my ($cmd, $rc);
+    $mock->redefine(script_run => sub { $cmd = shift; return $rc });
+
+    $rc = 0;
+    is(is_esp_system(), 1, 'ESP system detected on localhost');
+    is($cmd, '[ -d /sys/firmware/efi ]', '/sys/firmware/efi is checked locally');
+    $rc = 1;
+    is(is_esp_system(), 0, 'no ESP on localhost');
+
+    $rc = 0;
+    is(is_esp_system(dst_machine => 'sut.example.com'), 1, 'ESP system detected on remote host');
+    is($cmd, 'ssh root@sut.example.com "[ -d /sys/firmware/efi ]"', '/sys/firmware/efi is checked over ssh');
+    $rc = 1;
+    is(is_esp_system(dst_machine => 'sut.example.com'), 0, 'no ESP on remote host');
+};
+
+subtest 'find_esp_mount_point' => sub {
+    my $mock = Test::MockModule->new('utils');
+    my ($rc, @run, @output);
+    $mock->redefine(
+        script_run => sub { push @run, shift; return $rc },
+        script_output => sub { push @output, shift; return '/boot' },
+    );
+
+    $rc = 0;
+    is(find_esp_mount_point(), '/boot', 'ESP mount point on localhost');
+    is_deeply(\@run, ['[ -d /sys/firmware/efi ]'], 'ESP is checked locally');
+    is_deeply(\@output, ['bootctl --print-esp-path'], 'bootctl prints the ESP path locally');
+
+    (@run, @output) = ();
+    is(find_esp_mount_point(dst_machine => 'sut.example.com'), '/boot', 'ESP mount point on remote host');
+    is_deeply(\@run, ['ssh root@sut.example.com "[ -d /sys/firmware/efi ]"'], 'ESP is checked on the remote host');
+    is_deeply(\@output, ['ssh root@sut.example.com "bootctl --print-esp-path"'], 'bootctl prints the ESP path on the remote host');
+
+    (@run, @output) = ();
+    $rc = 1;
+    ok(!eval { find_esp_mount_point(dst_machine => 'sut.example.com'); 1 }, 'dies on a system without ESP');
+    like($@, qr/has no ESP/, 'with an error message about the missing ESP');
+    is_deeply(\@output, [], 'bootctl is not asked for the ESP path');
+};
+
 done_testing();
