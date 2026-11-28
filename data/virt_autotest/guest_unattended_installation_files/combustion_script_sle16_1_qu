@@ -1,0 +1,12 @@
+#!/bin/bash
+# combustion: network
+
+# Do registration
+SUSEConnect -r ##Registration-Code## --url ##Registration-Server##
+
+# Refresh and list repos
+zypper --non-interactive --gpg-auto-import-keys refresh
+zypper repos --details
+
+# Leave a marker
+echo "Configured with combustion" > /etc/issue.d/combustion
