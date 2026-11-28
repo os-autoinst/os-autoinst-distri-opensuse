@@ -54,7 +54,6 @@ my @log_files = ();
 # and must be between 3 and 24 characters long
 use constant QESAPDEPLOY_PREFIX => 'qesapdep';
 
-use constant QESAPDEPLOY_VENV => '/tmp/exec_venv';
 use constant QESAPDEPLOY_PY_DEFAULT_VER => '3.11';
 use constant QESAP_CACHE_ROOT => '/root/qesap_cache';
 
@@ -169,7 +168,7 @@ sub _qesap_deployment_dir {
 =head3 _qesap_get_paths
 
     Returns a hash containing directory paths for qe-sap-deployment:
-    deployment_dir, terraform_dir, roles_dir, roles_dir_path.
+    deployment_dir, terraform_dir, venv_dir, roles_dir, roles_dir_path.
     Unlike _qesap_get_file_paths(), this does not require QESAP_CONFIG_FILE.
 
 =over
@@ -190,6 +189,10 @@ sub _qesap_get_paths {
     my %paths;
     $paths{deployment_dir} = $args{deployment_dir} // _qesap_deployment_dir(qesap_release => $args{qesap_release});
     $paths{terraform_dir} = $paths{deployment_dir} . '/terraform';
+    # The Python virtualenv is always a sibling of the deployment code folder, dirname(deployment_dir)/exec_venv.
+    # In this way a cached release uses the venv baked next to it and a code download uses the venv next to the
+    # default deployment folder. The venv is used in place and never moved.
+    $paths{venv_dir} = dirname($paths{deployment_dir}) . '/exec_venv';
     $paths{roles_dir} = get_var('QESAP_ROLES_DIR', '/root/community.sles-for-sap');
     $paths{roles_dir_path} = $paths{roles_dir} . '/roles';
     return (%paths);
@@ -350,7 +353,8 @@ sub qesap_ansible_create_section {
 =item B<PROGRESS> - instead of the command output, print a C<dd> style progress to stdout. If set to a number
 bigger than one, also print that number of lines from the output after the command finishes.
 
-=item B<VENV> - optional path to the Python virtualenv to activate. Defaults to C<QESAPDEPLOY_VENV>.
+=item B<VENV> - mandatory path to the Python virtualenv to activate. Callers get it from
+C<< $paths{venv_dir} >> of _qesap_get_paths().
 
 =back
 =cut
@@ -358,12 +362,13 @@ bigger than one, also print that number of lines from the output after the comma
 sub _qesap_venv_cmd_exec {
     my (%args) = @_;
     croak 'Missing mandatory cmd argument' unless $args{cmd};
+    croak 'Missing mandatory venv argument' unless $args{venv};
     $args{timeout} //= bmwqemu::scale_timeout(90);
     croak "Invalid timeout value $args{timeout}" unless $args{timeout} > 0;
     my $retry = $args{retry} // 1;
     my $print_tail = ($args{progress} && looks_like_number($args{progress}) && $args{progress} > 1);
     $args{progress} //= 0;
-    my $venv = $args{venv} // QESAPDEPLOY_VENV;
+    my $venv = $args{venv};
 
     my $cmd = $args{cmd};
     # pipefail is needed as at the end of the command line there could be a pipe
@@ -445,22 +450,27 @@ sub _qesap_pip {
 =item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
 cache lookup entirely. Forwarded to _qesap_get_paths().
 
-=item B<VENV> - optional path for the Python virtualenv. Defaults to C<QESAPDEPLOY_VENV>.
-
 =item B<DEPLOYMENT_DIR> - optional override for the deployment directory, forwarded to _qesap_get_paths().
+
+The virtualenv path is derived by _qesap_get_paths() as a sibling of the
+deployment folder, so a cached release reuses the venv baked next to it.
 
 =back
 =cut
 
 sub _qesap_pip_install {
     my (%args) = @_;
-    my $venv = $args{venv} // QESAPDEPLOY_VENV;
     my %paths = _qesap_get_paths(deployment_dir => $args{deployment_dir}, qesap_release => $args{qesap_release});
+    my $venv = $paths{venv_dir};
     my $pip_install_log = '/tmp/pip_install.txt';
     my $pip_ints_cmd = join(' ', _qesap_pip(), 'install --no-color --no-cache-dir',
         '-r', "$paths{deployment_dir}/requirements.txt");
 
-    # Create a Python virtualenv
+    record_info('QESAP venv', (script_run("test -e $venv/bin/activate") == 0) ?
+          "Reusing existing venv $venv" : "Creating venv $venv");
+
+    # Create a Python virtualenv.
+    # Re-running this command on an existing venv keeps the installed packages.
     assert_script_run(join(' ', _qesap_py(), '-m venv', $venv));
 
     # Configure pip in it, ignore the return value
@@ -511,7 +521,8 @@ sub _qesap_galaxy_install {
         cmd => $ans_galaxy_cmd,
         timeout => 720,
         retry => 3,
-        log_file => $galaxy_install_log);
+        log_file => $galaxy_install_log,
+        venv => $paths{venv_dir});
 
     # here it is possible to retry in case of exit code 124
     die "cmd:$ans_galaxy_cmd  --> ret:$ret" if $ret;
@@ -655,7 +666,6 @@ sub qesap_cache_releases {
         die "qesap_cache_releases: '$version' is not a valid numeric release version" unless _qesap_is_valid_version($version);
         my $ver_dir = QESAP_CACHE_ROOT . "/$version";
         my $deploy_dir = "$ver_dir/qe-sap-deployment";
-        my $venv_dir = "$ver_dir/exec_venv";
 
         record_info('QESAP cache', "Baking qe-sap-deployment $version into cache");
         _qesap_get_deployment_code(
@@ -664,10 +674,9 @@ sub qesap_cache_releases {
         );
 
         record_info('QESAP cache', "Baking venv for $version");
-        _qesap_pip_install(
-            deployment_dir => $deploy_dir,
-            venv => $venv_dir,
-        );
+        # The venv path is derived from the deployment folder and is
+        # <cache>/<ver>/exec_venv, the layout used by the consumers.
+        _qesap_pip_install(deployment_dir => $deploy_dir);
     }
 }
 
@@ -805,7 +814,8 @@ sub qesap_execute {
         cmd => $qesap_cmd,
         timeout => $args{timeout},
         log_file => $exec_log,
-        progress => ($args{cmd} eq 'ansible' ? 10 : 0));
+        progress => ($args{cmd} eq 'ansible' ? 10 : 0),
+        venv => $paths{venv_dir});
 
     my @qesap_logs;
 
@@ -1246,6 +1256,10 @@ sub _qesap_ansible_get_playbook {
 
 =item B<VERBOSE> - enable verbosity, default is OFF
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_paths(). When omitted,
+QESAP_INSTALL_VERSION is read and 'latest' is resolved through GitHub.
+
 =back
 =cut
 
@@ -1258,7 +1272,8 @@ sub qesap_ansible_cmd {
     $args{failok} //= 0;
     my $verbose = $args{verbose} ? ' -vv' : '';
 
-    my $inventory = qesap_get_inventory(provider => $args{provider});
+    my %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
+    my $inventory = qesap_get_inventory(provider => $args{provider}, qesap_release => $args{qesap_release});
     record_info('Ansible cmd:', "Run on '$args{filter}' node\ncmd: '$args{cmd}'");
 
     my $ansible_cmd = join(' ',
@@ -1275,7 +1290,7 @@ sub qesap_ansible_cmd {
         "'ansible_ssh_common_args=\"-o UpdateHostKeys=yes -o StrictHostKeyChecking=accept-new\"'") :
       $ansible_cmd;
 
-    my $ret = _qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout});
+    my $ret = _qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout}, venv => $paths{venv_dir});
 
     die "cmd: $ansible_cmd ret: $ret" if ($ret && !$args{failok});
 }
@@ -1323,6 +1338,9 @@ sub qesap_ansible_cmd {
     Same timeout is used both for the execution of script_output.yaml and for the fetch_file.
     Timeout of the same amount is started two times.
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_paths() and qesap_ansible_fetch_file().
+
 =back
 =cut
 
@@ -1339,7 +1357,8 @@ sub qesap_ansible_script_output_file {
     $args{out_path} //= '/tmp/ansible_script_output/';
     $args{file} //= 'testout.txt';
 
-    my $inventory = qesap_get_inventory(provider => $args{provider});
+    my %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
+    my $inventory = qesap_get_inventory(provider => $args{provider}, qesap_release => $args{qesap_release});
     my $playbook = 'script_output.yaml';
     _qesap_ansible_get_playbook(playbook => $playbook);
 
@@ -1351,7 +1370,8 @@ sub qesap_ansible_script_output_file {
     push @ansible_cmd, ('-e', "failok=yes") if ($args{failok});
 
     my $ret = _qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd),
-        timeout => $args{timeout});
+        timeout => $args{timeout},
+        venv => $paths{venv_dir});
     die "ret: $ret" if ($ret && !$args{failok});
 
     # Grab the file from the remote
@@ -1364,7 +1384,8 @@ sub qesap_ansible_script_output_file {
         out_path => $args{out_path},
         file => $args{file},
         timeout => $args{timeout},
-        verbose => $args{verbose});
+        verbose => $args{verbose},
+        qesap_release => $args{qesap_release});
 }
 
 =head3 qesap_ansible_script_output
@@ -1393,6 +1414,9 @@ sub qesap_ansible_script_output_file {
 
 =item B<REMOTE_PATH> - Path to save file in the remote (without file name)
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to qesap_ansible_script_output_file().
+
 =back
 =cut
 
@@ -1416,7 +1440,8 @@ sub qesap_ansible_script_output {
         remote_path => $args{remote_path},
         out_path => $args{out_path},
         file => $args{file},
-        timeout => $args{timeout});
+        timeout => $args{timeout},
+        qesap_release => $args{qesap_release});
     # Print output and delete output file
     my $output = script_output("cat $local_tmp");
     enter_cmd("rm $local_tmp || echo 'Nothing to delete'");
@@ -1459,6 +1484,7 @@ sub _qesap_ansible_collect_logs {
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $playbook = 'collect_logs.yaml';
     _qesap_ansible_get_playbook(playbook => $playbook);
+    my %paths = _qesap_get_paths();
 
     my $file = "$args{host}-qesap_logs.tar.gz";
     # $args{host} is an Ansible host pattern (for example 'hana[0]').
@@ -1471,7 +1497,8 @@ sub _qesap_ansible_collect_logs {
         '-u', 'cloudadmin', '-b', '--become-user', 'root', '-e', "'$variables'");
 
     # Log collection is best effort: never die, the caller decides what to do
-    _qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd), timeout => bmwqemu::scale_timeout(1200));
+    _qesap_venv_cmd_exec(cmd => join(' ', @ansible_cmd), timeout => bmwqemu::scale_timeout(1200),
+        venv => $paths{venv_dir});
 
     return qesap_ansible_fetch_file(
         provider => $args{provider},
@@ -1519,6 +1546,9 @@ sub _qesap_ansible_collect_logs {
 
 =item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vv', default is 0.
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_paths().
+
 =back
 =cut
 
@@ -1534,7 +1564,8 @@ sub qesap_ansible_fetch_file {
     $args{verbose} //= 0;
     my $verbose = $args{verbose} ? '-vv' : '';
 
-    my $inventory = qesap_get_inventory(provider => $args{provider});
+    my %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
+    my $inventory = qesap_get_inventory(provider => $args{provider}, qesap_release => $args{qesap_release});
     my $fetch_playbook = 'fetch_file.yaml';
 
     _qesap_ansible_get_playbook(playbook => $fetch_playbook);
@@ -1550,7 +1581,8 @@ sub qesap_ansible_fetch_file {
 
     my $ret = _qesap_venv_cmd_exec(
         cmd => join(' ', @ansible_fetch_cmd),
-        timeout => $args{timeout});
+        timeout => $args{timeout},
+        venv => $paths{venv_dir});
     die "ret: $ret" if ($ret && !$args{failok});
 
     # reflect the same logic implement in the playbook
@@ -1701,6 +1733,9 @@ sub qesap_upload_crm_report {
 
 =item B<FAILOK> - if not set, Ansible failure result in die
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to the qesap_ansible_* helpers.
+
 =back
 =cut
 
@@ -1723,14 +1758,16 @@ sub _qesap_upload_supportconfig_logs {
         host_keys_check => 1,
         verbose => 1,
         timeout => bmwqemu::scale_timeout(1200),
-        failok => $args{failok});
+        failok => $args{failok},
+        qesap_release => $args{qesap_release});
     qesap_ansible_cmd(cmd => "sudo chmod 755 /var/tmp/scc_$log_filename.txz",
         provider => $args{provider},
         filter => "\"$args{host}\"",
         host_keys_check => 1,
         verbose => 1,
         timeout => bmwqemu::scale_timeout(60),
-        failok => $args{failok});
+        failok => $args{failok},
+        qesap_release => $args{qesap_release});
     my $local_path = qesap_ansible_fetch_file(provider => $args{provider},
         host => $args{host},
         failok => $args{failok},
@@ -1738,7 +1775,8 @@ sub _qesap_upload_supportconfig_logs {
         remote_path => '/var/tmp/',
         out_path => '/tmp/ansible_script_output/',
         file => "scc_$log_filename.txz",
-        verbose => 1);
+        verbose => 1,
+        qesap_release => $args{qesap_release});
     upload_logs($local_path, failok => 1);
 }
 
@@ -1920,6 +1958,12 @@ Returns 1 if host answers Ansible ping within timeout, 0 otherwise.
 
 =item B<inventory> - optional, ansible inventory file path
 
+=item B<venv> - optional, Python virtualenv path. When not given, the default one
+for the deployment folder is used.
+
+=item B<qesap_release> - optional resolved qe-sap-deployment release, forwarded to
+_qesap_get_paths() when the paths have to be computed.
+
 =item B<timeout> - optional, default 60s (scaled)
 
 =item B<retry> - optional, default 2
@@ -1931,7 +1975,12 @@ sub _qesap_host_is_reachable {
     my (%args) = @_;
     foreach (qw(provider host)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{user} //= 'cloudadmin';
-    $args{inventory} //= qesap_get_inventory(provider => $args{provider});
+    my %paths;
+    unless ($args{inventory} && $args{venv}) {
+        %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
+    }
+    $args{inventory} //= qesap_get_inventory(provider => $args{provider}, qesap_release => $args{qesap_release});
+    $args{venv} //= $paths{venv_dir};
     $args{timeout} //= bmwqemu::scale_timeout(60);
     $args{retry} //= 2;
 
@@ -1941,7 +1990,7 @@ sub _qesap_host_is_reachable {
         '-u', $args{user},
         '-m', 'ping');
 
-    my $ret = _qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout}, retry => $args{retry});
+    my $ret = _qesap_venv_cmd_exec(cmd => $ansible_cmd, timeout => $args{timeout}, retry => $args{retry}, venv => $args{venv});
     record_info('Reachability', "Host $args{host} " . ($ret ? 'unreachable' : 'reachable'));
     return $ret == 0 ? 1 : 0;
 }
@@ -1956,22 +2005,28 @@ sub _qesap_host_is_reachable {
 
 =item B<INVENTORY> - Ansible inventory if available
 
+=item B<QESAP_RELEASE> - optional resolved qe-sap-deployment release (e.g. 2.6.15), or undef to skip the
+cache lookup entirely. Forwarded to _qesap_get_paths() and _qesap_upload_supportconfig_logs().
+
 =back
 =cut
 
 sub qesap_supportconfig_logs {
     my (%args) = @_;
     croak "Missing mandatory argument 'provider'" unless $args{provider};
-    $args{inventory} //= qesap_get_inventory(provider => $args{provider});
+    my %paths = _qesap_get_paths(qesap_release => $args{qesap_release});
+    $args{inventory} //= qesap_get_inventory(provider => $args{provider}, qesap_release => $args{qesap_release});
 
     # return != 0 means no inventory
     return if (script_run("test -e $args{inventory}", 60));
     foreach my $host ('hana[0]', 'hana[1]') {
-        unless (_qesap_host_is_reachable(provider => $args{provider}, host => $host)) {
+        unless (_qesap_host_is_reachable(provider => $args{provider}, host => $host,
+                inventory => $args{inventory}, venv => $paths{venv_dir})) {
             record_info('Skip Collection', "$host unreachable, skipping supportconfig log collection", result => 'fail');
             next;
         }
-        _qesap_upload_supportconfig_logs(host => $host, provider => $args{provider}, failok => 1);
+        _qesap_upload_supportconfig_logs(host => $host, provider => $args{provider},
+            failok => 1, qesap_release => $args{qesap_release});
     }
 }
 

@@ -112,6 +112,97 @@ subtest '[qesap_get_inventory] qesap_release omitted' => sub {
     ok !defined $calls[0]{qesap_release}, 'qesap_release is undef when not provided';
 };
 
+subtest '[qesap_ansible_cmd] venv is a sibling of the deployment folder' => sub {
+    my @venvs;
+    my $cache_probe_ret = 0;
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    # _qesap_get_paths() and _qesap_deployment_dir() are not mocked: the venv has to
+    # follow the deployment folder that the code resolves on its own.
+    $qesap->redefine(script_run => sub { return $cache_probe_ret; });
+    $qesap->redefine(qesap_get_inventory => sub { return '/INVENTORY'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(_qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @venvs, $args{venv};
+            return 0;
+    });
+
+    my @cases = (
+        {name => 'default deployment folder',
+            release => undef, deployment_dir => undef, cache_probe_ret => 1,
+            expected => '/root/exec_venv'},
+        {name => 'cached release baked with its own venv',
+            release => '2.6.15', deployment_dir => undef, cache_probe_ret => 0,
+            expected => '/root/qesap_cache/2.6.15/exec_venv'},
+        {name => 'cache miss falls back to the default folder',
+            release => '2.6.15', deployment_dir => undef, cache_probe_ret => 1,
+            expected => '/root/exec_venv'},
+        {name => 'custom deployment folder keeps the sibling rule',
+            release => undef, deployment_dir => '/some/where/my-branch', cache_probe_ret => 1,
+            expected => '/some/where/exec_venv'},
+    );
+
+    set_var('QESAP_INSTALL_VERSION', undef);
+    my $i = 0;
+    foreach my $case (@cases) {
+        set_var('QESAP_DEPLOYMENT_DIR', $case->{deployment_dir});
+        $cache_probe_ret = $case->{cache_probe_ret};
+        qesap_ansible_cmd(provider => 'AZURE', cmd => 'uptime', qesap_release => $case->{release});
+        is scalar @venvs, $i + 1, "$case->{name}: one venv command executed";
+        is $venvs[$i], $case->{expected}, $case->{name};
+        $i++;
+    }
+    set_var('QESAP_DEPLOYMENT_DIR', undef);
+};
+
+subtest '[qesap_ansible_cmd] forwards qesap_release to the inventory' => sub {
+    my @inventory_args;
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(script_run => sub { return 1; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(_qesap_venv_cmd_exec => sub { return 0; });
+    $qesap->redefine(qesap_get_inventory => sub {
+            my (%args) = @_;
+            push @inventory_args, {%args};
+            return '/INVENTORY';
+    });
+
+    qesap_ansible_cmd(provider => 'AZURE', cmd => 'uptime', qesap_release => '2.6.15');
+
+    is $inventory_args[0]{qesap_release}, '2.6.15', 'qesap_release is forwarded to qesap_get_inventory';
+};
+
+subtest '[qesap_ansible_fetch_file] runs in the deployment venv' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_get_inventory => sub { return '/INVENTORY'; });
+    $qesap->noop('_qesap_ansible_get_playbook');
+
+    my $ret = qesap_ansible_fetch_file(provider => 'AZURE', host => 'hana[0]', remote_path => '/var/tmp/');
+
+    is $ret, '/tmp/ansible_script_output/testout.txt', 'Returns the expected local path';
+    ok((any { /source \/root\/exec_venv\/bin\/activate/ } @calls), 'Fetch runs in the venv next to the deployment folder');
+};
+
+subtest '[qesap_ansible_script_output_file] runs in the deployment venv' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @calls;
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_get_inventory => sub { return '/INVENTORY'; });
+    $qesap->noop('_qesap_ansible_get_playbook');
+    $qesap->redefine(qesap_ansible_fetch_file => sub { return '/tmp/ansible_script_output/testout.txt'; });
+
+    qesap_ansible_script_output_file(provider => 'AZURE', cmd => 'uptime', host => 'hana[0]');
+
+    ok((any { /source \/root\/exec_venv\/bin\/activate/ } @calls), 'Script output runs in the venv next to the deployment folder');
+};
+
+
 sub create_qesap_prepare_env_deployment_code_mocks {
     my ($calls) = @_;
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
@@ -121,12 +212,7 @@ sub create_qesap_prepare_env_deployment_code_mocks {
     $qesap->redefine(assert_script_run => sub { push @$calls, $_[0]; });
     $qesap->redefine(script_run => sub { push @$calls, $_[0]; return 0; });
     $qesap->redefine(_qesap_get_variables => sub { return {}; });
-    $qesap->redefine(_qesap_create_folder_tree => sub { return; });
-    $qesap->redefine(qesap_get_roles_code => sub { return; });
-    $qesap->redefine(_qesap_pip_install => sub { return; });
-    $qesap->redefine(_qesap_galaxy_install => sub { return; });
-    $qesap->redefine(qesap_yaml_replace => sub { return; });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->noop(qw(_qesap_create_folder_tree qesap_get_roles_code _qesap_pip_install _qesap_galaxy_install qesap_yaml_replace qesap_upload_logs));
     $qesap->redefine(qesap_get_terraform_dir => sub { return '/BRUCE/OCEAN'; });
     $qesap->redefine(qesap_execute => sub { return (0, 'ALL GOOD'); });
     $qesap->redefine(_qesap_get_paths => sub {
@@ -346,9 +432,11 @@ subtest '[qesap_cache_releases] bakes each version into the cache' => sub {
     $qesap->redefine(_qesap_get_paths => sub {
             my (%args) = @_;
             my $deploy = $args{deployment_dir} // '/BRUCE';
+            (my $ver_dir = $deploy) =~ s{/qe-sap-deployment$}{};
             return (
                 deployment_dir => $deploy,
                 terraform_dir => $deploy . '/terraform',
+                venv_dir => $ver_dir . '/exec_venv',
                 roles_dir => '/BRUCE_ROLES',
                 roles_dir_path => '/BRUCE_ROLES/roles',
             );
@@ -380,9 +468,11 @@ subtest '[qesap_cache_releases] bakes venv per version' => sub {
     $qesap->redefine(_qesap_get_paths => sub {
             my (%args) = @_;
             my $deploy = $args{deployment_dir} // '/BRUCE';
+            (my $ver_dir = $deploy) =~ s{/qe-sap-deployment$}{};
             return (
                 deployment_dir => $deploy,
                 terraform_dir => $deploy . '/terraform',
+                venv_dir => $ver_dir . '/exec_venv',
                 roles_dir => '/BRUCE_ROLES',
                 roles_dir_path => '/BRUCE_ROLES/roles',
             );
@@ -461,6 +551,7 @@ subtest '[qesap_execute] simple call integrate _qesap_venv_cmd_exec' => sub {
     $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
+            $paths{venv_dir} = '/BRUCE_VENV';
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
             return (%paths);
     });
@@ -479,11 +570,8 @@ subtest '[qesap_execute] simple call integrate _qesap_venv_cmd_exec' => sub {
     ok((any { /.*qesap\.py.*tee.*\/tmp\/WALLABY_STREET/ } @calls), 'qesap.py log redirection is fine');
 
     # venv activate/deactivate
-    ok((any { /.*activate/ } @calls), 'virtual environment activated');
+    ok((any { /source \/BRUCE_VENV\/bin\/activate/ } @calls), 'virtual environment from paths is activated');
     ok((any { /.*deactivate/ } @calls), 'virtual environment deactivated');
-
-    # redirect log to file
-    ok((any { /.*qesap\.py.*tee.*\/tmp\/WALLABY_STREET/ } @calls), 'qesap.py log redirection is fine');
 
     ok $res[0] == $expected_res;
 };
@@ -525,6 +613,7 @@ subtest '[qesap_execute] invalid timeout' => sub {
     $qesap->redefine(_qesap_get_file_paths => sub {
             my %paths;
             $paths{deployment_dir} = '/BRUCE';
+            $paths{venv_dir} = '/BRUCE_VENV';
             $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
             return (%paths);
     });
@@ -915,6 +1004,57 @@ subtest '[qesap_wait_for_ssh] timeout' => sub {
     ok($duration == -1, 'If fails it returns -1');
 };
 
+subtest '[qesap_cluster_logs] log collection runs in the deployment venv' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @exec_calls;
+
+    # _qesap_ansible_collect_logs() and _qesap_get_paths() are not mocked: the venv
+    # has to come from the deployment folder on its own. A missing venv argument
+    # shows up in the assertions below instead of dying inside the real
+    # _qesap_venv_cmd_exec().
+    $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(script_run => sub { return 0; });
+    $qesap->noop('_qesap_ansible_get_playbook');
+    $qesap->redefine(_qesap_venv_cmd_exec => sub {
+            my (%args) = @_;
+            push @exec_calls, {%args};
+            return 0; });
+    $qesap->redefine(qesap_ansible_fetch_file => sub {
+            my (%args) = @_;
+            return '/tmp/ansible_script_output/' . $args{file}; });
+    $qesap->noop('upload_logs');
+    $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
+    $qesap->redefine(qesap_save_y2logs => sub { return 0; });
+    $qesap->redefine(qesap_az_diagnostic_log => sub { return (); });
+    $qesap->noop('qesap_upload_logs');
+
+    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+
+    # Deployment code outside the cache: the venv sits next to QESAP_DEPLOYMENT_DIR
+    set_var('QESAP_INSTALL_VERSION', undef);
+    qesap_cluster_logs();
+
+    my @collect_calls = grep { ($_->{cmd} // '') =~ /collect_logs\.yaml/ } @exec_calls;
+    my @reach_calls = grep { ($_->{cmd} // '') =~ /-m ping/ } @exec_calls;
+    is_deeply([map { $_->{venv} } @collect_calls], ['/root/exec_venv', '/root/exec_venv'],
+        'log collection uses the venv next to the deployment folder');
+    is_deeply([map { $_->{venv} } @reach_calls], ['/root/exec_venv', '/root/exec_venv'],
+        'reachability checks use the venv next to the deployment folder');
+
+    # Cache hit: the venv is the one baked into the cached release
+    @exec_calls = ();
+    set_var('QESAP_INSTALL_VERSION', '2.6.15');
+    qesap_cluster_logs();
+    set_var('QESAP_INSTALL_VERSION', undef);
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    @collect_calls = grep { ($_->{cmd} // '') =~ /collect_logs\.yaml/ } @exec_calls;
+    is_deeply([map { $_->{venv} } @collect_calls],
+        ['/root/qesap_cache/2.6.15/exec_venv', '/root/qesap_cache/2.6.15/exec_venv'],
+        'log collection uses the venv baked in the cache');
+};
+
 subtest '[qesap_cluster_logs] collects one tarball per host' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @exec_calls;
@@ -925,7 +1065,7 @@ subtest '[qesap_cluster_logs] collects one tarball per host' => sub {
     $qesap->redefine(qesap_get_inventory => sub { return '/BERMUDAS/TRIANGLE'; });
     $qesap->redefine(script_run => sub { return 0; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(_qesap_ansible_get_playbook => sub { return; });
+    $qesap->noop('_qesap_ansible_get_playbook');
     $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @exec_calls, $args{cmd};
@@ -941,7 +1081,7 @@ subtest '[qesap_cluster_logs] collects one tarball per host' => sub {
             return 0; });
     $qesap->redefine(qesap_save_y2logs => sub { return 0; });
     $qesap->redefine(qesap_az_diagnostic_log => sub { return (); });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->noop('qesap_upload_logs');
 
     set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
     qesap_cluster_logs();
@@ -1048,6 +1188,7 @@ subtest '[qesap_upload_crm_report] ansible host query' => sub {
 subtest '[qesap_supportconfig_logs]' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
+    my @venvs;
     my $upload_log_called = 0;
 
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
@@ -1063,6 +1204,7 @@ subtest '[qesap_supportconfig_logs]' => sub {
     $qesap->redefine(_qesap_venv_cmd_exec => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
+            push @venvs, $args{venv};
             return 0; });
 
     qesap_supportconfig_logs(provider => 'SAND');
@@ -1071,6 +1213,7 @@ subtest '[qesap_supportconfig_logs]' => sub {
     ok((any { /.*supportconfig \-R.*/ } @calls), 'supportconfig is called');
     ok((any { /.*\/var\/tmp.*vmhana01.*supportconfig/ } @calls), 'supportconfig log file has the vmhana01 node name in it');
     ok((any { /.*\/var\/tmp.*vmhana02.*supportconfig/ } @calls), 'supportconfig log file has the vmhana02 node name in it');
+    is_deeply(\@venvs, ['/root/exec_venv', '/root/exec_venv'], 'Reachability checks use the venv next to the default deployment folder');
     ok($upload_log_called eq 1), 'upload_log called';
 };
 
@@ -1128,8 +1271,7 @@ subtest '[qesap_prepare_env] integration test' => sub {
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'DENTIST'; });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(upload_logs => sub { return; });
-    $qesap->redefine(file_content_replace => sub { return; });
+    $qesap->noop(qw(upload_logs file_content_replace));
 
     my %variables = (SOMETHING => 'TEST');
     qesap_prepare_env(provider => 'DONALDUCK', openqa_variables => \%variables);
@@ -1139,6 +1281,9 @@ subtest '[qesap_prepare_env] integration test' => sub {
     ok((any { /git.*clone.*github.*com\/SUSE\/qe-sap-deployment.*\/root\/qe-sap-deployment/ } @calls), 'Clones deployment code');
     ok((any { /git.*clone.*github.*com\/sap-linuxlab\/community\.sles-for-sap.*\/root\/community.sles-for-sap/ } @calls), 'Clones roles code');
     ok((any { /qesap\.py.*-c \/root\/qe-sap-deployment\/scripts\/qesap\/MARLIN -b \/root\/qe-sap-deployment configure/ } @calls), 'Runs qesap.py configure');
+    ok((any { /python3\.11 -m venv \/root\/exec_venv/ } @calls), 'Venv created next to the default deployment folder');
+    ok((any { /source \/root\/exec_venv\/bin\/activate/ } @calls), 'Commands run in that venv');
+    ok((none { /\/tmp\/exec_venv/ } @calls), 'The old /tmp/exec_venv path is not used any more');
 };
 
 subtest '[qesap_prepare_env]' => sub {
@@ -1156,7 +1301,7 @@ subtest '[qesap_prepare_env]' => sub {
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->noop('qesap_upload_logs');
 
     qesap_prepare_env(provider => 'DONALDUCK');
 
@@ -1186,7 +1331,7 @@ subtest '[qesap_prepare_env] openqa_variables' => sub {
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->noop('qesap_upload_logs');
 
     my %variables;
     qesap_prepare_env(openqa_variables => \%variables, provider => 'DONALDUCK');
@@ -1209,7 +1354,7 @@ subtest '[qesap_prepare_env] only_configure' => sub {
     my @calls;
     $qesap->redefine(script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->noop('qesap_upload_logs');
 
     qesap_prepare_env(provider => 'DONALDUCK', only_configure => 1);
     note("\n  C-->  " . join("\n  C-->  ", @calls));
@@ -1230,7 +1375,7 @@ subtest '[qesap_prepare_env] qesap_yaml_replace' => sub {
     $called_functions{file_content_replace} = 0;
     $qesap->redefine(file_content_replace => sub { $called_functions{file_content_replace} = 1; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->noop('qesap_upload_logs');
 
     qesap_prepare_env(provider => 'DONALDUCK', only_configure => 1);
 
@@ -1253,7 +1398,7 @@ subtest '[qesap_prepare_env] _qesap_create_folder_tree/_qesap_get_file_paths def
     $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->noop('qesap_upload_logs');
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
 
     qesap_prepare_env(provider => 'DONALDUCK');
@@ -1278,7 +1423,7 @@ subtest '[qesap_prepare_env] _qesap_create_folder_tree/_qesap_get_file_paths use
     $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->noop('qesap_upload_logs');
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
 
     set_var('QESAP_DEPLOYMENT_DIR', '/SUN');
@@ -1306,16 +1451,12 @@ sub create_qesap_prepare_env_mocks() {
             return (\%data);
     });
 
-    $qesap->redefine(_qesap_create_folder_tree => sub { return; });
-    $qesap->redefine(_qesap_get_deployment_code => sub { return; });
-    $qesap->redefine(qesap_get_roles_code => sub { return; });
-    $qesap->redefine(_qesap_pip_install => sub { return; });
+    $qesap->noop(qw(_qesap_create_folder_tree _qesap_get_deployment_code qesap_get_roles_code _qesap_pip_install));
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(_qesap_get_variables => sub { return; });
-    $qesap->redefine(qesap_yaml_replace => sub { return; });
+    $qesap->noop(qw(qesap_yaml_replace qesap_upload_logs));
     $qesap->redefine(qesap_execute => sub { return; });
     $qesap->redefine(script_run => sub { return 1; });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
     return $qesap;
 }
 
@@ -1652,12 +1793,7 @@ sub create_qesap_prepare_env_cache_mocks {
     $qesap->redefine(assert_script_run => sub { push @$calls, $_[0]; });
     $qesap->redefine(script_run => sub { push @$calls, $_[0]; return 0; });
     $qesap->redefine(_qesap_get_variables => sub { return {}; });
-    $qesap->redefine(_qesap_create_folder_tree => sub { return; });
-    $qesap->redefine(qesap_get_roles_code => sub { return; });
-    $qesap->redefine(_qesap_pip_install => sub { return; });
-    $qesap->redefine(_qesap_galaxy_install => sub { return; });
-    $qesap->redefine(qesap_yaml_replace => sub { return; });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
+    $qesap->noop(qw(_qesap_create_folder_tree qesap_get_roles_code _qesap_pip_install _qesap_galaxy_install qesap_yaml_replace qesap_upload_logs));
     $qesap->redefine(qesap_get_terraform_dir => sub { return '/BRUCE/OCEAN'; });
     $qesap->redefine(qesap_execute => sub { return (0, 'ALL GOOD'); });
     return $qesap;
