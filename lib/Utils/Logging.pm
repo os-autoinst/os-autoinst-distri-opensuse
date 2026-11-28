@@ -17,12 +17,12 @@ use strict;
 use warnings;
 use feature 'state';
 use testapi;
-use IO::Select;
 use JSON qw(decode_json);
 use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638 download_script);
 use Utils::Systemd 'get_started_systemd_services';
 use File::Basename 'basename';
 use Mojo::File 'path';
+use Time::HiRes qw(sleep);
 use serial_terminal qw(select_serial_terminal upload_file);
 use version_utils qw(is_tumbleweed is_transactional);
 use network_utils;
@@ -155,35 +155,30 @@ sub save_ulog {
 
 read_ulog($filename, wait = 0)
 
-Reads a file saved in ulogs directory of the worker running isotovideo.
-
-Due to a race condition with the command_server in isotovideo, it can wait and poll the filesystem
-until the file is created, up to 5 times for 0.5 seconds each time.
+Reads a file saved in ulogs directory of the worker running isotovideo and returns it as a C<Mojo::File>.
+C</uploadlog/#filename> stores the upload before it answers, but a command that C<enter_cmd> typed can still be
+running on the SUT when the test reads the file, so with C<$wait> poll for it for up to C<READ_ULOG_TIMEOUT>
+seconds, the same bound C<upload_logs> uses. A caller that uploads under the same file name repeatedly must remove
+the previous file first, otherwise the poll returns the stale content.
 
 =cut
 
 use constant {
-    READ_ULOG_POLL_TIMES => 5,
-    READ_ULOG_POLL_WAIT => 0.5
+    READ_ULOG_POLL_INTERVAL => 0.5,
+    READ_ULOG_TIMEOUT => 90,
 };
 
 sub read_ulog {
     my ($filename, $wait) = @_;
-    $wait //= 0;
-
     my $file = path("ulogs/$filename");
-    for my $times (1 .. ($wait ? READ_ULOG_POLL_TIMES : 1)) {
-        eval { $file->stat or die "$file does not exist yet"; };
-        if ($wait) {
-            sleep READ_ULOG_POLL_WAIT;
-            IO::Select::select undef, undef, undef, READ_ULOG_POLL_WAIT;
-            diag "Waiting for $filename to exist";
-        }
-        return $file unless $@;
-        diag "File does not exist yet: $@";
-        diag $_ for path($file->dirname)->list_tree->each;
+    return $file if !$wait || -e $file;
+
+    diag "Waiting up to " . READ_ULOG_TIMEOUT . " seconds for $file";
+    for (1 .. READ_ULOG_TIMEOUT / READ_ULOG_POLL_INTERVAL) {
+        sleep READ_ULOG_POLL_INTERVAL;
+        return $file if -e $file;
     }
-    die "Giving up reading $filename after " . ($wait ? READ_ULOG_POLL_TIMES : 1) . " tries";
+    die "Gave up reading $file after " . READ_ULOG_TIMEOUT . " seconds";
 }
 
 =head2 export_healthcheck_basic

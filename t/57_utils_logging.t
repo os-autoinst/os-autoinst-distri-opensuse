@@ -45,13 +45,15 @@ subtest 'read_ulog' => sub {
     is read_ulog('early-log', 1)->slurp, 'early-content', 'content of an already uploaded file without polling';
 
     my @polls;
-    my $io_select = Test::MockModule->new('IO::Select');
-    $io_select->redefine(select => sub { push @polls, 1; $tmp->child('ulogs/late-log')->spew('late-content') });
+    $log->redefine(sleep => sub { push @polls, 1; $tmp->child('ulogs/late-log')->spew('late-content') });
     is read_ulog('late-log', 1)->slurp, 'late-content', 'content of a file that appears while waiting';
+    is scalar @polls, 1, 'polls once for a file that appears immediately';
 
-    $io_select->redefine(select => sub { });
-    throws_ok { read_ulog('missing-log', 1) } qr/Giving up reading missing-log after 5 tries/,
+    @polls = ();
+    $log->redefine(sleep => sub { push @polls, 1 });
+    throws_ok { read_ulog('missing-log', 1) } qr/Gave up reading ulogs\/missing-log after 90 seconds/,
       'dies when the file does not appear in time';
+    is scalar @polls, 180, 'polls for the whole 90 seconds';
 };
 
 chdir $orig;
