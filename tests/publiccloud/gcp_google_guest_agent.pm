@@ -24,6 +24,9 @@ sub run {
     assert_script_run(q(echo -e '[InstanceSetup]\nnetwork_enabled = false' > /etc/default/instance_configs.cfg));
     assert_script_run('sudo systemctl restart google-guest-agent');
     validate_script_output('sudo journalctl -u google-guest-agent', qr/network_enabled is false, skipping setup actions/);
+
+    # Confirm availability of the fallback agent
+    validate_script_output('sudo zypper if google-guest-agent-fallback', qr/up-to-date/);
 }
 
 1;
