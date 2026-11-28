@@ -2146,7 +2146,8 @@ sub config_guest_unattended_installation {
         else {
             assert_script_run("sed -ri \'/##Secure-Boot##/d;\' $self->{guest_installation_automation_file}");
         }
-        my $_boot_loader = (($self->{guest_boot_settings} =~ /uefi|ovmf/im) ? 'grub2-efi' : 'grub2');
+
+        my $_boot_loader = (($self->{guest_version_major} ge 16 and $self->{guest_version_minor} ge 2) ? 'systemd-boot' : (($self->{guest_boot_settings} =~ /uefi|ovmf/im) ? 'grub2-efi' : 'grub2'));
         assert_script_run("sed -ri \'s/##Boot-Loader-Type##/$_boot_loader/g;\' $self->{guest_installation_automation_file}");
         my $_disk_label = (($self->{guest_storage_label} eq 'gpt') ? 'gpt' : 'msdos');
         assert_script_run("sed -ri \'s/##Disk-Label##/$_disk_label/g;\' $self->{guest_installation_automation_file}");
@@ -2572,7 +2573,7 @@ sub monitor_guest_installation {
 
     $self->reveal_myself;
     save_screenshot;
-    if (!(check_screen([qw(autoyast-packages-being-installed agama-installer-live-root text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 linux-login text-login guest-console-text-login emergency-mode)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
+    if (!(check_screen([qw(autoyast-packages-being-installed agama-installer-live-root text-logged-in-root guest-installation-in-progress guest-installation-failures systemd-boot grub2 linux-login text-login guest-console-text-login emergency-mode)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
         save_screenshot;
         record_info("Can not detect any interested screens on guest $self->{guest_name} installation process", "Going to detach current screen anyway");
         $self->detach_guest_installation_screen;
@@ -2627,7 +2628,7 @@ sub monitor_guest_installation {
             $self->record_guest_installation_result('FAILED');
         }
     }
-    elsif (match_has_tag('grub2')) {
+    elsif (match_has_tag('grub2') or match_has_tag('systemd-boot')) {
         save_screenshot;
         diag("Guest $self->{guest_name} installation finished and is about to boot up. Will check later.");
     }

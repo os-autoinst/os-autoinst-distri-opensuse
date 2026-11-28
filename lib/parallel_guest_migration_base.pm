@@ -999,7 +999,10 @@ sub config_guest_console {
                 last;
             }
         }
-        $_temp |= script_run("virt-edit $_uri -d $_guest -m $_guest_device /boot/grub2/grub.cfg -e \"s/\$/ console=tty console=$_guest_console,115200/ if /.*(linux|kernel).*\\\/boot\\\/(vmlinuz|image).*\$/i\"");
+        my $_bootloader_conf = (script_run("virt-ls $_uri -d $_guest /boot/grub2/grub.cfg") ? '/etc/kernel/cmdline' : '/boot/grub2/grub.cfg');
+        my $_config_console_cmd = "virt-edit $_uri -d $_guest -m $_guest_device $_bootloader_conf -e \"s/\$/ console=tty console=$_guest_console,115200/";
+        $_config_console_cmd .= " if /.*(linux|kernel).*\\\/boot\\\/(vmlinuz|image).*\$/i\"" if ($_bootloader_conf eq '/etc/kernel/cmdline');
+        $_temp |= script_run($_config_console_cmd);
         $_ret |= $_temp;
         save_screenshot;
         record_info("Guest $_guest console config failed", "Failed to configure console $_guest_device for guest $_guest", result => 'fail') if ($_temp != 0);

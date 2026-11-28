@@ -59,7 +59,7 @@ sub verify_system {
     my $self = shift;
 
     record_info("OS release", script_output("cat /etc/os-release"));
-    record_info("Grub config", script_output("cat /boot/grub2/grub.cfg"));
+    record_info("Grub config", script_output("cat /boot/grub2/grub.cfg || cat /etc/kernel/cmdline"));
     my %osinfo = script_output("cat /etc/os-release") =~ /^([^#]\S+)="?([^"\r\n]+)"?$/gm;
     %osinfo = map { uc($_) => $osinfo{$_} } keys %osinfo;
 
