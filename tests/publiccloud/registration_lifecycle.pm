@@ -113,6 +113,18 @@ sub run {
         }
     }
 
+    # QAM pre-patch run 1. Target is minimal: leave the instance registered so
+    # patch_and_reboot can install the MU.
+    if (check_var('PUBLIC_CLOUD_QAM', 1) && $run_count == 1) {
+        if (is_byos()) {
+            rotate_cloudregister_log($instance);
+            new_registration($instance);
+        }
+        register_addons_in_pc($instance);
+        set_var('PUBLIC_CLOUD_CHECK_CLOUDREGISTER_EXECUTED', '1');
+        return;
+    }
+
     rotate_cloudregister_log($instance);
     cleanup_instance($instance);
     # It might take a bit for the system to remove the repositories
@@ -274,13 +286,17 @@ sub post_fail_hook {
 sub test_flags {
     if (check_var('PUBLIC_CLOUD_QAM', 1)) {
         if ($run_count == 1) {
-            # If we are in multi module scenario and this is the first run of the test module we wanna not fail the whole run
+            # Run 1 is a pre-patch baseline: registration runs against the
+            # cloud-regionsrv-client version baked into the cloud image at publish
+            # time. Non-fatal so the job continues to patch_and_reboot.
+            # A failure here is not a regression caused by the maintenance update under test.
             return {fatal => 0};
         }
-        # If we are in multi module scenario and this is not the first run of this test module we wanna fail the whole run
+        # Run 2 tests registration with the newly installed maintenance update package.
+        # Fatal: failure here means the MU introduced a regression.
         return {fatal => 1};
     }
-    # If we are not in multi module scenario it is always the first run and we wanna run basetest cleanup
+    # Single run against a fresh image — registration failure is always fatal.
     return {fatal => 1};
 }
 
