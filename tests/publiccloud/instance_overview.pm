@@ -38,7 +38,13 @@ sub run {
     my $ip_color = (is_sle('>=15-SP3')) ? '-c=never' : '';
     $instance->ssh_assert_script_run("ip $ip_color a s && ip $ip_color r s && ip $ip_color -6 r s");
 
-    $instance->ssh_script_retry("cat /etc/hosts /etc/resolv.conf", retry => 10, delay => 12);    # /etc/resolv.conf might take some time to show up
+    # /etc/resolv.conf might take some time to show up
+    my $rc = $instance->ssh_script_retry(
+        'cat /etc/hosts /etc/resolv.conf',
+        retry => 10, delay => 12, die => !check_var('PUBLIC_CLOUD_SLES4SAP', '1'));
+    # softfail for SAP jobs that do not require /etc/resolv.conf
+    record_soft_failure('bsc#1283089: Could not read /etc/hosts /etc/resolv.conf')
+        if check_var('PUBLIC_CLOUD_SLES4SAP', '1') && (!defined($rc) || $rc != 0);
 
     $instance->ssh_assert_script_run("lsblk");
 
