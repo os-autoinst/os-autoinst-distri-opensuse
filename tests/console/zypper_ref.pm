@@ -22,6 +22,10 @@ sub run {
 
     zypper_enable_install_dvd;
     zypper_call '--gpg-auto-import-keys ref';
+    record_info('Test ZYPP_MEDIANETWORK=1');
+    assert_script_run 'export ZYPP_MEDIANETWORK=1';
+    zypper_call '--gpg-auto-import-keys ref';
+    assert_script_run 'unset ZYPP_MEDIANETWORK';
 }
 
 sub test_flags {
