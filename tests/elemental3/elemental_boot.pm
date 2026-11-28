@@ -10,7 +10,34 @@ use lockapi;
 use mm_network qw(configure_hostname setup_static_mm_network);
 use power_action_utils qw(power_action);
 use serial_terminal qw(select_serial_terminal);
-use utils qw(validate_script_output_retry);
+use utils qw(script_retry validate_script_output_retry);
+
+# Wait for a pattern on the serial0 output (kernel console ttyS0), and stop
+# if emergency mode shows on the screen. This reads serial0 only while the
+# current console is not a serial terminal (for example 'sut').
+# The serial buffer is cleared at module start and a failed wait does not move
+# the read offset, so output printed before the call is still found.
+sub wait_serial_or_emergency {
+    my ($regexp, $what, $deadline) = @_;
+    while (1) {
+        return if wait_serial($regexp, timeout => 10, quiet => 1);
+        die "Emergency mode detected while waiting for $what" if check_screen([qw(emergency-mode emergency-shell)], 1);
+        die "Timeout waiting for $what" if time > $deadline;
+    }
+}
+
+# Wait until the installed OS is running. The installer root password is not
+# TEST_PASSWORD, so a serial login on the installer fails with 'Login incorrect'.
+# Wait for the installer to reboot and for the login prompt of the installed OS,
+# then log in and check the tag file written by the customization script.
+sub wait_os_installed {
+    my $deadline = time + bmwqemu::scale_timeout(900);
+    wait_serial_or_emergency(qr/reboot: Restarting system/, 'the installer to reboot', $deadline);
+    wait_serial_or_emergency(qr/login:/, 'the installed OS login prompt', $deadline);
+
+    select_serial_terminal();
+    script_retry('test -f /run/os-installed.tag', retry => 30, delay => 10, fail_message => 'Tag /run/os-installed.tag not found');
+}
 
 sub run {
     my ($self) = @_;
@@ -35,22 +62,10 @@ sub run {
         assert_screen('grub-unifiedcore_installer', timeout => 120);
         wait_still_screen();
 
-        # Wait for the first automatic login screen
-        assert_screen('linux-login', timeout => 120);
-
-        # OS installation is done automatically as well as the reboot after installation
-        # Wait for the initial login screen to disappear when the reboot starts
-        my $start_time = time;
-        my $reboot_timeout = bmwqemu::scale_timeout(300);
-        while (check_screen('linux-login', 3)) {
-            die 'Timeout waiting for post-install reboot to start' if (time - $start_time) > $reboot_timeout;
-            wait_still_screen(stilltime => 2, timeout => 5);
-        }
-
-        # Wait for the VM to reboot and a login screen to appear
-        assert_screen([qw(linux-login emergency-mode emergency-shell)], timeout => bmwqemu::scale_timeout(300));
-        $self->handle_emergency_if_needed();
-        wait_still_screen();
+        # OS installation is done automatically as well as the reboot after installation.
+        # The installer and the installed OS show the same login screen, so the screen
+        # cannot tell them apart: wait for the installed OS tag instead
+        wait_os_installed();
     }
 
     # No GUI, easier and quicker to use the serial console
