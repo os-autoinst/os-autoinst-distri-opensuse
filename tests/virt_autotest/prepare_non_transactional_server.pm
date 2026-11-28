@@ -60,6 +60,10 @@ sub prepare_ground {
 sub prepare_console {
     my $self = shift;
 
+    select_console("root-ssh-virt");
+    $testapi::serialdev = "virtsshserial";
+    select_console("root-ssh");
+    $testapi::serialdev = "sshserial";
     select_backend_console(init => 0);
 }
 
