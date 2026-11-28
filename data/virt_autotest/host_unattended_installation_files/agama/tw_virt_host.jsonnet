@@ -38,6 +38,7 @@
       packages: [
         'openssh-server-config-rootlogin',
         'virt-bridge-setup',
+        'iptables'
       ]
   },
   scripts: {
