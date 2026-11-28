@@ -251,6 +251,7 @@ sub _get_graphical_console_tty {
         $tty = script_output('cat /tmp/vt_nr');
         assert_script_run("rm /tmp/vt_nr");
     } else {
+        unlink 'ulogs/xdgvtnr';    # an upload left behind by an earlier call would be read as is
         enter_cmd('curl --form upload=$XDG_VTNR\;filename=x ' . autoinst_url('/uploadlog/xdgvtnr') . ' && exit');
         my $file = read_ulog('xdgvtnr', 1);
         $tty = $file->slurp;

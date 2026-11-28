@@ -7,6 +7,7 @@ use testapi qw(set_var);
 use version_utils qw(is_sle is_leap);
 use x11utils qw(default_gui_terminal update_x11_vt);
 use Test::MockModule;
+use Cwd qw(getcwd);
 use File::Temp qw(tempdir);
 use Mojo::File qw(path);
 
@@ -69,6 +70,22 @@ subtest '_get_graphical_console_tty' => sub {
     is x11utils::_get_graphical_console_tty(0), "9\n", 'reads the uploaded VT in online mode';
     like $cmds[-1], qr{uploadlog/xdgvtnr}, 'uploads the VT in online mode';
     ok !-e $upload, 'removes the upload';
+
+    my $cwd = getcwd;
+    my $dir = tempdir(CLEANUP => 1);
+    chdir $dir or die "chdir $dir: $!";
+    path('ulogs')->make_path;
+    path('ulogs/xdgvtnr')->spew("5\n");
+    my $fresh = path($dir, 'xdgvtnr')->spew("6\n");
+    my $stale_removed;
+    $x11->redefine(enter_cmd => sub { $stale_removed = !-e 'ulogs/xdgvtnr' });
+    $x11->redefine(read_ulog => sub { $fresh });
+    my $tty = eval { x11utils::_get_graphical_console_tty(0) };
+    my $error = $@;
+    chdir $cwd or die "chdir $cwd: $!";
+    die $error if $error;
+    is $tty, "6\n", 'reads the upload instead of the file of a previous call';
+    ok $stale_removed, 'removes the upload of a previous call before uploading again';
 };
 
 subtest 'update_x11_vt' => sub {
