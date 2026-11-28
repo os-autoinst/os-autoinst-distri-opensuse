@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Exception;
 use Test::MockModule;
 use Test::Warnings;
 use Mojo::File qw(tempdir);
@@ -34,6 +35,25 @@ subtest 'instance' => sub {
     like $i[0], qr/LC_ALL=C sort/, 'ssh command';
     is $i[1], '/tmp/sut_packages.txt|sut_packages.txt', 'upload_log';
     ok -e 'sut_packages.txt', 'moved';
+};
+
+subtest 'read_ulog' => sub {
+    $tmp->child('ulogs/early-log')->spew('early-content');
+    $log->redefine(diag => sub { });
+
+    is read_ulog('early-log')->slurp, 'early-content', 'content of an already uploaded file';
+    is read_ulog('early-log', 1)->slurp, 'early-content', 'content of an already uploaded file without polling';
+
+    my @polls;
+    $log->redefine(sleep => sub { push @polls, 1; $tmp->child('ulogs/late-log')->spew('late-content') });
+    is read_ulog('late-log', 1)->slurp, 'late-content', 'content of a file that appears while waiting';
+    is scalar @polls, 1, 'polls once for a file that appears immediately';
+
+    @polls = ();
+    $log->redefine(sleep => sub { push @polls, 1 });
+    throws_ok { read_ulog('missing-log', 1) } qr/Gave up reading ulogs\/missing-log after 90 seconds/,
+      'dies when the file does not appear in time';
+    is scalar @polls, 180, 'polls for the whole 90 seconds';
 };
 
 chdir $orig;

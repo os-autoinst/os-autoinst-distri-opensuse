@@ -22,6 +22,7 @@ use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638 do
 use Utils::Systemd 'get_started_systemd_services';
 use File::Basename 'basename';
 use Mojo::File 'path';
+use Time::HiRes qw(sleep);
 use serial_terminal qw(select_serial_terminal upload_file);
 use version_utils qw(is_tumbleweed is_transactional);
 use network_utils;
@@ -31,6 +32,7 @@ our @EXPORT = qw(
   tar_and_upload_log
   save_and_upload_systemd_unit_log
   save_ulog
+  read_ulog
   export_healthcheck_basic
   select_log_console
   cleanup_known_coredumps
@@ -147,6 +149,36 @@ sub save_ulog {
     my ($out, $filename) = @_;
     mkdir('ulogs') if (!-d 'ulogs');
     path("ulogs/$filename")->spew($out);    # save the logs to the ulogs directory on the worker directly
+}
+
+=head2 read_ulog
+
+read_ulog($filename, wait = 0)
+
+Reads a file saved in ulogs directory of the worker running isotovideo and returns it as a C<Mojo::File>.
+C</uploadlog/#filename> stores the upload before it answers, but a command that C<enter_cmd> typed can still be
+running on the SUT when the test reads the file, so with C<$wait> poll for it for up to C<READ_ULOG_TIMEOUT>
+seconds, the same bound C<upload_logs> uses. A caller that uploads under the same file name repeatedly must remove
+the previous file first, otherwise the poll returns the stale content.
+
+=cut
+
+use constant {
+    READ_ULOG_POLL_INTERVAL => 0.5,
+    READ_ULOG_TIMEOUT => 90,
+};
+
+sub read_ulog {
+    my ($filename, $wait) = @_;
+    my $file = path("ulogs/$filename");
+    return $file if !$wait || -e $file;
+
+    diag "Waiting up to " . READ_ULOG_TIMEOUT . " seconds for $file";
+    for (1 .. READ_ULOG_TIMEOUT / READ_ULOG_POLL_INTERVAL) {
+        sleep READ_ULOG_POLL_INTERVAL;
+        return $file if -e $file;
+    }
+    die "Gave up reading $file after " . READ_ULOG_TIMEOUT . " seconds";
 }
 
 =head2 export_healthcheck_basic
