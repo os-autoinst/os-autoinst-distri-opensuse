@@ -41,7 +41,7 @@ use utils qw(write_sut_file);
 use package_utils;
 use bootloader_setup qw(add_grub_cmdline_settings grub_mkconfig);
 use power_action_utils 'power_action';
-use virt_autotest::sev_snp_utils qw(SNP_HOST_TOOLS SNP_GUEST_TOOLS);
+use virt_autotest::sev_snp_utils qw(SNP_HOST_TOOLS SNP_GUEST_TOOLS activate_coco_module_if_needed);
 
 # Define constants for SNP verification
 use constant {
@@ -159,8 +159,7 @@ sub check_sev_snp_on_host {
         die "SEV-SNP verification requires SLE 15-SP7 or SLE 16+ for host. Test cannot continue on unsupported OS version.";
     }
 
-    # Activate Confidential Computing module if needed
-    $self->activate_coco_module();
+    activate_coco_module_if_needed();
 
     # Install packages before kernel parameter configuration so the reboot also loads new microcode
     # (configure_sev_snp_kernel_parameters triggers a reboot when parameters are missing)
@@ -225,38 +224,6 @@ sub display_system_info {
 
     record_info('BIOS Information', script_output("dmidecode -t bios", proceed_on_failure => 1));
     record_info('System Information', script_output("dmidecode -t system", proceed_on_failure => 1));
-    return $self;
-}
-
-=head2 activate_coco_module
-
-  activate_coco_module($self)
-
-Activates the Confidential Computing module on SLES 15-SP7 systems.
-This module is required for SEV-SNP support on SLES 15-SP7.
-The function uses suseconnect to activate the module.
-
-Note: SLES 15-SP6 SEV-SNP support was in Technology Preview (TP) phase and is not supported as host.
-
-=cut
-
-sub activate_coco_module {
-    my $self = shift;
-
-    # Only needed for SLES 15-SP7 (SLES 15-SP6 not supported as host - was TP only)
-    if (is_sle('=15-sp7')) {
-        record_info('Activating COCO module', "Activating Confidential Computing module for SLES 15.7");
-
-        my $module_path = "sle-module-confidential-computing/15.7/x86_64";
-        my $ret = script_run("suseconnect -p $module_path");
-        if ($ret != 0) {
-            record_info('Module activation failed', 'Failed to activate Confidential Computing module. This is required for SEV-SNP support.', result => 'fail');
-            die "SEV-SNP verification requires Confidential Computing module. Test cannot continue without this module activated.";
-        } else {
-            record_info('Module activated', "Successfully activated Confidential Computing module for SLES 15.7");
-        }
-    }
-
     return $self;
 }
 
